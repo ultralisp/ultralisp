@@ -1,0 +1,7 @@
+/libssl.dylib
+/projects.txt
+/src/#builder.lisp#
+/quickdist/
+/quicklisp/
+/ultralisp-dist/
+/ultralisp-projects/
