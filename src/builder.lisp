@@ -1,9 +1,8 @@
 (defpackage #:ultralisp/builder
   (:use #:cl)
   (:import-from #:local-time
-                #:format-timestring
-                #:+rfc3339-format/date-only+
-                #:today)
+                #:now
+                #:format-timestring)
   (:import-from #:quickdist
                 #:quickdist)
   (:import-from #:ultralisp/downloader
@@ -15,20 +14,21 @@
 
 (defun get-new-version-number ()
   (format-timestring nil
-                     (today)
-                     :format +rfc3339-format/date-only+))
+                     (now)
+                     :format '((:year 4) (:month 2) (:day 2) #\-
+                               (:hour 2) (:min 2) (:sec 2))))
 
 
 (defun build (&key (projects-metadata-path "projects.txt")
-                (projects-dir "ultralisp-projects/")
+                (projects-dir "build/sources/")
                 (name "ultralisp")
                 (base-url "http://dist.ultralisp.org/")
-                (dists-dir "ultralisp-dist/"))
+                (dist-dir "build/dist/"))
   (download projects-metadata-path
             projects-dir)
   (quickdist :name name
              :base-url base-url
              :projects-dir projects-dir
-             :dists-dir dists-dir
+             :dists-dir dist-dir
              :version (get-new-version-number)))
 

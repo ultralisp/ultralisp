@@ -44,13 +44,14 @@
     (walk-directory absolute-dir
                     (lambda (item)
                       (let* ((path (path-to-string item))
-                             (relative-path (subseq path base-dir-length)))
-                        (log:info "Uploading" relative-path)
-                        (put-object item
-                                    "dist.ultralisp.org"
-                                    (if to
+                             (relative-path (subseq path base-dir-length))
+                             (key (if to
                                         (concatenate 'string
                                                      (string-right-trim "/" to)
                                                      "/"
                                                      relative-path)
-                                        relative-path)))))))
+                                        relative-path)))
+                        (log:info "Uploading" relative-path)
+                        (put-object item
+                                    "dist.ultralisp.org"
+                                    key))))))

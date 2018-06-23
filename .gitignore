@@ -1,7 +1,7 @@
 /libssl.dylib
-/projects.txt
+/projects/
 /src/#builder.lisp#
 /quickdist/
 /quicklisp/
-/ultralisp-dist/
-/ultralisp-projects/
+/build/
+/roswell/ultralisp
