@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/downloader
   (:use #:cl)
+  
   (:import-from #:legit)
+  (:import-from #:log4cl)
   (:import-from #:ultralisp/metadata
                 #:metadata
                 #:read-metadata)
@@ -11,19 +13,6 @@
   (:export
    #:download))
 (in-package ultralisp/downloader)
-
-
-(defgeneric download (obj dir)
-  (:documentation "Downloads something into the given directory.
-                   Usually, object will be a metadata holding description of a project."))
-
-
-(defgeneric make-downloader (source)
-  (:documentation "This generic should return a funcallable object which accepts
-                   two parameter: urn and directory. This fancallable should fetch
-                   project's sources and put them into the source directory.
-
-                   Input argument `source' is a keyword from `source' slot of the metadata object."))
 
 
 (defun ensure-existing-file (path)
@@ -37,6 +26,39 @@
    (ensure-absolute-pathname
     path
     (probe-file "."))))
+
+
+(defun directory-mtime (path)
+  (if (not (fad:directory-pathname-p path))
+      (file-write-date path)
+      (apply #'max 0 (mapcar #'directory-mtime (fad:list-directory path)))))
+
+
+(defun git-mtime (path)
+  (when (probe-file (merge-pathnames ".git/" path))
+    (let ((repo (legit:init path)))
+      (legit:current-age repo))))
+
+
+(defun quickdist::effective-mtime (path)
+  (setf path
+        (ensure-absolute-dirname path))
+  
+  (or (git-mtime path)
+      (directory-mtime path)))
+
+
+(defgeneric download (obj dir)
+  (:documentation "Downloads something into the given directory.
+                   Usually, object will be a metadata holding description of a project."))
+
+
+(defgeneric make-downloader (source)
+  (:documentation "This generic should return a funcallable object which accepts
+                   two parameter: urn and directory. This fancallable should fetch
+                   project's sources and put them into the source directory.
+
+                   Input argument `source' is a keyword from `source' slot of the metadata object."))
 
 
 (defmethod download ((projects-metadata-path string) projects-dir)

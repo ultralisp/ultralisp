@@ -10,6 +10,8 @@
 (in-package ultralisp/main)
 
 
-(defmain main ()
+(defmain main ((upload "Add this option to upload data to S3."
+                       :flag t))
   (build)
-  (upload :to "test-dist2"))
+  (when upload
+    (upload)))
