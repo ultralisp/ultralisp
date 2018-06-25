@@ -1,0 +1,68 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  ;;#+quicklisp (ql:quickload '() :silent t)
+  )
+
+(defpackage :ros.script.ultralisp-server
+  (:use :cl))
+(in-package :ros.script.ultralisp-server)
+
+(declaim (optimize (debug 3) (safety 3) (speed 1)))
+
+;; load system with all dependencies
+(asdf:load-system :app)
+(asdf:load-system :slynk)
+
+(defvar slynk:*use-dedicated-output-stream* nil)
+
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+
+  (log4cl-json:setup :level :debug)
+
+  (let ((slynk-port 4005)
+        (slynk-interface (app/utils:getenv "SLYNK_INTERFACE" "0.0.0.0"))
+        (interface (app/utils:getenv "INTERFACE" "0.0.0.0"))
+        (port (app/utils:getenv "PORT" 80))
+        (num-workers (app/utils:getenv "NUM_PROCESSES" 4))
+        (hostname (machine-instance))
+        (db-path (app/utils:getenv "DB_PATH" "/db/"))
+        (debug (when (app/utils:getenv "DEBUG")
+                 t))
+        (telegram-token (app/utils:getenv "TELEGRAM_TOKEN")))
+
+    (setf app/db::*default-db-path* db-path)
+    (setf app/telegram/bot::*token* telegram-token)
+    
+    (format t "Starting slynk server~%")
+
+    (slynk:create-server :dont-close t
+                         :port slynk-port
+                         :interface slynk-interface)
+
+    (app:read-env-vars)
+    
+    (app:start :port port
+               :interface interface
+               :debug debug)
+
+    (format t "To start HTTP server:~%")
+    (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
+            slynk-port
+            hostname)
+    (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
+    (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%"))
+
+  ;; теперь ждем вечно, пока кто-нибудь не присоединится
+  (do ()
+      (nil)
+    (format t "Waiting for slynk connection.~%")
+    (sleep 60))
+  
+  (format t "Exiting. Why? I don't know! This should never happen~%"))
