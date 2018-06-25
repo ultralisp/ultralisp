@@ -15,7 +15,7 @@ exec ros -Q -- $0 "$@"
 (declaim (optimize (debug 3) (safety 3) (speed 1)))
 
 ;; load system with all dependencies
-(asdf:load-system :app)
+(asdf:load-system :ultralisp/server)
 (asdf:load-system :slynk)
 
 (defvar slynk:*use-dedicated-output-stream* nil)
@@ -32,25 +32,20 @@ exec ros -Q -- $0 "$@"
         (port (app/utils:getenv "PORT" 80))
         (num-workers (app/utils:getenv "NUM_PROCESSES" 4))
         (hostname (machine-instance))
-        (db-path (app/utils:getenv "DB_PATH" "/db/"))
         (debug (when (app/utils:getenv "DEBUG")
-                 t))
-        (telegram-token (app/utils:getenv "TELEGRAM_TOKEN")))
+                 t)))
 
-    (setf app/db::*default-db-path* db-path)
-    (setf app/telegram/bot::*token* telegram-token)
-    
     (format t "Starting slynk server~%")
 
     (slynk:create-server :dont-close t
                          :port slynk-port
                          :interface slynk-interface)
 
-    (app:read-env-vars)
+    (ultralisp/server:read-env-vars)
     
-    (app:start :port port
-               :interface interface
-               :debug debug)
+    (ultralisp/server:start :port port
+                            :interface interface
+                            :debug debug)
 
     (format t "To start HTTP server:~%")
     (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
