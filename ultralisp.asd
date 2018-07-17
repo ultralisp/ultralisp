@@ -4,7 +4,8 @@
   :licence "BSD"
   :class :package-inferred-system
   :pathname "src"
-  :depends-on ("ultralisp/main")
+  :depends-on ("ultralisp/main"
+               :spinneret/cl-markdown)
   :perform (compile-op :before (o c)
                        #+ros.installing
                        (roswell:roswell '("install" "40ants/defmain"))))

@@ -1,4 +1,25 @@
 ("quicklisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:project-name "quicklisp" :%version :latest)
-  :version "2018-04-30"))
+  :version "2018-07-11"))
+("defmain" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "defmain" :repos "40ants/defmain" :ref nil :branch nil :tag nil)
+  :version "github-ea92efbceaa652a8acaa16751377fb689508c33a"
+  :repos "40ants/defmain"
+  :url "https://github.com/40ants/defmain/archive/ea92efbceaa652a8acaa16751377fb689508c33a.tar.gz"
+  :ref "ea92efbceaa652a8acaa16751377fb689508c33a"))
+("slynk" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "slynk" :repos "joaotavora/sly" :ref nil :branch nil :tag nil)
+  :version "github-cc0656cf705cbb493f255bc401f4d6aa32199422"
+  :repos "joaotavora/sly"
+  :url "https://github.com/joaotavora/sly/archive/cc0656cf705cbb493f255bc401f4d6aa32199422.tar.gz"
+  :ref "cc0656cf705cbb493f255bc401f4d6aa32199422"))
+("slynk-named-readtables" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
+  :version "github-df4ed79064cf85275804e201899b677bef4ab3f5"
+  :repos "joaotavora/sly-named-readtables"
+  :url "https://github.com/joaotavora/sly-named-readtables/archive/df4ed79064cf85275804e201899b677bef4ab3f5.tar.gz"
+  :ref "df4ed79064cf85275804e201899b677bef4ab3f5"))

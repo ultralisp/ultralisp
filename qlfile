@@ -4,3 +4,8 @@ ql :all :latest
 
 # github quickdist orivej/quickdist
 # github informatigo informatimago/lisp
+
+github defmain 40ants/defmain
+
+github slynk joaotavora/sly
+github slynk-named-readtables joaotavora/sly-named-readtables
