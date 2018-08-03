@@ -27,6 +27,8 @@
                 #:make-main-widget)
   (:import-from #:ultralisp/utils
                 #:getenv)
+  (:import-from #:ultralisp/webhook
+                #:make-webhook-route)
   (:export
    #:main))
 (in-package ultralisp/server)
@@ -131,18 +133,16 @@
                 ))))
 
 
-;; (defmethod initialize-instance ((app app) &rest args)
-;;   (declare (ignorable args))
-;;   (make-sitemap-route)
-;;   (make-robots-route)
-
-;;   (serve-static-file
-;;    "/favicon.png"
-;;    (asdf:system-relative-pathname :app "second-favicon.png"))
+(defmethod initialize-instance ((app app) &rest args)
+  (declare (ignorable args))
   
-;;   (call-next-method))
+  (make-webhook-route)
 
-
+  ;; (serve-static-file
+  ;;  "/favicon.png"
+  ;;  (asdf:system-relative-pathname :app "second-favicon.png"))
+  
+  (call-next-method))
 
 
 (defmethod on-error ((app app) condition)

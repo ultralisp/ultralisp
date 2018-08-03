@@ -19,7 +19,7 @@
                                (:hour 2) (:min 2) (:sec 2))))
 
 
-(defun build (&key (projects-metadata-path "projects.txt")
+(defun build (&key (projects-metadata-path "projects/projects.txt")
                 (projects-dir "build/sources/")
                 (name "ultralisp")
                 (base-url "http://dist.ultralisp.org/")

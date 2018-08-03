@@ -10,7 +10,7 @@ exec ros -Q -- $0 "$@"
   ;; load system with all dependencies
 
   #+quicklisp
-  (progn (ql:quickload :ultralisp/server))
+  (progn (ql:quickload :app))
   #-quicklisp
   (progn (asdf:load-system :ultralisp/server)))
 

@@ -9,13 +9,55 @@
   :repos "40ants/defmain"
   :url "https://github.com/40ants/defmain/archive/ea92efbceaa652a8acaa16751377fb689508c33a.tar.gz"
   :ref "ea92efbceaa652a8acaa16751377fb689508c33a"))
+("log4cl-json" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
+  :version "github-c4f786e252d89a45372186aaf32fb8e8736b444b"
+  :repos "40ants/log4cl-json"
+  :url "https://github.com/40ants/log4cl-json/archive/c4f786e252d89a45372186aaf32fb8e8736b444b.tar.gz"
+  :ref "c4f786e252d89a45372186aaf32fb8e8736b444b"))
+("weblocks" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch nil :tag "v0.31.1")
+  :version "github-0bbca8a4264df32b5571f4093c6a4cce9ed41617"
+  :repos "40ants/weblocks"
+  :url "https://github.com/40ants/weblocks/archive/0bbca8a4264df32b5571f4093c6a4cce9ed41617.tar.gz"
+  :ref "0bbca8a4264df32b5571f4093c6a4cce9ed41617"))
+("weblocks-ui" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "weblocks-ui" :repos "40ants/weblocks-ui" :ref nil :branch nil :tag "v0.7.1")
+  :version "github-4c91fbf72e4a0fb97b0506313d8fc4ed0def2523"
+  :repos "40ants/weblocks-ui"
+  :url "https://github.com/40ants/weblocks-ui/archive/4c91fbf72e4a0fb97b0506313d8fc4ed0def2523.tar.gz"
+  :ref "4c91fbf72e4a0fb97b0506313d8fc4ed0def2523"))
+("weblocks-parenscript" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "weblocks-parenscript" :repos "40ants/weblocks-parenscript" :ref nil :branch nil :tag "v0.3.0")
+  :version "github-8ef4ca2f837403a05c4e9b92dcf1c41771d16f17"
+  :repos "40ants/weblocks-parenscript"
+  :url "https://github.com/40ants/weblocks-parenscript/archive/8ef4ca2f837403a05c4e9b92dcf1c41771d16f17.tar.gz"
+  :ref "8ef4ca2f837403a05c4e9b92dcf1c41771d16f17"))
+("weblocks-lass" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "weblocks-lass" :repos "40ants/weblocks-lass" :ref nil :branch nil :tag "v0.2.0")
+  :version "github-1b043afbf2f3e84e495dfeae5e63fe67a435019f"
+  :repos "40ants/weblocks-lass"
+  :url "https://github.com/40ants/weblocks-lass/archive/1b043afbf2f3e84e495dfeae5e63fe67a435019f.tar.gz"
+  :ref "1b043afbf2f3e84e495dfeae5e63fe67a435019f"))
+("quickdist" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag nil)
+  :version "github-94c6a5582385033c0f73851dcf54d8bd867426c0"
+  :repos "ultralisp/quickdist"
+  :url "https://github.com/ultralisp/quickdist/archive/94c6a5582385033c0f73851dcf54d8bd867426c0.tar.gz"
+  :ref "94c6a5582385033c0f73851dcf54d8bd867426c0"))
 ("slynk" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk" :repos "joaotavora/sly" :ref nil :branch nil :tag nil)
-  :version "github-cc0656cf705cbb493f255bc401f4d6aa32199422"
+  :version "github-4b260fdda880f8287327c0c0055e2f18fd91201d"
   :repos "joaotavora/sly"
-  :url "https://github.com/joaotavora/sly/archive/cc0656cf705cbb493f255bc401f4d6aa32199422.tar.gz"
-  :ref "cc0656cf705cbb493f255bc401f4d6aa32199422"))
+  :url "https://github.com/joaotavora/sly/archive/4b260fdda880f8287327c0c0055e2f18fd91201d.tar.gz"
+  :ref "4b260fdda880f8287327c0c0055e2f18fd91201d"))
 ("slynk-named-readtables" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
