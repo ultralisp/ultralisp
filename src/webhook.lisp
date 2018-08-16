@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/webhook
   (:use #:cl)
   (:import-from #:ultralisp/builder)
+  (:import-from #:ultralisp/uploader)
   (:import-from #:weblocks/routes
                 #:serve
                 #:add-route
@@ -56,7 +57,10 @@
                                  ;; otherwize, will download all known projects
                                  projects-metadata-path)
      :projects-dir projects-dir
-     :dist-dir dist-dir)))
+     :dist-dir dist-dir)
+
+    ;; Now we'll upload a dist to the server
+    (ultralisp/uploader:upload :dir dist-dir)))
 
 
 (defun process-payload (payload)

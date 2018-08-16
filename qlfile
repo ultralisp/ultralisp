@@ -2,7 +2,7 @@ ql :all :latest
 
 github defmain 40ants/defmain
 github log4cl-json 40ants/log4cl-json
-github weblocks 40ants/weblocks :tag v0.31.1
+github weblocks 40ants/weblocks :tag v0.32.1
 github weblocks-ui 40ants/weblocks-ui :tag v0.7.1
 github weblocks-parenscript 40ants/weblocks-parenscript :tag v0.3.0
 github weblocks-lass 40ants/weblocks-lass :tag v0.2.0

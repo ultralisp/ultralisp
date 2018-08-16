@@ -37,9 +37,8 @@
 (defapp app
   :prefix "/"
   :description "The UltraLisp.org server."
-  :autostart nil                     ;; have to start the app manually
-  :debug t
-  :js-backend :jquery)
+  :autostart nil
+  :debug t)
 
 
 (defmethod weblocks/session:init ((app app))

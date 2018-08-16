@@ -18,11 +18,11 @@
   :ref "c4f786e252d89a45372186aaf32fb8e8736b444b"))
 ("weblocks" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch nil :tag "v0.31.1")
-  :version "github-0bbca8a4264df32b5571f4093c6a4cce9ed41617"
+  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch nil :tag "v0.32.1")
+  :version "github-6af7aa42de260d52079c1cea027ce29f88d8148c"
   :repos "40ants/weblocks"
-  :url "https://github.com/40ants/weblocks/archive/0bbca8a4264df32b5571f4093c6a4cce9ed41617.tar.gz"
-  :ref "0bbca8a4264df32b5571f4093c6a4cce9ed41617"))
+  :url "https://github.com/40ants/weblocks/archive/6af7aa42de260d52079c1cea027ce29f88d8148c.tar.gz"
+  :ref "6af7aa42de260d52079c1cea027ce29f88d8148c"))
 ("weblocks-ui" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "weblocks-ui" :repos "40ants/weblocks-ui" :ref nil :branch nil :tag "v0.7.1")
@@ -47,17 +47,17 @@
 ("quickdist" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag nil)
-  :version "github-94c6a5582385033c0f73851dcf54d8bd867426c0"
+  :version "github-a78a72daf448fee3982da6ff93202c01f485fe2d"
   :repos "ultralisp/quickdist"
-  :url "https://github.com/ultralisp/quickdist/archive/94c6a5582385033c0f73851dcf54d8bd867426c0.tar.gz"
-  :ref "94c6a5582385033c0f73851dcf54d8bd867426c0"))
+  :url "https://github.com/ultralisp/quickdist/archive/a78a72daf448fee3982da6ff93202c01f485fe2d.tar.gz"
+  :ref "a78a72daf448fee3982da6ff93202c01f485fe2d"))
 ("slynk" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk" :repos "joaotavora/sly" :ref nil :branch nil :tag nil)
-  :version "github-4b260fdda880f8287327c0c0055e2f18fd91201d"
+  :version "github-e006f57e0080a078188fc32adfe4ff300b29dae6"
   :repos "joaotavora/sly"
-  :url "https://github.com/joaotavora/sly/archive/4b260fdda880f8287327c0c0055e2f18fd91201d.tar.gz"
-  :ref "4b260fdda880f8287327c0c0055e2f18fd91201d"))
+  :url "https://github.com/joaotavora/sly/archive/e006f57e0080a078188fc32adfe4ff300b29dae6.tar.gz"
+  :ref "e006f57e0080a078188fc32adfe4ff300b29dae6"))
 ("slynk-named-readtables" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
