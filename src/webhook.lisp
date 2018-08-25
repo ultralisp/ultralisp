@@ -58,8 +58,8 @@
 
 
 (defun update (metadata)
-  (let ((projects-dir "build2/sources/")
-        (dist-dir "build2/dist/")
+  (let ((projects-dir "build/sources/")
+        (dist-dir "build/dist/")
         (projects-metadata-path "projects/projects.txt"))
     (ultralisp/builder:build
      :projects-metadata-path (if (probe-file projects-dir)
