@@ -16,7 +16,8 @@
   (format-timestring nil
                      (now)
                      :format '((:year 4) (:month 2) (:day 2) #\-
-                               (:hour 2) (:min 2) (:sec 2))))
+                               (:hour 2) (:min 2) (:sec 2))
+                     :timezone local-time:+utc-zone+))
 
 
 (defun build (&key (projects-metadata-path "projects/projects.txt")
