@@ -65,3 +65,10 @@
   :repos "joaotavora/sly-named-readtables"
   :url "https://github.com/joaotavora/sly-named-readtables/archive/df4ed79064cf85275804e201899b677bef4ab3f5.tar.gz"
   :ref "df4ed79064cf85275804e201899b677bef4ab3f5"))
+("log4cl" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "log4cl" :repos "40ants/log4cl" :ref nil :branch "support-sly" :tag nil)
+  :version "github-adbf9ddefd11e4e05971e787cac547d25856db9e"
+  :repos "40ants/log4cl"
+  :url "https://github.com/40ants/log4cl/archive/adbf9ddefd11e4e05971e787cac547d25856db9e.tar.gz"
+  :ref "adbf9ddefd11e4e05971e787cac547d25856db9e"))

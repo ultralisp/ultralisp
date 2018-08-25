@@ -2,8 +2,6 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:make-keyword)
-  (:import-from #:ultralisp/downloader)
-  (:import-from #:cl-fad)
   (:export
    #:read-metadata
    #:metadata
@@ -36,15 +34,7 @@
             (get-urn obj))))
 
 
-(defun update-metadata-repository (path)
-  (let ((directory (cl-fad:pathname-directory-pathname path))
-        (url "https://github.com/ultralisp/ultralisp-projects.git"))
-    (ultralisp/downloader::git-clone-or-update url directory)))
-
-
 (defun read-metadata (path)
-  (update-metadata-repository path)
-  
   (with-open-file (input path)
     (loop for form = (read input nil nil)
           for metadata = (when form

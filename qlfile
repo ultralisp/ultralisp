@@ -11,3 +11,6 @@ github weblocks-lass 40ants/weblocks-lass :tag v0.2.0
 github quickdist ultralisp/quickdist
 github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables
+
+# To make log4slime work also for SLY
+github log4cl 40ants/log4cl :branch support-sly

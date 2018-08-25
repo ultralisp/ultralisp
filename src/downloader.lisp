@@ -3,6 +3,7 @@
   
   (:import-from #:legit)
   (:import-from #:log4cl)
+  (:import-from #:cl-fad)
   (:import-from #:ultralisp/metadata
                 #:metadata
                 #:read-metadata)
@@ -106,3 +107,9 @@
                                                          "-")
                                  (ensure-directory-pathname base-dir)))))
       (git-clone-or-update url dir))))
+
+
+(defun update-metadata-repository (path)
+  (let ((directory (cl-fad:pathname-directory-pathname path))
+        (url "https://github.com/ultralisp/ultralisp-projects.git"))
+    (git-clone-or-update url directory)))
