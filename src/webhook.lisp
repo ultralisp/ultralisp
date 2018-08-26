@@ -135,6 +135,16 @@
   (let* ((body (getf env :body-parameters)))
     (log:debug "New payload received" body)
 
+    ;; Github may send us a json payload or x-ww-form-urlencoded
+    ;; in first case, body contains already parsed json. In second -
+    ;; only alist with single "payload" item with a value of json
+    ;; encoded to the string and we need to handle this case specially:
+    (let ((payload-as-string (assoc-value body "payload" :test 'string-equal)))
+      (when payload-as-string
+        (setf body
+              (jonathan:parse payload-as-string
+                              :as :alist))))
+
     (push body *payloads*)
     (log:debug "Sending to the queue")
     (chanl:send *queue* body :blockp nil)
