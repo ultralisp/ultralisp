@@ -11,12 +11,17 @@
   (:import-from #:routes
                 #:parse-template)
   (:import-from #:alexandria
+                #:last-elt
                 #:assoc-value)
+  (:import-from #:cl-arrows
+                #:->)
   (:import-from #:ultralisp/metadata
                 #:get-urn
                 #:read-metadata)
   (:import-from #:ultralisp/downloader
                 #:update-metadata-repository)
+  (:import-from #:cl-strings
+                #:split)
   (:export
    #:make-webhook-route))
 (in-package ultralisp/webhook)
@@ -27,7 +32,7 @@
   ())
 
 
-(defun make-webhook-route (&optional (uri "/webhook"))
+(defun make-webhook-route (&optional (uri "/webhook/github"))
   (log:info "Making a route for a webhook")
   (let ((route (make-instance 'webhook-route
                               :template (parse-template uri))))
@@ -45,16 +50,37 @@
   "A link to a thread where all processing will be done.")
 
 
+(defun get-project-name-from (github-payload)
+  (-> github-payload
+      (assoc-value "repository" :test 'string-equal)
+      (assoc-value "full_name" :test 'string-equal)))
+
+
+(defun get-main-branch-from (github-payload)
+  (-> github-payload
+      (assoc-value "repository" :test 'string-equal)
+      (assoc-value "master_branch" :test 'string-equal)))
+
+
+(defun get-branch-from (github-payload)
+  (let ((ref (-> github-payload
+                 (assoc-value "ref" :test 'string-equal))))
+    (last-elt (split ref "/"))))
+
+
 (defun find-project-related-to (payload)
   "Searches a projects metadata among all projects, known to Ultralisp.
    Returns a metadata object or nil."
-  (update-metadata-repository "projects")
-  (let* ((project-name (assoc-value payload "project" :test #'string-equal))
-         (all-metadata (read-metadata "projects/projects.txt")))
-    (loop for item in all-metadata
-          when (string-equal (get-urn item)
-                             project-name)
-            do (return item))))
+  (when (string-equal (get-branch-from payload)
+                      (get-main-branch-from payload))
+    (update-metadata-repository "projects")
+    
+    (let* ((project-name (get-project-name-from payload))
+           (all-metadata (read-metadata "projects/projects.txt")))
+      (loop for item in all-metadata
+            when (string-equal (get-urn item)
+                               project-name)
+              do (return item)))))
 
 
 (defun update (metadata)
