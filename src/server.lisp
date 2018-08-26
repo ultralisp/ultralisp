@@ -2,6 +2,8 @@
   (:use #:cl)
   (:import-from #:log4cl-json)
   (:import-from #:slynk)
+  ;; To make inplace links work in the HTML
+  (:import-from #:spinneret/cl-markdown)
   (:import-from #:weblocks/debug)
   (:import-from #:weblocks/server)
   (:import-from #:weblocks-lass)
