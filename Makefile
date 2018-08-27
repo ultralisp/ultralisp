@@ -1,7 +1,10 @@
-TAG := '40ants/ultralisp'
+TAG := '40ants/ultralisp:0.1.1'
 
-all:
+build:
 	docker build -t $(TAG) .
+
+push:
+	docker push $(TAG)
 
 qlfile.lock: qlfile
 	qlot update
@@ -11,3 +14,5 @@ deps: qlfile.lock
 	# ros install 40ants/gen-deps-system
 	qlot exec gen-deps-system --except ultralisp app
 
+
+.PHONY: build push
