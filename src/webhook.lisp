@@ -65,22 +65,37 @@
 (defun get-branch-from (github-payload)
   (let ((ref (-> github-payload
                  (assoc-value "ref" :test 'string-equal))))
-    (last-elt (split ref "/"))))
+    (when ref
+      (last-elt (split ref "/")))))
 
 
 (defun find-project-related-to (payload)
   "Searches a projects metadata among all projects, known to Ultralisp.
    Returns a metadata object or nil."
-  (when (string-equal (get-branch-from payload)
-                      (get-main-branch-from payload))
-    (update-metadata-repository "projects")
-    
-    (let* ((project-name (get-project-name-from payload))
-           (all-metadata (read-metadata "projects/projects.txt")))
-      (loop for item in all-metadata
-            when (string-equal (get-urn item)
-                               project-name)
-              do (return item)))))
+  (let ((current-branch (get-branch-from payload))
+        (main-branch (get-main-branch-from payload)))
+    (cond
+      ((and current-branch
+            (string-equal current-branch
+                          main-branch))
+
+       ;; Now we will search the project from the payload
+       ;; among all known projects
+       (update-metadata-repository "projects")
+     
+       (let* ((project-name (get-project-name-from payload))
+              (all-metadata (read-metadata "projects/projects.txt")))
+         (loop for item in all-metadata
+               when (string-equal (get-urn item)
+                                  project-name)
+                 do (return item))))
+      
+      (t (if current-branch
+             (log:warn "Current branch does not match to main"
+                       current-branch
+                       main-branch)
+             (log:warn "Unable to figure out current branch from the payload"))
+         (values)))))
 
 
 (defun update (metadata)
@@ -106,9 +121,8 @@
   (log:debug "Processing payload" payload)
   
   (let* ((project (find-project-related-to payload)))
-    (if project
-        (update project)
-        (log:error "Project now found" payload))))
+    (when project
+      (update project))))
 
 
 (defun process-payloads-from-the-queue ()
