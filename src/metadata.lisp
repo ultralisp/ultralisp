@@ -42,16 +42,17 @@
 
 
 (defun read-metadata (path)
-  (with-open-file (input path)
-    (loop for form = (read input nil nil)
-          for metadata = (when form
-                           (when (not (= (length form)
-                                         2))
-                             (error "Form ~A should countain two items, like \"(:github \"40ants/defmain\")\"."
-                                    form))
-                           (apply #'make-metadata form))
-          while metadata
-          collect metadata)))
+  (when (probe-file path)
+    (with-open-file (input path)
+      (loop for form = (read input nil nil)
+            for metadata = (when form
+                             (when (not (= (length form)
+                                           2))
+                               (error "Form ~A should countain two items, like \"(:github \"40ants/defmain\")\"."
+                                      form))
+                             (apply #'make-metadata form))
+            while metadata
+            collect metadata))))
 
 
 (defcached %github-get-description (project-urn)
