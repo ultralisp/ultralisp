@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/main
   (:use #:cl)
+  (:import-from #:ultralisp/metadata)
   (:import-from #:weblocks/widget
                 #:defwidget
                 #:render)
@@ -25,4 +26,13 @@
     (:h3 "How to use it")
     (:p "To use it, open your Lisp REPL and eval:")
     (:pre "(ql-dist:install-dist \"http://dist.ultralisp.org/\"
-                   :prompt nil)")))
+                      :prompt nil)")
+
+    (:h3 "Projects in the dist")
+    
+    (:table :class "projects-list"
+            (loop for item in (ultralisp/metadata:read-metadata "./projects/projects.txt")
+                  do (with-html
+                       (:tr
+                        (:td :style "white-space: nowrap" (ultralisp/metadata:get-urn item))
+                        (:td (ultralisp/metadata:get-description item))))))))

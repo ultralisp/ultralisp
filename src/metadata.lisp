@@ -2,11 +2,18 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:cl-arrows
+                #:->)
+  (:import-from #:dexador)
+  (:import-from #:jonathan)
+  (:import-from #:function-cache
+                #:defcached)
   (:export
    #:read-metadata
    #:metadata
    #:get-source
-   #:get-urn))
+   #:get-urn
+   #:get-description))
 (in-package ultralisp/metadata)
 
 
@@ -45,3 +52,16 @@
                            (apply #'make-metadata form))
           while metadata
           collect metadata)))
+
+
+(defcached %github-get-description (project-urn)
+  (-> (format nil "https://api.github.com/repos/~A"
+              project-urn)
+      (dex:get)
+      (jonathan:parse)
+      (getf :|description|)))
+
+
+(defun get-description (metadata)
+  (check-type metadata metadata)
+  (%github-get-description (get-urn metadata)))
