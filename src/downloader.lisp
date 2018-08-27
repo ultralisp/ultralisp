@@ -87,9 +87,10 @@
 
 
 (defun git-clone-or-update (url dir)
-  (let ((repo (legit:init (ensure-absolute-dirname dir)
-                          :remote url
-                          :if-does-not-exist :clone)))
+  (let* ((absolute-dir (ensure-absolute-dirname dir))
+         (repo (legit:init absolute-dir
+                           :remote url
+                           :if-does-not-exist :clone)))
     ;; Here we are suppressing output from the git binary
     (with-output-to-string (*standard-output*)
       (legit:pull repo))
@@ -109,7 +110,6 @@
       (git-clone-or-update url dir))))
 
 
-(defun update-metadata-repository (path)
-  (let ((directory (cl-fad:pathname-directory-pathname path))
-        (url "https://github.com/ultralisp/ultralisp-projects.git"))
-    (git-clone-or-update url directory)))
+(defun update-metadata-repository (directory)
+  (git-clone-or-update "https://github.com/ultralisp/ultralisp-projects.git"
+                       directory))
