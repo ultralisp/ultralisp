@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.1.3
+=====
+
+* Added google analytics and yandex metrika counters support.
+
 0.1.2
 =====
 

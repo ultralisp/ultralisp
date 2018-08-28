@@ -5,10 +5,10 @@
 ("defmain" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "defmain" :repos "40ants/defmain" :ref nil :branch nil :tag nil)
-  :version "github-ea92efbceaa652a8acaa16751377fb689508c33a"
+  :version "github-d54f14aac9afd53091caae8310fe28991ea28c7c"
   :repos "40ants/defmain"
-  :url "https://github.com/40ants/defmain/archive/ea92efbceaa652a8acaa16751377fb689508c33a.tar.gz"
-  :ref "ea92efbceaa652a8acaa16751377fb689508c33a"))
+  :url "https://github.com/40ants/defmain/archive/d54f14aac9afd53091caae8310fe28991ea28c7c.tar.gz"
+  :ref "d54f14aac9afd53091caae8310fe28991ea28c7c"))
 ("log4cl-json" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
@@ -44,6 +44,13 @@
   :repos "40ants/weblocks-lass"
   :url "https://github.com/40ants/weblocks-lass/archive/1b043afbf2f3e84e495dfeae5e63fe67a435019f.tar.gz"
   :ref "1b043afbf2f3e84e495dfeae5e63fe67a435019f"))
+("cl-yandex-metrika" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "cl-yandex-metrika" :repos "40ants/cl-yandex-metrika" :ref nil :branch nil :tag nil)
+  :version "github-ad1a031a080b9f864abe6ec0c51ba274a468c17c"
+  :repos "40ants/cl-yandex-metrika"
+  :url "https://github.com/40ants/cl-yandex-metrika/archive/ad1a031a080b9f864abe6ec0c51ba274a468c17c.tar.gz"
+  :ref "ad1a031a080b9f864abe6ec0c51ba274a468c17c"))
 ("quickdist" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag nil)

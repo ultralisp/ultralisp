@@ -31,6 +31,9 @@
                 #:getenv)
   (:import-from #:ultralisp/webhook
                 #:make-webhook-route)
+  (:import-from #:ultralisp/analytics
+                #:render-google-counter
+                #:render-yandex-counter)
   (:export
    #:main))
 (in-package ultralisp/server)
@@ -113,6 +116,8 @@
 
 (defmethod weblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
+  (render-yandex-counter)
+  (render-google-counter)
 
   (with-html
     (:div :class "grid-x"
@@ -128,10 +133,7 @@
 
 
                 (:footer :class "page-footer"
-                         (:p ("Proudly served by [Common Lisp](http://lisp-lang.org) and [Weblocks](http://40ants.com/weblocks/)!")))
-                 
-                ;; (render-yandex-counter)
-                ))))
+                         (:p ("Proudly served by [Common Lisp](http://lisp-lang.org) and [Weblocks](http://40ants.com/weblocks/)!")))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
