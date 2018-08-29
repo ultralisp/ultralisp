@@ -116,9 +116,10 @@
 
 (defmethod weblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
-  (render-yandex-counter)
-  (render-google-counter)
-
+  (let ((spinneret::*pre* t))
+    (render-yandex-counter)
+    (render-google-counter))
+  
   (with-html
     (:div :class "grid-x"
           (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"

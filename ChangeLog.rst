@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.1.4
+=====
+
+* Fixed a rendering of yandex metrika code.
+
 0.1.3
 =====
 
