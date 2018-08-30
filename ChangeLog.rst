@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.1.5
+=====
+
+* Move to a new ``quickdist`` which writes ``distinfo-template-url``
+  into the metadata.
+
 0.1.4
 =====
 

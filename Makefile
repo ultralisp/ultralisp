@@ -1,4 +1,4 @@
-TAG := '40ants/ultralisp:0.1.4'
+TAG := '40ants/ultralisp:0.1.5'
 
 build:
 	docker build -t $(TAG) .
