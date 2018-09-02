@@ -1,6 +1,6 @@
 TAG := '40ants/ultralisp:0.1.5'
 
-build:
+build: qlfile.lock
 	docker build -t $(TAG) .
 
 push:

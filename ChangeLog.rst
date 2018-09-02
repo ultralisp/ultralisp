@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.1.6
+=====
+
+* Switching to use dist.ultralisp.org for building docker image.
+  Previously, some systems were fetched from the GitHub.
+
 0.1.5
 =====
 

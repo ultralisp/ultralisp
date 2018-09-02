@@ -1,0 +1,31 @@
+#|-*- mode:lisp -*-|#
+;; (in-package :cl-user)
+(defpackage :lake.user
+  (:use :cl :lake :cl-syntax)
+  (:shadowing-import-from :lake
+                          :directory))
+(in-package :lake.user)
+
+(use-syntax :interpol)
+
+(defvar tag "40ants/ultralisp:0.1.5")
+
+(task "build" ()
+      (sh #?"docker build -t ${tag} ."))
+
+(task "push" ("build")
+      (sh #?"docker push ${tag}"))
+
+(file "qlfile.lock" ("qlfile")
+      (sh "qlot update"))
+
+(task "deps" ("qlfile.lock")
+      ;; Here you need to install gen-deps-system using this command
+      ;; ros install 40ants/gen-deps-system
+      (sh "qlot exec gen-deps-system --except ultralisp app"))
+
+(task "test" ()
+      (princ "Foo Bar"))
+
+(task "default" ("push")
+      ())
