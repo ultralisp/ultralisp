@@ -1,0 +1,23 @@
+version: '3'
+services:
+  # web:
+  #   build: .
+  #   restart: always
+  #   ports:
+  #     - "8080:80"
+  #     - "4005:4005"
+  #   volumes:
+  #     - .:/app
+  #   environment:
+  #     POSTGRES_HOST: postgres
+  postgres:
+    image: "postgres:10"
+    restart: always
+    environment:
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASSWORD: ultralisp
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgresql-data:/var/lib/postgresql/data
+    

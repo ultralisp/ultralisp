@@ -5,6 +5,7 @@
   :class :package-inferred-system
   :pathname "src"
   :depends-on ("ultralisp/main"
+               "ultralisp/models/user"
                :spinneret/cl-markdown)
   :perform (compile-op :before (o c)
                        #+ros.installing

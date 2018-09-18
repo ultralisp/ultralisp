@@ -117,6 +117,19 @@
     (ultralisp/uploader:upload :dir dist-dir)))
 
 
+(defun update-all ()
+  "This function is useful to call after some pull-request was merged to add new projects."
+  ;; (update-metadata-repository "projects")
+  ;; (ultralisp/webhook::update "projects/projects.txt")
+  (let ((projects-dir "build/sources/")
+        (dist-dir "build/dist/")
+        (projects-metadata-path "projects/projects.txt"))
+    (ultralisp/builder:build
+     :projects-metadata-path projects-metadata-path
+     :projects-dir projects-dir
+     :dist-dir dist-dir)))
+
+
 (defun process-payload (payload)
   (log:debug "Processing payload" payload)
   

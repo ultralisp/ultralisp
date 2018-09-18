@@ -33,3 +33,15 @@
              :dists-dir dist-dir
              :version (get-new-version-number)))
 
+;; 
+(defun test-build (&key
+                     (projects-dir "source-test/")
+                     (name "ultralisp")
+                     (base-url "http://dist.ultralisp.org/")
+                     (dist-dir "build-test/"))
+  (quickdist :name name
+             :base-url base-url
+             :projects-dir projects-dir
+             :dists-dir dist-dir
+             :version (get-new-version-number)))
+

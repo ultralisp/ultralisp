@@ -8,7 +8,7 @@
 
 (use-syntax :interpol)
 
-(defvar tag "40ants/ultralisp:0.1.5")
+(defvar tag "40ants/ultralisp:0.1.6")
 
 (task "build" ()
       (sh #?"docker build -t ${tag} ."))
@@ -23,9 +23,6 @@
       ;; Here you need to install gen-deps-system using this command
       ;; ros install 40ants/gen-deps-system
       (sh "qlot exec gen-deps-system --except ultralisp app"))
-
-(task "test" ()
-      (princ "Foo Bar"))
 
 (task "default" ("push")
       ())

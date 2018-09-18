@@ -35,7 +35,9 @@
                 #:render-google-counter
                 #:render-yandex-counter)
   (:export
-   #:main))
+   #:main
+   #:start
+   #:stop))
 (in-package ultralisp/server)
 
 
@@ -191,6 +193,18 @@ arguments."
         #P"/tmp/weblocks-cache/ultralisp/")
   (setf (get-language)
         "en")
+
+  (mito:connect-toplevel :postgres
+                         :host (or (uiop:getenv "POSTGRES_HOST")
+                                   "localhost")
+                         :database-name (or (uiop:getenv "POSTGRES_DBNAME")
+                                            "ultralisp")
+                         :username (or (uiop:getenv "POSTGRES_USER")
+                                       "ultralisp")
+                         :password (or (uiop:getenv "POSTGRES_PASS")
+                                       "ultralisp"))
+
+  
   (apply #'weblocks/server:start args)
 
   (setf *app*
