@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.1.7
+=====
+
+* Dependencies were updated to switch off Ultralisp dist temporarily and
+  use fixed quickdist. Because current Ultralisp distribution is broken.
+
 0.1.6
 =====
 
