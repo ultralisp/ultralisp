@@ -8,7 +8,7 @@
 
 (use-syntax :interpol)
 
-(defvar tag "40ants/ultralisp:0.1.5")
+(defvar tag "40ants/ultralisp:0.1.7")
 
 (task "build" ()
       (sh #?"docker build -t ${tag} ."))
