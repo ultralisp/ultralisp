@@ -20,6 +20,9 @@
 
 
 (defmethod render ((widget landing-widget))
+  (setf (weblocks/page:get-title)
+        "Ultralisp - Fast Common Lisp Repository")
+  
   (with-html
     (:p "Ultralisp is a quicklisp distribution, updated as fast as you can push commits to the GitHub.")
     (:p "Work in progress, but you already can install some packages, like quickdist or weblocks from this repository.")
