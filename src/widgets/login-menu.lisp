@@ -32,7 +32,7 @@
           (:div :class "login-link"
                 (:a :href "https://github.com/ultralisp/ultralisp/issues"
                                   "Leave feedback")
-                (:a  :href "/login" "Login")))
+                (:a  :href "/login" "Log In")))
         
         (with-html
           (:ul :class "dropdown menu"

@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
   (:import-from #:log4cl-json)
+  (:import-from #:mailgun)
   (:import-from #:slynk)
   (:import-from #:mito)
   ;; To make inplace links work in the HTML
@@ -37,6 +38,8 @@
                 #:render-yandex-counter)
   (:import-from #:ultralisp/models/user
                 #:user)
+  (:import-from #:ultralisp/mail
+                #:send-login-code)
   (:export
    #:main
    #:start
@@ -192,7 +195,22 @@
 arguments."
 
   (setf mito-email-auth/models:*user-class*
-      'user)
+        'user)
+  
+  (setf mito-email-auth/models:*send-code-callback*
+        'send-login-code)
+
+  (setf mailgun:*domain* (uiop:getenv "MAILGUN_DOMAIN"))
+  (unless mailgun:*domain*
+    (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
+  
+  (setf mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY"))
+  (unless mailgun:*api-key*
+    (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
+  
+  (setf mailgun:*user-agent* (or (uiop:getenv "USER_AGENT")
+                                 "ultralisp (http://ultralisp.org)"))
+
   
   (setf *cache-remote-dependencies-in*
         ;; TODO: make configurable

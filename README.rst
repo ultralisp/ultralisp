@@ -39,6 +39,9 @@ Then start a container like this::
              -v `pwd`:/app \
              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+             -e MAILGUN_DOMAIN=mg.ultralisp.org \
+             -e MAILGUN_API_KEY=key-xxxxxxxxxxxxx \
+             -e USER_AGENT=xxxxxxxxxxxxx \
              40ants/ultralisp:latest
 
  
