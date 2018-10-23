@@ -1,15 +1,16 @@
 version: '3'
 services:
-  # web:
-  #   build: .
-  #   restart: always
-  #   ports:
-  #     - "8080:80"
-  #     - "4005:4005"
-  #   volumes:
-  #     - .:/app
-  #   environment:
-  #     POSTGRES_HOST: postgres
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8080:80"
+      - "4005:4005"
+    volumes:
+      - .:/app
+      - ~/common-lisp:/common-lisp
+    environment:
+      POSTGRES_HOST: postgres
   postgres:
     image: "postgres:10"
     restart: always

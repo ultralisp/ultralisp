@@ -42,3 +42,9 @@ Then start a container like this::
              40ants/ultralisp:latest
 
  
+Dev Environment
+===============
+
+To setup dev environment, you need:
+
+* Docker
