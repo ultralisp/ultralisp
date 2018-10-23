@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:log4cl-json)
   (:import-from #:slynk)
+  (:import-from #:mito)
   ;; To make inplace links work in the HTML
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:weblocks/debug)
@@ -34,6 +35,8 @@
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
+  (:import-from #:ultralisp/models/user
+                #:user)
   (:export
    #:main
    #:start
@@ -188,6 +191,9 @@
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
 
+  (setf mito-email-auth/models:*user-class*
+      'user)
+  
   (setf *cache-remote-dependencies-in*
         ;; TODO: make configurable
         #P"/tmp/weblocks-cache/ultralisp/")
