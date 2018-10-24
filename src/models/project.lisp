@@ -4,7 +4,9 @@
                 #:create-dao)
   (:import-from #:jonathan)
   (:import-from #:ultralisp/metadata
-                #:read-metadata))
+                #:read-metadata)
+  (:import-from #:cl-dbi
+                #:with-transaction))
 (in-package ultralisp/models/project)
 
 
@@ -59,9 +61,10 @@
 (defun convert-metadata (&optional (filename "projects/projects.txt"))
   "Loads old metadata from file into a database."
   (let ((metadata (read-metadata filename)))
-    (loop for item in metadata
-          for urn = (ultralisp/metadata:get-urn item)
-          for splitted = (cl-strings:split urn "/")
-          for user = (first splitted)
-          for project = (second splitted)
-          do (make-github-project user project))))
+    (with-transaction mito:*connection*
+      (loop for item in metadata
+            for urn = (ultralisp/metadata:get-urn item)
+            for splitted = (cl-strings:split urn "/")
+            for user = (first splitted)
+            for project = (second splitted)
+            do (make-github-project user project)))))
