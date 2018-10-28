@@ -6,6 +6,13 @@
                 #:render)
   (:import-from #:weblocks/html
                 #:with-html)
+  (:import-from #:ultralisp/models/project
+                #:get-url
+                #:get-name
+                #:get-description
+                #:get-all-projects)
+  (:import-from #:weblocks/page
+                #:get-title)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -20,7 +27,7 @@
 
 
 (defmethod render ((widget landing-widget))
-  (setf (weblocks/page:get-title)
+  (setf (get-title)
         "Ultralisp - Fast Common Lisp Repository")
   
   (with-html
@@ -63,10 +70,12 @@
     (:h3 "Projects in the dist")
     
     (:table :class "projects-list"
-            (loop for item in (ultralisp/metadata:read-metadata "./projects/projects.txt")
+            (loop for project in (get-all-projects)
+                  for description = (get-description project)
+                  for url = (get-url project)
+                  for name = (get-name project)
                   do (with-html
                        (:tr
-                        (:td :style "white-space: nowrap" (:a :href (format nil "https://github.com/~A"
-                                                                            (ultralisp/metadata:get-urn item))
-                                                              (ultralisp/metadata:get-urn item)))
-                        (:td (ultralisp/metadata:get-description item))))))))
+                        (:td :style "white-space: nowrap" (:a :href url
+                                                              name))
+                        (:td description)))))))

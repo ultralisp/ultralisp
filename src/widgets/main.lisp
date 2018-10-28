@@ -10,6 +10,7 @@
   ;; Just depdendencies
   (:import-from #:log)
   (:import-from #:weblocks/app)
+  (:import-from #:weblocks/widget)
   (:import-from #:weblocks/page)
   (:import-from #:ultralisp/widgets/landing
                 #:make-landing-widget)

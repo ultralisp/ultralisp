@@ -3,10 +3,22 @@
   (:import-from #:mito
                 #:create-dao)
   (:import-from #:jonathan)
+  (:import-from #:dexador)
   (:import-from #:ultralisp/metadata
                 #:read-metadata)
   (:import-from #:cl-dbi
-                #:with-transaction))
+                #:with-transaction)
+  (:import-from #:function-cache
+                #:defcached)
+  (:import-from #:cl-arrows
+                #:->)
+  (:import-from #:cl-strings
+                #:split)
+  (:export
+   #:get-all-projects
+   #:get-description
+   #:get-url
+   #:get-name))
 (in-package ultralisp/models/project)
 
 
@@ -16,10 +28,13 @@
            :reader get-source)
    (name :col-type (:text)
          :initarg :name
-         :reader get-name)
+         :accessor get-name)
+   (description :col-type :text
+                :initarg :description
+                :accessor get-description)
    (params :col-type (:json)
            :initarg :params
-           :reader get-params
+           :accessor get-params
            :deflate #'jonathan:to-json
            :inflate (lambda (text)
                       (jonathan:parse
@@ -38,14 +53,36 @@
             (get-name project))))
 
 
+(defun get-url (project)
+  (let* ((params (get-params project))
+         (user-name (getf params :user-or-org))
+         (project-name (getf params :project)))
+    (format nil "https://github.com/~A/~A"
+            user-name
+            project-name)))
+
+
+(defcached %github-get-description (user-or-org project)
+  (-> (format nil "https://api.github.com/repos/~A/~A"
+              user-or-org
+              project)
+      (dex:get)
+      (jonathan:parse)
+      (getf :|description|)))
+
+
 (defun make-github-project (user-or-org project)
   (let ((name (concatenate 'string
                            user-or-org
                            "/"
-                           project)))
+                           project))
+        (description (or (ignore-errors (%github-get-description user-or-org
+                                                                 project))
+                         "")))
     (create-dao 'project
                 :source "github"
                 :name name
+                :description description
                 :params (list :user-or-org user-or-org
                               :project project))))
 
@@ -64,7 +101,7 @@
     (with-transaction mito:*connection*
       (loop for item in metadata
             for urn = (ultralisp/metadata:get-urn item)
-            for splitted = (cl-strings:split urn "/")
+            for splitted = (split urn "/")
             for user = (first splitted)
             for project = (second splitted)
             do (make-github-project user project)))))
