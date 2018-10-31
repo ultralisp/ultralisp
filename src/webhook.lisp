@@ -22,6 +22,9 @@
                 #:update-metadata-repository)
   (:import-from #:cl-strings
                 #:split)
+  (:import-from #:ultralisp/models/project
+                #:get-github-project
+                #:get-all-projects)
   (:export
    #:make-webhook-route))
 (in-package ultralisp/webhook)
@@ -50,10 +53,17 @@
   "A link to a thread where all processing will be done.")
 
 
+(defun get-user-or-org-from (github-payload)
+  (-> github-payload
+      (assoc-value "repository" :test 'string-equal)
+      (assoc-value "owner" :test 'string-equal)
+      (assoc-value "name" :test 'string-equal)))
+
+
 (defun get-project-name-from (github-payload)
   (-> github-payload
       (assoc-value "repository" :test 'string-equal)
-      (assoc-value "full_name" :test 'string-equal)))
+      (assoc-value "name" :test 'string-equal)))
 
 
 (defun get-main-branch-from (github-payload)
@@ -71,7 +81,7 @@
 
 (defun find-project-related-to (payload)
   "Searches a projects metadata among all projects, known to Ultralisp.
-   Returns a metadata object or nil."
+   Returns a `project' object or nil."
   (let ((current-branch (get-branch-from payload))
         (main-branch (get-main-branch-from payload)))
     (cond
@@ -79,16 +89,9 @@
             (string-equal current-branch
                           main-branch))
 
-       ;; Now we will search the project from the payload
-       ;; among all known projects
-       (update-metadata-repository "projects")
-     
-       (let* ((project-name (get-project-name-from payload))
-              (all-metadata (read-metadata "projects/projects.txt")))
-         (loop for item in all-metadata
-               when (string-equal (get-urn item)
-                                  project-name)
-                 do (return item))))
+       (let* ((user-or-org (get-user-or-org-from payload))
+              (project-name (get-project-name-from payload)))
+         (get-github-project user-or-org project-name)))
       
       (t (if current-branch
              (log:warn "Current branch does not match to main"
@@ -98,23 +101,23 @@
          (values)))))
 
 
-(defun update (metadata)
+(defun update (project &key (upload nil))
   (let ((projects-dir "build/sources/")
-        (dist-dir "build/dist/")
-        (projects-metadata-path "projects/projects.txt"))
+        (dist-dir "build/dist/"))
     (ultralisp/builder:build
-     :projects-metadata-path (if (probe-file projects-dir)
-                                 ;; If directory with projects already exists
-                                 ;; then we will update just a project
-                                 ;; mentioned in the payload
-                                 metadata
-                                 ;; otherwize, will download all known projects
-                                 projects-metadata-path)
+     :projects (if (probe-file projects-dir)
+                   ;; If directory with projects already exists
+                   ;; then we will update just a project
+                   ;; mentioned in the payload
+                   project
+                   ;; otherwize, will download all known projects
+                   :all)
      :projects-dir projects-dir
      :dist-dir dist-dir)
 
     ;; Now we'll upload a dist to the server
-    (ultralisp/uploader:upload :dir dist-dir)))
+    (when upload
+      (ultralisp/uploader:upload :dir dist-dir))))
 
 
 (defun update-all (&key (build t)
@@ -123,11 +126,9 @@
   ;; (update-metadata-repository "projects")
   ;; (ultralisp/webhook::update "projects/projects.txt")
   (let ((projects-dir "build/sources/")
-        (dist-dir "build/dist/")
-        (projects-metadata-path "projects/projects.txt"))
+        (dist-dir "build/dist/"))
     (when build
       (ultralisp/builder:build
-       :projects-metadata-path projects-metadata-path
        :projects-dir projects-dir
        :dist-dir dist-dir))
     
@@ -140,7 +141,7 @@
   
   (let* ((project (find-project-related-to payload)))
     (when project
-      (update project))))
+      (update project :upload t))))
 
 
 (defun process-payloads-from-the-queue ()

@@ -1,8 +1,11 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
   (:import-from #:mito
+                #:delete-dao
+                #:select-dao
                 #:create-dao)
-  (:import-from #:jonathan)
+  (:import-from #:jonathan
+                #:to-json)
   (:import-from #:dexador)
   (:import-from #:ultralisp/metadata
                 #:read-metadata)
@@ -14,25 +17,37 @@
                 #:->)
   (:import-from #:cl-strings
                 #:split)
+  (:import-from #:alexandria
+                #:make-keyword)
+  (:import-from #:sxql
+                #:limit
+                #:where)
   (:export
    #:get-all-projects
    #:get-description
    #:get-url
-   #:get-name))
+   #:get-name
+   #:project
+   #:get-source
+   #:get-params
+   #:get-github-project))
 (in-package ultralisp/models/project)
 
 
 (defclass project ()
   ((source :col-type (:text)
            :initarg :source
-           :reader get-source)
+           :reader get-source
+           :inflate (lambda (text)
+                      (make-keyword (string-upcase text)))
+           :deflate #'symbol-name)
    (name :col-type (:text)
          :initarg :name
          :accessor get-name)
    (description :col-type :text
                 :initarg :description
                 :accessor get-description)
-   (params :col-type (:json)
+   (params :col-type (:jsonb)
            :initarg :params
            :accessor get-params
            :deflate #'jonathan:to-json
@@ -88,11 +103,24 @@
 
 
 (defun get-all-projects ()
-  (mito:select-dao 'project))
+  (select-dao 'project))
+
+
+(defun get-github-project (user-or-org project)
+  (first
+   (select-dao 'project
+     (where (:and
+             (:= :source
+                 "GITHUB")
+             (:a> :params
+                  (to-json
+                   (list :user-or-org user-or-org
+                         :project project)))))
+     (limit 1))))
 
 
 (defun delete-project (project)
-  (mito:delete-dao project))
+  (delete-dao project))
 
 
 (defun convert-metadata (&optional (filename "projects/projects.txt"))

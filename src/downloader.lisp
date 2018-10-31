@@ -11,6 +11,11 @@
                 #:ensure-absolute-pathname
                 #:ensure-pathname
                 #:ensure-directory-pathname)
+  (:import-from #:ultralisp/models/project
+                #:get-params
+                #:get-source
+                #:project
+                #:get-all-projects)
   (:export
    #:download))
 (in-package ultralisp/downloader)
@@ -62,28 +67,20 @@
                    Input argument `source' is a keyword from `source' slot of the metadata object."))
 
 
-(defmethod download ((projects-metadata-path string) projects-dir)
-  "Downloads sources defined in the metadata-file into the `projects-dir'."
-  (download (ensure-existing-file projects-metadata-path)
-            projects-dir))
-
-
-(defmethod download ((metadata metadata) dir)
-  (log:info "Downloading" metadata)
-  (funcall (make-downloader (ultralisp/metadata:get-source metadata))
-           (ultralisp/metadata:get-urn metadata)
-           dir))
-
-
-(defmethod download ((projects-metadata-path pathname) projects-dir)
-  "Downloads sources defined in the metadata-file into the `projects-dir'."
-  (ensure-existing-file projects-metadata-path)
+(defmethod download ((projects (eql :all)) projects-dir)
+  "Downloads sources defined in the database into the `projects-dir'."
+  (declare (ignorable projects))
   (ensure-directories-exist projects-dir)
   
-  (log:info "Downloading projects, defined in" projects-metadata-path)
-  (loop for metadata in (read-metadata projects-metadata-path)
-        do (download metadata
-                     projects-dir)))
+  (loop for project in (get-all-projects)
+        do (download project projects-dir)))
+
+
+(defmethod download ((project project) dir)
+  (log:info "Downloading" project)
+  (apply (make-downloader (get-source project))
+         dir
+         (get-params project)))
 
 
 (defun git-clone-or-update (url dir)
@@ -99,13 +96,13 @@
 
 
 (defmethod make-downloader ((source (eql :github)))
-  (lambda (username/project base-dir)
-    (let ((url (format nil "https://github.com/~A.git"
-                       username/project))
+  (lambda (base-dir &key user-or-org project &allow-other-keys)
+    (let ((url (format nil "https://github.com/~A/~A.git"
+                       user-or-org
+                       project))
           (dir (ensure-directory-pathname
-                (merge-pathnames (cl-strings:replace-all username/project
-                                                         "/"
-                                                         "-")
+                (merge-pathnames (format nil "~A-~A" user-or-org
+                                         project)
                                  (ensure-directory-pathname base-dir)))))
       (git-clone-or-update url dir))))
 

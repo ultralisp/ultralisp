@@ -20,25 +20,25 @@
                      :timezone local-time:+utc-zone+))
 
 
-(defun build (&key (projects-metadata-path "projects/projects.txt")
+(defun build (&key
+                (projects :all)
                 (projects-dir "build/sources/")
                 (name "ultralisp")
                 (base-url "http://dist.ultralisp.org/")
                 (dist-dir "build/dist/"))
-  (download projects-metadata-path
-            projects-dir)
+  (download projects projects-dir)
   (quickdist :name name
              :base-url base-url
              :projects-dir projects-dir
              :dists-dir dist-dir
              :version (get-new-version-number)))
 
-;; 
+
 (defun test-build (&key
-                     (projects-dir "source-test/")
+                     (projects-dir "build/sources/")
                      (name "ultralisp")
                      (base-url "http://dist.ultralisp.org/")
-                     (dist-dir "build-test/"))
+                     (dist-dir "build/dist/"))
   (quickdist :name name
              :base-url base-url
              :projects-dir projects-dir
