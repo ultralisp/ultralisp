@@ -40,29 +40,16 @@
 
     (:h3 "How to add my own project")
 
-    (:h4 "Add project's metadata to Ultralisp")
-    
-    (:p "Right now, adding a new project to the distribution is a manual process.
-         To do this, create a new pull-request into the repository:"
-        (:a :href "https://github.com/ultralisp/ultralisp-projects"
-            "https://github.com/ultralisp/ultralisp-projects"))
-    (:p "Your pull request should add another line to a file \"projects.txt\".")
-
-    
-    (:h4 "Setup a webhook for automatic distribution update")
-    
-    (:p "After that, add a webhook to your repository. Go to the url similar to:"
-        (:a :href "https://github.com/40ants/defmain/settings/hooks"
-            "https://github.com/40ants/defmain/settings/hooks"))
-    (:p "and add a URL \"http://ultralisp.org/webhook/github\" as a webhook. This webhook should receive \"push\" payloads as application/json:")
-
-    (:img :src "https://s3-eu-west-1.amazonaws.com/ultralisp-images/ultralisp-webhook.png")
+    (:a :class "button"
+        :href "/github"
+        :title "Add your projects from Github to Ultralisp distribution!"
+        "Select Github projects")
 
     (:h3 "Roadmap")
 
     (:ul
-     (:li "Plug in a real database to store projects' metadata and other information.")
-     (:li "Integration with the GitHub to add projects in one click and authentication.")
+     (:li (:s "Plug in a real database to store projects' metadata and other information."))
+     (:li (:s "Integration with the GitHub to add projects in one click."))
      (:li "Support for project sources other than GitHub.")
      (:li "Automatic distribution's ChangeLog generation.")
      (:li "Running tests for updated project and all dependent systems."))

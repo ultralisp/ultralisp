@@ -19,6 +19,8 @@
                 #:make-login-processor)
   (:import-from #:ultralisp/widgets/login-menu
                 #:make-login-menu)
+  (:import-from #:ultralisp/github/widgets/repositories
+                #:make-repositories-widget)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
 
@@ -46,6 +48,8 @@
    (make-login-processor))
   ("/logout"
    (make-logout-processor))
+  ("/github"
+   (make-repositories-widget))
   (t
    (page-not-found)))
 

@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.2.0
+=====
+
+* Now tracked projects are stored in a postgresql database.
+* They can be added in few clicks from the GitHub.
+
 0.1.6
 =====
 

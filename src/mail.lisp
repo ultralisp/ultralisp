@@ -11,18 +11,21 @@
 (in-package ultralisp/mail)
 
 
-(defun send-login-code (code)
-  (let ((url (make-uri
-              (format nil
-                      "/login?code=~A"
-                      (get-code code))))
-        (email (get-email code)))
+(defun send-login-code (code &key retpath)
+  (let* ((retpath (when retpath
+                    (quri:url-encode retpath)))
+         (url (make-uri
+               (format nil
+                       "/login?code=~A~@[&retpath=~A~]"
+                       (get-code code)
+                       retpath)))
+         (email (get-email code)))
 
     (cond
       ((and mailgun:*domain*
             mailgun:*api-key*)
-       (log:info "Sending login code to" email)
-    
+       (log:debug "Sending login code to" email)
+       
        (mailgun:send ("Ultralisp <noreply@ultralisp.org>"
                       email
                       "The code to log into the Ultralisp.org")
@@ -31,5 +34,5 @@
               url))
          (:p "Hurry up! Link is will expire in one hour.")))
       
-      (t (log:warn "You didn't set MAILGUN_DOMAIN and MAILGUN_API_KEY env variables. So I unable to send auth code"
-                   code)))))
+      (t (log:warn "You didn't set MAILGUN_DOMAIN and MAILGUN_API_KEY env variables. So I unable to send auth code."
+                   url)))))

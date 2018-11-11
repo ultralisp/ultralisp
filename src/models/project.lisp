@@ -22,6 +22,8 @@
   (:import-from #:sxql
                 #:limit
                 #:where)
+  (:import-from #:mito-email-auth/weblocks
+                #:get-current-user)
   (:export
    #:get-all-projects
    #:get-description
@@ -30,7 +32,9 @@
    #:project
    #:get-source
    #:get-params
-   #:get-github-project))
+   #:get-github-project
+   #:add-or-turn-on-github-project
+   #:turn-off-github-project))
 (in-package ultralisp/models/project)
 
 
@@ -55,7 +59,10 @@
                       (jonathan:parse
                        ;; Jonathan for some reason is unable to work with
                        ;; `base-string' type, returned by database
-                       (coerce text 'simple-base-string)))))
+                       (coerce text 'simple-base-string))))
+   (enabled :col-type :boolean
+            :initform t
+            :accessor is-enabled-p))
   (:unique-keys name)
   (:metaclass mito:dao-table-class))
 
@@ -95,7 +102,7 @@
                                                                  project))
                          "")))
     (create-dao 'project
-                :source "github"
+                :source :github
                 :name name
                 :description description
                 :params (list :user-or-org user-or-org
@@ -117,6 +124,53 @@
                    (list :user-or-org user-or-org
                          :project project)))))
      (limit 1))))
+
+
+(defun get-github-projects (usernames)
+  "Receives a list of usernames or orgnames and returns a list
+   of GitHub projects, known to Ultralisp."
+  (select-dao 'project
+    (where (:and
+            (:= :source
+                "GITHUB")
+            (:in (:raw "params->>'USER-OR-ORG'")
+                 usernames)))))
+
+
+(defun add-or-turn-on-github-project (name)
+  "Creates or updates a record in database adding current user to moderators list."
+  (destructuring-bind (user-or-org project . rest)
+      (cl-strings:split name "/")
+    (declare (ignorable rest))
+    
+    (let ((record (get-github-project user-or-org project)))
+      (cond
+        (record (setf (is-enabled-p record)
+                      t)
+                (mito:save-dao record))
+        (t (setf record
+                 (make-github-project user-or-org project))))
+
+      (uiop:symbol-call :ultralisp/models/moderator
+                        :make-moderator
+                        record
+                        (get-current-user))
+      record)))
+
+
+(defun turn-off-github-project (name)
+  "Creates or updates a record in database adding current user to moderators list."
+  (destructuring-bind (user-or-org project . rest)
+      (cl-strings:split name "/")
+    (declare (ignorable rest))
+    
+    (let ((record (get-github-project user-or-org project)))
+      (when (and record
+                 (is-enabled-p record))
+        (setf (is-enabled-p record)
+              nil)
+        (mito:save-dao record))
+      record)))
 
 
 (defun delete-project (project)

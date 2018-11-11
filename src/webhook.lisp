@@ -25,17 +25,22 @@
   (:import-from #:ultralisp/models/project
                 #:get-github-project
                 #:get-all-projects)
+  (:import-from #:weblocks/response
+                #:make-uri)
   (:export
-   #:make-webhook-route))
+   #:make-webhook-route
+   #:get-webhook-url))
 (in-package ultralisp/webhook)
 
+
+(defvar *github-webhook-path* "/webhook/github")
 
 
 (defclass webhook-route (route)
   ())
 
 
-(defun make-webhook-route (&optional (uri "/webhook/github"))
+(defun make-webhook-route (&optional (uri *github-webhook-path*))
   (log:info "Making a route for a webhook")
   (let ((route (make-instance 'webhook-route
                               :template (parse-template uri))))
@@ -193,11 +198,6 @@
           (list "OK"))))
 
 
-;; Probably this could be removed because make-webhook-route is called from the app initialization code
-;; (weblocks/hooks:on-application-hook-start-weblocks
-;;   enable-webhook ()
-  
-;;   (weblocks/hooks:call-next-hook)
-;;   (make-webhook-route))
-
-
+(defun get-webhook-url ()
+  "Returns a full path to a webhook, which can be used in GitHub's settings."
+  (make-uri *github-webhook-path*))

@@ -4,10 +4,12 @@
   :licence "BSD"
   :class :package-inferred-system
   :pathname "src"
-  :depends-on ("ultralisp/main"
+  :depends-on (:cl-interpol
+               ;; To make inplace links work in the HTML
+               :spinneret/cl-markdown
+               "ultralisp/main"
                "ultralisp/server"
-               "ultralisp/widgets/landing"
-               :spinneret/cl-markdown)
+               "ultralisp/widgets/landing")
   :perform (compile-op :before (o c)
                        #+ros.installing
                        (roswell:roswell '("install" "40ants/defmain"))))

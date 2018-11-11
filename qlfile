@@ -14,7 +14,9 @@ ultralisp :all :latest
 
 #github quickdist ultralisp/quickdist
 #github slynk joaotavora/sly
-github slynk-named-readtables joaotavora/sly-named-readtables
+# github slynk-named-readtables joaotavora/sly-named-readtables
+
+github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
 
 # To make log4slime work also for SLY
-github log4cl 40ants/log4cl :branch support-sly
+# github log4cl 40ants/log4cl :branch support-sly

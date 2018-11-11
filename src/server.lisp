@@ -1,11 +1,10 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
   (:import-from #:log4cl-json)
+  (:import-from #:ultralisp/github/core)
   (:import-from #:mailgun)
   (:import-from #:slynk)
   (:import-from #:mito)
-  ;; To make inplace links work in the HTML
-  (:import-from #:spinneret/cl-markdown)
   (:import-from #:weblocks/debug)
   (:import-from #:weblocks/server)
   (:import-from #:weblocks-lass)
@@ -38,11 +37,16 @@
                 #:render-yandex-counter)
   (:import-from #:ultralisp/models/user
                 #:user)
+  (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/mail
                 #:send-login-code)
+  (:import-from #:lparallel
+                #:make-kernel)
+  (:shadow #:restart)
   (:export
    #:main
    #:start
+   #:restart
    #:stop))
 (in-package ultralisp/server)
 
@@ -194,6 +198,9 @@
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
 
+  (setf lparallel:*kernel* (make-kernel 8
+                                        :name "parallel worker"))
+
   (setf mito-email-auth/models:*user-class*
         'user)
   
@@ -207,6 +214,15 @@ arguments."
   (setf mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY"))
   (unless mailgun:*api-key*
     (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
+
+
+  (setf ultralisp/github/core:*client-id* (uiop:getenv "GITHUB_CLIENT_ID"))
+  (unless ultralisp/github/core:*client-id*
+    (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
+  
+  (setf ultralisp/github/core:*secret* (uiop:getenv "GITHUB_SECRET"))
+  (unless ultralisp/github/core:*secret*
+    (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
   
   (setf mailgun:*user-agent* (or (uiop:getenv "USER_AGENT")
                                  "ultralisp (http://ultralisp.org)"))
@@ -229,7 +245,7 @@ arguments."
                                        "ultralisp"))
 
   
-  (apply #'weblocks/server:start args)
+  (apply #'weblocks/server:start :server-type :woo args)
 
   (setf *app*
         (weblocks/app:start 'app)))
