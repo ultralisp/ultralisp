@@ -9,7 +9,8 @@
                :spinneret/cl-markdown
                "ultralisp/main"
                "ultralisp/server"
-               "ultralisp/widgets/landing")
+               "ultralisp/widgets/landing"
+               "ultralisp/downloader/github")
   :perform (compile-op :before (o c)
                        #+ros.installing
                        (roswell:roswell '("install" "40ants/defmain"))))

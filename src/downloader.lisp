@@ -64,6 +64,11 @@
                    two parameter: urn and directory. This fancallable should fetch
                    project's sources and put them into the source directory.
 
+                   It should return a directory where fetches sources were stored as
+                   a first value, and can return a plist as a second values to help
+                   updates checker the project's params plist will be extended with
+                   the values from a plist, returned by downloader.
+
                    Input argument `source' is a keyword from `source' slot of the metadata object."))
 
 
@@ -91,20 +96,25 @@
     ;; Here we are suppressing output from the git binary
     (with-output-to-string (*standard-output*)
       (legit:pull repo))
-    ;; return nothing
-    (values)))
+    
+    ;; return repository so that other actions could be performed on it
+    (values repo)))
 
 
 (defmethod make-downloader ((source (eql :github)))
   (lambda (base-dir &key user-or-org project &allow-other-keys)
-    (let ((url (format nil "https://github.com/~A/~A.git"
-                       user-or-org
-                       project))
-          (dir (ensure-directory-pathname
-                (merge-pathnames (format nil "~A-~A" user-or-org
-                                         project)
-                                 (ensure-directory-pathname base-dir)))))
-      (git-clone-or-update url dir))))
+    (let* ((url (format nil "https://github.com/~A/~A.git"
+                        user-or-org
+                        project))
+           (dir (ensure-directory-pathname
+                 (merge-pathnames (format nil "~A-~A" user-or-org
+                                          project)
+                                  (ensure-directory-pathname base-dir))))
+           (repo (git-clone-or-update url dir)))
+      
+      (values dir
+              (list :last-seen-commit
+                    (legit:current-commit repo))))))
 
 
 (defun update-metadata-repository (directory)

@@ -9,8 +9,6 @@
   (:import-from #:dexador)
   (:import-from #:ultralisp/metadata
                 #:read-metadata)
-  (:import-from #:cl-dbi
-                #:with-transaction)
   (:import-from #:function-cache
                 #:defcached)
   (:import-from #:cl-arrows
@@ -24,6 +22,8 @@
                 #:where)
   (:import-from #:mito-email-auth/weblocks
                 #:get-current-user)
+  (:import-from #:ultralisp/db
+                #:with-transaction)
   (:export
    #:get-all-projects
    #:get-description
@@ -34,7 +34,8 @@
    #:get-params
    #:get-github-project
    #:add-or-turn-on-github-project
-   #:turn-off-github-project))
+   #:turn-off-github-project
+   #:get-last-seen-commit))
 (in-package ultralisp/models/project)
 
 
@@ -82,6 +83,19 @@
     (format nil "https://github.com/~A/~A"
             user-name
             project-name)))
+
+
+(defun get-last-seen-commit (project)
+  (check-type project project)
+  (getf (get-params project)
+        :last-seen-commit))
+
+
+(defun (setf get-last-seen-commit) (value project)
+  (check-type project project)
+  (setf (getf (get-params project)
+              :last-seen-commit)
+        value))
 
 
 (defcached %github-get-description (user-or-org project)
@@ -180,7 +194,7 @@
 (defun convert-metadata (&optional (filename "projects/projects.txt"))
   "Loads old metadata from file into a database."
   (let ((metadata (read-metadata filename)))
-    (with-transaction mito:*connection*
+    (with-transaction
       (loop for item in metadata
             for urn = (ultralisp/metadata:get-urn item)
             for splitted = (split urn "/")

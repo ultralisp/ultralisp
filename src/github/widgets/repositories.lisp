@@ -71,10 +71,10 @@
           #'string<)))
 
 
-(defun check-if-lisp-repository (repository)
+(defun check-if-lisp-repository (repository token)
   (check-type repository list)
   (let* ((languages-url (getf repository :|languages_url|))
-         (data (handler-case (get-url languages-url)
+         (data (handler-case (get-url languages-url :token token)
                  ;; Some repositories can be "disabled" and
                  ;; server will return 404 for their languages page
                  (dexador.error:http-request-not-found ()
@@ -84,8 +84,10 @@
 
 (function-cache:defcached get-lisp-repositories (&key (token *token*))
   (let* ((data (get-url "/user/repos" :token token))
-         (data (lparallel:premove-if-not #'check-if-lisp-repository
-                                         data))
+         (data (lparallel:premove-if-not
+                (lambda (repository)
+                  (check-if-lisp-repository repository token))
+                data))
          (names (mapcar (lambda (item)
                           (getf item :|full_name|))
                         data)))
