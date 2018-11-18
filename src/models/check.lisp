@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/check
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:get-name
                 #:project)
   (:import-from #:mito
                 #:save-dao
@@ -23,7 +24,8 @@
    #:get-pending-checks
    #:get-processed-at
    #:make-version-from
-   #:get-checks))
+   #:get-checks
+   #:get-changelog))
 (in-package ultralisp/models/check)
 
 
@@ -71,7 +73,7 @@
 (defmethod print-object ((check check) stream)
   (print-unreadable-object (check stream :type t)
     (format stream "~A~@[ ~A~]"
-            (ultralisp/models/project:get-name (get-project check))
+            (get-name (get-project check))
             (get-description check))))
 
 
@@ -106,5 +108,22 @@
 
 
 (defun get-checks (version)
+  (check-type version version)
   (select-dao 'check
     (where (:= :version version))))
+
+
+(defun get-changelog (version)
+  "Returns a string with a ChangeLog items collected from all checks, linked to the version."
+  (check-type version version)
+  (let ((checks (get-checks version)))
+    (if checks
+        (with-output-to-string (s)
+          (loop for check in checks
+                for project = (get-project check)
+                for project-name = (get-name project)
+                for description = (get-description check)
+                do (format s "~A – ~A"
+                           project-name
+                           description)))
+        "No changes")))

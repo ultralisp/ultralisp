@@ -13,6 +13,16 @@
                 #:get-all-projects)
   (:import-from #:weblocks/page
                 #:get-title)
+  (:import-from #:ultralisp/models/version
+                #:get-built-at
+                #:get-number
+                #:get-latest-versions)
+  (:import-from #:metatilities
+                #:format-date)
+  (:import-from #:local-time
+                #:timestamp-to-universal)
+  (:import-from #:ultralisp/models/check
+                #:get-changelog)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -53,6 +63,29 @@
      (:li "Support for project sources other than GitHub.")
      (:li "Automatic distribution's ChangeLog generation.")
      (:li "Running tests for updated project and all dependent systems."))
+
+    (:h3 "Latest builds")
+
+    (:table :class "versions-list"
+            (:tr
+             (:th "Version")
+             (:th "Built-at")
+             (:th :style "width: 100%"
+                  "Changelog"))
+            (loop for version in (get-latest-versions)
+                  for number = (get-number version)
+                  for built-at = (get-built-at version)
+                  for changelog = (get-changelog version)
+                  do (with-html
+                       (:tr
+                        (:td :style "white-space: nowrap"
+                             number)
+                        (:td :style "white-space: nowrap"
+                             (if built-at
+                                 (format-date "%Y-%m-%d %H:%M:%S"
+                                              (timestamp-to-universal built-at))
+                                 "pending"))
+                        (:td changelog)))))
 
     (:h3 "Projects in the dist")
     
