@@ -46,6 +46,9 @@
 
 
 (defun get-url (url &key (token *token*))
+  (unless token
+    (error "I need a token to access github API. Seems somewhere is a logical error."))
+  
   (let* ((url (if (cl-strings:starts-with url "https://")
                   url
                   (format nil "https://api.github.com~A" url)))
@@ -275,7 +278,8 @@
   (check-type repository repository)
   (let* ((name (get-name repository))
          (hook (get-webhook-url repository)))
-    (loop for item in (get-url #?"/repos/${name}/hooks")
+    (loop for item in (get-url #?"/repos/${name}/hooks"
+                               :token (get-token repository))
           for item-url = (-> item
                              (getf :|config|)
                              (getf :|url|))

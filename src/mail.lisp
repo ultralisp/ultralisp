@@ -35,4 +35,5 @@
          (:p "Hurry up! Link is will expire in one hour.")))
       
       (t (log:warn "You didn't set MAILGUN_DOMAIN and MAILGUN_API_KEY env variables. So I unable to send auth code."
-                   url)))))
+                   url)
+         (weblocks/response:redirect url)))))

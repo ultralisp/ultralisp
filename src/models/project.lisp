@@ -169,6 +169,13 @@
                         :make-moderator
                         record
                         (get-current-user))
+      
+      ;; Also, we need to trigger a check of this project
+      ;; and to build a new Ultralisp version.
+      (uiop:symbol-call :ultralisp/models/check
+                        :make-check
+                        record
+                        :type :manual)
       record)))
 
 

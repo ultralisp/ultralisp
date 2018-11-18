@@ -80,14 +80,21 @@
 (defun make-check (project &key (type :manual))
   (check-type project project)
   (check-type type keyword)
+
+  (log:debug "Triggering a check for" project type)
   
   (unless (member type *allowed-trigger-types*)
     (let ((*print-case* :downcase))
       (error "Parameter :type should be one of ~{~S~^, ~}."
              *allowed-trigger-types*)))
 
-  (let ((check (mito:create-dao 'check
-                                :project project)))
+  (let* ((check (mito:find-dao 'check
+                               :project project))
+         (check (cond
+                  (check (log:debug "Pending check found.")
+                         check)
+                  (t (mito:create-dao 'check
+                                      :project project)))))
     (mito:create-dao 'check-trigger
                      :type type
                      :check check)
