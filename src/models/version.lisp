@@ -49,5 +49,6 @@
 
 (defun get-latest-versions (&key (limit 10))
   (select-dao 'version
+    (sxql:order-by (:desc :created-at))
     (sxql:limit limit)))
 
