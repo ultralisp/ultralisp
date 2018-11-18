@@ -5,10 +5,17 @@
                 #:format-timestring)
   (:import-from #:quickdist
                 #:quickdist)
-  (:import-from #:ultralisp/downloader
+  (:import-from #:ultralisp/downloader/base
                 #:download)
+  (:import-from #:ultralisp/models/version
+                #:get-built-at
+                #:get-number
+                #:version)
+  (:import-from #:mito
+                #:save-dao)
   (:export
-   #:build))
+   #:build
+   #:build-version))
 (in-package ultralisp/builder)
 
 
@@ -32,6 +39,24 @@
              :projects-dir projects-dir
              :dists-dir dist-dir
              :version (get-new-version-number)))
+
+
+(defun build-version (version
+                      &key
+                        (projects-dir "build/sources/")
+                        (name "ultralisp")
+                        (base-url "http://dist.ultralisp.org/")
+                        (dist-dir "build/dist/"))
+  (check-type version version)
+  (download version projects-dir)
+  (quickdist :name name
+             :base-url base-url
+             :projects-dir projects-dir
+             :dists-dir dist-dir
+             :version (get-number version))
+  (setf (get-built-at version)
+        (local-time:now))
+  (save-dao version))
 
 
 (defun test-build (&key

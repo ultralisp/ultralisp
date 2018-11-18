@@ -20,9 +20,10 @@
    #:check-trigger
    #:get-type
    #:get-check
-   #:get-all-not-checked-checks
+   #:get-pending-checks
    #:get-processed-at
-   #:make-version-from))
+   #:make-version-from
+   #:get-checks))
 (in-package ultralisp/models/check)
 
 
@@ -98,7 +99,12 @@
                    version)
              (save-dao check))))
 
-(defun get-all-not-checked-checks ()
+
+(defun get-pending-checks ()
   (select-dao 'check
     (where (:is-null 'processed-at))))
 
+
+(defun get-checks (version)
+  (select-dao 'check
+    (where (:= :version version))))

@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/models/check
                 #:make-version-from
-                #:get-all-not-checked-checks
+                #:get-pending-checks
                 #:project-has-changes-p
                 #:check
                 #:get-project)
@@ -12,7 +12,10 @@
                 #:with-transaction)
   (:export
    #:perform-project-check
-   #:perform-check))
+   #:perform-check
+   #:download
+   #:make-downloader
+   #:perform-pending-checks-and-trigger-version-build))
 (in-package ultralisp/downloader/base)
 
 
@@ -24,6 +27,24 @@ to True and set it's description to a text describing changes. These changes wil
 be grouped into the changelog item for a new Ultralisp release.
 
 Should return a check object."))
+
+
+(defgeneric download (obj dir)
+  (:documentation "Downloads something into the given directory.
+                   Usually, object will be a metadata holding description of a project."))
+
+
+(defgeneric make-downloader (source)
+  (:documentation "This generic should return a funcallable object which accepts
+                   two parameter: urn and directory. This fancallable should fetch
+                   project's sources and put them into the source directory.
+
+                   It should return a directory where fetches sources were stored as
+                   a first value, and can return a plist as a second values to help
+                   updates checker the project's params plist will be extended with
+                   the values from a plist, returned by downloader.
+
+                   Input argument `source' is a keyword from `source' slot of the metadata object."))
 
 
 (defun perform-check (check)
@@ -44,10 +65,14 @@ and `description'."
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-transaction
-      (let* ((checks (get-all-not-checked-checks))
+      (let* ((checks (get-pending-checks))
              (checks (mapcar 'perform-check checks))
              (checks (remove-if-not 'project-has-changes-p checks)))
-        
+
         (when checks
           (let ((version (make-version-from checks)))
-            (log:info "Version was created" version))))))
+            (log:info "Version was created" version)
+            version)))))
+
+
+

@@ -18,8 +18,6 @@
   (:import-from #:ultralisp/metadata
                 #:get-urn
                 #:read-metadata)
-  (:import-from #:ultralisp/downloader
-                #:update-metadata-repository)
   (:import-from #:cl-strings
                 #:split)
   (:import-from #:ultralisp/models/project
@@ -128,7 +126,6 @@
 (defun update-all (&key (build t)
                      (upload nil))
   "This function is useful to call manually after some pull-request was merged to add new projects."
-  ;; (update-metadata-repository "projects")
   ;; (ultralisp/webhook::update "projects/projects.txt")
   (let ((projects-dir "build/sources/")
         (dist-dir "build/dist/"))

@@ -10,7 +10,9 @@
                "ultralisp/main"
                "ultralisp/server"
                "ultralisp/widgets/landing"
-               "ultralisp/downloader/github")
+               "ultralisp/downloader/github"
+               "ultralisp/downloader/version"
+               "ultralisp/downloader/project")
   :perform (compile-op :before (o c)
                        #+ros.installing
                        (roswell:roswell '("install" "40ants/defmain"))))
