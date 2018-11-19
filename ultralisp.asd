@@ -10,6 +10,8 @@
                "ultralisp/main"
                "ultralisp/server"
                "ultralisp/widgets/landing"
+               "ultralisp/uploader/s3"
+               "ultralisp/uploader/fake"
                "ultralisp/downloader/github"
                "ultralisp/downloader/version"
                "ultralisp/downloader/project")

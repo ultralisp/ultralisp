@@ -3,7 +3,7 @@
         #:defmain)
   (:import-from #:ultralisp/builder
                 #:build)
-  (:import-from #:ultralisp/uploader
+  (:import-from #:ultralisp/uploader/base
                 #:upload)
   (:export
    #:main))
@@ -29,4 +29,4 @@
          :name name
          :base-url base-url)
   (when upload
-    (upload :dir dist-dir)))
+    (upload dist-dir)))

@@ -42,6 +42,11 @@
                 #:send-login-code)
   (:import-from #:lparallel
                 #:make-kernel)
+  (:import-from #:alexandria
+                #:make-keyword)
+  (:import-from #:ultralisp/uploader/base
+                #:make-uploader
+                #:*uploader-type*)
   (:shadow #:restart)
   (:export
    #:main
@@ -215,7 +220,17 @@ arguments."
   (unless mailgun:*api-key*
     (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
 
-
+  (let ((uploader-type (uiop:getenv "UPLOADER_TYPE")))
+    (when uploader-type
+      (log:info "Setting uploader type to" uploader-type)
+      
+      (let ((uploader-type (make-keyword (string-upcase uploader-type))))
+        (unless (compute-applicable-methods #'make-uploader (list uploader-type))
+          (error "Uploader of type ~S is not supported."
+                 uploader-type))
+        (setf *uploader-type*
+              uploader-type))))
+  
   (setf ultralisp/github/core:*client-id* (uiop:getenv "GITHUB_CLIENT_ID"))
   (unless ultralisp/github/core:*client-id*
     (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))

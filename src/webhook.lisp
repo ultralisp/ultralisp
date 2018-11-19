@@ -3,7 +3,7 @@
   
   (:import-from #:ultralisp/builder)
   (:import-from #:chanl)
-  (:import-from #:ultralisp/uploader)
+  (:import-from #:ultralisp/uploader/base)
   (:import-from #:weblocks/routes
                 #:serve
                 #:add-route
@@ -120,7 +120,7 @@
 
     ;; Now we'll upload a dist to the server
     (when upload
-      (ultralisp/uploader:upload :dir dist-dir))))
+      (ultralisp/uploader/base:upload dist-dir))))
 
 
 (defun update-all (&key (build t)
@@ -135,7 +135,7 @@
        :dist-dir dist-dir))
     
     (when upload
-      (ultralisp/uploader:upload :dir dist-dir))))
+      (ultralisp/uploader/base:upload dist-dir))))
 
 
 (defun process-payload (payload)

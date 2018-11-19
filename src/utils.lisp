@@ -9,7 +9,8 @@
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
-   #:ensure-existing-file))
+   #:ensure-existing-file
+   #:path-to-string))
 (in-package ultralisp/utils)
 
 
@@ -45,3 +46,7 @@
       (file-write-date path)
       (apply #'max 0 (mapcar #'directory-mtime (fad:list-directory path)))))
 
+
+(defun path-to-string (pathname)
+  (with-output-to-string (s)
+    (princ pathname s)))
