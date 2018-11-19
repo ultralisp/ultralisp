@@ -8,14 +8,20 @@
   (:import-from #:ultralisp/downloader/base
                 #:download)
   (:import-from #:ultralisp/models/version
+                #:get-pending-version
                 #:get-built-at
                 #:get-number
                 #:version)
   (:import-from #:mito
                 #:save-dao)
+  (:import-from #:ultralisp/db
+                #:with-transaction)
+  (:import-from #:ultralisp/uploader/base
+                #:upload)
   (:export
    #:build
-   #:build-version))
+   #:build-version
+   #:build-pending-version))
 (in-package ultralisp/builder)
 
 
@@ -48,15 +54,31 @@
                         (base-url "http://dist.ultralisp.org/")
                         (dist-dir "build/dist/"))
   (check-type version version)
-  (download version projects-dir)
-  (quickdist :name name
-             :base-url base-url
-             :projects-dir projects-dir
-             :dists-dir dist-dir
-             :version (get-number version))
-  (setf (get-built-at version)
-        (local-time:now))
-  (save-dao version))
+
+  (with-transaction
+    (download version projects-dir)
+    (quickdist :name name
+               :base-url base-url
+               :projects-dir projects-dir
+               :dists-dir dist-dir
+               :version (get-number version))
+    (setf (get-built-at version)
+          (local-time:now))
+    (save-dao version)
+
+    ;; TODO: probably it is not the best idea to upload dist-dir
+    ;;       every type, becase there can be previously built distributions
+    ;;       May be we need to minimize network traffic here and upload
+    ;;       only a part of it or make a selective upload which will not
+    ;;       transfer files which already on the S3.
+    (upload dist-dir)))
+
+
+(defun build-pending-version ()
+  "Searches and builds a pending version if any."
+  (let ((version (get-pending-version)))
+    (when version
+      (build-version version))))
 
 
 (defun test-build (&key

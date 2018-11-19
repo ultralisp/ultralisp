@@ -8,7 +8,8 @@
    #:version
    #:get-number
    #:get-built-at
-   #:get-latest-versions))
+   #:get-latest-versions
+   #:get-pending-version))
 (in-package ultralisp/models/version)
 
 
@@ -41,10 +42,17 @@
   (format-date (get-universal-time)))
 
 
+(defun get-pending-version ()
+  (first
+   (select-dao 'version
+     (sxql:where (:is-null 'built-at)))))
+
+
 (defun make-version ()
-  "Creates a new version object and links all given checks to it."
-  (create-dao 'version
-              :number (make-version-number)))
+  "Creates a new version object or returns a pending version which is waiting to be built."
+  (or (get-pending-version)
+      (create-dao 'version
+                  :number (make-version-number))))
 
 
 (defun get-latest-versions (&key (limit 10))
