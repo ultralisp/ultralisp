@@ -249,16 +249,16 @@ arguments."
   (setf (get-language)
         "en")
 
-  (mito:connect-toplevel :postgres
-                         :host (or (uiop:getenv "POSTGRES_HOST")
-                                   "localhost")
-                         :database-name (or (uiop:getenv "POSTGRES_DBNAME")
-                                            "ultralisp")
-                         :username (or (uiop:getenv "POSTGRES_USER")
-                                       "ultralisp")
-                         :password (or (uiop:getenv "POSTGRES_PASS")
-                                       "ultralisp"))
-
+  ;; Setup a hook to create or get connection and start
+  ;; new transaction on each request
+  (weblocks/hooks:on-application-hook-handle-request
+    connect-to-database ()
+    
+    (let ((path (weblocks/request:get-path)))
+      (if (cl-strings:starts-with path "/static/")
+          (weblocks/hooks:call-next-hook)
+          (ultralisp/db:with-connection
+            (weblocks/hooks:call-next-hook)))))
   
   (apply #'weblocks/server:start :server-type :woo args)
 
