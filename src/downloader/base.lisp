@@ -9,6 +9,7 @@
   (:import-from #:ultralisp/models/project
                 #:get-source)
   (:import-from #:ultralisp/db
+                #:with-lock
                 #:with-transaction)
   (:export
    #:perform-project-check
@@ -65,14 +66,19 @@ and `description'."
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-transaction
+    (with-lock ("performing-pending-checks-or-verion-build"
+                ;; We don't need to signal because this function
+                ;; will be called again by "cron" after some
+                ;; period of time.
+                :signal-on-failure nil)
       (let* ((checks (get-pending-checks))
              (checks (mapcar 'perform-check checks))
              (checks (remove-if-not 'project-has-changes-p checks)))
-
+        
         (when checks
           (let ((version (make-version-from checks)))
             (log:info "Version was created" version)
-            version)))))
+            version))))))
 
 
 

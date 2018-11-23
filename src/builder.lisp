@@ -15,6 +15,7 @@
   (:import-from #:mito
                 #:save-dao)
   (:import-from #:ultralisp/db
+                #:with-lock
                 #:with-transaction)
   (:import-from #:ultralisp/uploader/base
                 #:upload)
@@ -76,9 +77,15 @@
 
 (defun build-pending-version ()
   "Searches and builds a pending version if any."
-  (let ((version (get-pending-version)))
-    (when version
-      (build-version version))))
+  (with-transaction
+    (with-lock ("performing-pending-checks-or-verion-build"
+                ;; We don't need to signal because this function
+                ;; will be called again by "cron" after some
+                ;; period of time.
+                :signal-on-failure nil)
+      (let ((version (get-pending-version)))
+        (when version
+          (build-version version))))))
 
 
 (defun test-build (&key
