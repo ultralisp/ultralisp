@@ -49,6 +49,14 @@
 
 
 (defun make-hash-for-lock-name (name)
+  ;; TODO: store all names in some global
+  ;;       map {hash -> name} so that we'll be enable
+  ;;       to make reverse transformation and know
+  ;;       which locks are held on database.
+  ;;       Also, we need to add a function which
+  ;;       fetches all advisory locks from pg_locks table
+  ;;       and returns a list of names.
+  ;;       (All of this should be made threasafe of cause.)
   (let* ((bytes (ascii-string-to-byte-array name))
          (hmac (make-hmac bytes :sha256))
          (digest (hmac-digest hmac))
