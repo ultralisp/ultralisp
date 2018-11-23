@@ -4,6 +4,11 @@
                 #:connect-cached)
   (:import-from #:mito
                 #:connect-toplevel)
+  (:import-from #:ironclad
+                #:octets-to-integer
+                #:hmac-digest
+                #:make-hmac
+                #:ascii-string-to-byte-array)
   (:export
    #:with-transaction
    #:with-connection
@@ -44,12 +49,12 @@
 
 
 (defun make-hash-for-lock-name (name)
-  (let* ((bytes (crypto:ascii-string-to-byte-array name))
-         (hmac (crypto:make-hmac bytes :sha256))
-         (digest (crypto:hmac-digest hmac))
+  (let* ((bytes (ascii-string-to-byte-array name))
+         (hmac (make-hmac bytes :sha256))
+         (digest (hmac-digest hmac))
          (num-bits-in-result 63)
-         (result (ironclad:octets-to-integer digest
-                                             :n-bits num-bits-in-result)))
+         (result (octets-to-integer digest
+                                    :n-bits num-bits-in-result)))
     result))
 
 
