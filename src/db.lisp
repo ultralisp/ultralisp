@@ -94,5 +94,5 @@
 
 (defmacro with-lock ((name &key (signal-on-failure t)) &body body)
   `(when (try-to-get-lock ,name :signal-on-failure ,signal-on-failure)
-     (log:info "Lock aquired:" ,name mito:*connection*)
+     (log:debug "Lock aquired:" ,name mito:*connection*)
      ,@body))
