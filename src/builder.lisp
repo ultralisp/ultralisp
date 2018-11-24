@@ -19,6 +19,11 @@
                 #:with-transaction)
   (:import-from #:ultralisp/uploader/base
                 #:upload)
+  (:import-from #:ultralisp/variables
+                #:get-dist-dir
+                #:get-base-url
+                #:get-dist-name
+                #:get-projects-dir)
   (:export
    #:build
    #:build-version
@@ -36,10 +41,10 @@
 
 (defun build (&key
                 (projects :all)
-                (projects-dir "build/sources/")
-                (name "ultralisp")
-                (base-url "http://dist.ultralisp.org/")
-                (dist-dir "build/dist/"))
+                (projects-dir (get-projects-dir))
+                (name (get-dist-name))
+                (base-url (get-base-url))
+                (dist-dir (get-dist-dir)))
   (download projects projects-dir)
   (quickdist :name name
              :base-url base-url
@@ -50,10 +55,10 @@
 
 (defun build-version (version
                       &key
-                        (projects-dir "build/sources/")
-                        (name "ultralisp")
-                        (base-url "http://dist.ultralisp.org/")
-                        (dist-dir "build/dist/"))
+                        (projects-dir (get-projects-dir))
+                        (name (get-dist-name))
+                        (base-url (get-base-url))
+                        (dist-dir (get-dist-dir)))
   (check-type version version)
 
   (with-transaction
@@ -89,10 +94,10 @@
 
 
 (defun test-build (&key
-                     (projects-dir "build/sources/")
-                     (name "ultralisp")
-                     (base-url "http://dist.ultralisp.org/")
-                     (dist-dir "build/dist/"))
+                     (projects-dir (get-projects-dir))
+                     (name (get-dist-name))
+                     (base-url (get-base-url))
+                     (dist-dir (get-dist-dir)))
   (quickdist :name name
              :base-url base-url
              :projects-dir projects-dir
