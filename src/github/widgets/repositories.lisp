@@ -34,6 +34,10 @@
                 #:anonymous-p)
   (:import-from #:quri
                 #:url-encode)
+  (:import-from #:ultralisp/db
+                #:with-connection)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -192,7 +196,9 @@
     (setf (slot-value widget 'thread)
           (bt:make-thread
            (lambda ()
-             (create-repository-widgets widget webhook-url))
+             (with-log-unhandled ()
+                 (with-connection
+                     (create-repository-widgets widget webhook-url))))
            :name "searching-for-repositories"))))
 
 

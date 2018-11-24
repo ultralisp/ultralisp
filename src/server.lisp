@@ -1,7 +1,9 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
-  (:import-from #:log4cl-json)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
   (:import-from #:ultralisp/github/core)
+  (:import-from #:ultralisp/cron)
   (:import-from #:mailgun)
   (:import-from #:slynk)
   (:import-from #:mito)
@@ -47,6 +49,10 @@
   (:import-from #:ultralisp/uploader/base
                 #:make-uploader
                 #:*uploader-type*)
+  (:import-from #:weblocks/request-handler
+                #:handle-client-request)
+  (:import-from #:ultralisp/db
+                #:with-connection)
   (:shadow #:restart)
   (:export
    #:main
@@ -193,6 +199,12 @@
    :content-type "text/html"))
 
 
+(defmethod handle-client-request ((app app))
+  "Here we create a new connection and start new transaction on each request."
+  (with-connection
+    (call-next-method)))
+
+
 ;; Top level start & stop scripts
 
 (defvar *app* nil
@@ -249,17 +261,9 @@ arguments."
   (setf (get-language)
         "en")
 
-  ;; Setup a hook to create or get connection and start
-  ;; new transaction on each request
-  (weblocks/hooks:on-application-hook-handle-request
-    connect-to-database ()
-    
-    (let ((path (weblocks/request:get-path)))
-      (if (cl-strings:starts-with path "/static/")
-          (weblocks/hooks:call-next-hook)
-          (ultralisp/db:with-connection
-            (weblocks/hooks:call-next-hook)))))
-  
+  (ultralisp/cron:setup)
+  (ultralisp/cron:start)
+
   (apply #'weblocks/server:start :server-type :woo args)
 
   (setf *app*

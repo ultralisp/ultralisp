@@ -5,12 +5,15 @@
                 #:ensure-absolute-pathname
                 #:ensure-directory-pathname
                 #:ensure-pathname)
+  (:import-from #:uuid
+                #:make-v4-uuid)
   (:export
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
    #:ensure-existing-file
-   #:path-to-string))
+   #:path-to-string
+   #:make-request-id))
 (in-package ultralisp/utils)
 
 
@@ -50,3 +53,10 @@
 (defun path-to-string (pathname)
   (with-output-to-string (s)
     (princ pathname s)))
+
+
+(defun make-request-id ()
+  "Makes unique request-id for usage in logs."
+  (uuid:print-bytes nil (make-v4-uuid)))
+
+
