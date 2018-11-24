@@ -5,11 +5,14 @@
   (:import-from #:ultralisp/utils
                 #:make-request-id)
   (:import-from #:log4cl-json
+                #:with-log-unhandled
                 #:with-fields)
   (:import-from #:ultralisp/downloader/base
                 #:perform-pending-checks-and-trigger-version-build)
   (:import-from #:ultralisp/db
                 #:with-connection)
+  (:import-from #:ultralisp/builder
+                #:build-pending-version)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
@@ -19,11 +22,27 @@
 (in-package ultralisp/cron)
 
 
-(defun perform-checks ()
-  (with-fields (:request-id (make-request-id))
-    (log4cl-json:with-log-unhandled ()
-      (with-connection
-          (perform-pending-checks-and-trigger-version-build)))))
+(defmacro deftask (name &body body)
+  "Defines a cron task function with following properties:
+
+   * Each call has it's own unique id in log messages.
+   * Unhandles exceptions will be logged along with their tracebacks.
+   * A new database connection and trasaction will be started."
+  
+  `(defun ,name ()
+     (with-fields (:request-id (make-request-id))
+       (log:debug "Running cron task" ',name)
+       (with-log-unhandled ()
+         (with-connection
+             ,@body)))))
+
+
+(deftask perform-checks ()
+  (perform-pending-checks-and-trigger-version-build))
+
+
+(deftask build-version ()
+  (build-pending-version))
 
 
 (defun list-cron-jobs ()
@@ -38,20 +57,25 @@
 
 (defun setup ()
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
-  (log:info "Creating cron jobs")
+  (log:debug "Creating cron jobs")
+  ;; Run every minute
   (cl-cron:make-cron-job 'perform-checks
-                         :hash-key 'perform-checks))
+                         :hash-key 'perform-checks)
+  ;; Run every 5 minutes
+  (cl-cron:make-cron-job 'build-version
+                         :hash-key 'build-version
+                         :step-min 5))
 
 
 (defun start ()
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
-  (log:info "Starting cron thread")
+  (log:debug "Starting cron thread")
   (cl-cron:start-cron))
 
 
 (defun stop ()
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
-  (log:info "Stopping cron thread")
+  (log:debug "Stopping cron thread")
   (cl-cron:stop-cron))
 
 
