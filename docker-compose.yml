@@ -1,6 +1,6 @@
 version: '3'
 services:
-  web:
+  app:
     build: .
     restart: always
     ports:
@@ -11,6 +11,10 @@ services:
       - ~/common-lisp:/common-lisp
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASSWORD: ultralisp
+      POSTGRES_RO_USER: ultralisp_ro
+      POSTGRES_RO_PASSWORD: ultralisp_ro
   postgres:
     image: "postgres:10"
     restart: always
