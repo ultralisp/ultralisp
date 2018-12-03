@@ -9,6 +9,11 @@
                 #:hmac-digest
                 #:make-hmac
                 #:ascii-string-to-byte-array)
+  (:import-from #:ultralisp/variables
+                #:get-postgres-pass
+                #:get-postgres-user
+                #:get-postgres-host
+                #:get-postgres-dbname)
   (:export
    #:with-transaction
    #:with-connection
@@ -20,16 +25,16 @@
 (in-package ultralisp/db)
 
 
-(defun connect ()
+(defun connect (&key host database-name username password)
   (connect-cached :postgres
-                          :host (or (uiop:getenv "POSTGRES_HOST")
-                                    "localhost")
-                          :database-name (or (uiop:getenv "POSTGRES_DBNAME")
-                                             "ultralisp")
-                          :username (or (uiop:getenv "POSTGRES_USER")
-                                        "ultralisp")
-                          :password (or (uiop:getenv "POSTGRES_PASS")
-                                        "ultralisp")))
+                  :host (or host
+                            (get-postgres-host))
+                  :database-name (or  database-name
+                                      (get-postgres-dbname))
+                  :username (or username
+                                (get-postgres-user))
+                  :password (or password
+                                (get-postgres-pass))))
 
 
 (defun connect-toplevel ()
@@ -41,9 +46,10 @@
      ,@body))
 
 
-(defmacro with-connection (&body body)
+(defmacro with-connection ((&rest connect-options) &body body)
   "Establish a new connection and start transaction"
-  `(let ((mito:*connection* (connect)))
+  `(let ((mito:*connection* (funcall #'connect
+                                     ,@connect-options)))
      (with-transaction
        ,@body)))
 

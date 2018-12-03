@@ -1,0 +1,21 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '(bordeaux-threads
+                             log4cl
+                             lfarm-server
+                             ultralisp/lfarm
+                             ultralisp/server)
+                           :silent t))
+
+(defpackage :ultralisp.worker
+  (:use :cl)
+  (:import-from #:ultralisp/lfarm
+                #:main))
+(in-package :ultralisp.worker)
+
+;;; vim: set ft=lisp lisp:

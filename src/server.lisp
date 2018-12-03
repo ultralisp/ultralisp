@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:ultralisp/lfarm)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
   (:import-from #:ultralisp/github/core)
@@ -260,6 +261,8 @@ arguments."
         #P"/tmp/weblocks-cache/ultralisp/")
   (setf (get-language)
         "en")
+
+  (ultralisp/lfarm:connect-to-servers)
 
   (ultralisp/cron:setup)
   (ultralisp/cron:start)

@@ -6,6 +6,7 @@
 (defmacro def-env-var (getter var-name &optional default)
   `(progn
      (defun ,getter ()
+       "If `value' is not given, then tries to extract it from env variables or fall back to default."
        (or (uiop:getenv ,var-name)
            ,default))
      (export ',getter)))
@@ -35,3 +36,27 @@
 
 (def-env-var get-google-counter-id
   "GOOGLE_COUNTER_ID")
+
+(def-env-var get-postgres-host
+  "POSTGRES_HOST"
+  "localhost")
+
+(def-env-var get-postgres-dbname
+  "POSTGRES_DBNAME"
+  "ultralisp")
+
+(def-env-var get-postgres-user
+  "POSTGRES_USER"
+  "ultralisp")
+
+(def-env-var get-postgres-ro-user
+  "POSTGRES_RO_USER"
+  "ultralisp_ro")
+
+(def-env-var get-postgres-pass
+  "POSTGRES_PASS"
+  "ultralisp")
+
+(def-env-var get-postgres-ro-pass
+  "POSTGRES_RO_PASS"
+  "ultralisp_ro")

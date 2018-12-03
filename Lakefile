@@ -13,6 +13,11 @@
 (task "build" ()
       (sh #?"docker build -t ${tag} ."))
 
+
+;; TODO: remove CL_SOURCE_REGISTRY before release
+(task "build-worker" ()
+      (sh #?"CL_SOURCE_REGISTRY=~/common-lisp// qlot exec ros -L sbcl build ./worker.ros"))
+
 (task "push" ("build")
       (sh #?"docker push ${tag}"))
 

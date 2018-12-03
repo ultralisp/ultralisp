@@ -15,15 +15,20 @@
   (:import-from #:mito
                 #:save-dao)
   (:import-from #:ultralisp/db
+                #:with-connection
                 #:with-lock
                 #:with-transaction)
   (:import-from #:ultralisp/uploader/base
                 #:upload)
   (:import-from #:ultralisp/variables
+                #:get-postgres-ro-pass
+                #:get-postgres-ro-user
                 #:get-dist-dir
                 #:get-base-url
                 #:get-dist-name
                 #:get-projects-dir)
+  (:import-from #:ultralisp/lfarm
+                #:submit-task)
   (:export
    #:build
    #:build-version
@@ -53,15 +58,18 @@
              :version (get-new-version-number)))
 
 
-(defun build-version (version
-                      &key
-                        (projects-dir (get-projects-dir))
-                        (name (get-dist-name))
-                        (base-url (get-base-url))
-                        (dist-dir (get-dist-dir)))
+(defun build-version-remotely (version
+                               &key
+                                 (projects-dir (get-projects-dir))
+                                 (name (get-dist-name))
+                                 (base-url (get-base-url))
+                                 (dist-dir (get-dist-dir))
+                                 db-user
+                                 db-pass)
   (check-type version version)
 
-  (with-transaction
+  (with-connection (:username db-user
+                    :password db-pass)
     (download version projects-dir)
     (quickdist :name name
                :base-url base-url
@@ -70,14 +78,17 @@
                :version (get-number version))
     (setf (get-built-at version)
           (local-time:now))
-    (save-dao version)
-
+    
     ;; TODO: probably it is not the best idea to upload dist-dir
     ;;       every type, becase there can be previously built distributions
     ;;       May be we need to minimize network traffic here and upload
     ;;       only a part of it or make a selective upload which will not
     ;;       transfer files which already on the S3.
-    (upload dist-dir)))
+    (upload dist-dir)
+    ;; Here we don't save version object because
+    ;; this function will be called on a remote worker
+    ;; without "write" access to the database.
+    version))
 
 
 (defun build-pending-version ()
@@ -90,7 +101,12 @@
                 :signal-on-failure nil)
       (let ((version (get-pending-version)))
         (when version
-          (build-version version))))))
+          (let ((updated-version (submit-task
+                                  'build-version-remotely
+                                  version
+                                  :db-user (get-postgres-ro-user)
+                                  :db-pass (get-postgres-ro-pass))))
+            (save-dao updated-version)))))))
 
 
 (defun test-build (&key
