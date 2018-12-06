@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
