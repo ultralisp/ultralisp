@@ -5,7 +5,8 @@
   (:import-from #:ultralisp/models/project
                 #:project)
   (:import-from #:mito
-                #:dao-table-class))
+                #:dao-table-class)
+  (:export #:moderator))
 (in-package ultralisp/models/moderator)
 
 

@@ -1,7 +1,8 @@
 (defpackage #:ultralisp/models/user
   (:use #:cl)
   (:import-from #:mito-email-auth/weblocks
-                #:user-with-email))
+                #:user-with-email)
+  (:export #:user))
 (in-package ultralisp/models/user)
 
 
