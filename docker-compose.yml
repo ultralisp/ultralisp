@@ -3,12 +3,17 @@ services:
   app:
     build: .
     restart: always
+    # Probably, these aren't needed
+    # stdin_open: true
+    # tty: true
     ports:
       - "8080:80"
       - "4005:4005"
     volumes:
       - .:/app
       - ~/common-lisp:/common-lisp
+    depends_on:
+      - postgres
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp

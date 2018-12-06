@@ -21,9 +21,4 @@ exec ros -Q -- $0 "$@"
 (in-package :ros.script.ultralisp-server)
 
 
-;; To make it possible to connect to a remote SLYNK server where ports are closed
-;; with firewall.
-(defvar slynk:*use-dedicated-output-stream* nil)
-
-
 

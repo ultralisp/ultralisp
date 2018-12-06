@@ -7,13 +7,16 @@
                 #:ensure-pathname)
   (:import-from #:uuid
                 #:make-v4-uuid)
+  (:import-from #:cl-strings
+                #:split)
   (:export
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
    #:ensure-existing-file
    #:path-to-string
-   #:make-request-id))
+   #:make-request-id
+   #:parse-workers-hosts))
 (in-package ultralisp/utils)
 
 
@@ -60,3 +63,16 @@
   (uuid:print-bytes nil (make-v4-uuid)))
 
 
+(defun parse-workers-hosts (string)
+  "Parses comma-separated string like that:
+
+   localhost:10100,localhost:10101
+
+   And returns a list:
+
+   '((\"localhost\" 10100)
+     (\"localhost\" 10101))
+"
+  (loop for item in (split string ",")
+        for (host port) = (split item ":")
+        collect (list host port)))

@@ -60,3 +60,6 @@
 (def-env-var get-postgres-ro-pass
   "POSTGRES_RO_PASS"
   "ultralisp_ro")
+
+(def-env-var get-lfarm-workers
+  "LFARM_WORKERS")

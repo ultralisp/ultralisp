@@ -47,6 +47,7 @@
   (:import-from #:lparallel
                 #:make-kernel)
   (:import-from #:alexandria
+                #:remove-from-plistf
                 #:make-keyword)
   (:import-from #:ultralisp/uploader/base
                 #:make-uploader
@@ -55,6 +56,10 @@
                 #:handle-client-request)
   (:import-from #:ultralisp/db
                 #:with-connection)
+  (:import-from #:defmain
+                #:defmain)
+  (:import-from #:ultralisp/variables
+                #:get-lfarm-workers)
   (:shadow #:restart)
   (:export
    #:main
@@ -203,7 +208,7 @@
 
 (defmethod handle-client-request ((app app))
   "Here we create a new connection and start new transaction on each request."
-  (with-connection
+  (with-connection ()
     (call-next-method)))
 
 
@@ -213,9 +218,10 @@
   "App's instance.")
 
 
-(defun start (&rest args)
+(defun start (&rest args &key lfarm-workers &allow-other-keys)
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
+  (remove-from-plistf args :lfarm-workers)
 
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
@@ -263,13 +269,20 @@ arguments."
   (setf (get-language)
         "en")
 
-  (ultralisp/lfarm:connect-to-servers)
+  (let ((lfarm-servers (or lfarm-workers
+                           (get-lfarm-workers))))
+    (when lfarm-servers
+      (log:error "Connecting lfarm workers")
+      (ultralisp/lfarm:connect-to-servers :servers lfarm-servers)))
 
+  (log:info "Starting cron jobs")
   (ultralisp/cron:setup)
   (ultralisp/cron:start)
 
+  (log:info "Starting server" args)
   (apply #'weblocks/server:start :server-type :woo args)
 
+  (log:info "DONE")
   (setf *app*
         (weblocks/app:start 'app)))
 
@@ -285,29 +298,41 @@ arguments."
   (apply #'start args))
 
 
-(defun main (&rest argv)
-  (declare (ignorable argv))
-
+(defmain main ((workers "A comma-separated list of workers to connect to in form \"localhost:10100,localhost:10101\". If not given, then we'll not try to connect to any workers and version building will not be available.")
+               (dont-start-server "Don't start HTTP server."
+                                  :flag t))
   (log4cl-json:setup :level :debug)
 
   (let ((slynk-port 4005)
         (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
         (interface (getenv "INTERFACE" "0.0.0.0"))
         (port (getenv "PORT" 80))
-        (num-workers (getenv "NUM_PROCESSES" 4))
         (hostname (machine-instance))
         (debug (when (getenv "DEBUG")
                  t)))
 
-    (format t "Starting slynk server~%")
+    ;; To make it possible to connect to a remote SLYNK server where ports are closed
+    ;; with firewall.
+    (setf slynk:*use-dedicated-output-stream* nil)
+    
+    (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
+            slynk-interface
+            slynk-port
+            slynk:*use-dedicated-output-stream*)
 
     (slynk:create-server :dont-close t
                          :port slynk-port
                          :interface slynk-interface)
 
-    (start :port port
-           :interface interface
-           :debug debug)
+    (unless dont-start-server
+      (format t "Starting HTTP server on ~A:~A~%"
+              interface
+              port)
+      (start :port port
+             :interface interface
+             :debug debug
+             :lfarm-workers (when workers
+                              (parse-workers-hosts workers))))
 
     (format t "To start HTTP server:~%")
     (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
@@ -316,10 +341,8 @@ arguments."
     (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
     (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%"))
 
-  ;; теперь ждем вечно, пока кто-нибудь не присоединится
-  (do ()
-      (nil)
-    (format t "Waiting for slynk connection.~%")
-    (sleep 60))
+  ;; Now we'll wait forever for connections from SLY.
+  (loop
+    do (sleep 60))
   
   (format t "Exiting. Why? I don't know! This should never happen~%"))

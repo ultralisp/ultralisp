@@ -12,11 +12,13 @@ ultralisp :all :latest
 #github cl-yandex-metrika 40ants/cl-yandex-metrika
 
 # TODO: Move these dependencies to ultralisp in future
-github mailgun 40ants/mailgun :tag v0.1.1
+github mailgun 40ants/mailgun :tag v0.1.2
+github mito-email-auth 40ants/mito-email-auth :tag v0.1.0
+github link-header 40ants/cl-link-header :tag v0.1.1
 
 
 #github quickdist ultralisp/quickdist
-#github slynk joaotavora/sly
+# github slynk joaotavora/sly
 # github slynk-named-readtables joaotavora/sly-named-readtables
 
 github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
