@@ -75,4 +75,4 @@
 "
   (loop for item in (split string ",")
         for (host port) = (split item ":")
-        collect (list host port)))
+        collect (list host (parse-integer port))))

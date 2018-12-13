@@ -79,7 +79,7 @@
                   (loop for version in latest-versions
                         for number = (get-number version)
                         for built-at = (get-built-at version)
-                        for changelog = (get-changelog version)
+                        for changelog = (string-trim (list #\Newline #\Space #\Tab) (get-changelog version))
                         do (with-html
                              (:tr
                               (:td :style "white-space: nowrap"
@@ -89,7 +89,7 @@
                                        (format-date "%Y-%m-%d %H:%M:%S"
                                                     (timestamp-to-universal built-at))
                                        "pending"))
-                              (:td changelog)))))))
+                              (:td (:pre changelog))))))))
 
       (when all-projects
         (with-html

@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20181203-222438"))
+  :version "20181207-072339"))
 ("mailgun" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "mailgun" :repos "40ants/mailgun" :ref nil :branch nil :tag "v0.1.2")

@@ -197,8 +197,8 @@
           (bt:make-thread
            (lambda ()
              (with-log-unhandled ()
-                 (with-connection
-                     (create-repository-widgets widget webhook-url))))
+               (with-connection ()
+                 (create-repository-widgets widget webhook-url))))
            :name "searching-for-repositories"))))
 
 

@@ -33,7 +33,7 @@
      (with-fields (:request-id (make-request-id))
        (log:debug "Running cron task" ',name)
        (with-log-unhandled ()
-         (with-connection
+         (with-connection ()
              ,@body)))))
 
 

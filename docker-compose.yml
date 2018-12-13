@@ -1,6 +1,7 @@
 version: '3'
 services:
   app:
+    container_name: ultralisp_app
     build: .
     restart: always
     # Probably, these aren't needed
@@ -8,19 +9,43 @@ services:
     # tty: true
     ports:
       - "8080:80"
-      - "4005:4005"
+      - "14005:4005"
     volumes:
       - .:/app
-      - ~/common-lisp:/common-lisp
+#      - ~/common-lisp:/common-lisp
     depends_on:
       - postgres
+      - worker
     environment:
+      DEBUG: 1
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
       POSTGRES_PASSWORD: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASSWORD: ultralisp_ro
+      # These tokens are from the development app and
+      # we don't need to keep them in secret
+      GITHUB_CLIENT_ID: 0bc769474b14267aac28
+      GITHUB_SECRET: 3f46156c6bd57f4c233db9449ed556b6e545315a
+      LFARM_WORKERS: worker:10100
+
+  worker:
+    container_name: ultralisp_worker
+    build: .
+    restart: always
+    ports:
+      - "14006:4005"
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      DEBUG: 1
+      MODE: worker
+
   postgres:
+    container_name: ultralisp_db
     image: "postgres:10"
     restart: always
     environment:

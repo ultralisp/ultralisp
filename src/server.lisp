@@ -2,8 +2,7 @@
   (:use #:cl)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm)
-  (:import-from #:log4cl-json
-                #:with-log-unhandled)
+  (:import-from #:log4cl-json)
   (:import-from #:ultralisp/github/core)
   (:import-from #:ultralisp/cron)
   (:import-from #:mailgun)
@@ -33,6 +32,7 @@
   (:import-from #:ultralisp/widgets/main
                 #:make-main-widget)
   (:import-from #:ultralisp/utils
+                #:parse-workers-hosts
                 #:getenv)
   (:import-from #:ultralisp/webhook
                 #:make-webhook-route)
@@ -59,6 +59,8 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:ultralisp/variables
+                #:get-github-client-id
+                #:get-github-secret
                 #:get-lfarm-workers)
   (:shadow #:restart)
   (:export
@@ -251,11 +253,11 @@ arguments."
         (setf *uploader-type*
               uploader-type))))
   
-  (setf ultralisp/github/core:*client-id* (uiop:getenv "GITHUB_CLIENT_ID"))
+  (setf ultralisp/github/core:*client-id* (get-github-client-id))
   (unless ultralisp/github/core:*client-id*
     (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
   
-  (setf ultralisp/github/core:*secret* (uiop:getenv "GITHUB_SECRET"))
+  (setf ultralisp/github/core:*secret* (get-github-secret))
   (unless ultralisp/github/core:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
   
@@ -270,10 +272,15 @@ arguments."
         "en")
 
   (let ((lfarm-servers (or lfarm-workers
-                           (get-lfarm-workers))))
+                           (parse-workers-hosts
+                            (get-lfarm-workers)))))
     (when lfarm-servers
-      (log:error "Connecting lfarm workers")
-      (ultralisp/lfarm:connect-to-servers :servers lfarm-servers)))
+      (bordeaux-threads:make-thread
+       (lambda ()
+         (log:info "Connecting lfarm workers" lfarm-servers)
+         (ultralisp/lfarm:connect-to-servers :servers lfarm-servers)
+         (log:info "Connected to lfarm workers"))
+       :name "Connecting to lfarm workers")))
 
   (log:info "Starting cron jobs")
   (ultralisp/cron:setup)

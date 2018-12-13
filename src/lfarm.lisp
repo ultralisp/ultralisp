@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/lfarm
   (:use #:cl)
   (:use #:log4cl)
+  (:import-from #:log4cl-json)
   (:import-from #:slynk)
   (:import-from #:defmain
                 #:defmain)
@@ -142,16 +143,18 @@
                (one-task-only "If true, then worker will quit after the task processing."
                               :flag t)
                (debug "If true, then output will be verbose"
-                      :flag t))
+                      :flag t
+                      :env-var "DEBUG"))
 
-  (log:info "Starting lfarm server")
   (cond (debug
-         (log:config :sane2 :debug)
+         (log4cl-json:setup :level :debug)
          (setf lfarm-common:*log-level* :debug))
         (t
-         (log:config :sane2 :info)
+         (log4cl-json:setup :level :info)
          (setf lfarm-common:*log-level* :info)))
-  
+
+  (log:info "Starting lfarm server")
+
   (when one-task-only
     (setf *after-last-task* 'on-last-task))
 

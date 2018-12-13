@@ -65,11 +65,13 @@
                                  (base-url (get-base-url))
                                  (dist-dir (get-dist-dir))
                                  db-user
-                                 db-pass)
+                                 db-pass
+                                 db-host)
   (check-type version version)
 
   (with-connection (:username db-user
-                    :password db-pass)
+                    :password db-pass
+                    :host db-host)
     (download version projects-dir)
     (quickdist :name name
                :base-url base-url
@@ -105,7 +107,8 @@
                                   'build-version-remotely
                                   version
                                   :db-user (get-postgres-ro-user)
-                                  :db-pass (get-postgres-ro-pass))))
+                                  :db-pass (get-postgres-ro-pass)
+                                  :db-host (get-postgres-host))))
             (save-dao updated-version)))))))
 
 

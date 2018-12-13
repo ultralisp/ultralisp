@@ -11,6 +11,7 @@
                       'ultralisp/models/moderator:moderator
                       'ultralisp/models/project:project
                       'ultralisp/models/user:user
-                      'ultralisp/models/version:version)))
+                      'ultralisp/models/version:version
+                      'mito-email-auth/models:registration-code)))
     (ultralisp/db:with-connection ()
       (mapc #'mito:ensure-table-exists tables))))

@@ -63,3 +63,9 @@
 
 (def-env-var get-lfarm-workers
   "LFARM_WORKERS")
+
+(def-env-var get-github-client-id
+  "GITHUB_CLIENT_ID")
+
+(def-env-var get-github-secret
+  "GITHUB_SECRET")

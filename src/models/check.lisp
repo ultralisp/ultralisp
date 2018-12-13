@@ -130,7 +130,7 @@
                 for project = (get-project check)
                 for project-name = (get-name project)
                 for description = (get-description check)
-                do (format s "~A – ~A"
+                do (format s "~&~A – ~A"
                            project-name
                            description)))
         "No changes")))
