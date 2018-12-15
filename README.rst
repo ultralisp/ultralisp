@@ -27,6 +27,25 @@ GitHub, to increase priority for this feature.
 How to host Ultralisp on my own server
 ======================================
 
+Easy way
+--------
+
+Easiest way to start a local Ultralisp server is to use
+``docker-compose``.
+
+Checkout the repository::
+
+  git clone https://github.com/ultralisp/ultralisp
+  cd ultralisp
+
+And run::
+
+  docker-compose up app
+
+
+Harder way
+----------
+
 Use a docker image. To may build it youself by runing ``make all`` or
 use an image from the Docker Hub.
 
