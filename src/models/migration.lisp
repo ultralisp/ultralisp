@@ -1,5 +1,11 @@
 (defpackage #:ultralisp/models/migration
   (:use #:cl)
+  (:import-from #:ultralisp/models/check)
+  (:import-from #:ultralisp/models/moderator)
+  (:import-from #:ultralisp/models/project)
+  (:import-from #:ultralisp/models/user)
+  (:import-from #:ultralisp/models/version)
+  (:import-from #:mito-email-auth/models)
   (:export
    #:create-initial-db-structure))
 (in-package ultralisp/models/migration)

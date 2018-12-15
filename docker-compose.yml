@@ -11,8 +11,8 @@ services:
       - "8080:80"
       - "14005:4005"
     volumes:
-      - .:/app
-#      - ~/common-lisp:/common-lisp
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
     depends_on:
       - postgres
       - worker
@@ -36,7 +36,8 @@ services:
     ports:
       - "14006:4005"
     volumes:
-      - .:/app
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
     depends_on:
       - postgres
     environment:
@@ -55,4 +56,19 @@ services:
       - "5432:5432"
     volumes:
       - ./postgresql-data:/var/lib/postgresql/data
-    
+
+  # Commands
+  gen-deps-system:
+    build: .
+    volumes:
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+
+    command: |
+      bash -c " \
+      ros install 40ants/gen-deps-system && \
+      qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)' && \
+      qlot exec /root/.roswell/bin/gen-deps-system --except ultralisp app \ 
+      "

@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:woo)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm)
   (:import-from #:log4cl-json)
@@ -34,6 +35,8 @@
   (:import-from #:ultralisp/utils
                 #:parse-workers-hosts
                 #:getenv)
+  (:import-from #:ultralisp/models/migration
+                #:create-initial-db-structure)
   (:import-from #:ultralisp/webhook
                 #:make-webhook-route)
   (:import-from #:ultralisp/analytics
@@ -330,6 +333,9 @@ arguments."
     (slynk:create-server :dont-close t
                          :port slynk-port
                          :interface slynk-interface)
+
+    ;; Now we'll ensure that tables are exists in the database
+    (create-initial-db-structure)
 
     (unless dont-start-server
       (format t "Starting HTTP server on ~A:~A~%"
