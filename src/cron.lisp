@@ -32,9 +32,10 @@
   `(defun ,name ()
      (with-fields (:request-id (make-request-id))
        (log:debug "Running cron task" ',name)
-       (with-log-unhandled ()
-         (with-connection ()
-             ,@body)))))
+       (ignore-errors
+         (with-log-unhandled ()
+           (with-connection ()
+                ,@body))))))
 
 
 (deftask perform-checks ()
