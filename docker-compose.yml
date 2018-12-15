@@ -8,9 +8,12 @@ services:
     # stdin_open: true
     # tty: true
     ports:
-      - "8080:80"
-      - "14005:4005"
+      - "127.0.0.1:8080:80"
+      - "127.0.0.1:14005:4005"
     volumes:
+      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
     depends_on:
@@ -34,8 +37,10 @@ services:
     build: .
     restart: always
     ports:
-      - "14006:4005"
+      - "127.0.0.1:14006:4005"
     volumes:
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
     depends_on:
@@ -53,14 +58,16 @@ services:
       POSTGRES_USER: ultralisp
       POSTGRES_PASSWORD: ultralisp
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./postgresql-data:/var/lib/postgresql/data
+      - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
 
   # Commands
   gen-deps-system:
     build: .
     volumes:
+      - ./entrypoint.sh:/app/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/

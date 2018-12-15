@@ -158,6 +158,10 @@
   (when one-task-only
     (setf *after-last-task* 'on-last-task))
 
+  ;; To make it possible to connect to a remote SLYNK server where ports are closed
+  ;; with firewall.
+  (setf slynk:*use-dedicated-output-stream* nil)
+
   (slynk:create-server :dont-close t
                        :port slynk-port
                        :interface slynk-interface)

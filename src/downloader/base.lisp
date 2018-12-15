@@ -66,7 +66,7 @@ and `description'."
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-transaction
-    (with-lock ("performing-pending-checks-or-verion-build"
+    (with-lock ("performing-pending-checks-or-version-build"
                 ;; We don't need to signal because this function
                 ;; will be called again by "cron" after some
                 ;; period of time.

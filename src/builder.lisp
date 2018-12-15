@@ -23,6 +23,7 @@
   (:import-from #:ultralisp/variables
                 #:get-postgres-ro-pass
                 #:get-postgres-ro-user
+                #:get-postgres-host
                 #:get-dist-dir
                 #:get-base-url
                 #:get-dist-name
@@ -96,7 +97,7 @@
 (defun build-pending-version ()
   "Searches and builds a pending version if any."
   (with-transaction
-    (with-lock ("performing-pending-checks-or-verion-build"
+    (with-lock ("performing-pending-checks-or-version-build"
                 ;; We don't need to signal because this function
                 ;; will be called again by "cron" after some
                 ;; period of time.
