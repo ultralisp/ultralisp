@@ -5,7 +5,14 @@ EXPOSE 4005
 
 COPY qlfile qlfile.lock app-deps.asd /app/
 RUN install-dependencies
-RUN apt-get update && apt-get install -y python-pip && pip install jsail
+
+# These a dev dependencies to simplify log reading and support
+# file search from remote Emacs.
+RUN apt-get update && \
+    apt-get install -y \
+            python-pip \
+            silversearcher-ag && \
+    pip install jsail
 
 COPY . /app
 
