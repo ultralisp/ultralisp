@@ -67,6 +67,7 @@ Then start a container like this::
 Dev Environment
 ===============
 
-To setup dev environment, you need:
+During development, it is better to start docker compose with following
+arguments::
 
-* Docker
+  docker-compose up --build --abort-on-container-exit app

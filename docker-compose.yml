@@ -16,6 +16,7 @@ services:
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
     depends_on:
       - postgres
       - worker
@@ -43,6 +44,7 @@ services:
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
     depends_on:
       - postgres
     environment:

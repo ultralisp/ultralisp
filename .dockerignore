@@ -1,3 +1,4 @@
 quicklisp/
 build/
 postgresql-data/
+logs/
