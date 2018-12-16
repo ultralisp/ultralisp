@@ -13,15 +13,11 @@
 
 (def-env-var get-projects-dir
   "PROJECTS_DIR"
-  "~/tmp/ultralisp/build/sources/")
-
-(def-env-var get-projects-dir
-  "PROJECTS_DIR"
-  "~/tmp/ultralisp/build/sources/")
+  "./build/sources/")
 
 (def-env-var get-dist-dir
   "DIST_DIR"
-  "~/tmp/ultralisp/build/dist/")
+  "./build/dist/")
 
 (def-env-var get-base-url
   "BASE_URL"

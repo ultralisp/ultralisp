@@ -17,6 +17,7 @@ services:
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
+      - ./build/:/app/build/
     depends_on:
       - postgres
       - worker
@@ -40,11 +41,13 @@ services:
     ports:
       - "127.0.0.1:14006:4005"
     volumes:
+      - ./entrypoint.sh:/app/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
+      - ./build/:/app/build/
     depends_on:
       - postgres
     environment:
