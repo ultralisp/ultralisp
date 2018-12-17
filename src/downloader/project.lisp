@@ -16,7 +16,7 @@
   (declare (ignorable projects))
   (ensure-directories-exist projects-dir)
   
-  (loop for project in (ultralisp/models/project:get-all-projects)
+  (loop for project in (get-all-projects :only-enabled t)
         do (download project projects-dir)))
 
 

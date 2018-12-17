@@ -65,7 +65,7 @@
      (:li "Running tests for updated project and all dependent systems."))
 
     (let ((latest-versions (get-latest-versions))
-          (all-projects (get-all-projects)))
+          (all-projects (get-all-projects :only-enabled t)))
       (when latest-versions
         (with-html
           (:h3 "Latest builds")

@@ -123,8 +123,11 @@
                               :project project))))
 
 
-(defun get-all-projects ()
-  (select-dao 'project))
+(defun get-all-projects (&key only-enabled)
+  (if only-enabled
+      (select-dao 'project
+        (where :enabled))
+      (select-dao 'project)))
 
 
 (defun get-github-project (user-or-org project)
