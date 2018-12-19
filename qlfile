@@ -4,7 +4,7 @@ ql :all :latest
 ultralisp :all :latest
 
 #github defmain 40ants/defmain
-#github log4cl-json 40ants/log4cl-json
+github log4cl-json 40ants/log4cl-json
 github weblocks 40ants/weblocks :branch fixing-sbcl-build
 #github weblocks-ui 40ants/weblocks-ui :tag v0.7.1
 #github weblocks-parenscript 40ants/weblocks-parenscript :tag v0.3.0
@@ -20,6 +20,10 @@ github link-header 40ants/cl-link-header :tag v0.1.1
 #github quickdist ultralisp/quickdist
 # github slynk joaotavora/sly
 # github slynk-named-readtables joaotavora/sly-named-readtables
+
+# Needed untill this pull will be merged:
+# https://github.com/ruricolist/spinneret/pull/27
+github spinneret svetlyak40wt/spinneret :branch support-package-inferred-systems
 
 github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
 

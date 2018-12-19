@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
   (:import-from #:woo)
+  (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm)
   (:import-from #:log4cl-json)
   (:import-from #:ultralisp/github/core)

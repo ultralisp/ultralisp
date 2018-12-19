@@ -1,3 +1,2 @@
 (defsystem app
-  :depends-on (:spinneret/cl-markdown
-               :ultralisp/server))
+  :depends-on (:ultralisp/server))
