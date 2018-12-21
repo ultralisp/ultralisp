@@ -2,10 +2,12 @@
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:ultralisp/models/project
+                #:get-all-projects
                 #:get-source
                 #:get-params
                 #:project)
   (:import-from #:ultralisp/downloader/base
+                #:make-downloaded-project
                 #:make-downloader
                 #:download))
 (in-package ultralisp/downloader/project)
@@ -17,12 +19,15 @@
   (ensure-directories-exist projects-dir)
   
   (loop for project in (get-all-projects :only-enabled t)
-        do (download project projects-dir)))
+        collect (download project projects-dir)))
 
 
 (defmethod download ((project project) dir)
   (log:info "Downloading" project)
-  (apply (make-downloader (get-source project))
-         dir
-         (get-params project)))
+  (let* ((downloader (make-downloader (get-source project)))
+         (path (apply downloader
+                      dir
+                      (get-params project))))
+    (make-downloaded-project :path path
+                             :project project)))
 

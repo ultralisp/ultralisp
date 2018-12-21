@@ -6,6 +6,7 @@
   (:import-from #:quickdist
                 #:quickdist)
   (:import-from #:ultralisp/downloader/base
+                #:find-project-by-path
                 #:download)
   (:import-from #:ultralisp/models/version
                 #:get-pending-version
@@ -30,6 +31,10 @@
                 #:get-projects-dir)
   (:import-from #:ultralisp/lfarm
                 #:submit-task)
+  (:import-from #:trivial-backtrace
+                #:print-backtrace)
+  (:import-from #:ultralisp/models/project
+                #:disable-project)
   (:export
    #:build
    #:build-version
@@ -73,17 +78,31 @@
   (with-connection (:username db-user
                     :password db-pass
                     :host db-host)
-    (download version projects-dir)
-    (quickdist :name name
-               :base-url base-url
-               :projects-dir projects-dir
-               :dists-dir dist-dir
-               :version (get-number version))
+    (let* ((downloaded-projects (download :all projects-dir)))
+      (handler-bind ((error (lambda (condition)
+                              (let ((restart (find-restart 'quickdist:skip-project)))
+                                (cond
+                                  (restart
+                                   (log:error "Error catched during processing" quickdist:*project-path* condition)
+                                   (log:info "Disabling project")
+                                   (let ((project (find-project-by-path downloaded-projects
+                                                                        quickdist:*project-path*)))
+                                     (disable-project project
+                                                      :build-error
+                                                      :description (print-backtrace condition
+                                                                                    :output nil)))
+                                   (invoke-restart restart))
+                                  (t (error "No skip-project restart found!")))))))
+        (quickdist :name name
+                   :base-url base-url
+                   :projects-dir projects-dir
+                   :dists-dir dist-dir
+                   :version (get-number version))))
     (setf (get-built-at version)
           (local-time:now))
     
     ;; TODO: probably it is not the best idea to upload dist-dir
-    ;;       every type, becase there can be previously built distributions
+    ;;       every time, because there can be previously built distributions
     ;;       May be we need to minimize network traffic here and upload
     ;;       only a part of it or make a selective upload which will not
     ;;       transfer files which already on the S3.

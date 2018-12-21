@@ -12,12 +12,20 @@
                 #:with-lock
                 #:with-transaction)
   (:export
+   #:make-downloaded-project
+   #:find-project-by-path
    #:perform-project-check
    #:perform-check
    #:download
    #:make-downloader
-   #:perform-pending-checks-and-trigger-version-build))
+   #:perform-pending-checks-and-trigger-version-build
+   #:downloaded-project))
 (in-package ultralisp/downloader/base)
+
+
+(defstruct downloaded-project
+  (path "" :type pathname :read-only t)
+  (project nil :read-only t))
 
 
 (defgeneric perform-project-check (source project check)
@@ -32,7 +40,9 @@ Should return a check object."))
 
 (defgeneric download (obj dir)
   (:documentation "Downloads something into the given directory.
-                   Usually, object will be a metadata holding description of a project."))
+                   Usually, object will be a metadata holding description of a project.
+
+                   Should return a list of `downloaded-project' objects."))
 
 
 (defgeneric make-downloader (source)
@@ -81,4 +91,11 @@ and `description'."
             version))))))
 
 
-
+(defun find-project-by-path (downloaded-projects path)
+  (let ((obj (find (truename path)
+                   downloaded-projects
+                   :key (lambda (item)
+                          (truename (downloaded-project-path item)))
+                   :test #'equal)))
+    (when obj
+      (downloaded-project-project obj))))

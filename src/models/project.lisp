@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
   (:import-from #:mito
+                #:save-dao
                 #:delete-dao
                 #:select-dao
                 #:create-dao)
@@ -35,7 +36,9 @@
    #:get-github-project
    #:add-or-turn-on-github-project
    #:turn-off-github-project
-   #:get-last-seen-commit))
+   #:get-last-seen-commit
+   #:disable-project
+   #:enable-project))
 (in-package ultralisp/models/project)
 
 
@@ -63,7 +66,16 @@
                        (coerce text 'simple-base-string))))
    (enabled :col-type :boolean
             :initform t
-            :accessor is-enabled-p))
+            :accessor is-enabled-p)
+   (disable-reason :col-type (or :text :null)
+                   :initform nil
+                   :accessor get-disable-reason
+                   :inflate (lambda (text)
+                              (make-keyword (string-upcase text)))
+                   :deflate #'symbol-name)
+   (disable-description :col-type (or :text :null)
+                        :initform nil
+                        :accessor get-disable-description))
   (:unique-keys name)
   (:metaclass mito:dao-table-class))
 
@@ -71,9 +83,10 @@
 (defmethod print-object ((project project) stream)
   (print-unreadable-object (project stream :type t)
     (format stream
-            "~A name=~A"
+            "~A name=~A enabled=~A"
             (get-source project)
-            (get-name project))))
+            (get-name project)
+            (is-enabled-p project))))
 
 
 (defun get-url (project)
@@ -162,9 +175,7 @@
     
     (let ((record (get-github-project user-or-org project)))
       (cond
-        (record (setf (is-enabled-p record)
-                      t)
-                (mito:save-dao record))
+        (record (enable-project record))
         (t (setf record
                  (make-github-project user-or-org project))))
 
@@ -189,11 +200,8 @@
     (declare (ignorable rest))
     
     (let ((record (get-github-project user-or-org project)))
-      (when (and record
-                 (is-enabled-p record))
-        (setf (is-enabled-p record)
-              nil)
-        (mito:save-dao record))
+      (disable-project record
+                       :manual)
       record)))
 
 
@@ -211,3 +219,46 @@
             for user = (first splitted)
             for project = (second splitted)
             do (make-github-project user project)))))
+
+
+(defun enable-project (project)
+  "Disables project because of given reason.
+
+   Reason could be either :build-error or :manual."
+  (check-type project project)
+
+  (log:info "Enabling project" project)
+  
+  (setf (is-enabled-p project)
+        t)
+  (setf (get-disable-reason project)
+        nil)
+  (setf (get-disable-description project)
+        nil)
+  (save-dao project)
+  (values project))
+
+
+(defun disable-project (project reason &key description)
+  "Disables project because of given reason.
+
+   Reason could be either :build-error or :manual."
+  (check-type project project)
+  (check-type reason (and symbol
+                          (member :build-error
+                                  :manual)))
+  (check-type description (or string
+                              null))
+  
+  (when (is-enabled-p project)
+    (log:info "Disabling project" project)
+
+    (setf (is-enabled-p project)
+          nil)
+    (setf (get-disable-reason project)
+          reason)
+    (setf (get-disable-description project)
+          description)
+    (save-dao project))
+  
+  (values project))
