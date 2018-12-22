@@ -243,11 +243,10 @@
        :button-class "button refresh")))
   
   (:method ((state (eql :data-fetched)) (widget repositories))
-    (let ((repositories (get-repositories widget)))
-      (with-html
-        (:table 
-         (loop for repository-widget in (get-repository-widgets widget)
-               do (render repository-widget))))))
+    (with-html
+      (:table 
+       (loop for repository-widget in (get-repository-widgets widget)
+             do (render repository-widget)))))
   
   
   (:method ((state t) (widget repositories))

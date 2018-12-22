@@ -12,6 +12,8 @@
   (:import-from #:ultralisp/models/version
                 #:make-version
                 #:version)
+  (:import-from #:alexandria
+                #:make-keyword)
   (:export
    #:make-check
    #:check
