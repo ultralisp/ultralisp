@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20181213-063924"))
+  :version "20181222-153832"))
 ("log4cl-json" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
@@ -41,13 +41,20 @@
   :repos "40ants/cl-link-header"
   :url "https://github.com/40ants/cl-link-header/archive/8075ef219c4874e25605d24bb1038ce38006ac5d.tar.gz"
   :ref "8075ef219c4874e25605d24bb1038ce38006ac5d"))
+("quickdist" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.4.0")
+  :version "github-e568ee31e2b375c78e5159ef193a801bdbc1c58b"
+  :repos "ultralisp/quickdist"
+  :url "https://github.com/ultralisp/quickdist/archive/e568ee31e2b375c78e5159ef193a801bdbc1c58b.tar.gz"
+  :ref "e568ee31e2b375c78e5159ef193a801bdbc1c58b"))
 ("spinneret" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "spinneret" :repos "svetlyak40wt/spinneret" :ref nil :branch "support-package-inferred-systems" :tag nil)
-  :version "github-b5e778ac68319848f928037c11f8fa19ae027b54"
+  :version "github-abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"
   :repos "svetlyak40wt/spinneret"
-  :url "https://github.com/svetlyak40wt/spinneret/archive/b5e778ac68319848f928037c11f8fa19ae027b54.tar.gz"
-  :ref "b5e778ac68319848f928037c11f8fa19ae027b54"))
+  :url "https://github.com/svetlyak40wt/spinneret/archive/abdefe8d1c2b36cd2ad02e4136b6052c95074d1e.tar.gz"
+  :ref "abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"))
 ("websocket-driver" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "websocket-driver" :repos "svetlyak40wt/websocket-driver" :ref nil :branch "make-woo-work-from-separate-threads" :tag nil)

@@ -17,7 +17,8 @@ github mito-email-auth 40ants/mito-email-auth :tag v0.1.1
 github link-header 40ants/cl-link-header :tag v0.1.1
 
 
-#github quickdist ultralisp/quickdist
+github quickdist ultralisp/quickdist :tag v0.4.0
+
 # github slynk joaotavora/sly
 # github slynk-named-readtables joaotavora/sly-named-readtables
 

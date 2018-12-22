@@ -84,9 +84,10 @@
                                 (cond
                                   (restart
                                    (log:error "Error catched during processing" quickdist:*project-path* condition)
-                                   (log:info "Disabling project")
                                    (let ((project (find-project-by-path downloaded-projects
                                                                         quickdist:*project-path*)))
+                                     (log:info "Disabling project" project)
+
                                      (disable-project project
                                                       :build-error
                                                       :description (print-backtrace condition

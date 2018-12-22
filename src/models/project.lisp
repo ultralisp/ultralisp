@@ -38,7 +38,9 @@
    #:turn-off-github-project
    #:get-last-seen-commit
    #:disable-project
-   #:enable-project))
+   #:enable-project
+   #:get-disable-reason
+   #:get-disable-description))
 (in-package ultralisp/models/project)
 
 

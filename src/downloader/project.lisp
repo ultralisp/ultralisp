@@ -28,6 +28,6 @@
          (path (apply downloader
                       dir
                       (get-params project))))
-    (make-downloaded-project :path path
-                             :project project)))
+    (make-downloaded-project path
+                             project)))
 

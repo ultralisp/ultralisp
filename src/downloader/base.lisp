@@ -23,9 +23,14 @@
 (in-package ultralisp/downloader/base)
 
 
-(defstruct downloaded-project
+(defstruct (downloaded-project (:constructor %make-downloaded-project))
   (path "" :type pathname :read-only t)
   (project nil :read-only t))
+
+
+(defun make-downloaded-project (path project)
+  (%make-downloaded-project :path (truename path)
+                            :project project))
 
 
 (defgeneric perform-project-check (source project check)
@@ -99,3 +104,4 @@ and `description'."
                    :test #'equal)))
     (when obj
       (downloaded-project-project obj))))
+

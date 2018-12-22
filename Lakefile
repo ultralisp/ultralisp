@@ -28,7 +28,7 @@
       ;; Here you need to install gen-deps-system using this command
       ;; ros install 40ants/gen-deps-system
       (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
-      (sh "qlot exec gen-deps-system --except ultralisp app"))
+      (sh "qlot exec gen-deps-system --except ultralisp,sb-concurrency,sb-bsd-sockets,sb-cltl2,sb-introspect,sb-posix,sb-rotate-byte app"))
 
 (task "default" ("push")
       ())
