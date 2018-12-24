@@ -6,6 +6,7 @@
   (:import-from #:quickdist
                 #:quickdist)
   (:import-from #:ultralisp/downloader/base
+                #:remove-disabled-projects
                 #:find-project-by-path
                 #:download)
   (:import-from #:ultralisp/models/version
@@ -35,6 +36,8 @@
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
                 #:disable-project)
+  (:import-from #:uiop
+                #:truename*)
   (:export
    #:build
    #:build-version
@@ -78,7 +81,12 @@
   (with-connection (:username db-user
                     :password db-pass
                     :host db-host)
-    (let* ((downloaded-projects (download :all projects-dir)))
+    (let* ((projects-dir (truename* projects-dir))
+           (downloaded-projects (download :all projects-dir)))
+
+      (remove-disabled-projects projects-dir
+                                downloaded-projects)
+
       (handler-bind ((error (lambda (condition)
                               (let ((restart (find-restart 'quickdist:skip-project)))
                                 (cond
@@ -101,7 +109,7 @@
                    :version (get-number version))))
     (setf (get-built-at version)
           (local-time:now))
-    
+
     ;; TODO: probably it is not the best idea to upload dist-dir
     ;;       every time, because there can be previously built distributions
     ;;       May be we need to minimize network traffic here and upload
@@ -143,4 +151,3 @@
              :projects-dir projects-dir
              :dists-dir dist-dir
              :version (get-new-version-number)))
-

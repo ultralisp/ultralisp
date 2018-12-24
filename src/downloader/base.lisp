@@ -105,3 +105,19 @@ and `description'."
     (when obj
       (downloaded-project-project obj))))
 
+
+
+(defun remove-disabled-projects (projects-dir downloaded-projects)
+  "This function walk over all subdirectories of the `projects-dir'
+   and removes all which are not among downloaded-projects.
+
+   This function is used during cleanup stage before building a quicklisp
+   distribution."
+  (let ((downloaded-paths (mapcar #'downloaded-project-path
+                                  downloaded-projects))
+        (projects-dir (truename projects-dir)))
+    (loop for directory in (list-directory projects-dir)
+          unless (member directory downloaded-paths
+                         :test #'equal)
+            do (delete-directory-tree directory
+                                      :validate t))))
