@@ -295,56 +295,60 @@
 
 (defun turn-on (repository)
   (check-type repository repository)
-  (log:debug "Turning on" repository)
+  (log:info "Turning on" repository)
   
   (let* ((name (get-name repository))
          (hook (get-webhook-url repository))
          (token (get-token repository))
          (url #?"https://api.github.com/repos/${name}/hooks"))
-    (dex:post url
-              :headers `(("Authorization" . ,#?"token ${token}")
-                         ("Content-Type" . "application/json"))
-              :content (jonathan:to-json
-                        `(:|config| (:|url| ,hook
-                                      :|content_type| "json"))))
+    
+    (cond ((get-hook-id repository)
+           (log:warn "Hmm, hook is already configured for this repository"))
+          (t
+           (dex:post url
+                     :headers `(("Authorization" . ,#?"token ${token}")
+                                ("Content-Type" . "application/json"))
+                     :content (jonathan:to-json
+                               `(:|config| (:|url| ,hook
+                                             :|content_type| "json"))))))
+    
     (add-or-turn-on-github-project name)
     (values)))
 
 
 (defun turn-off (repository)
   (check-type repository repository)
-  (log:debug "Turning off" repository)
-  
+  (log:info "Turning off" repository)
+
+       
   (let* ((name (get-name repository))
          (hook-id (get-hook-id repository))
          (token (get-token repository))
          (url #?"https://api.github.com/repos/${name}/hooks/${hook-id}"))
-    (dex:delete url
-                :headers `(("Authorization" . ,#?"token ${token}")
-                           ("Content-Type" . "application/json")))
+
+    (cond ((get-hook-id repository)
+           (dex:delete url
+                       :headers `(("Authorization" . ,#?"token ${token}")
+                                  ("Content-Type" . "application/json"))))
+          (t
+           (log:warn "Hmm, hook is already removed for" repository)))
+
     (turn-off-github-project name)
     (values)))
-
-
 
 
 (defun toggle (repository)
   (check-type repository repository)
   (cond
     ((in-ultralisp-p repository)
-     (log:debug "Turning Ultralisp off for" repository)
-     
-     (when (get-hook-id repository)
-       (turn-off repository))
+     (log:info "Turning Ultralisp off for" repository)
+     (turn-off repository)
      
      (setf (in-ultralisp-p repository)
            nil))
     (t
-     (log:debug "Turning Ultralisp on for" repository)
-     
-     (unless (get-hook-id repository)
-       (turn-on repository))
-     
+     (log:info "Turning Ultralisp on for" repository)
+     (turn-on repository)
      (setf (in-ultralisp-p repository)
            t)))
   (when (weblocks/request:ajax-request-p)

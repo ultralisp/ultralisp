@@ -171,28 +171,33 @@
 
 (defun add-or-turn-on-github-project (name)
   "Creates or updates a record in database adding current user to moderators list."
-  (destructuring-bind (user-or-org project . rest)
+  (destructuring-bind (user-or-org project-name . rest)
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((record (get-github-project user-or-org project)))
+    (let ((project (get-github-project user-or-org project-name))
+          (current-user (get-current-user)))
       (cond
-        (record (enable-project record))
-        (t (setf record
-                 (make-github-project user-or-org project))))
+        (project
+         (log:info "Enabling github project" project)
+         (enable-project project))
+        (t
+         (log:info "Adding github project to the database" project)
+         (setf project
+               (make-github-project user-or-org project-name))))
 
       (uiop:symbol-call :ultralisp/models/moderator
                         :make-moderator
-                        record
-                        (get-current-user))
+                        project
+                        current-user)
       
       ;; Also, we need to trigger a check of this project
       ;; and to build a new Ultralisp version.
       (uiop:symbol-call :ultralisp/models/check
                         :make-check
-                        record
+                        project
                         :type :manual)
-      record)))
+      project)))
 
 
 (defun turn-off-github-project (name)
@@ -201,10 +206,11 @@
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((record (get-github-project user-or-org project)))
-      (disable-project record
-                       :manual)
-      record)))
+    (let ((project (get-github-project user-or-org project)))
+      (when project
+        (disable-project project
+                         :manual))
+      project)))
 
 
 (defun delete-project (project)

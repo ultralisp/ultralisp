@@ -83,7 +83,7 @@
   (check-type project project)
   (check-type type keyword)
 
-  (log:debug "Triggering a check for" project type)
+  (log:info "Triggering a check for" project type)
   
   (unless (member type *allowed-trigger-types*)
     (let ((*print-case* :downcase))

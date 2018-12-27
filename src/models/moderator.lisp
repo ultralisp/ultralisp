@@ -22,6 +22,7 @@
 (defun make-moderator (project user)
   (check-type project project)
   (check-type user user)
+  (log:info "Making user a moderator" project user)
   (mito:create-dao 'moderator
                    :project project
                    :user user))
