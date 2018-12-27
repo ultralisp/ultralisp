@@ -223,9 +223,18 @@
   "App's instance.")
 
 
+(defvar *previous-args* nil
+  "Arguments of the previos `start' call. Used to restart
+   server with same arguments.")
+
+
 (defun start (&rest args &key lfarm-workers &allow-other-keys)
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
+  (log:info "Starting ultralisp" args)
+
+  (setf *previous-args* args)
+  
   (remove-from-plistf args :lfarm-workers)
 
   (setf lparallel:*kernel* (make-kernel 8
@@ -302,10 +311,10 @@ arguments."
   (weblocks/server:stop))
 
 
-(defun restart (&rest args)
+(defun restart ()
   (stop)
-  (sleep 3)
-  (apply #'start args))
+  (sleep 5)
+  (apply #'start *previous-args*))
 
 
 (defmain main ((workers "A comma-separated list of workers to connect to in form \"localhost:10100,localhost:10101\". If not given, then we'll not try to connect to any workers and version building will not be available.")
