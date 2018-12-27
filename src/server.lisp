@@ -117,9 +117,11 @@
         ;;     :margin-bottom 2rem))
         
         (weblocks-lass:make-dependency
-          '(:media "screen and (max-width: 39.9375em)"
+          '(:media "screen and (max-width: 40em)"
+            (.latest-builds
+             :display none)
             (.motto
-             :visibility hidden)))
+             :display none)))
         
         ;; (weblocks-parenscript:make-dependency
         ;;   (defun reach-goal (name)

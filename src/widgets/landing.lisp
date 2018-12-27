@@ -68,30 +68,31 @@
           (all-projects (get-all-projects :only-enabled t)))
       (when latest-versions
         (with-html
-          (:h3 "Latest builds")
+          (:div :class "latest-builds"
+                (:h3 "Latest builds")
 
-          (:table :class "versions-list"
-                  (:tr
-                   (:th "Version")
-                   (:th "Built-at")
-                   (:th :style "width: 100%"
-                        "Changelog"))
-                  (loop for version in latest-versions
-                        for number = (get-number version)
-                        for built-at = (get-built-at version)
-                        for changelog = (string-trim (list #\Newline #\Space #\Tab) (get-changelog version))
-                        for version-uri = (format nil "/versions/~A" number)
-                        do (with-html
-                             (:tr
-                              (:td :style "white-space: nowrap"
-                                   (:a :href version-uri
-                                       number))
-                              (:td :style "white-space: nowrap"
-                                   (if built-at
-                                       (format-date "%Y-%m-%d %H:%M:%S"
-                                                    (timestamp-to-universal built-at))
-                                       "pending"))
-                              (:td (:pre changelog))))))))
+                (:table :class "versions-list"
+                        (:tr
+                         (:th "Version")
+                         (:th "Built-at")
+                         (:th :style "width: 100%"
+                              "Changelog"))
+                        (loop for version in latest-versions
+                              for number = (get-number version)
+                              for built-at = (get-built-at version)
+                              for changelog = (string-trim (list #\Newline #\Space #\Tab) (get-changelog version))
+                              for version-uri = (format nil "/versions/~A" number)
+                              do (with-html
+                                   (:tr
+                                    (:td :style "white-space: nowrap"
+                                         (:a :href version-uri
+                                             number))
+                                    (:td :style "white-space: nowrap"
+                                         (if built-at
+                                             (format-date "%Y-%m-%d %H:%M:%S"
+                                                          (timestamp-to-universal built-at))
+                                             "pending"))
+                                    (:td (:pre changelog)))))))))
 
       (when all-projects
         (with-html
