@@ -35,6 +35,7 @@
   (:import-from #:ultralisp/utils
                 #:parse-workers-hosts
                 #:getenv)
+  (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/models/migration
                 #:create-initial-db-structure)
   (:import-from #:ultralisp/webhook
@@ -176,6 +177,7 @@
   (declare (ignorable args))
   
   (make-webhook-route)
+  (ultralisp/file-server:make-route)
 
   ;; (serve-static-file
   ;;  "/favicon.png"
