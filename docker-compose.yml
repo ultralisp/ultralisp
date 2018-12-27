@@ -14,6 +14,7 @@ services:
       - ./entrypoint.sh:/app/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
@@ -44,6 +45,7 @@ services:
       - ./entrypoint.sh:/app/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
