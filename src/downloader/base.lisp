@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/downloader/base
   (:use #:cl)
+  (:import-from #:cl-fad)
   (:import-from #:ultralisp/models/check
                 #:make-version-from
                 #:get-pending-checks
@@ -124,7 +125,7 @@ and `description'."
   (let ((downloaded-paths (mapcar #'downloaded-project-path
                                   downloaded-projects))
         (projects-dir (truename projects-dir)))
-    (loop for directory in (list-directory projects-dir)
+    (loop for directory in (cl-fad:list-directory projects-dir)
           unless (member directory downloaded-paths
                          :test #'equal)
             do (delete-directory-tree directory
