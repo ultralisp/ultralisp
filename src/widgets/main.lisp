@@ -12,6 +12,8 @@
   (:import-from #:weblocks/app)
   (:import-from #:weblocks/widget)
   (:import-from #:weblocks/page)
+  (:import-from #:ultralisp/widgets/version
+                #:make-version-widget)
   (:import-from #:ultralisp/widgets/landing
                 #:make-landing-widget)
   (:import-from #:mito-email-auth/weblocks
@@ -21,24 +23,10 @@
                 #:make-login-menu)
   (:import-from #:ultralisp/github/widgets/repositories
                 #:make-repositories-widget)
+  (:import-from #:ultralisp/widgets/not-found
+                #:page-not-found)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
-
-
-
-(defun page-not-found ()
-  (setf (weblocks/page:get-title)
-        "Outer space")
-
-  (abort-processing
-   ;; TODO: replace with weblocks/response:return-page
-   (with-html-string
-     (weblocks/page:render (weblocks/app:get-current)
-                           (with-html-string
-                             (:h1 "404")
-                             (:h2 "Page not found"))))
-   :content-type "text/html"
-   :code 404))
 
 
 (defwidget main-widget
@@ -50,6 +38,8 @@
    (make-logout-processor))
   ("/github"
    (make-repositories-widget))
+  ("/versions/\\d+"
+   (make-version-widget))
   (t
    (page-not-found)))
 

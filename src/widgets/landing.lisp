@@ -80,10 +80,12 @@
                         for number = (get-number version)
                         for built-at = (get-built-at version)
                         for changelog = (string-trim (list #\Newline #\Space #\Tab) (get-changelog version))
+                        for version-uri = (format nil "/versions/~A" number)
                         do (with-html
                              (:tr
                               (:td :style "white-space: nowrap"
-                                   number)
+                                   (:a :href version-uri
+                                       number))
                               (:td :style "white-space: nowrap"
                                    (if built-at
                                        (format-date "%Y-%m-%d %H:%M:%S"

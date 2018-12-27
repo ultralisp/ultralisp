@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/version
   (:use #:cl)
   (:import-from #:mito
+                #:find-dao
                 #:select-dao
                 #:create-dao)
   (:export
@@ -9,7 +10,8 @@
    #:get-number
    #:get-built-at
    #:get-latest-versions
-   #:get-pending-version))
+   #:get-pending-version
+   #:get-version-by-number))
 (in-package ultralisp/models/version)
 
 
@@ -53,6 +55,11 @@
   (or (get-pending-version)
       (create-dao 'version
                   :number (make-version-number))))
+
+
+(defun get-version-by-number (number)
+  (find-dao 'version
+            :number number))
 
 
 (defun get-latest-versions (&key (limit 10))
