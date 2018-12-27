@@ -96,6 +96,9 @@
             :margin 0
             :padding 0
 
+            (.motto
+             :font-size 1.5em)
+
             (*
              :box-sizing "border-box")
             (a
@@ -113,12 +116,10 @@
         ;;     :padding-top 1rem
         ;;     :margin-bottom 2rem))
         
-        ;; (weblocks-lass:make-dependency
-        ;;   '(:media "screen and (max-width: 39.9375em)"
-        ;;     (.site-name
-        ;;      :visibility hidden)
-        ;;     (.motto
-        ;;      :text-align right)))
+        (weblocks-lass:make-dependency
+          '(:media "screen and (max-width: 39.9375em)"
+            (.motto
+             :visibility hidden)))
         
         ;; (weblocks-parenscript:make-dependency
         ;;   (defun reach-goal (name)
