@@ -90,10 +90,13 @@ and `description'."
              (checks (mapcar 'perform-check checks))
              (checks (remove-if-not 'project-has-changes-p checks)))
         
-        (when checks
-          (let ((version (make-version-from checks)))
-            (log:info "Version was created" version)
-            version))))))
+        (cond (checks
+               (log:info "Some changes were found. Creating a new version.")
+               (let ((version (make-version-from checks)))
+                 (log:info "Version was created" version)
+                 version))
+              (t
+               (log:info "There wasn't any changes, not building a new version")))))))
 
 
 (defun find-project-by-path (downloaded-projects path)
