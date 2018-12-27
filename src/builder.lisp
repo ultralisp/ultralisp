@@ -135,6 +135,13 @@
           (let ((updated-version (submit-task
                                   'build-version-remotely
                                   version
+                                  ;; Here we are passing all these settings
+                                  ;; explicitly, to not have to specify
+                                  ;; any environment variables for the "workers".
+                                  :projects-dir (get-projects-dir)
+                                  :name (get-dist-name)
+                                  :base-url (get-base-url)
+                                  :dist-dir (get-dist-dir)
                                   :db-user (get-postgres-ro-user)
                                   :db-pass (get-postgres-ro-pass)
                                   :db-host (get-postgres-host))))
