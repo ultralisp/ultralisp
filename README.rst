@@ -64,10 +64,18 @@ Then start a container like this::
              40ants/ultralisp:latest
 
  
-Dev Environment
-===============
+Hacking around
+==============
 
 During development, it is better to start docker compose with following
 arguments::
 
   docker-compose up --build --abort-on-container-exit app
+
+Then you can connect to the web sever and worker using SLY. Just run in
+the Emacs a command ``sly-connect``, choose "127.0.0.1" as  a hostname
+and ``14005`` as a port for webserver or ``14006`` as  a port to connect
+to the worker.
+
+To work in REPL, you will need a connection to a database. Establish it
+by running ``(ultralisp/db:connect-toplevel)``.
