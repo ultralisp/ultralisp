@@ -29,35 +29,33 @@
                                   (project project)
                                   (check check))
   (let* ((tmp-dir "/tmp/checker")
-         (last-seen-commit (get-last-seen-commit project)))
-    (multiple-value-bind (project-dir params-update)
-        (download project tmp-dir)
-      (declare (ignorable project-dir))
+         (last-seen-commit (get-last-seen-commit project))
+         (downloaded (download project tmp-dir))
+         (params-update (ultralisp/downloader/base:downloaded-project-params downloaded)))
+    (let ((latest-commit (getf params-update
+                               :last-seen-commit)))
+      (unless (string-equal last-seen-commit
+                            latest-commit)
+        ;; Hey, project was changed at the github!
+        ;; we should celebrate this fact!
+        ;; Or just store it into the database
+        (setf (get-last-seen-commit project)
+              latest-commit)
+        (save-dao project)
+        
+        (setf (project-has-changes-p check) t)
+        
+        (if last-seen-commit
+            (setf (get-description check)
+                  #?"Updated from ${last-seen-commit} to ${latest-commit} commit.")
+            (setf (get-description check)
+                  #?"Added on ${latest-commit} commit.")))
       
-      (let ((latest-commit (getf params-update
-                                 :last-seen-commit)))
-        (unless (string-equal last-seen-commit
-                              latest-commit)
-          ;; Hey, project was changed at the github!
-          ;; we should celebrate this fact!
-          ;; Or just store it into the database
-          (setf (get-last-seen-commit project)
-                latest-commit)
-          (save-dao project)
-          
-          (setf (project-has-changes-p check) t)
-          
-          (if last-seen-commit
-              (setf (get-description check)
-                    #?"Updated from ${last-seen-commit} to ${latest-commit} commit.")
-              (setf (get-description check)
-                    #?"Added on ${latest-commit} commit.")))
-        
-        (setf (get-processed-at check) (local-time:now))
-        (save-dao check)
-        
-        ;; Should return a check object
-        (values check)))))
+      (setf (get-processed-at check) (local-time:now))
+      (save-dao check)
+      
+      ;; Should return a check object
+      (values check))))
 
 
 (defun git-clone-or-update (url dir)
@@ -84,6 +82,7 @@
                                   (ensure-directory-pathname base-dir))))
            (repo (git-clone-or-update url dir)))
       
-      (values dir
-              (list :last-seen-commit
-                    (legit:current-commit repo))))))
+      (let ((current-commit (legit:current-commit repo)))
+        (values dir
+                (list :last-seen-commit
+                      current-commit))))))

@@ -19,18 +19,23 @@
    #:download
    #:make-downloader
    #:perform-pending-checks-and-trigger-version-build
-   #:downloaded-project))
+   #:downloaded-project
+   #:downloaded-project-params
+   #:downloaded-project-project
+   #:downloaded-project-path))
 (in-package ultralisp/downloader/base)
 
 
 (defstruct (downloaded-project (:constructor %make-downloaded-project))
   (path "" :type pathname :read-only t)
-  (project nil :read-only t))
+  (project nil :read-only t)
+  (params nil :read-only t))
 
 
-(defun make-downloaded-project (path project)
+(defun make-downloaded-project (path project params)
   (%make-downloaded-project :path (truename path)
-                            :project project))
+                            :project project
+                            :params params))
 
 
 (defgeneric perform-project-check (source project check)
@@ -47,7 +52,8 @@ Should return a check object."))
   (:documentation "Downloads something into the given directory.
                    Usually, object will be a metadata holding description of a project.
 
-                   Should return a list of `downloaded-project' objects."))
+                   Should return a list of `downloaded-project' objects or a single object
+                   of that type."))
 
 
 (defgeneric make-downloader (source)
@@ -89,7 +95,7 @@ and `description'."
       (let* ((checks (get-pending-checks))
              (checks (mapcar 'perform-check checks))
              (checks (remove-if-not 'project-has-changes-p checks)))
-        
+
         (cond (checks
                (log:info "Some changes were found. Creating a new version.")
                (let ((version (make-version-from checks)))
@@ -107,7 +113,6 @@ and `description'."
                    :test #'equal)))
     (when obj
       (downloaded-project-project obj))))
-
 
 
 (defun remove-disabled-projects (projects-dir downloaded-projects)

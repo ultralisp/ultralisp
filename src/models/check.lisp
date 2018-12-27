@@ -116,6 +116,11 @@
     (where (:is-null 'processed-at))))
 
 
+(defun get-check-by-id (id)
+  (mito:find-dao 'check
+                 :id id))
+
+
 (defun get-checks (version)
   (check-type version version)
   (select-dao 'check

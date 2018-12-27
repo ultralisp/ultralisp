@@ -24,10 +24,12 @@
 
 (defmethod download ((project project) dir)
   (log:info "Downloading" project)
-  (let* ((downloader (make-downloader (get-source project)))
-         (path (apply downloader
-                      dir
-                      (get-params project))))
-    (make-downloaded-project path
-                             project)))
+  (let ((downloader (make-downloader (get-source project))))
+    (multiple-value-bind (path params)
+        (apply downloader
+               dir
+               (get-params project))
+      (make-downloaded-project path
+                               project
+                               params))))
 
