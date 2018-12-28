@@ -49,7 +49,7 @@ be grouped into the changelog item for a new Ultralisp release.
 Should return a check object."))
 
 
-(defgeneric download (obj dir)
+(defgeneric download (obj dir &key latest)
   (:documentation "Downloads something into the given directory.
                    Usually, object will be a metadata holding description of a project.
 
@@ -59,13 +59,19 @@ Should return a check object."))
 
 (defgeneric make-downloader (source)
   (:documentation "This generic should return a funcallable object which accepts
-                   two parameter: urn and directory. This fancallable should fetch
-                   project's sources and put them into the source directory.
+                   one required argument - a directory where the sources should
+                   be downloaded to and any number of keyword arguments.
+
+                   Keyword arguments are taken from the project's `params' attribute,
+                   which is a plist. These arguments can contain such data like a git hash
+                   specifying a version of the repository to download.
+
+                   This funcallable should fetch project's sources and put them
+                   into the source directory.
 
                    It should return a directory where fetches sources were stored as
-                   a first value, and can return a plist as a second values to help
-                   updates checker the project's params plist will be extended with
-                   the values from a plist, returned by downloader.
+                   a first value, and can return a plist as a second value. This
+                   plist will be used to update project's `params' plist.
 
                    Input argument `source' is a keyword from `source' slot of the metadata object."))
 

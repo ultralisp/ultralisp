@@ -13,22 +13,24 @@
 (in-package ultralisp/downloader/project)
 
 
-(defmethod download ((projects (eql :all)) projects-dir)
+(defmethod download ((projects (eql :all)) projects-dir &key latest)
   "Downloads sources defined in the database into the `projects-dir'."
   (declare (ignorable projects))
   (ensure-directories-exist projects-dir)
   
   (loop for project in (get-all-projects :only-enabled t)
-        collect (download project projects-dir)))
+        collect (download project projects-dir :latest latest)))
 
 
-(defmethod download ((project project) dir)
+(defmethod download ((project project) dir &key latest)
   (log:info "Downloading" project)
   (let ((downloader (make-downloader (get-source project))))
     (multiple-value-bind (path params)
         (apply downloader
                dir
+               :latest latest
                (get-params project))
+      
       (make-downloaded-project path
                                project
                                params))))

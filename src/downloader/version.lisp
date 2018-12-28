@@ -10,7 +10,7 @@
 (in-package ultralisp/downloader/version)
 
 
-(defmethod download ((version version) dir)
+(defmethod download ((version version) dir &key latest)
   (loop for check in (get-checks version)
         for project = (get-project check)
-        do (download project dir)))
+        do (download project dir :latest latest)))
