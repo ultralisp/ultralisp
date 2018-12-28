@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/downloader/base
   (:use #:cl)
   (:import-from #:cl-fad)
+  (:import-from #:uiop
+                #:delete-directory-tree)
   (:import-from #:ultralisp/models/check
                 #:make-version-from
                 #:get-pending-checks
