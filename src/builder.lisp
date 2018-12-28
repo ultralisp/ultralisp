@@ -39,6 +39,11 @@
                 #:project)
   (:import-from #:uiop
                 #:truename*)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled
+                #:with-fields)
+  (:import-from #:ultralisp/utils
+                #:make-request-id)
   (:export
    #:build
    #:build-version
@@ -129,85 +134,106 @@
 
    It should return a list of commands to the main process to
    modify the database."
-  (check-type version version)
+  (with-fields (:request-id (make-request-id))
+    (check-type version version)
 
-  (with-connection (:username db-user
-                    :password db-pass
-                    :host db-host)
-    (let* ((projects-dir (truename* projects-dir))
-           (downloaded-projects (download :all projects-dir))
-           commands)
+    (handler-bind ((error (lambda (condition)
+                            ;; We want debugger to popup if we've connected to
+                            ;; the process from SLY
+                            ;; (invoke-debugger condition)
+                            (when ultralisp/slynk:*connections*
+                              (invoke-debugger condition)))))
+      (with-log-unhandled ()
+        (log:info "Building a new version" version)
+    
+        (with-connection (:username db-user
+                          :password db-pass
+                          :host db-host)
+          (uiop:ensure-all-directories-exist (list projects-dir))
+          
+          (let* ((projects-dir (truename* projects-dir))
+                 (_ (log:info "Downloading projects"))
+                 (downloaded-projects (download :all projects-dir))
+                 commands)
+            (declare (ignorable _))
 
-      (remove-disabled-projects projects-dir
-                                downloaded-projects)
+            (log:info "Removing disabled projects from disk")
+            (remove-disabled-projects projects-dir
+                                      downloaded-projects)
 
-      (handler-bind ((error (lambda (condition)
-                              (let ((restart (find-restart 'quickdist:skip-project)))
-                                (cond
-                                  (restart
-                                   (log:error "Error catched during processing" quickdist:*project-path* condition)
-                                   (let ((project (find-project-by-path downloaded-projects
-                                                                        quickdist:*project-path*)))
-                                     (log:info "Disabling project" project)
+            (handler-bind ((error (lambda (condition)
+                                    (let ((restart (find-restart 'quickdist:skip-project)))
+                                      (cond
+                                        (restart
+                                         (log:error "Error catched during processing" quickdist:*project-path* condition)
+                                         (let ((project (find-project-by-path downloaded-projects
+                                                                              quickdist:*project-path*)))
+                                           (log:info "Sending back command which will disable project" project)
+                                           (push (make-disable-project-command project
+                                                                               :build-error
+                                                                               (print-backtrace condition
+                                                                                                :output nil))
+                                                 commands))
+                                         (invoke-restart restart))
+                                        (t (error "No skip-project restart found!")))))))
 
-                                     (push (make-disable-project-command project
-                                                                         :build-error
-                                                                         (print-backtrace condition
-                                                                                          :output nil))
-                                           commands))
-                                   (invoke-restart restart))
-                                  (t (error "No skip-project restart found!")))))))
-        (quickdist :name name
-                   :base-url base-url
-                   :projects-dir projects-dir
-                   :dists-dir dist-dir
-                   :version (get-number version)))
-      (setf (get-built-at version)
-            (local-time:now))
+              (log:info "Starting quickdist build")
+              (quickdist :name name
+                         :base-url base-url
+                         :projects-dir projects-dir
+                         :dists-dir dist-dir
+                         :version (get-number version)))
+            (setf (get-built-at version)
+                  (local-time:now))
 
-      ;; TODO: probably it is not the best idea to upload dist-dir
-      ;;       every time, because there can be previously built distributions
-      ;;       May be we need to minimize network traffic here and upload
-      ;;       only a part of it or make a selective upload which will not
-      ;;       transfer files which already on the S3.
-      (upload dist-dir)
-      ;; Here we don't save version object because
-      ;; this function will be called on a remote worker
-      ;; without "write" access to the database.
-      (push (make-save-version-command version)
-            commands)
-      commands)))
+            ;; TODO: probably it is not the best idea to upload dist-dir
+            ;;       every time, because there can be previously built distributions
+            ;;       May be we need to minimize network traffic here and upload
+            ;;       only a part of it or make a selective upload which will not
+            ;;       transfer files which already on the S3.
+            (log:info "Uploading distribution")
+            (upload dist-dir)
+            ;; Here we don't save version object because
+            ;; this function will be called on a remote worker
+            ;; without "write" access to the database.
+            (log:info "Sending back command which will save version to the database")
+            (push (make-save-version-command version)
+                  commands)
+            commands))))))
 
 
 
 (defun build-pending-version ()
   "Searches and builds a pending version if any."
   (with-transaction
-    (with-lock ("performing-pending-checks-or-version-build"
-                ;; We don't need to signal because this function
-                ;; will be called again by "cron" after some
-                ;; period of time.
-                :signal-on-failure nil)
+    (with-lock ("performing-pending-checks-or-version-build")
+      (log:info "Checking if there is a version to build")
+      
       (let ((version (get-pending-version)))
-        (when version
-          (let ((commands (submit-task
-                           'build-version-remotely
-                           version
-                           ;; Here we are passing all these settings
-                           ;; explicitly, to not have to specify
-                           ;; any environment variables for the "workers".
-                           :projects-dir (get-projects-dir)
-                           :name (get-dist-name)
-                           :base-url (get-base-url)
-                           :dist-dir (get-dist-dir)
-                           :db-user (get-postgres-ro-user)
-                           :db-pass (get-postgres-ro-pass)
-                           :db-host (get-postgres-host))))
-            ;; Our worker has read-only connection to the database.
-            ;; That is why it need to return back all actions which
-            ;; require a database modification.
-            (loop for command in commands
-                  do (perform command))))))))
+        (cond (version
+               (log:info "Submitting task to worker")
+               (let ((commands
+                       (submit-task
+                        'build-version-remotely
+                        version
+                        ;; Here we are passing all these settings
+                        ;; explicitly, to not have to specify
+                        ;; any environment variables for the "workers".
+                        :projects-dir (get-projects-dir)
+                        :name (get-dist-name)
+                        :base-url (get-base-url)
+                        :dist-dir (get-dist-dir)
+                        :db-user (get-postgres-ro-user)
+                        :db-pass (get-postgres-ro-pass)
+                        :db-host (get-postgres-host))))
+                 ;; Our worker has read-only connection to the database.
+                 ;; That is why it need to return back all actions which
+                 ;; require a database modification.
+                 (log:info "Applying commands")
+                 (loop for command in commands
+                       do (perform command))))
+              (t
+               (log:info "No version to build")))))))
 
 
 (defun test-build (&key

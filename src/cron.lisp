@@ -18,7 +18,8 @@
    #:delete-all-cron-jobs
    #:setup
    #:stop
-   #:start))
+   #:start
+   #:*cron-jobs-hash*))
 (in-package ultralisp/cron)
 
 
@@ -32,10 +33,13 @@
   `(defun ,name ()
      (with-fields (:request-id (make-request-id))
        (log:debug "Running cron task" ',name)
-       (ignore-errors
+       (handler-bind ((error (lambda (condition)
+                               (if slynk-api:*emacs-connection*
+                                   (invoke-debugger condition)
+                                   (return-from ,name nil)))))
          (with-log-unhandled ()
            (with-connection ()
-                ,@body))))))
+             ,@body))))))
 
 
 (deftask perform-checks ()

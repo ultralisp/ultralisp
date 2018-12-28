@@ -13,6 +13,7 @@
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3)
   
+  (:import-from #:ultralisp/slynk)
   (:import-from #:lfarm-client)
   (:import-from #:lfarm-server
                 #:kill-tasks
@@ -162,6 +163,7 @@
   ;; with firewall.
   (setf slynk:*use-dedicated-output-stream* nil)
 
+  (ultralisp/slynk:setup)
   (slynk:create-server :dont-close t
                        :port slynk-port
                        :interface slynk-interface)

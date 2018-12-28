@@ -21,7 +21,8 @@
    #:with-lock
    #:unable-to-aquire-lock
    #:get-lock-name
-   #:sql-fetch-all))
+   #:sql-fetch-all
+   #:get-lock))
 (in-package ultralisp/db)
 
 
@@ -88,17 +89,32 @@
 (defun try-to-get-lock (lock-name &key (signal-on-failure t))
   (unless cl-dbi::*in-transaction*
     (error "To get a lock, you need to start a transaction."))
+  
   (let* ((key (make-hash-for-lock-name lock-name))
          (rows (sql-fetch-all "SELECT pg_try_advisory_xact_lock(?) as locked" key))
          (locked? (getf (first rows)
                         :|locked|) ))
     (unless locked?
+      (log:warn "Unable to get lock" lock-name)
       (when signal-on-failure
         (error 'unable-to-aquire-lock :lock-name lock-name)))
     locked?))
 
 
-(defmacro with-lock ((name &key (signal-on-failure t)) &body body)
-  `(when (try-to-get-lock ,name :signal-on-failure ,signal-on-failure)
-     (log:debug "Lock aquired:" ,name mito:*connection*)
-     ,@body))
+(defun get-lock (lock-name)
+  (unless cl-dbi::*in-transaction*
+    (error "To get a lock, you need to start a transaction."))
+  
+  (let ((key (make-hash-for-lock-name lock-name)))
+    (sql-fetch-all "SELECT pg_advisory_xact_lock(?)" key)))
+
+
+(defmacro with-lock ((name &key (block t) (signal-on-failure t)) &body body)
+  (if block
+      `(progn
+         (get-lock ,name)
+         (log:debug "Lock aquired:" ,name mito:*connection*)
+         ,@body)
+      `(when (try-to-get-lock ,name :signal-on-failure ,signal-on-failure)
+         (log:debug "Lock aquired:" ,name mito:*connection*)
+         ,@body)))

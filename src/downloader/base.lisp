@@ -96,11 +96,7 @@ and `description'."
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-transaction
-    (with-lock ("performing-pending-checks-or-version-build"
-                ;; We don't need to signal because this function
-                ;; will be called again by "cron" after some
-                ;; period of time.
-                :signal-on-failure nil)
+    (with-lock ("performing-pending-checks-or-version-build")
       (let* ((checks (get-pending-checks))
              (checks (mapcar 'perform-check checks))
              (checks (remove-if-not 'project-has-changes-p checks)))
@@ -111,7 +107,7 @@ and `description'."
                  (log:info "Version was created" version)
                  version))
               (t
-               (log:info "There wasn't any changes, not building a new version")))))))
+               (log:info "There wasn't any changes, not creating a new version")))))))
 
 
 (defun find-project-by-path (downloaded-projects path)

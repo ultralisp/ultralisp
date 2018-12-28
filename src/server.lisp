@@ -6,6 +6,7 @@
   (:import-from #:log4cl-json)
   (:import-from #:ultralisp/github/core)
   (:import-from #:ultralisp/cron)
+  (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
   (:import-from #:slynk)
   (:import-from #:mito)
@@ -344,6 +345,7 @@ arguments."
             slynk-port
             slynk:*use-dedicated-output-stream*)
 
+    (ultralisp/slynk:setup)
     (slynk:create-server :dont-close t
                          :port slynk-port
                          :interface slynk-interface)
