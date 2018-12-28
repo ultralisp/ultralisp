@@ -66,10 +66,14 @@
                            :if-does-not-exist :clone)))
     ;; Here we are suppressing output from the git binary
     (with-output-to-string (*standard-output*)
-      (legit:pull repo)
+      (let ((current-commit (legit:current-commit repo)))
+        (when (or (not commit)
+                  (not (string-equal commit
+                                     current-commit)))
+          (legit:pull repo)
 
-      (when commit
-        (legit:checkout repo commit)))
+          (when commit
+            (legit:checkout repo commit)))))
     
     ;; return repository so that other actions could be performed on it
     (values repo)))
