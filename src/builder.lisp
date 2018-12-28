@@ -35,7 +35,8 @@
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
-                #:disable-project)
+                #:disable-project
+                #:project)
   (:import-from #:uiop
                 #:truename*)
   (:export
@@ -67,6 +68,53 @@
              :version (get-new-version-number)))
 
 
+(defclass save-version-command ()
+  ((version :initarg :version
+            :type version
+            :reader get-version)))
+
+(defun make-save-version-command (version)
+  (check-type version version)
+  (make-instance 'save-version-command :version version))
+
+
+(defclass disable-project-command ()
+  ((project :initarg :project
+            :type project
+            :reader get-project)
+   (reason :initarg :reason
+           :type keyword
+           :reader get-reason)
+   (description :initarg :description
+                :type string
+                :reader get-description)))
+
+
+(defun make-disable-project-command (project reason description)
+  (check-type project project)
+  (check-type reason keyword)
+  (check-type description string)
+  (make-instance 'disable-project-command
+                 :project project
+                 :reason reason
+                 :description description))
+
+
+(defgeneric perform (command)
+  (:documentation "This method is called by the main process
+                   to change state of the database. Because worker
+                   is unable to do it itself."))
+
+
+(defmethod perform ((command save-version-command))
+  (save-dao (get-version command)))
+
+
+(defmethod perform ((command disable-project-command))
+  (disable-project (get-project command)
+                   (get-reason command)))
+
+
 (defun build-version-remotely (version
                                &key
                                  (projects-dir (get-projects-dir))
@@ -76,13 +124,19 @@
                                  db-user
                                  db-pass
                                  db-host)
+  "This function will be performed on a worker with
+   read-only access to the database.
+
+   It should return a list of commands to the main process to
+   modify the database."
   (check-type version version)
 
   (with-connection (:username db-user
                     :password db-pass
                     :host db-host)
     (let* ((projects-dir (truename* projects-dir))
-           (downloaded-projects (download :all projects-dir)))
+           (downloaded-projects (download :all projects-dir))
+           commands)
 
       (remove-disabled-projects projects-dir
                                 downloaded-projects)
@@ -96,30 +150,34 @@
                                                                         quickdist:*project-path*)))
                                      (log:info "Disabling project" project)
 
-                                     (disable-project project
-                                                      :build-error
-                                                      :description (print-backtrace condition
-                                                                                    :output nil)))
+                                     (push (make-disable-project-command project
+                                                                         :build-error
+                                                                         (print-backtrace condition
+                                                                                          :output nil))
+                                           commands))
                                    (invoke-restart restart))
                                   (t (error "No skip-project restart found!")))))))
         (quickdist :name name
                    :base-url base-url
                    :projects-dir projects-dir
                    :dists-dir dist-dir
-                   :version (get-number version))))
-    (setf (get-built-at version)
-          (local-time:now))
+                   :version (get-number version)))
+      (setf (get-built-at version)
+            (local-time:now))
 
-    ;; TODO: probably it is not the best idea to upload dist-dir
-    ;;       every time, because there can be previously built distributions
-    ;;       May be we need to minimize network traffic here and upload
-    ;;       only a part of it or make a selective upload which will not
-    ;;       transfer files which already on the S3.
-    (upload dist-dir)
-    ;; Here we don't save version object because
-    ;; this function will be called on a remote worker
-    ;; without "write" access to the database.
-    version))
+      ;; TODO: probably it is not the best idea to upload dist-dir
+      ;;       every time, because there can be previously built distributions
+      ;;       May be we need to minimize network traffic here and upload
+      ;;       only a part of it or make a selective upload which will not
+      ;;       transfer files which already on the S3.
+      (upload dist-dir)
+      ;; Here we don't save version object because
+      ;; this function will be called on a remote worker
+      ;; without "write" access to the database.
+      (push (make-save-version-command version)
+            commands)
+      commands)))
+
 
 
 (defun build-pending-version ()
@@ -132,20 +190,24 @@
                 :signal-on-failure nil)
       (let ((version (get-pending-version)))
         (when version
-          (let ((updated-version (submit-task
-                                  'build-version-remotely
-                                  version
-                                  ;; Here we are passing all these settings
-                                  ;; explicitly, to not have to specify
-                                  ;; any environment variables for the "workers".
-                                  :projects-dir (get-projects-dir)
-                                  :name (get-dist-name)
-                                  :base-url (get-base-url)
-                                  :dist-dir (get-dist-dir)
-                                  :db-user (get-postgres-ro-user)
-                                  :db-pass (get-postgres-ro-pass)
-                                  :db-host (get-postgres-host))))
-            (save-dao updated-version)))))))
+          (let ((commands (submit-task
+                           'build-version-remotely
+                           version
+                           ;; Here we are passing all these settings
+                           ;; explicitly, to not have to specify
+                           ;; any environment variables for the "workers".
+                           :projects-dir (get-projects-dir)
+                           :name (get-dist-name)
+                           :base-url (get-base-url)
+                           :dist-dir (get-dist-dir)
+                           :db-user (get-postgres-ro-user)
+                           :db-pass (get-postgres-ro-pass)
+                           :db-host (get-postgres-host))))
+            ;; Our worker has read-only connection to the database.
+            ;; That is why it need to return back all actions which
+            ;; require a database modification.
+            (loop for command in commands
+                  do (perform command))))))))
 
 
 (defun test-build (&key
