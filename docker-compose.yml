@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 services:
   app:
     container_name: ultralisp_app
@@ -16,6 +16,7 @@ services:
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
       - ./src/:/app/src/
+      - ./db/:/app/db/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
       - ./build/:/app/build/
@@ -70,6 +71,18 @@ services:
       - ./postgresql-data:/var/lib/postgresql/data
       - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
 
+  empty-postgres:
+    container_name: ultralisp_empty_db
+    image: "postgres:10"
+    restart: always
+    environment:
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASSWORD: ultralisp
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
+
   # Commands
   gen-deps-system:
     build: .
@@ -87,20 +100,21 @@ services:
       qlot exec /root/.roswell/bin/gen-deps-system --except ultralisp app \ 
       "
 
-  generate-migrations:
-    build: .
+  mito:
+    build:
+      context: .
+      target: mito
+
     volumes:
       - ./entrypoint.sh:/app/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
+      - ./db/:/app/db/
       - ./roswell/:/app/roswell/
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
 
     depends_on:
       - postgres
-
-    command: |
-      bash -c " \
-      ros install mito && \
-      mito migration-status
-      "
+      - empty-postgres
+      

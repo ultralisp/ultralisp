@@ -9,3 +9,6 @@
 (defclass user (user-with-email)
   ()
   (:metaclass mito:dao-table-class))
+
+
+

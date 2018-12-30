@@ -11,7 +11,7 @@
 (defvar tag "40ants/ultralisp:0.1.6")
 
 (task "build" ()
-      (sh #?"docker build -t ${tag} ."))
+      (sh #?"docker build --target base -t ${tag} ."))
 
 
 ;; TODO: remove CL_SOURCE_REGISTRY before release

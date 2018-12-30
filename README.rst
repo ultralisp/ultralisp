@@ -79,3 +79,16 @@ to the worker.
 
 To work in REPL, you will need a connection to a database. Establish it
 by running ``(ultralisp/db:connect-toplevel)``.
+
+
+Running and creating database migrations
+----------------------------------------
+
+To generate a new database migration, run::
+
+  docker-compose run --rm mito generate-migration
+
+To rollup all migration to a dev database, run::
+
+  docker-compose run --rm mito migrate
+
