@@ -86,3 +86,21 @@ services:
       qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)' && \
       qlot exec /root/.roswell/bin/gen-deps-system --except ultralisp app \ 
       "
+
+  generate-migrations:
+    build: .
+    volumes:
+      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+
+    depends_on:
+      - postgres
+
+    command: |
+      bash -c " \
+      ros install mito && \
+      mito migration-status
+      "
