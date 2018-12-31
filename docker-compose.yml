@@ -2,7 +2,9 @@ version: '3.7'
 services:
   app:
     container_name: ultralisp_app
-    build: .
+    build:
+      context: .
+      target: base
     restart: always
     # Probably, these aren't needed
     # stdin_open: true
@@ -11,7 +13,7 @@ services:
       - "127.0.0.1:8080:80"
       - "127.0.0.1:14005:4005"
     volumes:
-      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
@@ -39,12 +41,14 @@ services:
 
   worker:
     container_name: ultralisp_worker
-    build: .
+    build:
+      context: .
+      target: base
     restart: always
     ports:
       - "127.0.0.1:14006:4005"
     volumes:
-      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
@@ -87,7 +91,7 @@ services:
   gen-deps-system:
     build: .
     volumes:
-      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
@@ -106,7 +110,7 @@ services:
       target: mito
 
     volumes:
-      - ./entrypoint.sh:/app/entrypoint.sh
+      - ./docker/mito.sh:/app/docker/mito.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./src/:/app/src/
@@ -117,4 +121,15 @@ services:
     depends_on:
       - postgres
       - empty-postgres
-      
+
+  db-ops:
+    build:
+      context: .
+      target: db-ops
+
+    volumes:
+      - ./db/:/db/
+      - ./docker/dev-entrypoint.sh:/entrypoint.sh
+
+    depends_on:
+      - postgres

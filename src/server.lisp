@@ -38,7 +38,7 @@
                 #:getenv)
   (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/models/migration
-                #:create-initial-db-structure)
+                #:migrate)
   (:import-from #:ultralisp/webhook
                 #:make-webhook-route)
   (:import-from #:ultralisp/analytics
@@ -351,7 +351,7 @@ arguments."
                          :interface slynk-interface)
 
     ;; Now we'll ensure that tables are exists in the database
-    (create-initial-db-structure)
+    (migrate)
 
     (unless dont-start-server
       (format t "Starting HTTP server on ~A:~A~%"

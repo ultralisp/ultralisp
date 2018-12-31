@@ -92,3 +92,13 @@ To rollup all migration to a dev database, run::
 
   docker-compose run --rm mito migrate
 
+If you want to experiment with database and then rollback the database's
+state then create a dump with such command::
+
+  docker-compose run --rm db-ops dump
+
+And when you want to restore the database's state, ensure that ``app``
+and ``worker`` containers are not running and run::
+
+  docker stop ultralisp_app ultralisp_worker
+  docker-compose run --rm db-ops restore

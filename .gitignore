@@ -8,3 +8,4 @@
 /postgresql-data/
 /worker
 /logs/
+/db/dumps/
