@@ -10,6 +10,7 @@
    #:get-or-create-pending-version
    #:make-version
    #:version
+   #:get-type
    #:get-number
    #:get-built-at
    #:get-latest-versions

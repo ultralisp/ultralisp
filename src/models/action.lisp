@@ -13,6 +13,7 @@
   (:import-from #:alexandria
                 #:make-keyword)
   (:export #:get-project-actions
+           #:get-version-actions
            #:get-all-actions
            #:base-action
            #:project-added
@@ -77,3 +78,9 @@
   (upgrade-types
    (mito:retrieve-dao 'base-action
                       :project project)))
+
+
+(defun get-version-actions (version)
+  (upgrade-types
+   (mito:retrieve-dao 'base-action
+                      :version version)))

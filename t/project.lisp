@@ -16,18 +16,24 @@
            (ultralisp-test/utils:with-login ()
             (testing "After the project was added it should have bound action and check"
               (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
-                     (actions (ultralisp/models/action::get-project-actions project))
-                     ;; (checks (ultralisp/models/check::get-project-checks project))
-                     )
+                     (actions (ultralisp/models/action:get-project-actions project))
+                     (checks (ultralisp/models/check:get-project-checks project)))
                 (ok (= (length actions)
                        1)
                     "There should be one action")
                 (ok (typep (first actions)
                            'ultralisp/models/action::project-added))
                 
-                ;; (ok (= (length checks)
-                ;;        1))
-                ))))
+                (ok (= (length checks)
+                       1)
+                    "A new check should be created as well")
+
+                (let ((version (ultralisp/models/action:get-version (first actions))))
+                  (ok version
+                      "Version should be bound to the action")
+                  (ok (equal (ultralisp/models/version:get-type version)
+                             :pending)
+                      "And the version should be \"pending\""))))))
       (cl-dbi:rollback mito:*connection*))))
 
 

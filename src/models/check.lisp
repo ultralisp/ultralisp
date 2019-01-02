@@ -15,6 +15,7 @@
   (:import-from #:alexandria
                 #:make-keyword)
   (:export
+   #:get-project-checks
    #:make-check
    #:check
    #:get-project
@@ -125,6 +126,12 @@
   (check-type version version)
   (select-dao 'check
     (where (:= :version version))))
+
+
+(defun get-project-checks (project)
+  (check-type project project)
+  (mito:retrieve-dao 'check
+                     :project project))
 
 
 (defun get-changelog (version)
