@@ -102,3 +102,15 @@ and ``worker`` containers are not running and run::
 
   docker stop ultralisp_app ultralisp_worker
   docker-compose run --rm db-ops restore
+
+
+Running tests
+-------------
+
+Connect to the REPL and run:
+
+.. code:: common-lisp
+
+   (ql:quickload :ultralisp-test
+   (setf rove:*enable-colors* nil)
+   (asdf:test-system :ultralisp-test)

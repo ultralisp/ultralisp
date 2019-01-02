@@ -4,7 +4,10 @@
                 #:find-dao
                 #:select-dao
                 #:create-dao)
+  (:import-from #:alexandria
+                #:make-keyword)
   (:export
+   #:get-or-create-pending-version
    #:make-version
    #:version
    #:get-number
@@ -16,9 +19,18 @@
 
 
 (defclass version ()
-  ((number :col-type (:text)
+  ((number :col-type (or :text :null)
            :initarg :number
+           :initform nil
            :reader get-number)
+   ;; Remove null during migration
+   (type :col-type (or :text :null)
+         :initarg :type
+         :reader get-type
+         :documentation "Should be one of :pending :prepared :ready"
+         :inflate (lambda (text)
+                    (make-keyword (string-upcase text)))
+         :deflate #'symbol-name)
    (built-at :col-type (or :timestamptz
                            :null)
              :initform nil
@@ -29,8 +41,10 @@
 
 (defmethod print-object ((version version) stream)
   (print-unreadable-object (version stream :type t)
-    (format stream "~A~@[ built-at=~A~]"
-            (get-number version)
+    (format stream "~A~@[ version=~A~]~@[ built-at=~A~]"
+            (get-type version)
+            (when (slot-boundp version 'number)
+              (get-number version))
             (get-built-at version))))
 
 
@@ -47,14 +61,20 @@
 (defun get-pending-version ()
   (first
    (select-dao 'version
-     (sxql:where (:is-null 'built-at)))))
+     (sxql:where (:= 'type "PENDING")))))
 
 
-(defun make-version ()
-  "Creates a new version object or returns a pending version which is waiting to be built."
+;; (defun make-version (&key (type :pending))
+;;   "Creates a new version object or returns a pending version which is waiting to be built."
+;;   (or (get-pending-version)
+;;       (create-dao 'version
+;;                   :number (make-version-number))))
+
+
+(defun get-or-create-pending-version ()
   (or (get-pending-version)
-      (create-dao 'version
-                  :number (make-version-number))))
+      (mito:save-dao (make-instance 'version
+                                    :type :pending))))
 
 
 (defun get-version-by-number (number)

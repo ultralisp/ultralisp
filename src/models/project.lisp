@@ -197,6 +197,10 @@
                         :make-check
                         project
                         :type :manual)
+      
+      (uiop:symbol-call :ultralisp/models/action
+                        :make-project-added-action
+                        project)
       project)))
 
 
