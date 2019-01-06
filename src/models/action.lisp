@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/models/project
                 #:project)
+  (:import-from #:jonathan)
   (:import-from #:mito
                 #:save-dao
                 #:select-dao
@@ -18,8 +19,13 @@
            #:base-action
            #:project-added
            #:project-removed
+           #:project-updated
+           #:make-project-added-action
+           #:make-project-removed-action
+           #:make-project-updated-action
            #:get-project
-           #:get-version))
+           #:get-version
+           #:get-params))
 (in-package ultralisp/models/action)
 
 
@@ -44,21 +50,35 @@
                 :documentation "Should be one of :project-added :project-disabled :project-enabled"
                 :inflate (lambda (text)
                            (make-keyword (string-upcase text)))
-                :deflate #'symbol-name))
+                :deflate #'symbol-name)
+          (params :col-type (:jsonb)
+                  :initarg :params
+                  :initform nil
+                  :accessor get-params
+                  :deflate #'jonathan:to-json
+                  :inflate (lambda (text)
+                             (jonathan:parse
+                              ;; Jonathan for some reason is unable to work with
+                              ;; `base-string' type, returned by database
+                              (coerce text 'simple-base-string)))))
          (:table-name "action")
          (:metaclass mito:dao-table-class))
 
 
-       (defun ,make-func-name (project &key version)
+       (defun ,make-func-name (project &rest params &key version &allow-other-keys)
+         (remf params :version)
          (mito:save-dao (make-instance ',name
-                                       :type :project-added
+                                       :type (make-keyword ',name)
                                        :project project
-                                       :version (get-or-create-pending-version)))))))
+                                       :version (or version
+                                                    (get-or-create-pending-version))
+                                       :params params))))))
 
 
 (defaction base-action)
 (defaction project-added)
 (defaction project-removed)
+(defaction project-updated)
 
 
 (defun upgrade-types (actions)
@@ -66,7 +86,8 @@
         for type = (get-type instance)
         for real-type = (case type
                           (:project-added 'project-added)
-                          (:project-removed 'project-removed))
+                          (:project-removed 'project-removed)
+                          (:project-updated 'project-updated))
         collect (change-class instance real-type)))
 
 

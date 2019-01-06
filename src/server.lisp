@@ -351,7 +351,7 @@ arguments."
                          :interface slynk-interface)
 
     ;; Now we'll ensure that tables are exists in the database
-    (migrate)
+    ;; (migrate)
 
     (unless dont-start-server
       (format t "Starting HTTP server on ~A:~A~%"

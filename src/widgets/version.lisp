@@ -5,8 +5,6 @@
                 #:defwidget)
   (:import-from #:ultralisp/models/version
                 #:get-version-by-number)
-  (:import-from #:ultralisp/models/check
-                #:get-changelog)
   (:import-from #:cl-ppcre
                 #:all-matches-as-strings)
   (:import-from #:ultralisp/widgets/not-found
@@ -28,8 +26,7 @@
     (unless version
       (page-not-found))
     
-    (let ((changelog (string-trim (list #\Newline #\Space #\Tab)
-                                  (get-changelog version)))
+    (let ((changelog "TODO: render changelog using actions")
           (dist-url (format nil
                             "~A~A/~A/distinfo.txt"
                             (ultralisp/variables:get-base-url)

@@ -28,5 +28,7 @@ github spinneret svetlyak40wt/spinneret :branch support-package-inferred-systems
 
 github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
 
+github weblocks-file-server 40ants/weblocks-file-server
+
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly

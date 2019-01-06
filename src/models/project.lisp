@@ -25,7 +25,11 @@
                 #:get-current-user)
   (:import-from #:ultralisp/db
                 #:with-transaction)
+  (:import-from #:ultralisp/utils
+                #:make-plist-diff)
   (:export
+   #:update-and-enable-project
+   #:is-enabled-p
    #:get-all-projects
    #:get-description
    #:get-url
@@ -38,9 +42,7 @@
    #:turn-off-github-project
    #:get-last-seen-commit
    #:disable-project
-   #:enable-project
-   #:get-disable-reason
-   #:get-disable-description))
+   #:enable-project))
 (in-package ultralisp/models/project)
 
 
@@ -67,17 +69,11 @@
                        ;; `base-string' type, returned by database
                        (coerce text 'simple-base-string))))
    (enabled :col-type :boolean
-            :initform t
-            :accessor is-enabled-p)
-   (disable-reason :col-type (or :text :null)
-                   :initform nil
-                   :accessor get-disable-reason
-                   :inflate (lambda (text)
-                              (make-keyword (string-upcase text)))
-                   :deflate #'symbol-name)
-   (disable-description :col-type (or :text :null)
-                        :initform nil
-                        :accessor get-disable-description))
+            :documentation "If True, then this project will be included into the next distribution version.
+
+                            This attribute should be turned on only after some check was passed."
+            :initform nil
+            :accessor is-enabled-p))
   (:unique-keys name)
   (:metaclass mito:dao-table-class))
 
@@ -177,14 +173,11 @@
     
     (let ((project (get-github-project user-or-org project-name))
           (current-user (get-current-user)))
-      (cond
-        (project
-         (log:info "Enabling github project" project)
-         (enable-project project))
-        (t
-         (log:info "Adding github project to the database" project)
-         (setf project
-               (make-github-project user-or-org project-name))))
+      
+      (unless project
+        (log:info "Adding github project to the database" project)
+        (setf project
+              (make-github-project user-or-org project-name)))
 
       (uiop:symbol-call :ultralisp/models/moderator
                         :make-moderator
@@ -192,15 +185,12 @@
                         current-user)
       
       ;; Also, we need to trigger a check of this project
-      ;; and to build a new Ultralisp version.
+      ;; and to enabled it and to include into the next build
+      ;; of a new Ultralisp version.
       (uiop:symbol-call :ultralisp/models/check
-                        :make-check
-                        project
-                        :type :manual)
-      
-      (uiop:symbol-call :ultralisp/models/action
-                        :make-project-added-action
+                        :make-added-project-check
                         project)
+      
       project)))
 
 
@@ -243,12 +233,17 @@
   
   (setf (is-enabled-p project)
         t)
-  (setf (get-disable-reason project)
-        nil)
-  (setf (get-disable-description project)
-        nil)
   (save-dao project)
   (values project))
+
+
+(defun update-and-enable-project (project &rest data)
+  (cond
+    ((is-enabled-p project)
+     (uiop:symbol-call :ultralisp/models/action :make-project-updated-action project
+                                                :diff (make-plist-diff (get-params project)
+                                                                       data))))
+  project)
 
 
 (defun disable-project (project reason &key description)
@@ -267,10 +262,6 @@
 
     (setf (is-enabled-p project)
           nil)
-    (setf (get-disable-reason project)
-          reason)
-    (setf (get-disable-description project)
-          description)
     (save-dao project))
   
   (values project))

@@ -1,7 +1,6 @@
 (defpackage #:ultralisp/db
   (:use #:cl)
-  (:import-from #:cl-dbi
-                #:connect-cached)
+  (:import-from #:cl-dbi)
   (:import-from #:mito
                 #:connect-toplevel)
   (:import-from #:ironclad
@@ -26,20 +25,24 @@
 (in-package ultralisp/db)
 
 
-(defun connect (&key host database-name username password)
-  (connect-cached :postgres
-                  :host (or host
-                            (get-postgres-host))
-                  :database-name (or  database-name
-                                      (get-postgres-dbname))
-                  :username (or username
-                                (get-postgres-user))
-                  :password (or password
-                                (get-postgres-pass))))
+(defun connect (&key host database-name username password
+                  (cached t))
+  (funcall (if cached
+               'cl-dbi:connect-cached
+               'cl-dbi:connect)
+           :postgres
+           :host (or host
+                     (get-postgres-host))
+           :database-name (or  database-name
+                               (get-postgres-dbname))
+           :username (or username
+                         (get-postgres-user))
+           :password (or password
+                         (get-postgres-pass))))
 
 
 (defun connect-toplevel ()
-  (setf mito:*connection* (connect)))
+  (setf mito:*connection* (connect :cached nil)))
 
 
 (defmacro with-transaction (&body body)

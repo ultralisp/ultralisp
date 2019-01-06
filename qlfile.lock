@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20181222-153832"))
+  :version "20190106-111324"))
 ("log4cl-json" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
@@ -62,3 +62,10 @@
   :repos "svetlyak40wt/websocket-driver"
   :url "https://github.com/svetlyak40wt/websocket-driver/archive/559889e39857dac9de2d225830064a6af10be9d5.tar.gz"
   :ref "559889e39857dac9de2d225830064a6af10be9d5"))
+("weblocks-file-server" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "weblocks-file-server" :repos "40ants/weblocks-file-server" :ref nil :branch nil :tag nil)
+  :version "github-47d1974b1c71e45888049d9f09a8bcc10f0d24d3"
+  :repos "40ants/weblocks-file-server"
+  :url "https://github.com/40ants/weblocks-file-server/archive/47d1974b1c71e45888049d9f09a8bcc10f0d24d3.tar.gz"
+  :ref "47d1974b1c71e45888049d9f09a8bcc10f0d24d3"))

@@ -10,6 +10,7 @@
   (:import-from #:cl-strings
                 #:split)
   (:export
+   #:make-plist-diff
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
@@ -76,3 +77,13 @@
   (loop for item in (split string ",")
         for (host port) = (split item ":")
         collect (list host (parse-integer port))))
+
+
+(defun make-plist-diff (left right)
+  "Returns a new plist with items which differ in `left' and `right' plists.
+
+   Each item in a result is a list of two values - first value if from the left
+   plist, second - from the right.
+
+   If some item is absent in the left or right, it is considered missing and replaced with nil."
+  nil)

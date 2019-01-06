@@ -7,8 +7,8 @@
   (:import-from #:log4cl-json
                 #:with-log-unhandled
                 #:with-fields)
-  (:import-from #:ultralisp/downloader/base
-                #:perform-pending-checks-and-trigger-version-build)
+  (:import-from #:ultralisp/pipeline/checking
+                #:perform-pending-checks)
   (:import-from #:ultralisp/db
                 #:with-connection)
   (:import-from #:ultralisp/builder
@@ -43,7 +43,7 @@
 
 
 (deftask perform-checks ()
-  (perform-pending-checks-and-trigger-version-build))
+  (perform-pending-checks))
 
 
 (deftask build-version ()

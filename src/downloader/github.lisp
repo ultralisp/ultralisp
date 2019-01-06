@@ -2,16 +2,16 @@
   (:use #:cl)
   (:import-from #:legit)
   (:import-from #:ultralisp/models/project
+                #:update-and-enable-project
                 #:get-last-seen-commit
                 #:project)
   (:import-from #:ultralisp/models/check
                 #:get-processed-at
-                #:get-description
-                #:project-has-changes-p
-                #:check)
+                #:get-description)
   (:import-from #:ultralisp/downloader/base
                 #:download
-                #:make-downloader
+                #:make-downloader)
+  (:import-from #:ultralisp/pipeline/checking
                 #:perform-project-check)
   (:import-from #:named-readtables
                 #:in-readtable)
@@ -27,11 +27,12 @@
 
 (defmethod perform-project-check ((source (eql :github))
                                   (project project)
-                                  (check check))
+                                  (check t))
   (let* ((tmp-dir "/tmp/checker")
          (last-seen-commit (get-last-seen-commit project))
          (downloaded (download project tmp-dir :latest t))
          (params-update (ultralisp/downloader/base:downloaded-project-params downloaded)))
+    
     (let ((latest-commit (getf params-update
                                :last-seen-commit)))
       (when (and latest-commit
@@ -40,19 +41,26 @@
         ;; Hey, project was changed at the github!
         ;; we should celebrate this fact!
         ;; Or just store it into the database
-        (setf (get-last-seen-commit project)
-              latest-commit)
-        (save-dao project)
+        ;; 
+        ;; TODO: later - separate different stages such as downloading,
+        ;;       checking if there was update, checking if it is possible
+        ;;       to load ASD files, etc.
+        (update-and-enable-project project
+                                   :latest-commit latest-commit)
         
-        (setf (project-has-changes-p check) t)
+        ;; (setf (get-last-seen-commit project)
+        ;;       latest-commit)
+        ;; (save-dao project)
         
-        (if last-seen-commit
-            (setf (get-description check)
-                  #?"Updated from ${last-seen-commit} to ${latest-commit} commit.")
-            (setf (get-description check)
-                  #?"Added on ${latest-commit} commit.")))
+        ;; (if last-seen-commit
+        ;;     (setf (get-description check)
+        ;;           #?"Updated from ${last-seen-commit} to ${latest-commit} commit.")
+        ;;     (setf (get-description check)
+        ;;           #?"Added on ${latest-commit} commit."))
+        )
       
-      (setf (get-processed-at check) (local-time:now))
+      (setf (get-processed-at check)
+            (local-time:now))
       (save-dao check)
       
       ;; Should return a check object

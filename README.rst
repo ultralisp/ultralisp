@@ -113,4 +113,5 @@ Connect to the REPL and run:
 
    (ql:quickload :ultralisp-test
    (setf rove:*enable-colors* nil)
+   (setf rove:*debug-on-error* t)
    (asdf:test-system :ultralisp-test)

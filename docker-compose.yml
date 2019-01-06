@@ -18,6 +18,7 @@ services:
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
       - ./src/:/app/src/
+      - ./t/:/app/t/
       - ./db/:/app/db/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/

@@ -23,8 +23,6 @@
                 #:format-date)
   (:import-from #:local-time
                 #:timestamp-to-universal)
-  (:import-from #:ultralisp/models/check
-                #:get-changelog)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
