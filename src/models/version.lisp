@@ -15,7 +15,8 @@
    #:get-built-at
    #:get-latest-versions
    #:get-pending-version
-   #:get-version-by-number))
+   #:get-version-by-number
+   #:make-version-number))
 (in-package ultralisp/models/version)
 
 
@@ -23,11 +24,11 @@
   ((number :col-type (or :text :null)
            :initarg :number
            :initform nil
-           :reader get-number)
+           :accessor get-number)
    ;; Remove null during migration
    (type :col-type (or :text :null)
          :initarg :type
-         :reader get-type
+         :accessor get-type
          :documentation "Should be one of :pending :prepared :ready"
          :inflate (lambda (text)
                     (make-keyword (string-upcase text)))

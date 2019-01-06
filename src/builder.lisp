@@ -10,6 +10,8 @@
                 #:find-project-by-path
                 #:download)
   (:import-from #:ultralisp/models/version
+                #:get-type
+                #:make-version-number
                 #:get-pending-version
                 #:get-built-at
                 #:get-number
@@ -177,14 +179,21 @@
                                          (invoke-restart restart))
                                         (t (error "No skip-project restart found!")))))))
 
-              (log:info "Starting quickdist build")
-              (quickdist :name name
-                         :base-url base-url
-                         :projects-dir projects-dir
-                         :dists-dir dist-dir
-                         :version (get-number version)))
+              (let ((version-number (make-version-number)))
+                (setf (get-number version)
+                      version-number)
+                
+                (log:info "Starting quickdist build" version-number)
+                (quickdist :name name
+                           :base-url base-url
+                           :projects-dir projects-dir
+                           :dists-dir dist-dir
+                           :version version-number)))
+            
             (setf (get-built-at version)
-                  (local-time:now))
+                  (local-time:now)
+                  (get-type version)
+                  :ready)
 
             ;; TODO: probably it is not the best idea to upload dist-dir
             ;;       every time, because there can be previously built distributions
