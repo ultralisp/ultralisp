@@ -1,18 +1,18 @@
 ("quicklisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2018-12-10"))
+  :version "2019-01-07"))
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190106-111324"))
+  :version "20190107-181059"))
 ("log4cl-json" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
-  :version "github-364e864cf0875211f9743a418024c6744e18c8fe"
+  :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag "v0.3.0")
+  :version "github-25f5f93032c95423cdacbd7205a8647f47297c41"
   :repos "40ants/log4cl-json"
-  :url "https://github.com/40ants/log4cl-json/archive/364e864cf0875211f9743a418024c6744e18c8fe.tar.gz"
-  :ref "364e864cf0875211f9743a418024c6744e18c8fe"))
+  :url "https://github.com/40ants/log4cl-json/archive/25f5f93032c95423cdacbd7205a8647f47297c41.tar.gz"
+  :ref "25f5f93032c95423cdacbd7205a8647f47297c41"))
 ("weblocks" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch "fixing-sbcl-build" :tag nil)

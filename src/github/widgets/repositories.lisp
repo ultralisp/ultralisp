@@ -241,7 +241,7 @@
        "Refresh" 
        (lambda (&rest args)
          (declare (ignorable args))
-         (log:warn "User clicked")
+         (log:debug "User clicked")
          (weblocks/widget:update widget ))
        :button-class "button refresh")))
   

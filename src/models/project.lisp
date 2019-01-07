@@ -48,7 +48,9 @@
    #:enable-project
    #:project-version
    #:get-version
-   #:create-projects-snapshots-for))
+   #:create-projects-snapshots-for
+   #:get-projects
+   #:get-project))
 (in-package ultralisp/models/project)
 
 
@@ -121,6 +123,15 @@
             (get-source project)
             (get-name project)
             (is-enabled-p project))))
+
+
+(defmethod print-object ((project project-version) stream)
+  (print-unreadable-object (project stream :type t)
+    (format stream
+            "~A version=~A name=~A"
+            (get-version project)
+            (get-source project)
+            (get-name project))))
 
 
 (defun get-url (project)
@@ -328,3 +339,15 @@
   (check-type version version)
   (loop for project in (get-all-projects :only-enabled t)
         do (create-project-snapshort project version)))
+
+
+(defun get-projects (version)
+  (check-type version version)
+  (mito:retrieve-dao 'project-version
+                     :version version))
+
+(defun get-project (project-version)
+  "Returns original project."
+  (check-type project-version project-version)
+  (mito:find-dao 'project
+                 :name (get-name project-version)))

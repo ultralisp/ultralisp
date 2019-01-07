@@ -24,7 +24,7 @@
   "parenscript" "parse-declarations-1.0" "parse-number" "proc-parse" "puri"
   "quickdist" "quicklisp" "quri" "routes" "salza2" "serapeum"
   "simple-inferiors" "slynk" "smart-buffer" "spinneret" "spinneret/cl-markdown"
-  "split-sequence" "static-vectors" "string-case" "swap-bytes" "sxql"
+  "split-sequence" "static-vectors" "str" "string-case" "swap-bytes" "sxql"
   "symbol-munger" "trivia" "trivia.level0" "trivia.level1" "trivia.level2"
   "trivia.quasiquote" "trivial-backtrace" "trivial-features"
   "trivial-file-size" "trivial-garbage" "trivial-gray-streams" "trivial-indent"

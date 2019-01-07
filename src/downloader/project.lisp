@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:ultralisp/models/project
+                #:project-version
                 #:get-all-projects
                 #:get-source
                 #:get-params
@@ -22,7 +23,7 @@
         collect (download project projects-dir :latest latest)))
 
 
-(defmethod download ((project project) dir &key latest)
+(defun %download (project dir &key latest)
   (log:info "Downloading" project)
   (let ((downloader (make-downloader (get-source project))))
     (multiple-value-bind (path params)
@@ -34,4 +35,12 @@
       (make-downloaded-project path
                                project
                                params))))
+
+
+(defmethod download ((project project) dir &key latest)
+  (%download project dir :latest latest))
+
+
+(defmethod download ((project project-version) dir &key latest)
+  (%download project dir :latest latest))
 

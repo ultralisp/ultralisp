@@ -38,6 +38,8 @@
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
+                #:get-name
+                #:project-version
                 #:disable-project
                 #:create-projects-snapshots-for
                 #:project)
@@ -90,7 +92,7 @@
 
 (defclass disable-project-command ()
   ((project :initarg :project
-            :type project
+            :type project-version
             :reader get-project)
    (reason :initarg :reason
            :type keyword
@@ -101,7 +103,7 @@
 
 
 (defun make-disable-project-command (project reason description)
-  (check-type project project)
+  (check-type project project-version)
   (check-type reason keyword)
   (check-type description string)
   (make-instance 'disable-project-command
@@ -121,7 +123,12 @@
 
 
 (defmethod perform ((command disable-project-command))
-  (disable-project (get-project command)))
+  (let* ((project-version (get-project command))
+         (reason (get-reason command))
+         (description (get-description command))
+         (project (ultralisp/models/project:get-project project-version)))
+    (log:info "Disabling project" project reason description)
+    (disable-project project)))
 
 
 (defun build-version-remotely (version
@@ -157,9 +164,11 @@
           
           (let* ((projects-dir (truename* projects-dir))
                  (_ (log:info "Downloading projects"))
-                 (downloaded-projects (download :all projects-dir))
+                 (downloaded-projects (download version projects-dir))
+                 (num-downloaded-projects (length downloaded-projects))
                  commands)
             (declare (ignorable _))
+            (log:info "Projects were downloaded" num-downloaded-projects)
 
             (log:info "Removing disabled projects from disk")
             (remove-disabled-projects projects-dir

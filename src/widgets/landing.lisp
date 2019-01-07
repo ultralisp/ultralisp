@@ -96,11 +96,10 @@
       (:tr
        (:td :class "version-cell"
             (case version-type
-              (:pending
-               (:span "No version yet"))
-              (t
+              (:ready
                (:a :href version-uri
-                   number))))
+                   number))
+              (t (:span "No version yet"))))
        (:td :class "timestamp-cell"
             (if built-at
                 (format-date "%Y-%m-%d %H:%M:%S UTC"
@@ -184,10 +183,7 @@
                        (:th :class "version-cell"
                             "Version")
                        (:th :class "timestamp-cell"
-                            "Built-at")
-                       ;; (:th :style "width: 100%"
-                       ;;      "Changelog")
-                       )
+                            "Built-at"))
                       (mapc #'render-version
                             latest-versions))))
 

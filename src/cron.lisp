@@ -24,33 +24,42 @@
 (in-package ultralisp/cron)
 
 
-(defmacro deftask (name &body body)
+(defmacro deftask (name (&key (need-connection t)) &body body)
   "Defines a cron task function with following properties:
 
    * Each call has it's own unique id in log messages.
    * Unhandles exceptions will be logged along with their tracebacks.
    * A new database connection and trasaction will be started."
   
-  `(defun ,name ()
-     (with-fields (:request-id (make-request-id))
-       (log:debug "Running cron task" ',name)
-       (handler-bind ((error (lambda (condition)
-                               (if slynk-api:*emacs-connection*
-                                   (invoke-debugger condition)
-                                   (return-from ,name nil)))))
-         (with-log-unhandled ()
-           (with-connection ()
-             ,@body)))
-       (log:debug "Cron task is done" ',name))))
+  (let ((body (if need-connection
+                  `(with-connection ()
+                     ,@body)
+                  `(progn ,@body))))
+    `(defun ,name ()
+       (with-fields (:request-id (make-request-id))
+         (log:debug "Running cron task" ',name)
+         (handler-bind ((error (lambda (condition)
+                                 (if slynk-api:*emacs-connection*
+                                     (invoke-debugger condition)
+                                     (return-from ,name nil)))))
+           (with-log-unhandled ()
+             ,body))
+         (log:debug "Cron task is done" ',name)))))
 
 
 (deftask perform-checks ()
   (perform-pending-checks))
 
 
-(deftask build-version ()
-  (prepare-pending-version)
-  (build-prepared-versions))
+(deftask build-version (:need-connection nil)
+  ;; Here we get separate connections and transaction
+  ;; because when we do version build, it will be
+  ;; performed by a remote worker and prepared version
+  ;; should be already committed to the database.
+  (with-connection ()
+    (prepare-pending-version))
+  (with-connection ()
+    (build-prepared-versions)))
 
 
 (defun list-cron-jobs ()
