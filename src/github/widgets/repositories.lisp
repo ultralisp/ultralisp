@@ -19,6 +19,7 @@
   (:import-from #:weblocks/page
                 #:get-title)
   (:import-from #:ultralisp/models/project
+                #:is-enabled-p
                 #:turn-off-github-project
                 #:add-or-turn-on-github-project
                 #:get-params
@@ -104,7 +105,8 @@
 
 (defun get-ultralisp-repositories (names)
   "Receives a list of repository names which are strings like \"40ants/defmain\"
-   and returns a hash from these names to a 't if a repository already in the database."
+   and returns a list of projects from the database where each project
+   is belongs to the same users as repositories listed in the names argument."
   
   (let (usernames)
     (loop for name in names
@@ -163,9 +165,10 @@
          ;; We need it to draw a switcher in a correct state.
          (ultralisp-names (loop for project in ultralisp-projects
                                 for params = (get-params project)
-                                collect (format nil "~A/~A"
-                                                (getf params :user-or-org)
-                                                (getf params :project)))))
+                                when (is-enabled-p project)
+                                  collect (format nil "~A/~A"
+                                                  (getf params :user-or-org)
+                                                  (getf params :project)))))
     (setf (slot-value widget 'repository-widgets)
           (mapcar (lambda (name)
                     (make-instance 'repository

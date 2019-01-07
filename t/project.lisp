@@ -31,7 +31,7 @@
 (deftest test-update-and-enable
   (with-test-db
     (testing "When project already enabled we need to create project-updated action."
-      (let ((project (ultralisp/models/project::make-github-project "40ants" "defmain2")))
+      (let ((project (ultralisp/models/project::make-github-project "40ants" "defmain")))
         (setf (ultralisp/models/project:is-enabled-p project)
               t
               (ultralisp/models/project:get-last-seen-commit project)
@@ -49,4 +49,18 @@
               "And the action have to have type project-updated"))))))
 
 
+(deftest test-project-disabling
+  (with-test-db
+    (testing "After the project was disabled, we should create a new action and version."
+      (let ((project (ultralisp/models/project::make-github-project "40ants" "defmain")))
+        (setf (ultralisp/models/project:is-enabled-p project)
+              t)
+
+        (ultralisp/models/project:disable-project project)
+        
+        (let ((actions (ultralisp/models/action:get-project-actions project)))
+          (assert-that actions
+                       (contains
+                        (has-type 'ultralisp/models/action:project-removed)))))))
+  )
 ;; TODO: action should be bound to a new pending version we need a separate test for it

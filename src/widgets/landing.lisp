@@ -45,7 +45,12 @@
     (let* ((project (ultralisp/models/action:get-project action))
            (project-name (ultralisp/models/project:get-name project)))
       (with-html
-        (:li ("Project ~A was added" project-name))))))
+        (:li ("Project ~A was added" project-name)))))
+  (:method ((action ultralisp/models/action:project-removed))
+    (let* ((project (ultralisp/models/action:get-project action))
+           (project-name (ultralisp/models/project:get-name project)))
+      (with-html
+        (:li ("Project ~A was removed" project-name))))))
 
 
 (defun render-version (version)

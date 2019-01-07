@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/models/action)
   (:import-from #:ultralisp/models/project
+                #:is-enabled-p
                 #:get-source)
   (:import-from #:ultralisp/db
                 #:with-lock
@@ -56,5 +57,8 @@ and `description'."
                                           (check added-project-check))
   (let ((check (call-next-method)))
     (unless (get-error check)
-      (ultralisp/models/action:make-project-added-action project))
+      (ultralisp/models/action:make-project-added-action project)
+      (setf (is-enabled-p project)
+            t)
+      (mito:save-dao project))
     (values check)))

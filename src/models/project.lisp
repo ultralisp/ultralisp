@@ -202,8 +202,7 @@
     
     (let ((project (get-github-project user-or-org project)))
       (when project
-        (disable-project project
-                         :manual))
+        (disable-project project))
       project)))
 
 
@@ -224,9 +223,7 @@
 
 
 (defun enable-project (project)
-  "Disables project because of given reason.
-
-   Reason could be either :build-error or :manual."
+  "Enables project right now."
   (check-type project project)
 
   (log:info "Enabling project" project)
@@ -246,22 +243,20 @@
   project)
 
 
-(defun disable-project (project reason &key description)
-  "Disables project because of given reason.
-
-   Reason could be either :build-error or :manual."
+(defun disable-project (project)
+  "Disables project."
   (check-type project project)
-  (check-type reason (and symbol
-                          (member :build-error
-                                  :manual)))
-  (check-type description (or string
-                              null))
   
   (when (is-enabled-p project)
     (log:info "Disabling project" project)
 
+    ;; Also, we need to create a new action, related to this project
+    (uiop:symbol-call :ultralisp/models/action
+                      :make-project-removed-action
+                      project)
     (setf (is-enabled-p project)
           nil)
+
     (save-dao project))
   
   (values project))

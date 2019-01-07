@@ -19,6 +19,10 @@
         (ultralisp/pipeline/checking:perform-check check)
         
         (let ((actions (ultralisp/models/action:get-project-actions project)))
-          (assert-that actions
-                       (contains
-                        (has-type 'ultralisp/models/action:project-added))))))))
+          (testing "Created action should be of `project-added' type"
+            (assert-that actions
+                         (contains
+                          (has-type 'ultralisp/models/action:project-added))))
+
+          (testing "And project should be enabled"
+            (ok (ultralisp/models/project:is-enabled-p project))))))))

@@ -118,8 +118,7 @@
 
 
 (defmethod perform ((command disable-project-command))
-  (disable-project (get-project command)
-                   (get-reason command)))
+  (disable-project (get-project command)))
 
 
 (defun build-version-remotely (version

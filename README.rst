@@ -111,7 +111,7 @@ Connect to the REPL and run:
 
 .. code:: common-lisp
 
-   (ql:quickload :ultralisp-test
+   (ql:quickload :ultralisp-test)
    (setf rove:*enable-colors* nil)
    (setf rove:*debug-on-error* t)
    (asdf:test-system :ultralisp-test)
