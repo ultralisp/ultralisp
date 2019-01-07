@@ -10,6 +10,7 @@
                 #:find-project-by-path
                 #:download)
   (:import-from #:ultralisp/models/version
+                #:get-prepared-versions
                 #:get-type
                 #:make-version-number
                 #:get-pending-version
@@ -38,6 +39,7 @@
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
                 #:disable-project
+                #:create-projects-snapshots-for
                 #:project)
   (:import-from #:uiop
                 #:truename*)
@@ -49,7 +51,8 @@
   (:export
    #:build
    #:build-version
-   #:build-pending-version))
+   #:build-prepared-versions
+   #:prepare-pending-version))
 (in-package ultralisp/builder)
 
 
@@ -211,15 +214,26 @@
 
 
 
-(defun build-pending-version ()
+(defun prepare-pending-version ()
+  (with-transaction
+    (with-lock ("performing-pending-checks-or-version-build")
+      (let ((version (get-pending-version)))
+        (when version
+          (log:info "Preparing version for build" version)
+          (create-projects-snapshots-for version)
+          (setf (get-type version)
+                :prepared)
+          (mito:save-dao version))))))
+
+
+(defun build-prepared-versions ()
   "Searches and builds a pending version if any."
   (with-transaction
     (with-lock ("performing-pending-checks-or-version-build")
       (log:info "Checking if there is a version to build")
       
-      (let ((version (get-pending-version)))
-        (cond (version
-               (log:info "Submitting task to worker")
+      (loop for version in (get-prepared-versions)
+            do (log:info "Submitting task to worker")
                (let ((commands
                        (submit-task
                         'build-version-remotely
@@ -239,9 +253,7 @@
                  ;; require a database modification.
                  (log:info "Applying commands")
                  (loop for command in commands
-                       do (perform command))))
-              (t
-               (log:info "No version to build")))))))
+                       do (perform command)))))))
 
 
 (defun test-build (&key

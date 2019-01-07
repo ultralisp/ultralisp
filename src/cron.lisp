@@ -12,7 +12,8 @@
   (:import-from #:ultralisp/db
                 #:with-connection)
   (:import-from #:ultralisp/builder
-                #:build-pending-version)
+                #:prepare-pending-version
+                #:build-prepared-versions)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
@@ -48,7 +49,8 @@
 
 
 (deftask build-version ()
-  (build-pending-version))
+  (prepare-pending-version)
+  (build-prepared-versions))
 
 
 (defun list-cron-jobs ()

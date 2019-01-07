@@ -16,7 +16,8 @@
    #:get-latest-versions
    #:get-pending-version
    #:get-version-by-number
-   #:make-version-number))
+   #:make-version-number
+   #:get-prepared-versions))
 (in-package ultralisp/models/version)
 
 
@@ -64,6 +65,11 @@
   (first
    (select-dao 'version
      (sxql:where (:= 'type "PENDING")))))
+
+
+(defun get-prepared-versions ()
+  (mito:retrieve-dao 'version
+                     :type "PREPARED"))
 
 
 ;; (defun make-version (&key (type :pending))

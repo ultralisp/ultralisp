@@ -28,6 +28,8 @@
   (:import-from #:ultralisp/utils
                 #:update-plist
                 #:make-update-diff)
+  (:import-from #:ultralisp/models/version
+                #:version)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -43,7 +45,10 @@
    #:turn-off-github-project
    #:get-last-seen-commit
    #:disable-project
-   #:enable-project))
+   #:enable-project
+   #:project-version
+   #:get-version
+   #:create-projects-snapshots-for))
 (in-package ultralisp/models/project)
 
 
@@ -76,6 +81,36 @@
             :initform nil
             :accessor is-enabled-p))
   (:unique-keys name)
+  (:metaclass mito:dao-table-class))
+
+
+(defclass project-version ()
+  ((version :col-type version
+            :initarg :version
+            :reader get-version)
+   (source :col-type (:text)
+           :initarg :source
+           :reader get-source
+           :inflate (lambda (text)
+                      (make-keyword (string-upcase text)))
+           :deflate #'symbol-name)
+   (name :col-type (:text)
+         :initarg :name
+         :accessor get-name)
+   (description :col-type :text
+                :initarg :description
+                :accessor get-description)
+   (params :col-type (:jsonb)
+           :initarg :params
+           :accessor get-params
+           :deflate #'jonathan:to-json
+           :inflate (lambda (text)
+                      (jonathan:parse
+                       ;; Jonathan for some reason is unable to work with
+                       ;; `base-string' type, returned by database
+                       (coerce text 'simple-base-string)))))
+  (:documentation "Items of this class store a snapshot of the project's state
+                   at the moment when a particular version was built.")
   (:metaclass mito:dao-table-class))
 
 
@@ -276,3 +311,20 @@
     (save-dao project))
   
   (values project))
+
+
+(defun create-project-snapshort (project version)
+  (mito:create-dao 'project-version
+                   :version version
+                   :source (get-source project)
+                   :name (get-name project)
+                   :description (get-description project)
+                   :params (get-params project)
+                   :created-at (mito:object-created-at project)
+                   :updated-at (mito:object-updated-at project)))
+
+
+(defun create-projects-snapshots-for (version)
+  (check-type version version)
+  (loop for project in (get-all-projects :only-enabled t)
+        do (create-project-snapshort project version)))

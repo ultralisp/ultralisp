@@ -33,13 +33,13 @@
                             (ultralisp/variables:get-dist-name)
                             version-number)))
       (weblocks/html:with-html
-        (:h3 ("Version ~A" version-number))
+        (:h4 ("Version ~A" version-number))
         
         (when changelog
-          (:h4 "Built because:")
+          (:h5 "Changes")
           (:pre changelog))
         
-        (:h4 "To install:")
+        (:h5 "To install:")
         (:pre (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)" dist-url))
         (:p ("or if you are using the [Qlot](https://github.com/fukamachi/qlot), then add these lines into your <code>qlfile</code>:"))

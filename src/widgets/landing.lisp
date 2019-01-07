@@ -94,24 +94,26 @@
          (version-uri (format nil "/versions/~A" number)))
     (with-html
       (:tr
-       (:td :style "white-space: nowrap"
+       (:td :class "version-cell"
             (case version-type
               (:pending
                (:span "No version yet"))
               (t
                (:a :href version-uri
                    number))))
-       (:td :style "white-space: nowrap"
+       (:td :class "timestamp-cell"
             (if built-at
-                (format-date "%Y-%m-%d %H:%M:%S"
+                (format-date "%Y-%m-%d %H:%M:%S UTC"
                              (timestamp-to-universal built-at))
-                "Pending"))
-       (:td
-        (if actions
-            (:ul :class "changelog"
-                 (mapc #'render-action actions))
-            (:ul :class "changelog"
-                 (:li "No changes"))))))))
+                "Pending")))
+      (:tr 
+       (:td :class "changelog-cell"
+            :colspan 2
+            (if actions
+                (:ul :class "changelog"
+                     (mapc #'render-action actions))
+                (:ul :class "changelog"
+                     (:li "No changes"))))))))
 
 
 (defun get-projects-with-pending-checks ()
@@ -155,7 +157,7 @@
     (:a :class "button"
         :href "/github"
         :title "Add your projects from Github to Ultralisp distribution!"
-        "Select Github projects")
+        "Add projects from Github")
 
     (:h3 "Roadmap")
 
@@ -179,10 +181,13 @@
 
               (:table :class "versions-list"
                       (:tr
-                       (:th "Version")
-                       (:th "Built-at")
-                       (:th :style "width: 100%"
-                            "Changelog"))
+                       (:th :class "version-cell"
+                            "Version")
+                       (:th :class "timestamp-cell"
+                            "Built-at")
+                       ;; (:th :style "width: 100%"
+                       ;;      "Changelog")
+                       )
                       (mapc #'render-version
                             latest-versions))))
 
@@ -195,14 +200,23 @@
   (append
    (list
     (weblocks-lass:make-dependency
-      `(.changelog
-        :margin 0
-        (p :margin 0)
-        (.diff
-         :margin 0
-         (dt :margin 0
-             :margin-right 0.6em
-             :display inline-block)
-         (dd :margin 0
-             :display inline-block)))))
+      `(.versions-list
+        ((:or .version-cell .timestamp-cell)
+         :vertical-align top
+         :white-space nowrap
+         :text-align left)
+        (.timestamp-cell
+         :width 100%)
+        (.changelog-cell
+         :padding-left 1.7em
+         (.changelog
+          :margin 0
+          (p :margin 0)
+          (.diff
+           :margin 0
+           (dt :margin 0
+               :margin-right 0.6em
+               :display inline-block)
+           (dd :margin 0
+               :display inline-block)))))))
    (call-next-method)))
