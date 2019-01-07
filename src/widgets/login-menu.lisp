@@ -55,7 +55,7 @@
           '(.login-menu
             :color red
             :position absolute
-            :top 1rem
+            :top 0
             :right 0
             (.login-link
              (a :margin-right 0.5rem))))))

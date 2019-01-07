@@ -105,6 +105,10 @@
             (a
              ;; special color for links
              :color "#0071d8")
+
+            (.page-header :border-bottom 1px solid "#add8e6"
+                          :padding-bottom 0.5rem
+                          :margin-bottom 1rem)
             
             (.page-footer :color "#AAA"
                           :margin-top 3em)))
@@ -122,7 +126,10 @@
             (.latest-builds
              :display none)
             (.motto
-             :display none)))
+             :display none)
+            ((:or .page-content .page-header .page-footer)
+             :padding-left 1rem
+             :padding-right 1rem)))
         
         ;; (weblocks-parenscript:make-dependency
         ;;   (defun reach-goal (name)
