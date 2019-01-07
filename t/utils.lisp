@@ -17,7 +17,10 @@
          (mito:execute-sql "CREATE SCHEMA unittest AUTHORIZATION CURRENT_USER;")
          (mito:execute-sql "SET search_path TO unittest;")
          (mito:migrate "./db/")))
-     ,@body))
+     (unwind-protect (progn ,@body)
+       ;; We need to return search path to a original state
+       ;; to not disrupt accessing real database from the REPL
+       (mito:execute-sql "SET search_path TO public;"))))
 
 
 (defmacro with-login ((&key (email "bob@example.com"))
