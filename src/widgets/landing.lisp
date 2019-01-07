@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/landing
   (:use #:cl)
   (:import-from #:str)
+  (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/metadata)
   (:import-from #:weblocks/widget
                 #:defwidget
@@ -41,48 +42,6 @@
   (make-instance 'landing-widget))
 
 
-(defgeneric get-key-name (key)
-  (:method ((key (eql :last-seen-commit)))
-    "commit"))
-
-
-(defgeneric prepare-value (key value)
-  (:method ((key (eql :last-seen-commit)) value)
-    (when value
-      (str:prune 8 value :ellipsis "…"))))
-
-
-(defgeneric render-action (action)
-  (:method ((action t))
-    (with-html
-      (:li ("Unknown type of action ~A"
-            (type-of action)))))
-  (:method ((action ultralisp/models/action:project-added))
-    (let* ((project (ultralisp/models/action:get-project action))
-           (project-name (ultralisp/models/project:get-name project)))
-      (with-html
-        (:li ("Project ~A was added" project-name)))))
-  (:method ((action ultralisp/models/action:project-removed))
-    (let* ((project (ultralisp/models/action:get-project action))
-           (project-name (ultralisp/models/project:get-name project)))
-      (with-html
-        (:li ("Project ~A was removed" project-name)))))
-  (:method ((action ultralisp/models/action:project-updated))
-    (let* ((project (ultralisp/models/action:get-project action))
-           (project-name (ultralisp/models/project:get-name project))
-           (params (ultralisp/models/action:get-params action))
-           (diff (getf params :diff)))
-      (with-html
-        (:li (:p ("Project ~A was updated" project-name))
-             (:dl :class "diff"
-                  (loop for (key (before after)) on diff by #'cddr
-                        do (:dt (get-key-name key))
-                        when before
-                          do (:dd ("~A -> ~A" (prepare-value key before)
-                                              (prepare-value key after)))
-                        else
-                          do (:dd ("set to ~A" (prepare-value key after))))))))))
-
 
 (defun render-version (version)
   (check-type version version)
@@ -108,11 +67,7 @@
       (:tr 
        (:td :class "changelog-cell"
             :colspan 2
-            (if actions
-                (:ul :class "changelog"
-                     (mapc #'render-action actions))
-                (:ul :class "changelog"
-                     (:li "No changes"))))))))
+            (ultralisp/widgets/changelog:render actions))))))
 
 
 (defun get-projects-with-pending-checks ()

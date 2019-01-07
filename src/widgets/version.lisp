@@ -3,12 +3,15 @@
   (:import-from #:weblocks/widget
                 #:render
                 #:defwidget)
+  (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/models/version
                 #:get-version-by-number)
   (:import-from #:cl-ppcre
                 #:all-matches-as-strings)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
+  (:import-from #:ultralisp/models/action
+                #:get-version-actions)
   (:export
    #:make-version-widget))
 (in-package ultralisp/widgets/version)
@@ -26,7 +29,7 @@
     (unless version
       (page-not-found))
     
-    (let ((changelog "TODO: render changelog using actions")
+    (let ((actions (get-version-actions version))
           (dist-url (format nil
                             "~A~A/~A/distinfo.txt"
                             (ultralisp/variables:get-base-url)
@@ -35,9 +38,9 @@
       (weblocks/html:with-html
         (:h4 ("Version ~A" version-number))
         
-        (when changelog
+        (when actions
           (:h5 "Changes")
-          (:pre changelog))
+          (ultralisp/widgets/changelog:render actions))
         
         (:h5 "To install:")
         (:pre (format nil "(ql-dist:install-dist \"~A\"
@@ -46,8 +49,7 @@
         (:pre (format nil "dist ultralisp ~A
 ultralisp :all :latest"
                       dist-url))
-        (:p ("and run <code>qlot update</code> in the shell."))
-        ))))
+        (:p ("and run <code>qlot update</code> in the shell."))))))
 
 
 (defun make-version-widget ()
