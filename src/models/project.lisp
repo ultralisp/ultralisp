@@ -170,8 +170,15 @@
                            user-or-org
                            "/"
                            project))
-        (description (or (ignore-errors (%github-get-description user-or-org
-                                                                 project))
+        (description (or (ignore-errors
+                          ;; We ignore errors here, because
+                          ;; description is not very important
+                          ;; and can be updated later,
+                          ;; but we definitely want to log these
+                          ;; errors, to not miss some system problems.
+                          (log4cl-json:with-log-unhandled ()
+                            (%github-get-description user-or-org
+                                                     project)))
                          "")))
     (create-dao 'project
                 :source :github
