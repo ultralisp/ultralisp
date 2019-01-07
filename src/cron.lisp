@@ -39,7 +39,8 @@
                                    (return-from ,name nil)))))
          (with-log-unhandled ()
            (with-connection ()
-             ,@body))))))
+             ,@body)))
+       (log:debug "Cron task is done" ',name))))
 
 
 (deftask perform-checks ()

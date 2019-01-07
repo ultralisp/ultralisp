@@ -52,13 +52,3 @@ and `description'."
               do (perform-check check))))))
 
 
-(defmethod perform-project-check :around ((source t)
-                                          (project t)
-                                          (check added-project-check))
-  (let ((check (call-next-method)))
-    (unless (get-error check)
-      (ultralisp/models/action:make-project-added-action project)
-      (setf (is-enabled-p project)
-            t)
-      (mito:save-dao project))
-    (values check)))

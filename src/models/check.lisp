@@ -50,6 +50,7 @@
        (defclass ,class-name ()
          ((type :col-type (or :text :null)
                 :initarg :type
+                :initform nil
                 :reader get-type
                 :documentation "Should be one of :added-project :via-webhook :via-cron"
                 :inflate (lambda (text)
@@ -61,6 +62,7 @@
                    :reader get-project)
           (processed-at :col-type (or :timestamptz :null)
                         :initarg :processed-at
+                        :initform nil
                         :accessor get-processed-at
                         :documentation "Date and time a check was finished at.")
           (error :col-type (or :text :null)
@@ -77,7 +79,8 @@
          (print-unreadable-object (check stream :type t)
            (format stream "~A~@[ ~A~]"
                    (get-name (get-project check))
-                   (get-processed-at check))))
+                   (when (slot-boundp check 'processed-at)
+                     (get-processed-at check)))))
 
 
        (defun ,make-func-name (project)

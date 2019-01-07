@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/landing
   (:use #:cl)
+  (:import-from #:str)
   (:import-from #:ultralisp/metadata)
   (:import-from #:weblocks/widget
                 #:defwidget
@@ -8,6 +9,7 @@
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/project
+                #:is-enabled-p
                 #:get-url
                 #:get-name
                 #:get-description
@@ -39,6 +41,17 @@
   (make-instance 'landing-widget))
 
 
+(defgeneric get-key-name (key)
+  (:method ((key (eql :last-seen-commit)))
+    "commit"))
+
+
+(defgeneric prepare-value (key value)
+  (:method ((key (eql :last-seen-commit)) value)
+    (when value
+      (str:prune 8 value :ellipsis "…"))))
+
+
 (defgeneric render-action (action)
   (:method ((action t))
     (with-html
@@ -53,7 +66,22 @@
     (let* ((project (ultralisp/models/action:get-project action))
            (project-name (ultralisp/models/project:get-name project)))
       (with-html
-        (:li ("Project ~A was removed" project-name))))))
+        (:li ("Project ~A was removed" project-name)))))
+  (:method ((action ultralisp/models/action:project-updated))
+    (let* ((project (ultralisp/models/action:get-project action))
+           (project-name (ultralisp/models/project:get-name project))
+           (params (ultralisp/models/action:get-params action))
+           (diff (getf params :diff)))
+      (with-html
+        (:li (:p ("Project ~A was updated" project-name))
+             (:dl :class "diff"
+                  (loop for (key (before after)) on diff by #'cddr
+                        do (:dt (get-key-name key))
+                        when before
+                          do (:dd ("~A -> ~A" (prepare-value key before)
+                                              (prepare-value key after)))
+                        else
+                          do (:dd ("set to ~A" (prepare-value key after))))))))))
 
 
 (defun render-version (version)
@@ -87,9 +115,15 @@
 
 
 (defun get-projects-with-pending-checks ()
+  "Returns all project which were added but not checked yet."
   (let ((checks (get-pending-checks)))
-    (mapcar #'get-project checks)))
-
+    (loop for check in checks
+          for project = (get-project check)
+          ;; if project is already enabled and included in a
+          ;; previous version, we don't need to show it in
+          ;; a pending checks list.
+          unless (is-enabled-p project)
+            collect project)))
 
 (defun render-projects-table (projects)
   (with-html
@@ -162,5 +196,13 @@
    (list
     (weblocks-lass:make-dependency
       `(.changelog
-        :margin-bottom 0)))
+        :margin 0
+        (p :margin 0)
+        (.diff
+         :margin 0
+         (dt :margin 0
+             :margin-right 0.6em
+             :display inline-block)
+         (dd :margin 0
+             :display inline-block)))))
    (call-next-method)))

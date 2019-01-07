@@ -28,43 +28,21 @@
 (defmethod perform-project-check ((source (eql :github))
                                   (project project)
                                   (check t))
+  (log:info "Performing check of the github project" project)
+  
   (let* ((tmp-dir "/tmp/checker")
-         (last-seen-commit (get-last-seen-commit project))
          (downloaded (download project tmp-dir :latest t))
          (params-update (ultralisp/downloader/base:downloaded-project-params downloaded)))
+
+    (update-and-enable-project project
+                               params-update)
     
-    (let ((latest-commit (getf params-update
-                               :last-seen-commit)))
-      (when (and latest-commit
-                 (not (string-equal last-seen-commit
-                                    latest-commit)))
-        ;; Hey, project was changed at the github!
-        ;; we should celebrate this fact!
-        ;; Or just store it into the database
-        ;; 
-        ;; TODO: later - separate different stages such as downloading,
-        ;;       checking if there was update, checking if it is possible
-        ;;       to load ASD files, etc.
-        (update-and-enable-project project
-                                   :latest-commit latest-commit)
-        
-        ;; (setf (get-last-seen-commit project)
-        ;;       latest-commit)
-        ;; (save-dao project)
-        
-        ;; (if last-seen-commit
-        ;;     (setf (get-description check)
-        ;;           #?"Updated from ${last-seen-commit} to ${latest-commit} commit.")
-        ;;     (setf (get-description check)
-        ;;           #?"Added on ${latest-commit} commit."))
-        )
-      
-      (setf (get-processed-at check)
-            (local-time:now))
-      (save-dao check)
-      
-      ;; Should return a check object
-      (values check))))
+    (setf (get-processed-at check)
+          (local-time:now))
+    (save-dao check)
+    
+    ;; Should return a check object
+    (values check)))
 
 
 (defun git-clone-or-update (url dir &key commit)

@@ -26,7 +26,8 @@
   (:import-from #:ultralisp/db
                 #:with-transaction)
   (:import-from #:ultralisp/utils
-                #:make-plist-diff)
+                #:update-plist
+                #:make-update-diff)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -234,12 +235,27 @@
   (values project))
 
 
-(defun update-and-enable-project (project &rest data)
-  (cond
-    ((is-enabled-p project)
-     (uiop:symbol-call :ultralisp/models/action :make-project-updated-action project
-                                                :diff (make-plist-diff (get-params project)
-                                                                       data))))
+(defun update-and-enable-project (project data)
+  (let* ((params (get-params project))
+         (diff (make-update-diff params
+                                 data)))
+    (when diff
+      (cond
+        ((is-enabled-p project)
+         (uiop:symbol-call :ultralisp/models/action
+                           :make-project-updated-action project
+                           :diff diff))
+        (t
+         (uiop:symbol-call :ultralisp/models/action
+                           :make-project-added-action project
+                           :diff diff)
+         (setf (is-enabled-p project)
+               t)))
+      
+      (setf (get-params project)
+            (update-plist params
+                          data))
+      (save-dao project)))
   project)
 
 

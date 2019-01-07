@@ -10,14 +10,15 @@
   (:import-from #:cl-strings
                 #:split)
   (:export
-   #:make-plist-diff
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
    #:ensure-existing-file
    #:path-to-string
    #:make-request-id
-   #:parse-workers-hosts))
+   #:parse-workers-hosts
+   #:make-update-diff
+   #:update-plist))
 (in-package ultralisp/utils)
 
 
@@ -79,11 +80,27 @@
         collect (list host (parse-integer port))))
 
 
-(defun make-plist-diff (left right)
-  "Returns a new plist with items which differ in `left' and `right' plists.
+(defun make-update-diff (data update)
+  "Returns a new plist with items which differ in `update' and original `data' plist.
 
-   Each item in a result is a list of two values - first value if from the left
-   plist, second - from the right.
+   Each item in a result is a `list' of two values - first value - the data
+   plist, second - from the update.
 
-   If some item is absent in the left or right, it is considered missing and replaced with nil."
-  nil)
+   If some item is absent in the update plist, it is considered missing and replaced with nil."
+  (loop for (key update-value) on update by #'cddr
+        for data-value = (getf data key)
+        unless (equal data-value update-value)
+          append (list key
+                       (list data-value
+                             update-value))))
+
+
+(defun update-plist (data update)
+  "Updates `data' plist with items from `update' plist.
+
+   Returns a new plist."
+  (let ((result (copy-list data)))
+    (loop for (key value) on update by #'cddr
+          do (setf (getf result key)
+                   value))
+    result))
