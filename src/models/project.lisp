@@ -19,6 +19,7 @@
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:sxql
+                #:order-by
                 #:limit
                 #:where)
   (:import-from #:mito-email-auth/weblocks
@@ -50,7 +51,8 @@
    #:get-version
    #:create-projects-snapshots-for
    #:get-projects
-   #:get-project))
+   #:get-project
+   #:get-recent-projects))
 (in-package ultralisp/models/project)
 
 
@@ -193,6 +195,14 @@
       (select-dao 'project
         (where :enabled))
       (select-dao 'project)))
+
+
+(defun get-recent-projects (&key (limit 10))
+  "Returns a list of recently added projects to show them on a landing page."
+  (select-dao 'project
+    (where :enabled)
+    (order-by (:desc :created-at))
+    (limit limit)))
 
 
 (defun get-github-project (user-or-org project)

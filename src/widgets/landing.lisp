@@ -10,6 +10,7 @@
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/project
+                #:get-recent-projects
                 #:is-enabled-p
                 #:get-url
                 #:get-name
@@ -123,7 +124,7 @@
      (:li "Running tests for updated project and all dependent systems."))
 
     (let ((latest-versions (get-latest-versions))
-          (all-projects (get-all-projects :only-enabled t))
+          (recent-projects (get-recent-projects))
           (pending-projects (get-projects-with-pending-checks)))
       (when pending-projects
         (:div :class "checks"
@@ -142,9 +143,9 @@
                       (mapc #'render-version
                             latest-versions))))
 
-      (when all-projects
-        (:h3 "Projects in the dist")
-        (render-projects-table all-projects)))))
+      (when recent-projects
+        (:h3 "Recently added projects")
+        (render-projects-table recent-projects)))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))
