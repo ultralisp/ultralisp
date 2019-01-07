@@ -23,6 +23,9 @@
                 #:format-date)
   (:import-from #:local-time
                 #:timestamp-to-universal)
+  (:import-from #:ultralisp/models/check
+                #:get-project
+                #:get-pending-checks)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -83,6 +86,24 @@
                  (:li "No changes"))))))))
 
 
+(defun get-projects-with-pending-checks ()
+  (let ((checks (get-pending-checks)))
+    (mapcar #'get-project checks)))
+
+
+(defun render-projects-table (projects)
+  (with-html
+    (:table :class "projects-list"
+            (loop for project in projects
+                  for description = (get-description project)
+                  for url = (get-url project)
+                  for name = (get-name project)
+                  do (:tr
+                      (:td :style "white-space: nowrap" (:a :href url
+                                                            name))
+                      (:td description))))))
+
+
 (defmethod render ((widget landing-widget))
   (setf (get-title)
         "Ultralisp - Fast Common Lisp Repository")
@@ -112,35 +133,28 @@
      (:li "Running tests for updated project and all dependent systems."))
 
     (let ((latest-versions (get-latest-versions))
-          (all-projects (get-all-projects :only-enabled t)))
+          (all-projects (get-all-projects :only-enabled t))
+          (pending-projects (get-projects-with-pending-checks)))
+      (when pending-projects
+        (:div :class "checks"
+              (:h3 "Projects to be included in the next version")
+              (render-projects-table pending-projects)))
       (when latest-versions
-        (with-html
-          (:div :class "latest-builds"
-                (:h3 "Latest builds")
+        (:div :class "latest-builds"
+              (:h3 "Latest builds")
 
-                (:table :class "versions-list"
-                        (:tr
-                         (:th "Version")
-                         (:th "Built-at")
-                         (:th :style "width: 100%"
-                              "Changelog"))
-                        (mapc #'render-version
-                              latest-versions)))))
+              (:table :class "versions-list"
+                      (:tr
+                       (:th "Version")
+                       (:th "Built-at")
+                       (:th :style "width: 100%"
+                            "Changelog"))
+                      (mapc #'render-version
+                            latest-versions))))
 
       (when all-projects
-        (with-html
-          (:h3 "Projects in the dist")
-       
-          (:table :class "projects-list"
-                  (loop for project in all-projects
-                        for description = (get-description project)
-                        for url = (get-url project)
-                        for name = (get-name project)
-                        do (with-html
-                             (:tr
-                              (:td :style "white-space: nowrap" (:a :href url
-                                                                    name))
-                              (:td description))))))))))
+        (:h3 "Projects in the dist")
+        (render-projects-table all-projects)))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))

@@ -144,5 +144,3 @@
   (upgrade-types
    (mito:retrieve-dao 'base-check
                       :project project)))
-
-
