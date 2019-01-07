@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/version
   (:use #:cl)
+  (:import-from #:ultralisp/widgets/projects)
   (:import-from #:weblocks/widget
                 #:render
                 #:defwidget)
@@ -12,6 +13,8 @@
                 #:page-not-found)
   (:import-from #:ultralisp/models/action
                 #:get-version-actions)
+  (:import-from #:ultralisp/models/project
+                #:get-projects)
   (:export
    #:make-version-widget))
 (in-package ultralisp/widgets/version)
@@ -30,6 +33,7 @@
       (page-not-found))
     
     (let ((actions (get-version-actions version))
+          (projects (get-projects version))
           (dist-url (format nil
                             "~A~A/~A/distinfo.txt"
                             (ultralisp/variables:get-base-url)
@@ -49,7 +53,11 @@
         (:pre (format nil "dist ultralisp ~A
 ultralisp :all :latest"
                       dist-url))
-        (:p ("and run <code>qlot update</code> in the shell."))))))
+        (:p ("and run <code>qlot update</code> in the shell."))
+
+        (when projects
+          (:h5 "Projects")
+          (ultralisp/widgets/projects:render projects))))))
 
 
 (defun make-version-widget ()

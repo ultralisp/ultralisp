@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/landing
   (:use #:cl)
   (:import-from #:str)
+  (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/metadata)
   (:import-from #:weblocks/widget
@@ -82,18 +83,6 @@
           unless (is-enabled-p project)
             collect project)))
 
-(defun render-projects-table (projects)
-  (with-html
-    (:table :class "projects-list"
-            (loop for project in projects
-                  for description = (get-description project)
-                  for url = (get-url project)
-                  for name = (get-name project)
-                  do (:tr
-                      (:td :style "white-space: nowrap" (:a :href url
-                                                            name))
-                      (:td description))))))
-
 
 (defmethod render ((widget landing-widget))
   (setf (get-title)
@@ -129,7 +118,7 @@
       (when pending-projects
         (:div :class "checks"
               (:h3 "Projects to be included in the next version")
-              (render-projects-table pending-projects)))
+              (ultralisp/widgets/projects:render pending-projects)))
       (when latest-versions
         (:div :class "latest-builds"
               (:h3 "Latest builds")
@@ -145,7 +134,7 @@
 
       (when recent-projects
         (:h3 "Recently added projects")
-        (render-projects-table recent-projects)))))
+        (ultralisp/widgets/projects:render recent-projects)))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))

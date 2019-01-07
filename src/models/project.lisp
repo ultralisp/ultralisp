@@ -30,6 +30,7 @@
                 #:update-plist
                 #:make-update-diff)
   (:import-from #:ultralisp/models/version
+                #:get-number
                 #:version)
   (:export
    #:update-and-enable-project
@@ -130,9 +131,10 @@
 (defmethod print-object ((project project-version) stream)
   (print-unreadable-object (project stream :type t)
     (format stream
-            "~A version=~A name=~A"
-            (get-version project)
+            "~A~@[ version=~A~] name=~A"
             (get-source project)
+            (get-number
+             (get-version project))
             (get-name project))))
 
 
@@ -360,8 +362,10 @@
 
 (defun get-projects (version)
   (check-type version version)
-  (mito:retrieve-dao 'project-version
-                     :version version))
+  (mito:select-dao 'project-version
+    (where (:= :version version))
+    (order-by :name)))
+
 
 (defun get-project (project-version)
   "Returns original project."
