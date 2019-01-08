@@ -27,6 +27,10 @@
                 #:make-uri)
   (:import-from #:ultralisp/models/check
                 #:make-via-webhook-check)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
+  (:import-from #:ultralisp/db
+                #:with-connection)
   (:export
    #:make-webhook-route
    #:get-webhook-url))
@@ -142,12 +146,13 @@
 
 
 (defun process-payload (payload)
-  (ultralisp/db:with-connection ()
-    (log:debug "Processing payload" payload)
-    
-    (let* ((project (find-project-related-to payload)))
-      (when project
-        (make-via-webhook-check project)))))
+  (with-log-unhandled ()
+    (with-connection ()
+      (log:debug "Processing payload" payload)
+     
+      (let* ((project (find-project-related-to payload)))
+        (when project
+          (make-via-webhook-check project))))))
 
 
 (defun process-payloads-from-the-queue ()
