@@ -108,8 +108,8 @@
     (:ul
      (:li (:s "Plug in a real database to store projects' metadata and other information."))
      (:li (:s "Integration with the GitHub to add projects in one click."))
+     (:li (:s "Automatic distribution's ChangeLog generation."))
      (:li "Support for project sources other than GitHub.")
-     (:li "Automatic distribution's ChangeLog generation.")
      (:li "Running tests for updated project and all dependent systems."))
 
     (let ((latest-versions (get-latest-versions))
