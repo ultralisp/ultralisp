@@ -39,6 +39,8 @@
                 #:with-connection)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
+  (:import-from #:ultralisp/widgets/spinner
+                #:make-spinner)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -123,6 +125,8 @@
    (thread :initform nil)
    (repositories :initform nil
                  :reader get-repositories)
+   (spinner :initform (make-spinner)
+            :reader get-spinner)
    (repository-widgets :initform nil
                        :reader get-repository-widgets)))
 
@@ -139,6 +143,7 @@
    (webhook-url :initform nil
                 :initarg :webhook-url
                 :reader get-webhook-url)))
+
 
 (defmethod print-object ((obj repository) stream)
   (print-unreadable-object (obj stream :type t :identity t)
@@ -236,7 +241,8 @@
   
   (:method ((state (eql :fetching-data)) (widget repositories))
     (weblocks/html:with-html
-      (:p "Searching for Common Lisp repositories...")
+      (:p "Searching for Common Lisp repositories..."
+          (render (get-spinner widget)))
       (weblocks-ui/form:render-form-and-button
        "Refresh" 
        (lambda (&rest args)
@@ -263,7 +269,7 @@
 
   (let ((state (get-state widget)))
     (log:debug "Rendering in" state)
-  
+
     (render-with-state state
                        widget)))
 
