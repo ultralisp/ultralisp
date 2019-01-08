@@ -39,7 +39,7 @@
   (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/models/migration
                 #:migrate)
-  (:import-from #:ultralisp/webhook
+  (:import-from #:ultralisp/github/webhook
                 #:make-webhook-route)
   (:import-from #:ultralisp/analytics
                 #:render-google-counter

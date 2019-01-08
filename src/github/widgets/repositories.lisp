@@ -24,7 +24,7 @@
                 #:add-or-turn-on-github-project
                 #:get-params
                 #:get-github-projects)
-  (:import-from #:ultralisp/webhook)
+  (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
   (:import-from #:cl-arrows
@@ -200,7 +200,7 @@
         :fetching-data)
 
   (log:debug "Starting thread to retrieve repositories")
-  (let ((webhook-url (ultralisp/webhook:get-webhook-url)))
+  (let ((webhook-url (ultralisp/github/webhook:get-webhook-url)))
     (setf (slot-value widget 'thread)
           (bt:make-thread
            (lambda ()

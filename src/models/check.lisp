@@ -47,6 +47,7 @@
                                   name))))
         (check-type (make-keyword name)))
     `(progn
+       (export ',class-name)
        (defclass ,class-name ()
          ((type :col-type (or :text :null)
                 :initarg :type

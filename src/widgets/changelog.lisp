@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/changelog
   (:use #:cl)
+  (:import-from #:str)
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/action

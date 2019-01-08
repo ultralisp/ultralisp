@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/webhook
+(defpackage #:ultralisp/github/webhook
   (:use #:cl)
   
   (:import-from #:ultralisp/builder)
@@ -25,10 +25,12 @@
                 #:get-all-projects)
   (:import-from #:weblocks/response
                 #:make-uri)
+  (:import-from #:ultralisp/models/check
+                #:make-via-webhook-check)
   (:export
    #:make-webhook-route
    #:get-webhook-url))
-(in-package ultralisp/webhook)
+(in-package ultralisp/github/webhook)
 
 
 (defvar *github-webhook-path* "/webhook/github")
@@ -47,6 +49,7 @@
 
 (defvar *payloads* nil
   "We'll put here all payloads for debugging purpose.")
+
 
 (defvar *queue* (make-instance 'chanl:unbounded-channel)
   "Here we'll put payloads to process in a separate thread, to serialize processing.")
@@ -139,11 +142,12 @@
 
 
 (defun process-payload (payload)
-  (log:debug "Processing payload" payload)
-  
-  (let* ((project (find-project-related-to payload)))
-    (when project
-      (update project :upload t))))
+  (ultralisp/db:with-connection ()
+    (log:debug "Processing payload" payload)
+    
+    (let* ((project (find-project-related-to payload)))
+      (when project
+        (make-via-webhook-check project)))))
 
 
 (defun process-payloads-from-the-queue ()
@@ -161,7 +165,7 @@
      (log:debug "Creating a thread")
      (setf *processor-thread*
            (bt:make-thread 'process-payloads-from-the-queue
-                           :name "payloads processor")))
+                           :name "github payloads processor")))
     (t (log:debug "Thread for payload processing is already running"))))
 
 
@@ -180,7 +184,6 @@
               (jonathan:parse payload-as-string
                               :as :alist))))
 
-    (push body *payloads*)
     (log:debug "Sending to the queue")
     (chanl:send *queue* body :blockp nil)
     (log:debug "Payload is in the queue now")
