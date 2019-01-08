@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/landing
   (:use #:cl)
-  (:import-from #:str)
+  (:import-from #:str
+                #:concat)
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/metadata)
@@ -31,6 +32,9 @@
   (:import-from #:ultralisp/models/check
                 #:get-project
                 #:get-pending-checks)
+  (:import-from #:ultralisp/variables
+                #:get-dist-name
+                #:get-base-url)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -93,8 +97,13 @@
     (:p "Work in progress, but you already can install some packages, like quickdist or weblocks from this repository.")
     (:h3 "How to use it")
     (:p "To use it, open your Lisp REPL and eval:")
-    (:pre "(ql-dist:install-dist \"http://dist.ultralisp.org/\"
-                      :prompt nil)")
+    (:pre (let* ((base-url (get-base-url))
+                 (url (if (search "localhost" base-url)
+                          (concat base-url (get-dist-name) ".txt")
+                          base-url)))
+            (format nil "(ql-dist:install-dist \"~A\"
+                      :prompt nil)"
+                    url)))
 
     (:h3 "How to add my own project")
 
