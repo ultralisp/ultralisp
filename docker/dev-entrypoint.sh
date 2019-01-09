@@ -27,9 +27,6 @@ if [[ "$COMMAND" == "restore" ]]; then
     run_query 'DROP DATABASE IF EXISTS ultralisp'
     run_query 'CREATE DATABASE ultralisp WITH OWNER ultralisp'
     cat "$FILENAME" | psql 'host=postgres user=ultralisp password=ultralisp dbname=ultralisp'
-
-    rm -fr latest.sql
-    ln -s "$FILENAME" latest.sql
     exit 0
 fi
 
