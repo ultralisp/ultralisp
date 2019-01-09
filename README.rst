@@ -86,6 +86,7 @@ Running and creating database migrations
 
 To generate a new database migration, run::
 
+  docker-compose rm --stop --force empty-postgres
   docker-compose run --rm mito generate-migration
 
 To rollup all migration to a dev database, run::
