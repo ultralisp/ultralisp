@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
+  (:import-from #:log4cl-json)
   (:import-from #:mito
                 #:save-dao
                 #:delete-dao

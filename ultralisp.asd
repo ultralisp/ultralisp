@@ -8,6 +8,10 @@
                ;; To make inplace links work in the HTML
                "ultralisp/main"
                "ultralisp/server"
+               ;; This package depends on ultralisp/models/project and vice versa
+               ;; that is why ultralisp/models/project can't depend on moderator
+               ;; explicitly.
+               "ultralisp/models/moderator"
                "ultralisp/widgets/landing"
                "ultralisp/uploader/s3"
                "ultralisp/uploader/fake"
