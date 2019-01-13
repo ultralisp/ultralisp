@@ -3,6 +3,7 @@
   :author "Alexander Artemenko <svetlyak.40wt@gmail.com>"
   :licence "BSD"
   :class :package-inferred-system
+  :version (:read-file-form "version.lisp-expr")
   :pathname "src"
   :depends-on (:cl-interpol
                ;; To make inplace links work in the HTML

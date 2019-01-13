@@ -8,7 +8,16 @@
 
 (use-syntax :interpol)
 
-(defvar tag "40ants/ultralisp:0.1.6")
+(defun get-current-version ()
+  (uiop:read-file-form "version.lisp-expr"))
+
+
+(defvar tag #?"40ants/ultralisp:${(get-current-version)}")
+
+
+(task "version" ()
+      (format t #?"Current-version: ${(get-current-version)}~%Docker tag: ${tag}~%"))
+
 
 (task "build" ()
       (sh #?"docker build --target base -t ${tag} ."))
