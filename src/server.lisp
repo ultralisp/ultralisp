@@ -64,8 +64,12 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:ultralisp/variables
+                #:get-user-agent
+                #:get-mailgun-domain
+                #:get-mailgun-api-key
                 #:get-github-client-id
                 #:get-github-secret
+                #:get-uploader-type
                 #:get-lfarm-workers)
   (:shadow #:restart)
   (:export
@@ -259,15 +263,15 @@ arguments."
   (setf mito-email-auth/models:*send-code-callback*
         'send-login-code)
 
-  (setf mailgun:*domain* (uiop:getenv "MAILGUN_DOMAIN"))
+  (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*
     (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
   
-  (setf mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY"))
+  (setf mailgun:*api-key* (get-mailgun-api-key))
   (unless mailgun:*api-key*
     (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
 
-  (let ((uploader-type (uiop:getenv "UPLOADER_TYPE")))
+  (let ((uploader-type (get-uploader-type)))
     (when uploader-type
       (log:info "Setting uploader type to" uploader-type)
       
@@ -286,8 +290,7 @@ arguments."
   (unless ultralisp/github/core:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
   
-  (setf mailgun:*user-agent* (or (uiop:getenv "USER_AGENT")
-                                 "ultralisp (http://ultralisp.org)"))
+  (setf mailgun:*user-agent* (get-user-agent))
 
   
   (setf *cache-remote-dependencies-in*

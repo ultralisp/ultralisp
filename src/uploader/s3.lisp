@@ -9,7 +9,11 @@
   (:import-from #:ultralisp/utils
                 #:path-to-string)
   (:import-from #:ultralisp/uploader/base
-                #:make-uploader))
+                #:make-uploader)
+  (:import-from #:ultralisp/variables
+                #:get-aws-access-key-id
+                #:get-aws-secret-access-key
+                #:get-s3-bucket))
 (in-package ultralisp/uploader/s3)
 
 
@@ -21,8 +25,8 @@
 
 
 (defun make-credentials ()
-  (let ((access-key (uiop:getenv "AWS_ACCESS_KEY_ID"))
-        (secret-key (uiop:getenv "AWS_SECRET_ACCESS_KEY")))
+  (let ((access-key (get-aws-access-key-id))
+        (secret-key (get-aws-secret-access-key)))
     (unless access-key
       (error "Please, define AWS_ACCESS_KEY_ID environment variable."))
     (unless secret-key
@@ -52,5 +56,5 @@
                                           relative-path)))
                             (log:info "Uploading" relative-path)
                             (put-object item
-                                        "dist.ultralisp.org"
+                                        (get-s3-bucket)
                                         key)))))))

@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190107-181059"))
+  :version "20190119-134700"))
 ("log4cl-json" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag "v0.3.0")
@@ -16,10 +16,10 @@
 ("weblocks" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch "fixing-sbcl-build" :tag nil)
-  :version "github-9b4c30fae17ce6e8a54f2977c0dcfc6fd128140c"
+  :version "github-4f8c838b807ad795d24c0558d31de3583f67a7f6"
   :repos "40ants/weblocks"
-  :url "https://github.com/40ants/weblocks/archive/9b4c30fae17ce6e8a54f2977c0dcfc6fd128140c.tar.gz"
-  :ref "9b4c30fae17ce6e8a54f2977c0dcfc6fd128140c"))
+  :url "https://github.com/40ants/weblocks/archive/4f8c838b807ad795d24c0558d31de3583f67a7f6.tar.gz"
+  :ref "4f8c838b807ad795d24c0558d31de3583f67a7f6"))
 ("mailgun" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "mailgun" :repos "40ants/mailgun" :ref nil :branch nil :tag "v0.1.2")

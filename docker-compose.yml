@@ -30,9 +30,9 @@ services:
       DEBUG: 1
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
-      POSTGRES_PASSWORD: ultralisp
+      POSTGRES_PASS: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
-      POSTGRES_RO_PASSWORD: ultralisp_ro
+      POSTGRES_RO_PASS: ultralisp_ro
       # These tokens are from the development app and
       # we don't need to keep them in secret
       GITHUB_CLIENT_ID: 0bc769474b14267aac28

@@ -65,3 +65,26 @@
 
 (def-env-var get-github-secret
   "GITHUB_SECRET")
+
+(def-env-var get-aws-access-key-id
+  "AWS_ACCESS_KEY_ID")
+
+(def-env-var get-aws-secret-access-key
+  "AWS_SECRET_ACCESS_KEY")
+
+(def-env-var get-s3-bucket
+  "S3_BUCKET"
+  "dist.ultralisp.org")
+
+(def-env-var get-uploader-type
+  "UPLOADER_TYPE")
+
+(def-env-var get-mailgun-domain
+  "MAILGUN_DOMAIN")
+
+(def-env-var get-mailgun-api-key
+  "MAILGUN_API_KEY")
+
+(def-env-var get-user-agent
+  "USER_AGENT"
+  "Ultralisp (https://ultralisp.org)")
