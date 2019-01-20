@@ -84,10 +84,20 @@
   ((version :initarg :version
             :type version
             :reader get-version)))
-
 (defun make-save-version-command (version)
   (check-type version version)
   (make-instance 'save-version-command :version version))
+
+
+(defclass upload-command ()
+  ((dir :initarg :dir
+        :type dir
+        :reader get-dir)))
+
+
+(defun make-upload-command (dir)
+  (check-type version version)
+  (make-instance 'upload-command :dir dir))
 
 
 (defclass disable-project-command ()
@@ -129,6 +139,12 @@
          (project (ultralisp/models/project:get-project project-version)))
     (log:info "Disabling project" project reason description)
     (disable-project project)))
+
+
+(defmethod perform ((command upload-command))
+  (let* ((dir (get-dir command)))
+    (log:info "Uploading" dir)
+    (upload dir)))
 
 
 (defun build-version-remotely (version
@@ -211,8 +227,9 @@
             ;;       May be we need to minimize network traffic here and upload
             ;;       only a part of it or make a selective upload which will not
             ;;       transfer files which already on the S3.
-            (log:info "Uploading distribution")
-            (upload dist-dir)
+            (log:info "Sending back command wich will upload distribution")
+            (push (make-upload-command dist-dir)
+                  commands)
             ;; Here we don't save version object because
             ;; this function will be called on a remote worker
             ;; without "write" access to the database.
@@ -220,7 +237,6 @@
             (push (make-save-version-command version)
                   commands)
             commands))))))
-
 
 
 (defun prepare-pending-version ()
