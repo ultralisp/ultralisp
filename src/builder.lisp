@@ -91,12 +91,10 @@
 
 (defclass upload-command ()
   ((dir :initarg :dir
-        :type dir
         :reader get-dir)))
 
 
 (defun make-upload-command (dir)
-  (check-type version version)
   (make-instance 'upload-command :dir dir))
 
 
