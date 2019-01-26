@@ -1,8 +1,10 @@
 (defpackage #:ultralisp/models/user
   (:use #:cl)
+  (:import-from #:mito)
   (:import-from #:mito-email-auth/weblocks
                 #:user-with-email)
-  (:export #:user))
+  (:export #:user
+           #:get-all-users))
 (in-package ultralisp/models/user)
 
 
@@ -10,5 +12,8 @@
   ()
   (:metaclass mito:dao-table-class))
 
+
+(defun get-all-users ()
+  (mito:select-dao 'user))
 
 

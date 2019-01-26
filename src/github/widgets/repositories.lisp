@@ -41,6 +41,8 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/widgets/spinner
                 #:make-spinner)
+  (:import-from #:weblocks-ui/form
+                #:render-form-and-button)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -243,7 +245,7 @@
     (weblocks/html:with-html
       (:p "Searching for Common Lisp repositories..."
           (render (get-spinner widget)))
-      (weblocks-ui/form:render-form-and-button
+      (render-form-and-button
        "Refresh" 
        (lambda (&rest args)
          (declare (ignorable args))

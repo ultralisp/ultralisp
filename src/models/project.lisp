@@ -232,14 +232,13 @@
                  usernames)))))
 
 
-(defun add-or-turn-on-github-project (name)
+(defun add-or-turn-on-github-project (name &key (moderator (get-current-user)))
   "Creates or updates a record in database adding current user to moderators list."
   (destructuring-bind (user-or-org project-name . rest)
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((project (get-github-project user-or-org project-name))
-          (current-user (get-current-user)))
+    (let ((project (get-github-project user-or-org project-name)))
       
       (unless project
         (log:info "Adding github project to the database" project)
@@ -249,7 +248,7 @@
       (uiop:symbol-call :ultralisp/models/moderator
                         :make-moderator
                         project
-                        current-user)
+                        moderator)
       
       ;; Also, we need to trigger a check of this project
       ;; and to enabled it and to include into the next build
@@ -373,3 +372,14 @@
   (check-type project-version project-version)
   (mito:find-dao 'project
                  :name (get-name project-version)))
+
+
+(defun add-github-projects (names)
+  "Adds a number of github project into the database.
+
+   Here `names' is a list of string like \"40ants/cl-info\"."
+  (let ((moderator (first (ultralisp/models/user:get-all-users))))
+    (loop for name in names
+          for project = (add-or-turn-on-github-project name
+                                                       :moderator moderator)
+          collect project)))
