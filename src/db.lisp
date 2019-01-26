@@ -1,8 +1,7 @@
 (defpackage #:ultralisp/db
   (:use #:cl)
   (:import-from #:cl-dbi)
-  (:import-from #:mito
-                #:connect-toplevel)
+  (:import-from #:mito)
   (:import-from #:ironclad
                 #:octets-to-integer
                 #:hmac-digest
@@ -47,7 +46,16 @@
 
 (defmacro with-transaction (&body body)
   `(cl-dbi:with-transaction mito:*connection*
-     ,@body))
+     (handler-bind ((weblocks/response:immediate-response
+                      (lambda (condition)
+                        (declare (ignorable condition))
+                        ;; If transaction was interrupted because
+                        ;; of immediate response, then
+                        ;; we need to commit transaction.
+                        ;; Otherwise, cl-dbi will rollback any
+                        ;; changes made during request processing.
+                        (cl-dbi:commit mito:*connection*))))
+       ,@body)))
 
 
 (defmacro with-connection ((&rest connect-options) &body body)

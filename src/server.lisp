@@ -28,7 +28,7 @@
                 #:with-html
                 #:with-html-string)
   (:import-from #:weblocks/response
-                #:abort-processing)
+                #:immediate-response)
   (:import-from #:uiop
                 #:print-backtrace)
   (:import-from #:ultralisp/widgets/main
@@ -58,7 +58,7 @@
                 #:make-uploader
                 #:*uploader-type*)
   (:import-from #:weblocks/request-handler
-                #:handle-client-request)
+                #:handle-request)
   (:import-from #:ultralisp/db
                 #:with-connection)
   (:import-from #:defmain
@@ -216,7 +216,7 @@
                                       :stream nil)))
       (log:error "Returning 500 error to user" traceback)))
 
-  (abort-processing
+  (immediate-response
    ;; TODO: replace with weblocks/response:return-page
    (with-html-string
      (weblocks/page:render
@@ -228,7 +228,7 @@
    :content-type "text/html"))
 
 
-(defmethod handle-client-request ((app app))
+(defmethod handle-request ((app app))
   "Here we create a new connection and start new transaction on each request."
   (with-connection ()
     (call-next-method)))

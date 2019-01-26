@@ -2,8 +2,6 @@
   (:use #:cl)
   (:import-from #:weblocks-navigation-widget
                 #:defwidget)
-  (:import-from #:weblocks/response
-                #:abort-processing)
   (:import-from #:weblocks/html
                 #:with-html-string)
   

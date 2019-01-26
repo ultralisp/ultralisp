@@ -4,14 +4,18 @@ ql :all :latest
 ultralisp :all :latest
 
 #github defmain 40ants/defmain
+
 github log4cl-json 40ants/log4cl-json :tag v0.3.0
-github weblocks 40ants/weblocks :branch fixing-sbcl-build
+github weblocks 40ants/weblocks :branch request-handler-refactoring
+github weblocks-navigation-widget 40ants/weblocks-navigation-widget :branch request-handler-refactoring
+
 #github weblocks-ui 40ants/weblocks-ui :tag v0.7.1
 #github weblocks-parenscript 40ants/weblocks-parenscript :tag v0.3.0
 #github weblocks-lass 40ants/weblocks-lass :tag v0.2.0
 #github cl-yandex-metrika 40ants/cl-yandex-metrika
 
 # TODO: Move these dependencies to ultralisp in future
+
 github mailgun 40ants/mailgun :tag v0.1.2
 github mito-email-auth 40ants/mito-email-auth :tag v0.1.1
 github link-header 40ants/cl-link-header :tag v0.1.1

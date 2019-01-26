@@ -5,7 +5,10 @@
   :class :package-inferred-system
   :version (:read-file-form "version.lisp-expr")
   :pathname "src"
-  :depends-on (:cl-interpol
+  :depends-on ("cl-interpol"
+               ;; We need this while will not support package inferred systems:
+               ;; https://github.com/ultralisp/ultralisp/issues/3
+               "weblocks-ui"
                ;; To make inplace links work in the HTML
                "ultralisp/main"
                "ultralisp/server"
