@@ -30,6 +30,8 @@
   (:import-from #:ultralisp/utils
                 #:update-plist
                 #:make-update-diff)
+  (:import-from #:ultralisp/models/user
+                #:get-all-users)
   (:import-from #:ultralisp/models/version
                 #:get-number
                 #:version)
@@ -378,7 +380,7 @@
   "Adds a number of github project into the database.
 
    Here `names' is a list of string like \"40ants/cl-info\"."
-  (let ((moderator (first (ultralisp/models/user:get-all-users))))
+  (let ((moderator (first (get-all-users))))
     (loop for name in names
           for project = (add-or-turn-on-github-project name
                                                        :moderator moderator)
