@@ -15,18 +15,18 @@
   :ref "25f5f93032c95423cdacbd7205a8647f47297c41"))
 ("weblocks" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch "request-handler-refactoring" :tag nil)
-  :version "github-f17bfeb79416fce5c0aac4dba93c9e5c0c0fc917"
+  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch "reblocks" :tag nil)
+  :version "github-c9b68416192b09c105b94ffe8569fca98cf5497b"
   :repos "40ants/weblocks"
-  :url "https://github.com/40ants/weblocks/archive/f17bfeb79416fce5c0aac4dba93c9e5c0c0fc917.tar.gz"
-  :ref "f17bfeb79416fce5c0aac4dba93c9e5c0c0fc917"))
+  :url "https://github.com/40ants/weblocks/archive/c9b68416192b09c105b94ffe8569fca98cf5497b.tar.gz"
+  :ref "c9b68416192b09c105b94ffe8569fca98cf5497b"))
 ("weblocks-navigation-widget" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-navigation-widget" :repos "40ants/weblocks-navigation-widget" :ref nil :branch "request-handler-refactoring" :tag nil)
-  :version "github-89db67624f0f626bde14602dce171a025ffb7c5b"
+  :initargs (:project-name "weblocks-navigation-widget" :repos "40ants/weblocks-navigation-widget" :ref nil :branch "master" :tag nil)
+  :version "github-830b99a9ad6bacc50671fe9159129265851a60f9"
   :repos "40ants/weblocks-navigation-widget"
-  :url "https://github.com/40ants/weblocks-navigation-widget/archive/89db67624f0f626bde14602dce171a025ffb7c5b.tar.gz"
-  :ref "89db67624f0f626bde14602dce171a025ffb7c5b"))
+  :url "https://github.com/40ants/weblocks-navigation-widget/archive/830b99a9ad6bacc50671fe9159129265851a60f9.tar.gz"
+  :ref "830b99a9ad6bacc50671fe9159129265851a60f9"))
 ("mailgun" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "mailgun" :repos "40ants/mailgun" :ref nil :branch nil :tag "v0.1.2")
@@ -50,11 +50,11 @@
   :ref "8075ef219c4874e25605d24bb1038ce38006ac5d"))
 ("quickdist" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.4.0")
-  :version "github-e568ee31e2b375c78e5159ef193a801bdbc1c58b"
+  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.4.1")
+  :version "github-7ac9691119313ab5531ceeea3b5fc5ec42c3a09e"
   :repos "ultralisp/quickdist"
-  :url "https://github.com/ultralisp/quickdist/archive/e568ee31e2b375c78e5159ef193a801bdbc1c58b.tar.gz"
-  :ref "e568ee31e2b375c78e5159ef193a801bdbc1c58b"))
+  :url "https://github.com/ultralisp/quickdist/archive/7ac9691119313ab5531ceeea3b5fc5ec42c3a09e.tar.gz"
+  :ref "7ac9691119313ab5531ceeea3b5fc5ec42c3a09e"))
 ("spinneret" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "spinneret" :repos "svetlyak40wt/spinneret" :ref nil :branch "support-package-inferred-systems" :tag nil)
