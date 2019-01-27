@@ -119,7 +119,8 @@
      (:li (:s "Integration with the GitHub to add projects in one click."))
      (:li (:s "Automatic distribution's ChangeLog generation."))
      (:li "Support for project sources other than GitHub.")
-     (:li "Running tests for updated project and all dependent systems."))
+     (:li "Running tests for updated project and all dependent systems.")
+     (:li ("[Add your feature request](https://github.com/ultralisp/ultralisp/issues) at the Github.")))
 
     (let ((latest-versions (get-latest-versions))
           (recent-projects (get-recent-projects))
