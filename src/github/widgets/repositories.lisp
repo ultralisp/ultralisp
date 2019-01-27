@@ -43,6 +43,8 @@
                 #:make-spinner)
   (:import-from #:weblocks-ui/form
                 #:render-form-and-button)
+  (:import-from #:ultralisp/widgets/utils
+                #:render-switch)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -274,19 +276,6 @@
 
     (render-with-state state
                        widget)))
-
-
-(defun render-switch (state action)
-  (let* ((action-code (weblocks/actions::function-or-action->action action))
-         (on-click (format nil "initiateAction(\"~A\"); return false;"
-                           action-code)))
-    (with-html
-      (:div :class "switch tiny"
-            (:input :class "switch-input"
-                    :type "checkbox"
-                    :checked state)
-            (:label :class "switch-paddle"
-                    :onclick on-click)))))
 
 
 (defun get-hook-id (repository)

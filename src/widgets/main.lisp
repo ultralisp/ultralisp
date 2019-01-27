@@ -23,6 +23,8 @@
                 #:make-repositories-widget)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
+  (:import-from #:ultralisp/widgets/project
+                #:make-project-widget)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
 
@@ -38,6 +40,8 @@
    (make-repositories-widget))
   ("/versions/\\d+"
    (make-version-widget))
+  ("/projects/.*"
+   (make-project-widget))
   (t
    (page-not-found)))
 

@@ -3,8 +3,9 @@
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/project
-                #:get-name
                 #:get-url
+                #:get-name
+                #:get-github-url
                 #:get-description)
   (:export
    #:render))

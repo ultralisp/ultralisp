@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:log4cl-json)
   (:import-from #:mito
+                #:includes
                 #:save-dao
                 #:delete-dao
                 #:select-dao
@@ -41,6 +42,7 @@
    #:get-all-projects
    #:get-description
    #:get-url
+   #:get-github-url
    #:get-name
    #:project
    #:get-source
@@ -56,7 +58,8 @@
    #:create-projects-snapshots-for
    #:get-projects
    #:get-project
-   #:get-recent-projects))
+   #:get-recent-projects
+   #:get-versions))
 (in-package ultralisp/models/project)
 
 
@@ -142,6 +145,12 @@
 
 
 (defun get-url (project)
+  (let* ((name (get-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
+(defun get-github-url (project)
   (let* ((params (get-params project))
          (user-name (getf params :user-or-org))
          (project-name (getf params :project)))
@@ -295,10 +304,16 @@
   (check-type project project)
 
   (log:info "Enabling project" project)
+
+  (uiop:symbol-call :ultralisp/models/action
+                    :make-project-added-action
+                    project
+                    :diff nil)
   
   (setf (is-enabled-p project)
         t)
   (save-dao project)
+  
   (values project))
 
 
@@ -346,14 +361,14 @@
 
 
 (defun create-project-snapshort (project version)
-  (mito:create-dao 'project-version
-                   :version version
-                   :source (get-source project)
-                   :name (get-name project)
-                   :description (get-description project)
-                   :params (get-params project)
-                   :created-at (mito:object-created-at project)
-                   :updated-at (mito:object-updated-at project)))
+  (create-dao 'project-version
+              :version version
+              :source (get-source project)
+              :name (get-name project)
+              :description (get-description project)
+              :params (get-params project)
+              :created-at (mito:object-created-at project)
+              :updated-at (mito:object-updated-at project)))
 
 
 (defun create-projects-snapshots-for (version)
@@ -364,9 +379,18 @@
 
 (defun get-projects (version)
   (check-type version version)
-  (mito:select-dao 'project-version
+  (select-dao 'project-version
     (where (:= :version version))
     (order-by :name)))
+
+
+(defun get-versions (project)
+  (check-type project project)
+  (mapcar #'get-version
+          (select-dao 'project-version
+            (includes 'version)
+            (where (:= :name (get-name project)))
+            (order-by (:desc :version-id)))))
 
 
 (defun get-project (project-version)

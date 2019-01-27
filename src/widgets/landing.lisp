@@ -14,7 +14,6 @@
   (:import-from #:ultralisp/models/project
                 #:get-recent-projects
                 #:is-enabled-p
-                #:get-url
                 #:get-name
                 #:get-description
                 #:get-all-projects)
@@ -56,6 +55,7 @@
          (built-at (get-built-at version))
          (version-type (ultralisp/models/version:get-type version))
          (actions (ultralisp/models/action:get-version-actions version))
+         ;; TODO: create a generic get-uri and define it for a version class
          (version-uri (format nil "/versions/~A" number)))
     (with-html
       (:tr

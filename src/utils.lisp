@@ -9,6 +9,10 @@
                 #:make-v4-uuid)
   (:import-from #:cl-strings
                 #:split)
+  (:import-from #:local-time
+                #:timestamp-to-universal)
+  (:import-from #:metatilities
+                #:format-date)
   (:export
    #:getenv
    #:directory-mtime
@@ -18,7 +22,8 @@
    #:make-request-id
    #:parse-workers-hosts
    #:make-update-diff
-   #:update-plist))
+   #:update-plist
+   #:format-timestamp))
 (in-package ultralisp/utils)
 
 
@@ -104,3 +109,9 @@
           do (setf (getf result key)
                    value))
     result))
+
+
+(defun format-timestamp (timestamp)
+  (check-type timestamp local-time:timestamp)
+  (format-date "%Y-%m-%d %H:%M:%S UTC"
+               (timestamp-to-universal timestamp)))

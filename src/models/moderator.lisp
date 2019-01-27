@@ -6,7 +6,8 @@
                 #:project)
   (:import-from #:mito
                 #:dao-table-class)
-  (:export #:moderator))
+  (:export #:moderator
+           #:is-moderator-p))
 (in-package ultralisp/models/moderator)
 
 
@@ -26,3 +27,15 @@
   (mito:create-dao 'moderator
                    :project project
                    :user user))
+
+
+(defun is-moderator-p (project user)
+  "Returns `t' if user is project's moderator."
+  (check-type project project)
+  (check-type user (or null user))
+  
+  (when (and user
+             (mito:find-dao 'moderator
+                            :project project
+                            :user user))
+    t))
