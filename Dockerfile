@@ -3,6 +3,7 @@ FROM 40ants/base-lisp-image:0.6.0-sbcl-bin as base
 EXPOSE 80
 EXPOSE 4005
 
+ENV CC=gcc
 COPY qlfile qlfile.lock app-deps.asd /app/
 RUN install-dependencies
 
