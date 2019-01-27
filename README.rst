@@ -72,6 +72,11 @@ arguments::
 
   docker-compose up --build --abort-on-container-exit app
 
+Most such commands are defined in the ``Lakefile``. Use `lake`_ to run
+it like that::
+
+  lake devserver
+
 Then you can connect to the web sever and worker using SLY. Just run in
 the Emacs a command ``sly-connect``, choose "127.0.0.1" as  a hostname
 and ``14005`` as a port for webserver or ``14006`` as  a port to connect
@@ -194,3 +199,6 @@ To serve files via Cloudflare, turn on "Static website hosting" of the
 bucket at AWS. Set the "index document" as a "ultralisp.txt".
 
 After that, your quicklisp distribution will be available as http://dist.ultralisp.org.s3-website-eu-west-1.amazonaws.com
+
+
+.. _lake: https://github.com/takagi/lake
