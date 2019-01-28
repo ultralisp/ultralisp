@@ -70,16 +70,12 @@
                           (lambda (&rest args)
                             (declare (ignorable args))
                             (toggle widget project))
-                          :disabled (is-moderator-p project
-                                                    (get-current-user))))
+                          :disabled (not
+                                     (is-moderator-p project
+                                                     (get-current-user)))))
       
       (ultralisp/widgets/changelog:render changelog
-                                          :timestamps t)
-      ;; (:ul :class "actions"
-      ;;      (loop for action in actions
-      ;;            do (render-action action)
-      ;;            ))
-      )))
+                                          :timestamps t))))
 
 
 (defmethod render ((widget project))
