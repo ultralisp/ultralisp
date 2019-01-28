@@ -225,7 +225,7 @@
             ;;       May be we need to minimize network traffic here and upload
             ;;       only a part of it or make a selective upload which will not
             ;;       transfer files which already on the S3.
-            (log:info "Sending back command wich will upload distribution")
+            (log:info "Sending back command which will upload distribution")
             (push (make-upload-command dist-dir)
                   commands)
             ;; Here we don't save version object because
