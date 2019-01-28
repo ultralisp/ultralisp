@@ -341,7 +341,7 @@
   project)
 
 
-(defun disable-project (project)
+(defun disable-project (project &key reason traceback) 
   "Disables project."
   (check-type project project)
   
@@ -351,7 +351,9 @@
     ;; Also, we need to create a new action, related to this project
     (uiop:symbol-call :ultralisp/models/action
                       :make-project-removed-action
-                      project)
+                      project
+                      :reason reason
+                      :traceback traceback)
     (setf (is-enabled-p project)
           nil)
 

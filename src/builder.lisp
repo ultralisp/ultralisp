@@ -135,8 +135,10 @@
          (reason (get-reason command))
          (description (get-description command))
          (project (ultralisp/models/project:get-project project-version)))
-    (log:info "Disabling project" project reason description)
-    (disable-project project)))
+    (log:error "Disabling project" project reason description)
+    (disable-project project
+                     :reason reason
+                     :traceback description)))
 
 
 (defmethod perform ((command upload-command))

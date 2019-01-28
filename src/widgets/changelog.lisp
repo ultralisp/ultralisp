@@ -76,12 +76,20 @@
   (:method ((action project-removed) &key timestamp)
     (let* ((project (get-project action))
            (name (get-name project))
-           (url (get-url project)))
+           (url (get-url project))
+           (params (get-params action))
+           (reason (getf params :reason))
+           (traceback (getf params :traceback)))
       (with-html
-        (:li ("~@[~A - ~]Project [~A](~A) was removed"
+        (:li ("~@[~A - ~]Project [~A](~A) was removed.~@[ Reason is: ~S.~]"
               (when timestamp
                 (format-timestamp (object-updated-at action)))
-              url name)))))
+              url name
+              reason)
+             ;; TODO: make a button to open tracebac
+             ;; (when traceback
+             ;;   (:pre traceback))
+             ))))
   
   (:method ((action project-updated) &key timestamp)
     (let* ((project (get-project action))
