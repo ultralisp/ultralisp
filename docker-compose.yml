@@ -1,0 +1,136 @@
+version: '3.7'
+services:
+  app:
+    container_name: ultralisp_app
+    build:
+      context: .
+      target: base
+    restart: always
+    # Probably, these aren't needed
+    # stdin_open: true
+    # tty: true
+    ports:
+      - "127.0.0.1:8080:80"
+      - "127.0.0.1:14005:4005"
+    volumes:
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+      - ./src/:/app/src/
+      - ./t/:/app/t/
+      - ./db/:/app/db/
+      - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
+      - ./build/:/app/build/
+    depends_on:
+      - postgres
+      - worker
+    environment:
+      DEBUG: 1
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASS: ultralisp
+      POSTGRES_RO_USER: ultralisp_ro
+      POSTGRES_RO_PASS: ultralisp_ro
+      # These tokens are from the development app and
+      # we don't need to keep them in secret
+      GITHUB_CLIENT_ID: 0bc769474b14267aac28
+      GITHUB_SECRET: 3f46156c6bd57f4c233db9449ed556b6e545315a
+      LFARM_WORKERS: worker:10100
+      BASE_URL: http://localhost:8080/dist/
+
+  worker:
+    container_name: ultralisp_worker
+    build:
+      context: .
+      target: base
+    restart: always
+    ports:
+      - "127.0.0.1:14006:4005"
+    volumes:
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
+      - ./build/:/app/build/
+    depends_on:
+      - postgres
+    environment:
+      DEBUG: 1
+      MODE: worker
+
+  postgres:
+    container_name: ultralisp_db
+    image: "postgres:10"
+    restart: always
+    environment:
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASSWORD: ultralisp
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./postgresql-data:/var/lib/postgresql/data
+      - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
+
+  empty-postgres:
+    container_name: ultralisp_empty_db
+    image: "postgres:10"
+    restart: always
+    environment:
+      POSTGRES_USER: ultralisp
+      POSTGRES_PASSWORD: ultralisp
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
+
+  # Commands
+  gen-deps-system:
+    build: .
+    volumes:
+      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+
+    command: |
+      bash -c " \
+      ros install 40ants/gen-deps-system && \
+      qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)' && \
+      qlot exec /root/.roswell/bin/gen-deps-system --except ultralisp app \ 
+      "
+
+  mito:
+    build:
+      context: .
+      target: mito
+
+    volumes:
+      - ./docker/mito.sh:/app/docker/mito.sh
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./src/:/app/src/
+      - ./db/:/app/db/
+      - ./roswell/:/app/roswell/
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+
+    depends_on:
+      - postgres
+      - empty-postgres
+
+  db-ops:
+    build:
+      context: .
+      target: db-ops
+
+    volumes:
+      - ./db/:/db/
+      - ./docker/dev-entrypoint.sh:/entrypoint.sh
+
+    depends_on:
+      - postgres

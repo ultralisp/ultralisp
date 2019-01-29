@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.2.0 (2019-01-29)
+==================
+
+* Now tracked projects are stored in a postgresql database.
+* They can be added in few clicks from the GitHub.
+* Users can login using their emails only.
+* And many other changes.
+
 0.1.7
 =====
 

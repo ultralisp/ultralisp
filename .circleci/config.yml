@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  sbcl:
+    docker:
+      - image: 40ants/base-lisp-image:0.6.0-sbcl-bin
+      - image: postgres:10
+        environment:
+          POSTGRES_USER: ultralisp
+          POSTGRES_PASSWORD: ultralisp
+
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            install-dependencies
+            ros install rove
+      - run:
+          name: Check environment
+          command: |
+            env | grep -v -i token | sort
+            echo 'Current dir:'
+            pwd
+            ls -lh
+      - run:
+          name: Run tests
+          # rove as a separate command goes into a infinite loop for some reason
+          # that is why here it is commented and start via ros run instead
+          # command: qlot exec rove ultralisp-test.asd
+          command: |
+            CC=gcc \
+            qlot exec ros run \
+               --eval '(ql:quickload :ultralisp-test :silent t)' \
+               --eval '(log:config :sane2 :warn)' \
+               --eval '(let ((result (rove:run :ultralisp-test)))
+                         (uiop:quit (if result 0 1))))'
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - sbcl

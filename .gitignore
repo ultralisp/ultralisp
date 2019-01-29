@@ -6,3 +6,6 @@
 /build/
 /roswell/ultralisp
 /postgresql-data/
+/worker
+/logs/
+/db/dumps/

@@ -1,81 +1,22 @@
 ("quicklisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2018-08-31"))
-("defmain" .
+  :version "2019-01-07"))
+("ultralisp" .
+ (:class qlot.source.ql:source-ql-all
+  :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
+  :version "20190129062141"))
+("spinneret" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "defmain" :repos "40ants/defmain" :ref nil :branch nil :tag nil)
-  :version "github-55ee849c075ec92e3371760c614b1b3c070d9dd1"
-  :repos "40ants/defmain"
-  :url "https://github.com/40ants/defmain/archive/55ee849c075ec92e3371760c614b1b3c070d9dd1.tar.gz"
-  :ref "55ee849c075ec92e3371760c614b1b3c070d9dd1"))
-("log4cl-json" .
+  :initargs (:project-name "spinneret" :repos "svetlyak40wt/spinneret" :ref nil :branch "support-package-inferred-systems" :tag nil)
+  :version "github-abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"
+  :repos "svetlyak40wt/spinneret"
+  :url "https://github.com/svetlyak40wt/spinneret/archive/abdefe8d1c2b36cd2ad02e4136b6052c95074d1e.tar.gz"
+  :ref "abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"))
+("websocket-driver" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag nil)
-  :version "github-c4f786e252d89a45372186aaf32fb8e8736b444b"
-  :repos "40ants/log4cl-json"
-  :url "https://github.com/40ants/log4cl-json/archive/c4f786e252d89a45372186aaf32fb8e8736b444b.tar.gz"
-  :ref "c4f786e252d89a45372186aaf32fb8e8736b444b"))
-("weblocks" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch nil :tag "v0.32.1")
-  :version "github-6af7aa42de260d52079c1cea027ce29f88d8148c"
-  :repos "40ants/weblocks"
-  :url "https://github.com/40ants/weblocks/archive/6af7aa42de260d52079c1cea027ce29f88d8148c.tar.gz"
-  :ref "6af7aa42de260d52079c1cea027ce29f88d8148c"))
-("weblocks-ui" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-ui" :repos "40ants/weblocks-ui" :ref nil :branch nil :tag "v0.7.1")
-  :version "github-4c91fbf72e4a0fb97b0506313d8fc4ed0def2523"
-  :repos "40ants/weblocks-ui"
-  :url "https://github.com/40ants/weblocks-ui/archive/4c91fbf72e4a0fb97b0506313d8fc4ed0def2523.tar.gz"
-  :ref "4c91fbf72e4a0fb97b0506313d8fc4ed0def2523"))
-("weblocks-parenscript" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-parenscript" :repos "40ants/weblocks-parenscript" :ref nil :branch nil :tag "v0.3.0")
-  :version "github-8ef4ca2f837403a05c4e9b92dcf1c41771d16f17"
-  :repos "40ants/weblocks-parenscript"
-  :url "https://github.com/40ants/weblocks-parenscript/archive/8ef4ca2f837403a05c4e9b92dcf1c41771d16f17.tar.gz"
-  :ref "8ef4ca2f837403a05c4e9b92dcf1c41771d16f17"))
-("weblocks-lass" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-lass" :repos "40ants/weblocks-lass" :ref nil :branch nil :tag "v0.2.0")
-  :version "github-1b043afbf2f3e84e495dfeae5e63fe67a435019f"
-  :repos "40ants/weblocks-lass"
-  :url "https://github.com/40ants/weblocks-lass/archive/1b043afbf2f3e84e495dfeae5e63fe67a435019f.tar.gz"
-  :ref "1b043afbf2f3e84e495dfeae5e63fe67a435019f"))
-("cl-yandex-metrika" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "cl-yandex-metrika" :repos "40ants/cl-yandex-metrika" :ref nil :branch nil :tag nil)
-  :version "github-ad1a031a080b9f864abe6ec0c51ba274a468c17c"
-  :repos "40ants/cl-yandex-metrika"
-  :url "https://github.com/40ants/cl-yandex-metrika/archive/ad1a031a080b9f864abe6ec0c51ba274a468c17c.tar.gz"
-  :ref "ad1a031a080b9f864abe6ec0c51ba274a468c17c"))
-("quickdist" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.2.0")
-  :version "github-7802cde75f9f92edc96db7b271c2c3622a4b76d8"
-  :repos "ultralisp/quickdist"
-  :url "https://github.com/ultralisp/quickdist/archive/7802cde75f9f92edc96db7b271c2c3622a4b76d8.tar.gz"
-  :ref "7802cde75f9f92edc96db7b271c2c3622a4b76d8"))
-("slynk" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "slynk" :repos "joaotavora/sly" :ref nil :branch nil :tag nil)
-  :version "github-25255c1756ac4b78d60db9a6bb979ccb2c5cdf29"
-  :repos "joaotavora/sly"
-  :url "https://github.com/joaotavora/sly/archive/25255c1756ac4b78d60db9a6bb979ccb2c5cdf29.tar.gz"
-  :ref "25255c1756ac4b78d60db9a6bb979ccb2c5cdf29"))
-("slynk-named-readtables" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
-  :version "github-df4ed79064cf85275804e201899b677bef4ab3f5"
-  :repos "joaotavora/sly-named-readtables"
-  :url "https://github.com/joaotavora/sly-named-readtables/archive/df4ed79064cf85275804e201899b677bef4ab3f5.tar.gz"
-  :ref "df4ed79064cf85275804e201899b677bef4ab3f5"))
-("log4cl" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "log4cl" :repos "40ants/log4cl" :ref nil :branch "support-sly" :tag nil)
-  :version "github-adbf9ddefd11e4e05971e787cac547d25856db9e"
-  :repos "40ants/log4cl"
-  :url "https://github.com/40ants/log4cl/archive/adbf9ddefd11e4e05971e787cac547d25856db9e.tar.gz"
-  :ref "adbf9ddefd11e4e05971e787cac547d25856db9e"))
+  :initargs (:project-name "websocket-driver" :repos "svetlyak40wt/websocket-driver" :ref nil :branch "make-woo-work-from-separate-threads" :tag nil)
+  :version "github-559889e39857dac9de2d225830064a6af10be9d5"
+  :repos "svetlyak40wt/websocket-driver"
+  :url "https://github.com/svetlyak40wt/websocket-driver/archive/559889e39857dac9de2d225830064a6af10be9d5.tar.gz"
+  :ref "559889e39857dac9de2d225830064a6af10be9d5"))

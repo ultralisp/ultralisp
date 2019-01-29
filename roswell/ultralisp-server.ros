@@ -3,7 +3,9 @@
 #|
 exec ros -Q -- $0 "$@"
 |#
-(declaim (optimize (debug 3) (safety 3) (speed 1)))
+(declaim (optimize (debug 3)
+                   (safety 3)
+                   (speed 1)))
 
 (progn ;;init forms
   (ros:ensure-asdf)
@@ -19,11 +21,6 @@ exec ros -Q -- $0 "$@"
   (:import-from #:ultralisp/server
                 #:main))
 (in-package :ros.script.ultralisp-server)
-
-
-;; To make it possible to connect to a remote SLYNK server where ports are closed
-;; with firewall.
-(defvar slynk:*use-dedicated-output-stream* nil)
 
 
 

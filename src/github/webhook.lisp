@@ -1,9 +1,9 @@
-(defpackage #:ultralisp/webhook
+(defpackage #:ultralisp/github/webhook
   (:use #:cl)
   
   (:import-from #:ultralisp/builder)
   (:import-from #:chanl)
-  (:import-from #:ultralisp/uploader)
+  (:import-from #:ultralisp/uploader/base)
   (:import-from #:weblocks/routes
                 #:serve
                 #:add-route
@@ -18,21 +18,33 @@
   (:import-from #:ultralisp/metadata
                 #:get-urn
                 #:read-metadata)
-  (:import-from #:ultralisp/downloader
-                #:update-metadata-repository)
   (:import-from #:cl-strings
                 #:split)
+  (:import-from #:ultralisp/models/project
+                #:get-github-project
+                #:get-all-projects)
+  (:import-from #:weblocks/response
+                #:make-uri)
+  (:import-from #:ultralisp/models/check
+                #:make-via-webhook-check)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
+  (:import-from #:ultralisp/db
+                #:with-connection)
   (:export
-   #:make-webhook-route))
-(in-package ultralisp/webhook)
+   #:make-webhook-route
+   #:get-webhook-url))
+(in-package ultralisp/github/webhook)
 
+
+(defvar *github-webhook-path* "/webhook/github")
 
 
 (defclass webhook-route (route)
   ())
 
 
-(defun make-webhook-route (&optional (uri "/webhook/github"))
+(defun make-webhook-route (&optional (uri *github-webhook-path*))
   (log:info "Making a route for a webhook")
   (let ((route (make-instance 'webhook-route
                               :template (parse-template uri))))
@@ -42,6 +54,7 @@
 (defvar *payloads* nil
   "We'll put here all payloads for debugging purpose.")
 
+
 (defvar *queue* (make-instance 'chanl:unbounded-channel)
   "Here we'll put payloads to process in a separate thread, to serialize processing.")
 
@@ -50,10 +63,17 @@
   "A link to a thread where all processing will be done.")
 
 
+(defun get-user-or-org-from (github-payload)
+  (-> github-payload
+      (assoc-value "repository" :test 'string-equal)
+      (assoc-value "owner" :test 'string-equal)
+      (assoc-value "name" :test 'string-equal)))
+
+
 (defun get-project-name-from (github-payload)
   (-> github-payload
       (assoc-value "repository" :test 'string-equal)
-      (assoc-value "full_name" :test 'string-equal)))
+      (assoc-value "name" :test 'string-equal)))
 
 
 (defun get-main-branch-from (github-payload)
@@ -71,7 +91,7 @@
 
 (defun find-project-related-to (payload)
   "Searches a projects metadata among all projects, known to Ultralisp.
-   Returns a metadata object or nil."
+   Returns a `project' object or nil."
   (let ((current-branch (get-branch-from payload))
         (main-branch (get-main-branch-from payload)))
     (cond
@@ -79,16 +99,9 @@
             (string-equal current-branch
                           main-branch))
 
-       ;; Now we will search the project from the payload
-       ;; among all known projects
-       (update-metadata-repository "projects")
-     
-       (let* ((project-name (get-project-name-from payload))
-              (all-metadata (read-metadata "projects/projects.txt")))
-         (loop for item in all-metadata
-               when (string-equal (get-urn item)
-                                  project-name)
-                 do (return item))))
+       (let* ((user-or-org (get-user-or-org-from payload))
+              (project-name (get-project-name-from payload)))
+         (get-github-project user-or-org project-name)))
       
       (t (if current-branch
              (log:warn "Current branch does not match to main"
@@ -98,31 +111,48 @@
          (values)))))
 
 
-(defun update (metadata)
+(defun update (project &key (upload nil))
   (let ((projects-dir "build/sources/")
-        (dist-dir "build/dist/")
-        (projects-metadata-path "projects/projects.txt"))
+        (dist-dir "build/dist/"))
     (ultralisp/builder:build
-     :projects-metadata-path (if (probe-file projects-dir)
-                                 ;; If directory with projects already exists
-                                 ;; then we will update just a project
-                                 ;; mentioned in the payload
-                                 metadata
-                                 ;; otherwize, will download all known projects
-                                 projects-metadata-path)
+     :projects (if (probe-file projects-dir)
+                   ;; If directory with projects already exists
+                   ;; then we will update just a project
+                   ;; mentioned in the payload
+                   project
+                   ;; otherwize, will download all known projects
+                   :all)
      :projects-dir projects-dir
      :dist-dir dist-dir)
 
     ;; Now we'll upload a dist to the server
-    (ultralisp/uploader:upload :dir dist-dir)))
+    (when upload
+      (ultralisp/uploader/base:upload dist-dir))))
+
+
+(defun update-all (&key (build t)
+                     (upload nil))
+  "This function is useful to call manually after some pull-request was merged to add new projects."
+  ;; (ultralisp/webhook::update "projects/projects.txt")
+  (let ((projects-dir "build/sources/")
+        (dist-dir "build/dist/"))
+    (when build
+      (ultralisp/builder:build
+       :projects-dir projects-dir
+       :dist-dir dist-dir))
+    
+    (when upload
+      (ultralisp/uploader/base:upload dist-dir))))
 
 
 (defun process-payload (payload)
-  (log:debug "Processing payload" payload)
-  
-  (let* ((project (find-project-related-to payload)))
-    (when project
-      (update project))))
+  (with-log-unhandled ()
+    (with-connection ()
+      (log:debug "Processing payload" payload)
+     
+      (let* ((project (find-project-related-to payload)))
+        (when project
+          (make-via-webhook-check project))))))
 
 
 (defun process-payloads-from-the-queue ()
@@ -140,7 +170,7 @@
      (log:debug "Creating a thread")
      (setf *processor-thread*
            (bt:make-thread 'process-payloads-from-the-queue
-                           :name "payloads processor")))
+                           :name "github payloads processor")))
     (t (log:debug "Thread for payload processing is already running"))))
 
 
@@ -159,7 +189,6 @@
               (jonathan:parse payload-as-string
                               :as :alist))))
 
-    (push body *payloads*)
     (log:debug "Sending to the queue")
     (chanl:send *queue* body :blockp nil)
     (log:debug "Payload is in the queue now")
@@ -174,11 +203,6 @@
           (list "OK"))))
 
 
-;; Probably this could be removed because make-webhook-route is called from the app initialization code
-;; (weblocks/hooks:on-application-hook-start-weblocks
-;;   enable-webhook ()
-  
-;;   (weblocks/hooks:call-next-hook)
-;;   (make-webhook-route))
-
-
+(defun get-webhook-url ()
+  "Returns a full path to a webhook, which can be used in GitHub's settings."
+  (make-uri *github-webhook-path*))
