@@ -2,6 +2,10 @@
   (:use #:cl)
   (:import-from #:cl-cron)
   (:import-from #:log4cl)
+  (:import-from #:ultralisp/models/project
+                #:get-all-projects)
+  (:import-from #:ultralisp/models/check
+                #:make-via-cron-check)
   (:import-from #:ultralisp/utils
                 #:make-request-id)
   (:import-from #:log4cl-json
@@ -28,8 +32,8 @@
   "Defines a cron task function with following properties:
 
    * Each call has it's own unique id in log messages.
-   * Unhandles exceptions will be logged along with their tracebacks.
-   * A new database connection and trasaction will be started."
+   * Unhandled exceptions will be logged along with their tracebacks.
+   * A new database connection and trasaction will be started for each execution."
   
   (let ((body (if need-connection
                   `(with-connection ()
@@ -62,6 +66,11 @@
     (build-prepared-versions)))
 
 
+(deftask create-cron-checks ()
+  (mapc #'make-via-cron-check
+        (get-all-projects :only-enabled t)))
+
+
 (defun list-cron-jobs ()
   (loop for key being the hash-key of cl-cron::*cron-jobs-hash*
         collect key))
@@ -81,7 +90,12 @@
   ;; Run every 5 minutes
   (cl-cron:make-cron-job 'build-version
                          :hash-key 'build-version
-                         :step-min 5))
+                         :step-min 5)
+  
+  ;; Every 24 hour we'll recheck all projects by cron
+  (cl-cron:make-cron-job 'create-cron-checks
+                         :hash-key 'create-cron-checks
+                         :step-hour 24))
 
 
 (defun start ()
