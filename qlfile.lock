@@ -5,56 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190121-175815"))
-("log4cl-json" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "log4cl-json" :repos "40ants/log4cl-json" :ref nil :branch nil :tag "v0.3.0")
-  :version "github-25f5f93032c95423cdacbd7205a8647f47297c41"
-  :repos "40ants/log4cl-json"
-  :url "https://github.com/40ants/log4cl-json/archive/25f5f93032c95423cdacbd7205a8647f47297c41.tar.gz"
-  :ref "25f5f93032c95423cdacbd7205a8647f47297c41"))
-("weblocks" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks" :repos "40ants/weblocks" :ref nil :branch "reblocks" :tag nil)
-  :version "github-c9b68416192b09c105b94ffe8569fca98cf5497b"
-  :repos "40ants/weblocks"
-  :url "https://github.com/40ants/weblocks/archive/c9b68416192b09c105b94ffe8569fca98cf5497b.tar.gz"
-  :ref "c9b68416192b09c105b94ffe8569fca98cf5497b"))
-("weblocks-navigation-widget" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-navigation-widget" :repos "40ants/weblocks-navigation-widget" :ref nil :branch "master" :tag nil)
-  :version "github-830b99a9ad6bacc50671fe9159129265851a60f9"
-  :repos "40ants/weblocks-navigation-widget"
-  :url "https://github.com/40ants/weblocks-navigation-widget/archive/830b99a9ad6bacc50671fe9159129265851a60f9.tar.gz"
-  :ref "830b99a9ad6bacc50671fe9159129265851a60f9"))
-("mailgun" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "mailgun" :repos "40ants/mailgun" :ref nil :branch nil :tag "v0.1.2")
-  :version "github-444b67169d59096a90e00bfe4cb3bd7453723f96"
-  :repos "40ants/mailgun"
-  :url "https://github.com/40ants/mailgun/archive/444b67169d59096a90e00bfe4cb3bd7453723f96.tar.gz"
-  :ref "444b67169d59096a90e00bfe4cb3bd7453723f96"))
-("mito-email-auth" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "mito-email-auth" :repos "40ants/mito-email-auth" :ref nil :branch nil :tag "v0.1.1")
-  :version "github-38dd2f04e252fe2050058e0749799f3159416df2"
-  :repos "40ants/mito-email-auth"
-  :url "https://github.com/40ants/mito-email-auth/archive/38dd2f04e252fe2050058e0749799f3159416df2.tar.gz"
-  :ref "38dd2f04e252fe2050058e0749799f3159416df2"))
-("link-header" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "link-header" :repos "40ants/cl-link-header" :ref nil :branch nil :tag "v0.1.1")
-  :version "github-8075ef219c4874e25605d24bb1038ce38006ac5d"
-  :repos "40ants/cl-link-header"
-  :url "https://github.com/40ants/cl-link-header/archive/8075ef219c4874e25605d24bb1038ce38006ac5d.tar.gz"
-  :ref "8075ef219c4874e25605d24bb1038ce38006ac5d"))
-("quickdist" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.4.1")
-  :version "github-7ac9691119313ab5531ceeea3b5fc5ec42c3a09e"
-  :repos "ultralisp/quickdist"
-  :url "https://github.com/ultralisp/quickdist/archive/7ac9691119313ab5531ceeea3b5fc5ec42c3a09e.tar.gz"
-  :ref "7ac9691119313ab5531ceeea3b5fc5ec42c3a09e"))
+  :version "20190129062141"))
 ("spinneret" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "spinneret" :repos "svetlyak40wt/spinneret" :ref nil :branch "support-package-inferred-systems" :tag nil)
@@ -69,10 +20,3 @@
   :repos "svetlyak40wt/websocket-driver"
   :url "https://github.com/svetlyak40wt/websocket-driver/archive/559889e39857dac9de2d225830064a6af10be9d5.tar.gz"
   :ref "559889e39857dac9de2d225830064a6af10be9d5"))
-("weblocks-file-server" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "weblocks-file-server" :repos "40ants/weblocks-file-server" :ref nil :branch nil :tag nil)
-  :version "github-47d1974b1c71e45888049d9f09a8bcc10f0d24d3"
-  :repos "40ants/weblocks-file-server"
-  :url "https://github.com/40ants/weblocks-file-server/archive/47d1974b1c71e45888049d9f09a8bcc10f0d24d3.tar.gz"
-  :ref "47d1974b1c71e45888049d9f09a8bcc10f0d24d3"))
