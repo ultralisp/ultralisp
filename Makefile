@@ -1,4 +1,4 @@
-TAG := '40ants/ultralisp:0.1.5'
+TAG := '40ants/ultralisp:0.1.7'
 
 build: qlfile.lock
 	docker build -t $(TAG) .

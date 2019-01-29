@@ -1,7 +1,7 @@
 dist ultralisp http://dist.ultralisp.org/
 
 ql :all :latest
-ultralisp :all :latest
+# ultralisp :all :latest
 
 #github defmain 40ants/defmain
 

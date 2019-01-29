@@ -2,11 +2,19 @@
  ChangeLog
 ===========
 
-0.2.0
-=====
+0.2.0 (2019-01-29)
+==================
 
 * Now tracked projects are stored in a postgresql database.
 * They can be added in few clicks from the GitHub.
+* Users can login using their emails only.
+* And many other changes.
+
+0.1.7
+=====
+
+* Dependencies were updated to switch off Ultralisp dist temporarily and
+  use fixed quickdist. Because current Ultralisp distribution is broken.
 
 0.1.6
 =====
