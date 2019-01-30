@@ -32,7 +32,7 @@
          (:p ("To log into [Ultralisp.org](~A), follow [this link](~A)"
               url
               url))
-         (:p "Hurry up! Link is will expire in one hour.")))
+         (:p "Hurry up! The link is will expire in one hour.")))
       
       (t (log:warn "You didn't set MAILGUN_DOMAIN and MAILGUN_API_KEY env variables. So I unable to send auth code."
                    url)
