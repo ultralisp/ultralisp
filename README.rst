@@ -30,7 +30,7 @@ How to host Ultralisp on my own server
 Easy way
 --------
 
-Easiest way to start a local Ultralisp server is to use
+The easiest way to start a local Ultralisp server is to use
 ``docker-compose``.
 
 Checkout the repository::
@@ -46,8 +46,8 @@ And run::
 Harder way
 ----------
 
-Use a docker image. To may build it youself by runing ``make all`` or
-use an image from the Docker Hub.
+Use a docker image. You may build it youself by runing ``make all`` or
+use an image from Docker Hub.
 
 Then start a container like this::
 
@@ -63,11 +63,11 @@ Then start a container like this::
              -e USER_AGENT=xxxxxxxxxxxxx \
              40ants/ultralisp:latest
 
- 
+
 Hacking around
 ==============
 
-During development, it is better to start docker compose with following
+During development, it is better to start docker compose with the following
 arguments::
 
   docker-compose up --build --abort-on-container-exit app
@@ -82,7 +82,7 @@ the Emacs a command ``sly-connect``, choose "127.0.0.1" as  a hostname
 and ``14005`` as a port for webserver or ``14006`` as  a port to connect
 to the worker.
 
-To work in REPL, you will need a connection to a database. Establish it
+To work in the REPL, you will need a connection to a database. Establish it
 by running ``(ultralisp/db:connect-toplevel)``.
 
 
@@ -126,7 +126,7 @@ Connect to the REPL and run:
 Hosting Ultralisp on your own server
 ====================================
 
-This should a big chapter of documentation but for a while there is only a sketch.
+This should a big chapter of documentation but for now there is only a sketch.
 
 Uploading distribution to S3
 ----------------------------
@@ -134,7 +134,7 @@ Uploading distribution to S3
 By default, Ultralisp stores data locally and serves it from the
 ``/dist/`` folder, like that:
 ``http://my-ultralisp.org/dist/``. Hovewer, you may want to upload the
-data to Amazon S3 and to serve it trough something like Cloudflare.
+data to Amazon S3 and to serve it through something like Cloudflare.
 
 To do this, you need to set these environment variables for ultralisp
 app:
@@ -163,8 +163,8 @@ How to create a bucket
   * Block new public bucket policies
   * Block public and cross-account access if bucket has public policies
 
-* When bucket created, go to the buckets policy page which should have
-  url like that: https://s3.console.aws.amazon.com/s3/buckets/dist.my-ultralisp.org/?region=us-east-1&tab=permissions
+* When the bucket is created, go to the buckets policy page which should have
+  an url like that: https://s3.console.aws.amazon.com/s3/buckets/dist.my-ultralisp.org/?region=us-east-1&tab=permissions
   and insert such code into the "Bucket Policy" tab::
 
     {
@@ -196,7 +196,7 @@ the GitHub, please, vote for it.
 I use Cloudflare because it is free and easy to setup.
 
 To serve files via Cloudflare, turn on "Static website hosting" of the
-bucket at AWS. Set the "index document" as a "ultralisp.txt".
+bucket at AWS. Set the "index document" as "ultralisp.txt".
 
 After that, your quicklisp distribution will be available as http://dist.ultralisp.org.s3-website-eu-west-1.amazonaws.com
 
