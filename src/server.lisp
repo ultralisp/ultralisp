@@ -185,7 +185,7 @@
 
 
                 (:footer :class "page-footer"
-                         (:p ("Proudly served by [Common Lisp](http://lisp-lang.org) and [Weblocks](http://40ants.com/weblocks/)!")))))))
+                         (:p ("Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!")))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
