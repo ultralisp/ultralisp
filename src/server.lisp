@@ -137,7 +137,7 @@
           '(:media "screen and (max-width: 40em)"
             (.latest-builds
              :display none)
-            (.motto
+            ((:or .motto .num-projects)
              :display none)
             ((:or .page-content .page-header .page-footer)
              :padding-left 1rem

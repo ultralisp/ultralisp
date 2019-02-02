@@ -96,34 +96,44 @@
         (recent-projects (get-recent-projects))
         (pending-projects (get-projects-with-pending-checks)))
     (with-html
-      (:p "Ultralisp is a quicklisp distribution, updated as fast as you can push commits to the GitHub.")
-      (:p "Work in progress, but you already can install some packages, like quickdist or weblocks from this repository.")
-      (:h3 "How to use it")
-      (:p "To use it, open your Lisp REPL and eval:")
-      (:pre (let* ((base-url (get-base-url))
-                   (url (if (search "localhost" base-url)
-                            (concat base-url (get-dist-name) ".txt")
-                            base-url)))
-              (format nil "(ql-dist:install-dist \"~A\"
-                      :prompt nil)"
-                      url)))
+      (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
 
-      (:h3 "How to add my own project")
+      (:h3 "How to add my own project?")
 
       (:a :class "button"
           :href "/github"
           :title "Add your projects from Github to Ultralisp distribution!"
           "Add projects from Github")
+      
+      (:h3 "How to use it?")
+      
+      (let* ((base-url (get-base-url))
+             (url (if (search "localhost" base-url)
+                      (concat base-url (get-dist-name) ".txt")
+                      base-url)))
+        (:p "Open your Lisp REPL and eval:")
+        (:pre (format nil "(ql-dist:install-dist \"~A\"
+                      :prompt nil)"
+                      url))
+        (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put these lines in your **qlfile**:"))
+        (:pre (format nil "dist ultralisp ~A
+ql :all :latest
+ultralisp :all :latest"
+                      url)))
 
-      (:h3 "Roadmap")
+      (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
+        (:h3 "Roadmap")
 
-      (:ul
-       (:li (:s "Plug in a real database to store projects' metadata and other information."))
-       (:li (:s "Integration with the GitHub to add projects in one click."))
-       (:li (:s "Automatic distribution's ChangeLog generation."))
-       (:li "Support for project sources other than GitHub.")
-       (:li "Running tests for updated project and all dependent systems.")
-       (:li ("[Add your feature request](https://github.com/ultralisp/ultralisp/issues) at the Github.")))
+        (:ul
+         (:li (:s "Plug in a real database to store projects' metadata and other information."))
+         (:li (:s "Integration with the GitHub to add projects in one click."))
+         (:li (:s "Automatic distribution's ChangeLog generation."))
+         (:li "Support for project sources other than GitHub.")
+         (:li "Running tests for updated project and all dependent systems.")
+         (:li ("[Add your feature request](~A) at the Github." issues-url)))
+
+        (:p ("Any help is appreciated. [Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
+             issues-url)))
 
       (when pending-projects
         (:div :class "checks"
