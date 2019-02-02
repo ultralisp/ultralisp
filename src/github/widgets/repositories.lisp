@@ -52,7 +52,7 @@
 (in-readtable :interpol-syntax)
 
 
-(defparameter *token* nil
+(defvar *token* nil
   "FOR DEBUG")
 
 
@@ -102,20 +102,25 @@
                 (lambda (repository)
                   (check-if-lisp-repository repository token))
                 data))
-         (names (mapcar (lambda (item)
-                          (getf item :|full_name|))
-                        data)))
-    (sort names
-          #'string<)))
+         (reps (loop for item in data
+                     for name = (getf item :|full_name|)
+                     for fork = (getf item :|fork|)
+                     collect (list :name name
+                                   :fork fork))))
+    (sort reps
+          #'string<
+          :key (lambda (item)
+                 (getf item :name)))))
 
 
-(defun get-ultralisp-repositories (names)
+(defun get-ultralisp-repositories (repositories)
   "Receives a list of repository names which are strings like \"40ants/defmain\"
    and returns a list of projects from the database where each project
    is belongs to the same users as repositories listed in the names argument."
   
   (let (usernames)
-    (loop for name in names
+    (loop for repo in repositories
+          for name = (getf repo :name)
           for username = (first (cl-strings:split name "/"))
           do (pushnew username usernames :test #'string-equal)
           finally (return (get-github-projects usernames)))))
@@ -132,13 +137,18 @@
    (spinner :initform (make-spinner)
             :reader get-spinner)
    (repository-widgets :initform nil
-                       :reader get-repository-widgets)))
+                       :reader get-repository-widgets)
+   (show-forks :initform nil
+               :accessor show-forks-p)))
+
 
 (defwidget repository ()
   ((name :initarg :name
          :reader get-name)
    (in-ultralips-p :initarg :in-ultralisp-p
                    :accessor in-ultralisp-p)
+   (fork :initarg :fork
+         :reader is-fork-p)
    (token :initarg :token
           :reader get-token)
    ;; We store this url in a widget to make easier to test
@@ -179,15 +189,17 @@
                                                   (getf params :user-or-org)
                                                   (getf params :project)))))
     (setf (slot-value widget 'repository-widgets)
-          (mapcar (lambda (name)
-                    (make-instance 'repository
-                                   :name name
-                                   :in-ultralisp-p (member name
-                                                           ultralisp-names
-                                                           :test #'string-equal)
-                                   :token token
-                                   :webhook-url webhook-url))
-                  repositories)
+          (loop for repo in repositories
+                for name = (getf repo :name)
+                for fork = (getf repo :fork)
+                collect (make-instance 'repository
+                                       :name name
+                                       :in-ultralisp-p (member name
+                                                               ultralisp-names
+                                                               :test #'string-equal)
+                                       :token token
+                                       :fork fork
+                                       :webhook-url webhook-url))
           (slot-value widget 'repositories) repositories
           (slot-value widget 'state) :data-fetched)
     (log:debug "Repositories were fetched.")
@@ -257,9 +269,22 @@
   
   (:method ((state (eql :data-fetched)) (widget repositories))
     (with-html
+      (:p "Show forks?"
+          (:span :style "position: relative; top: 0.4em"
+                 (render-switch (show-forks-p widget)
+                                (lambda (&rest args)
+                                  (declare (ignorable args))
+                                  (setf (show-forks-p widget)
+                                        (not (show-forks-p widget)))
+                                  (weblocks/widget:update widget))
+                                :labels '("Yes" "No"))))
+      
       (:table 
        (loop for repository-widget in (get-repository-widgets widget)
-             do (render repository-widget)))))
+             for fork = (is-fork-p repository-widget)
+             do (when (or (show-forks-p widget)
+                          (not fork))
+                  (render repository-widget))))))
   
   
   (:method ((state t) (widget repositories))
@@ -360,11 +385,17 @@
 
 (defmethod render ((widget repository))
   (with-html
-    (:td (get-name widget))
-    (:td (render-switch (in-ultralisp-p widget)
-                        (lambda (&rest args)
-                          (declare (ignorable args))
-                          (toggle widget))))))
+    (:td (get-name widget)
+         (when (is-fork-p widget)
+           (:span :class "label secondary"
+                  :style "margin-left: 0.7em"
+                  "fork")))
+    (:td (:span :style "position: relative; top: 0.3em"
+                (render-switch (in-ultralisp-p widget)
+                               (lambda (&rest args)
+                                 (declare (ignorable args))
+                                 (toggle widget))
+                               :labels '("On" "Off"))))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget repositories))
