@@ -8,7 +8,7 @@
 (in-package ultralisp/widgets/utils)
 
 
-(defun render-switch (state action &key disabled)
+(defun render-switch (state action &key disabled labels)
   (let* ((action-code (weblocks/actions::function-or-action->action action))
          (on-click (format nil "initiateAction('~A'); return false;"
                            action-code))
@@ -18,6 +18,11 @@
                           ;; That is why we need to set it manually here.
                           (list :style "cursor: not-allowed")
                           (list :onclick on-click))))
+    (when (and labels
+               (not (= (length labels)
+                       2)))
+      (error "Labels argument should be either nil or a list of two strings."))
+    
     (with-html
       (:span :class "switch tiny"
              (:input :class "switch-input"
@@ -25,4 +30,11 @@
                      :checked state
                      :disabled disabled)
              (:label :class "switch-paddle"
-                     :attrs label-attrs)))))
+                     :attrs label-attrs
+                     (when labels
+                       (:span :class "switch-active"
+                              :aria-hidden t
+                              (first labels))
+                       (:span :class "switch-inactive"
+                              :aria-hidden t
+                              (second labels))))))))
