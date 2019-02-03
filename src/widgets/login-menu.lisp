@@ -26,13 +26,14 @@
 
 
 (defmethod weblocks/widget:render ((widget login-menu))
-  (let ((user (get-current-user)))
+  (let ((user (get-current-user))
+        (feedback-url "https://github.com/ultralisp/ultralisp/issues/new"))
     (if (anonymous-p user)
         (weblocks/html:with-html
           (:div :class "login-link"
-                (:a :href "https://github.com/ultralisp/ultralisp/issues"
-                                  "Leave feedback")
-                (:a  :href "/login" "Log In")))
+                (:a :href feedback-url
+                    "Leave feedback")
+                (:a :href "/login" "Log In")))
         
         (with-html
           (:ul :class "dropdown menu"
@@ -40,7 +41,7 @@
                (:li (:a :href "#"
                         (get-email user))
                     (:ul :class "menu"
-                         (:li (:a :href "https://github.com/ultralisp/ultralisp/issues"
+                         (:li (:a :href feedback-url
                                   "Leave feedback"))
                          (:li (:a :href "/logout"
                                   "Logout")))))))))
