@@ -6,6 +6,7 @@
   (:import-from #:link-header)
   (:import-from #:lparallel)
   (:import-from #:weblocks/widget
+                #:update
                 #:get-html-tag
                 #:render
                 #:defwidget)
@@ -19,6 +20,9 @@
   (:import-from #:weblocks/page
                 #:get-title)
   (:import-from #:ultralisp/models/project
+                #:get-reason
+                #:unable-to-create-project
+                #:make-github-project-from-url
                 #:is-enabled-p
                 #:turn-off-github-project
                 #:add-or-turn-on-github-project
@@ -139,7 +143,9 @@
    (repository-widgets :initform nil
                        :reader get-repository-widgets)
    (show-forks :initform nil
-               :accessor show-forks-p)))
+               :accessor show-forks-p)
+   (url-form-error :initform nil
+                   :accessor get-url-form-error)))
 
 
 (defwidget repository ()
@@ -253,7 +259,36 @@
              (:p "Please authenticate in GitHub to plug your repositories into Ultralisp.")
              (:p (:a :href (make-authentication-url)
                      :class "button"
-                     "Authenticate with Github")))))))
+                     "Authenticate with Github"))
+
+             (:p "or insert a project's URL:")
+             (weblocks-ui/form:with-html-form
+                 (:post
+                  (lambda (&key url &allow-other-keys)
+                    (log:info "CATCHED ARGS" url)
+                    (handler-case
+                        (let* ((project (make-github-project-from-url url))
+                               (project-url (ultralisp/models/project:get-url project)))
+                          (weblocks/response:redirect project-url))
+                      (unable-to-create-project (condition)
+                        (let ((reason (get-reason condition)))
+                          (log:error "Setting the reason"
+                                     (get-reason condition))
+                          (setf (get-url-form-error widget)
+                                reason)
+                          (update widget))))))
+               (:table :class "url-frame"
+                       (:tr
+                        (:td
+                         (:input :type "text"
+                                 :name "url"))
+                        (:td
+                         (weblocks-ui/form:render-button
+                          "Add"
+                          :class "button")))
+                       (when (get-url-form-error widget)
+                         (:tr (:td :colspan 2
+                                   (get-url-form-error widget)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
     (weblocks/html:with-html
@@ -264,7 +299,7 @@
        (lambda (&rest args)
          (declare (ignorable args))
          (log:debug "User clicked")
-         (weblocks/widget:update widget ))
+         (update widget ))
        :button-class "button refresh")))
   
   (:method ((state (eql :data-fetched)) (widget repositories))
@@ -276,7 +311,7 @@
                                   (declare (ignorable args))
                                   (setf (show-forks-p widget)
                                         (not (show-forks-p widget)))
-                                  (weblocks/widget:update widget))
+                                  (update widget))
                                 :labels '("Yes" "No"))))
       
       (:table 
@@ -377,7 +412,7 @@
      (setf (in-ultralisp-p repository)
            t)))
   (when (weblocks/request:ajax-request-p)
-   (weblocks/widget:update repository)))
+   (update repository)))
 
 
 (defmethod get-html-tag ((widget repository))
@@ -417,6 +452,19 @@
                        (chain console (log "Data is ready"))
                        (clear-interval (@ window repositories-timer)))))
                  5000))))))
+   (call-next-method)))
+
+
+(defmethod weblocks/dependencies:get-dependencies ((widget repositories))
+  (append
+   (list
+    (weblocks-lass:make-dependency
+      `(.url-frame
+        (tbody :border 0
+               (td :padding 0)
+               ((:and td (:nth-child 1))
+                :padding-right 1em
+                :padding-top 1px)))))
    (call-next-method)))
 
 

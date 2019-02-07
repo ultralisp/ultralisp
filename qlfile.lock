@@ -5,18 +5,11 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190202213040"))
-("spinneret" .
+  :version "20190205022443"))
+("slynk-named-readtables" .
  (:class qlot.source.github:source-github
-  :initargs (:project-name "spinneret" :repos "svetlyak40wt/spinneret" :ref nil :branch "support-package-inferred-systems" :tag nil)
-  :version "github-abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"
-  :repos "svetlyak40wt/spinneret"
-  :url "https://github.com/svetlyak40wt/spinneret/archive/abdefe8d1c2b36cd2ad02e4136b6052c95074d1e.tar.gz"
-  :ref "abdefe8d1c2b36cd2ad02e4136b6052c95074d1e"))
-("websocket-driver" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "websocket-driver" :repos "svetlyak40wt/websocket-driver" :ref nil :branch "make-woo-work-from-separate-threads" :tag nil)
-  :version "github-559889e39857dac9de2d225830064a6af10be9d5"
-  :repos "svetlyak40wt/websocket-driver"
-  :url "https://github.com/svetlyak40wt/websocket-driver/archive/559889e39857dac9de2d225830064a6af10be9d5.tar.gz"
-  :ref "559889e39857dac9de2d225830064a6af10be9d5"))
+  :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
+  :version "github-df4ed79064cf85275804e201899b677bef4ab3f5"
+  :repos "joaotavora/sly-named-readtables"
+  :url "https://github.com/joaotavora/sly-named-readtables/archive/df4ed79064cf85275804e201899b677bef4ab3f5.tar.gz"
+  :ref "df4ed79064cf85275804e201899b677bef4ab3f5"))

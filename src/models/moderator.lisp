@@ -7,7 +7,8 @@
   (:import-from #:mito
                 #:dao-table-class)
   (:export #:moderator
-           #:is-moderator-p))
+           #:is-moderator-p
+           #:get-moderators))
 (in-package ultralisp/models/moderator)
 
 
@@ -39,3 +40,11 @@
                             :project project
                             :user user))
     t))
+
+
+(defun get-moderators (project)
+  "Returns a list of project's moderator."
+  (check-type project project)
+  
+  (mito:retrieve-dao 'moderator
+                     :project project))
