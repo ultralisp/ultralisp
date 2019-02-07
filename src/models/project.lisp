@@ -59,7 +59,10 @@
    #:get-projects
    #:get-project
    #:get-recent-projects
-   #:get-versions))
+   #:get-versions
+   #:unable-to-create-project
+   #:get-reason
+   #:make-github-project-from-url))
 (in-package ultralisp/models/project)
 
 
@@ -181,6 +184,12 @@
       (getf :|description|)))
 
 
+(define-condition unable-to-create-project (error)
+  ((reason :initform nil
+           :initarg :reason
+           :reader get-reason)))
+
+
 (defun make-github-project (user-or-org project)
   (let ((name (concatenate 'string
                            user-or-org
@@ -202,6 +211,19 @@
                 :description description
                 :params (list :user-or-org user-or-org
                               :project project))))
+
+
+(defun make-github-project-from-url (url)
+  (let ((project
+          (cl-ppcre:register-groups-bind (name)
+              ("https://github.com/(.*?/.*?)($|/)" url)
+            (add-or-turn-on-github-project name))))
+    
+    (unless project
+      (error 'unable-to-create-project
+             :reason "URL does not looks like a github project"))
+    
+    (values project)))
 
 
 (defun get-all-projects (&key only-enabled)
@@ -256,10 +278,16 @@
         (setf project
               (make-github-project user-or-org project-name)))
 
-      (uiop:symbol-call :ultralisp/models/moderator
-                        :make-moderator
-                        project
-                        moderator)
+      ;; Here we only making user a moderator if
+      ;; nobody else owns a project. Otherwise, he
+      ;; need to prove his ownership.
+      (unless (uiop:symbol-call :ultralisp/models/moderator
+                                :get-moderators
+                                project)
+        (uiop:symbol-call :ultralisp/models/moderator
+                          :make-moderator
+                          project
+                          moderator))
       
       ;; Also, we need to trigger a check of this project
       ;; and to enabled it and to include into the next build
