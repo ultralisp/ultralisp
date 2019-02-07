@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.3.0 (2019-02-07)
+==================
+
+* Added ability to add GitHub project just by URL.
+
 0.2.0 (2019-01-29)
 ==================
 
