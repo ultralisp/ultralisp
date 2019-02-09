@@ -9,3 +9,4 @@
 /worker
 /logs/
 /db/dumps/
+/quicklisp-projects/

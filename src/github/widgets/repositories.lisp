@@ -80,15 +80,6 @@
               (get-url next-page-url :token token)))))
 
 
-(defun get-all-repositories (&key (token *token*))
-  (let* ((data (get-url "/user/repos" :token token))
-         (names (mapcar (lambda (item)
-                          (getf item :|full_name|))
-                        data)))
-    (sort names
-          #'string<)))
-
-
 (defun check-if-lisp-repository (repository token)
   (check-type repository list)
   (let* ((languages-url (getf repository :|languages_url|))
@@ -436,6 +427,14 @@
 (defmethod weblocks/dependencies:get-dependencies ((widget repositories))
   (append
    (list
+    (weblocks-lass:make-dependency
+      `(.url-frame
+        (tbody :border 0
+               (td :padding 0)
+               ((:and td (:nth-child 1))
+                :padding-right 1em
+                :padding-top 1px))))
+        
     (weblocks-parenscript:make-dependency
       (let ((timer (@ window repositories-timer)))
         (unless timer
@@ -452,19 +451,6 @@
                        (chain console (log "Data is ready"))
                        (clear-interval (@ window repositories-timer)))))
                  5000))))))
-   (call-next-method)))
-
-
-(defmethod weblocks/dependencies:get-dependencies ((widget repositories))
-  (append
-   (list
-    (weblocks-lass:make-dependency
-      `(.url-frame
-        (tbody :border 0
-               (td :padding 0)
-               ((:and td (:nth-child 1))
-                :padding-right 1em
-                :padding-top 1px)))))
    (call-next-method)))
 
 
