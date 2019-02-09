@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.3.1 (2019-02-08)
+==================
+
+* Removed loading of spin.js, because it is unnecessary.
+
 0.3.0 (2019-02-07)
 ==================
 
