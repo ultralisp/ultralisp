@@ -427,6 +427,14 @@
 (defmethod weblocks/dependencies:get-dependencies ((widget repositories))
   (append
    (list
+    (weblocks-lass:make-dependency
+      `(.url-frame
+        (tbody :border 0
+               (td :padding 0)
+               ((:and td (:nth-child 1))
+                :padding-right 1em
+                :padding-top 1px))))
+        
     (weblocks-parenscript:make-dependency
       (let ((timer (@ window repositories-timer)))
         (unless timer
@@ -443,19 +451,6 @@
                        (chain console (log "Data is ready"))
                        (clear-interval (@ window repositories-timer)))))
                  5000))))))
-   (call-next-method)))
-
-
-(defmethod weblocks/dependencies:get-dependencies ((widget repositories))
-  (append
-   (list
-    (weblocks-lass:make-dependency
-      `(.url-frame
-        (tbody :border 0
-               (td :padding 0)
-               ((:and td (:nth-child 1))
-                :padding-right 1em
-                :padding-top 1px)))))
    (call-next-method)))
 
 

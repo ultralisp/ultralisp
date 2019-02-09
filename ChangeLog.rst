@@ -6,6 +6,7 @@
 ==================
 
 * Removed loading of spin.js, because it is unnecessary.
+* Fixed auto refreshing for GitHub repositories list.
 
 0.3.0 (2019-02-07)
 ==================
