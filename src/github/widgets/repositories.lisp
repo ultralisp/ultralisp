@@ -80,15 +80,6 @@
               (get-url next-page-url :token token)))))
 
 
-(defun get-all-repositories (&key (token *token*))
-  (let* ((data (get-url "/user/repos" :token token))
-         (names (mapcar (lambda (item)
-                          (getf item :|full_name|))
-                        data)))
-    (sort names
-          #'string<)))
-
-
 (defun check-if-lisp-repository (repository token)
   (check-type repository list)
   (let* ((languages-url (getf repository :|languages_url|))
