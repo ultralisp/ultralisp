@@ -2,6 +2,21 @@
  ChangeLog
 ===========
 
+0.3.1 (2019-02-08)
+==================
+
+* Now GitHub integration requires less permissive permissions.
+  Previosly it required read/write access to all repositories, now site
+  will have access for writing webhooks and reading your organizations
+  list. It will be used to show you public repositories from these organizations.
+* Removed loading of spin.js, because it is unnecessary.
+* Fixed auto refreshing for GitHub repositories list.
+
+0.3.0 (2019-02-07)
+==================
+
+* Added ability to add GitHub project just by URL.
+
 0.2.0 (2019-01-29)
 ==================
 

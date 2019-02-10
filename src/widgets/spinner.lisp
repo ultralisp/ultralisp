@@ -20,8 +20,7 @@
 
 
 (defparameter *dependencies*
-  (list (make-dependency "https://spin.js.org/spin.js")
-        (make-dependency "https://spin.js.org/spin.css")))
+  nil)
 
 
 (defmethod get-dependencies ((widget spinner))

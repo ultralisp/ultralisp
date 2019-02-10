@@ -24,13 +24,13 @@ ultralisp :all :latest
 # github quickdist ultralisp/quickdist :tag v0.4.1
 
 # github slynk joaotavora/sly
-# github slynk-named-readtables joaotavora/sly-named-readtables
+github slynk-named-readtables joaotavora/sly-named-readtables
 
-# Needed untill this pull will be merged:
+# Needed until this pull will be merged:
 # https://github.com/ruricolist/spinneret/pull/27
-github spinneret svetlyak40wt/spinneret :branch support-package-inferred-systems
+# github spinneret svetlyak40wt/spinneret :branch support-package-inferred-systems
 
-github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
+# github websocket-driver svetlyak40wt/websocket-driver :branch make-woo-work-from-separate-threads
 
 # github weblocks-file-server 40ants/weblocks-file-server
 
