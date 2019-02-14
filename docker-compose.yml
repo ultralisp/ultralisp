@@ -39,6 +39,8 @@ services:
       GITHUB_SECRET: 3f46156c6bd57f4c233db9449ed556b6e545315a
       LFARM_WORKERS: worker:10100
       BASE_URL: http://localhost:8080/dist/
+      PROJECTS_DIR: /app/build/sources/
+      DIST_DIR: /app/build/dist/
 
   worker:
     container_name: ultralisp_worker

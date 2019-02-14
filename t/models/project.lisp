@@ -1,4 +1,4 @@
-(defpackage #:ultralisp-test/project
+(defpackage #:ultralisp-test/models/project
   (:use #:cl
         #:rove
         #:hamcrest/rove)
@@ -12,6 +12,7 @@
                 #:project-removed
                 #:get-project-actions)
   (:import-from #:ultralisp/models/project
+                #:extract-github-name
                 #:disable-project
                 #:update-and-enable-project
                 #:make-github-project
@@ -20,7 +21,7 @@
                 #:add-or-turn-on-github-project)
   (:import-from #:ultralisp/models/check
                 #:get-project-checks))
-(in-package ultralisp-test/project)
+(in-package ultralisp-test/models/project)
 
 
 (deftest test-adding-github-project
@@ -115,9 +116,16 @@
         (let ((actions (get-project-actions project)))
           (assert-that actions
                        (contains
-                        (has-type 'project-removed)))))))
-  )
+                        (has-type 'project-removed))))))))
 
+(deftest test-github-url-extraction
+  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia")
+             "Dimercel/listopia"))
+  (ok (equal (extract-github-name "http://github.com/Dimercel/listopia")
+             "Dimercel/listopia"))
+  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia.git")
+             "Dimercel/listopia")))
 
 ;; TODO: action should be bound to a new pending version we need a separate test for it
+
 

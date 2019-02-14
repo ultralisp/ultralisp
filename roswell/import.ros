@@ -5,8 +5,9 @@ exec ros -Q -- $0 "$@"
 |#
 (progn ;;init forms
   (ros:ensure-asdf)
-  ;;#+quicklisp(ql:quickload '() :silent t)
-  )
+  #+quicklisp
+  (ql:quickload '(ultralisp/import)
+                :silent t))
 
 (defpackage :ultralisp.script.import
   (:use :cl)
@@ -14,6 +15,4 @@ exec ros -Q -- $0 "$@"
                 #:main))
 (in-package :ultralisp.script.import)
 
-(defun main (&rest argv)
-  (declare (ignorable argv)))
 ;;; vim: set ft=lisp lisp:

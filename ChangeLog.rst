@@ -5,6 +5,8 @@
 0.4.0 (Unreleased)
 ==================
 
+* Added a function ``ultralisp/import:main`` to import from Quicklisp
+  all projects, hosted on the GitHub.
 * Fixed the way how errors during project checks are processed. Now a
   project with error will be disabled and check will have a traceback in
   it's ``traceback`` slot.

@@ -1,7 +1,15 @@
 (defpackage #:ultralisp/import
   (:use #:cl)
   (:import-from #:defmain
-                #:defmain))
+                #:defmain)
+  (:import-from #:cl-fad
+                #:walk-directory)
+  (:import-from #:ultralisp/models/project
+                #:make-github-project-from-url)
+  (:import-from #:mito-email-auth/models
+                #:get-user-by-email)
+  (:export
+   #:main))
 (in-package ultralisp/import)
 
 
@@ -19,11 +27,12 @@
   (let ((source (getf obj :source))
         (url (getf obj :url)))
     (cond
-      ((search "github.com" url)
-       :just-github)
-      ((search "gitlab.com" url)
+      ((search "github.com/" url)
+       :the-github)
+      ((search "gitlab.com/" url)
         :the-gitlab)
       (t source))))
+
 
 (defun get-url (obj)
   (getf obj :url))
@@ -53,15 +62,42 @@
 (defun import-dir (path)
   (let (data)
     (flet ((import-dir (filename)
-             (let* ((parsed (parse filename))
-                    (source (get-source parsed)))
-               (incf (getf data source 0)))))
-      (cl-fad:walk-directory path
-                             #'import-dir
-                             :test #'is-source-file-p)
+             (let* ((parsed (parse filename)))
+               (push parsed data))))
+      (walk-directory path
+                      #'import-dir
+                      :test #'is-source-file-p)
       data)))
 
 
-(defmain main ()
-  (let ((path #P"quicklisp-projects/projects/"))
-    (import-dir path)))
+(defun show-stats (parsed-data)
+  (loop with data
+        for item in parsed-data
+        for source = (get-source item)
+        do (incf (getf data source 0))
+        finally (return data)))
+
+
+(defun show-items-of-type (parsed-data type)
+  (check-type type keyword)
+  (loop for item in parsed-data
+        for source = (get-source item)
+        when (eql source type)
+          collect item))
+
+
+(defun create-projects (data moderator-email)
+  (let ((github-items (show-items-of-type data :the-github))
+        (moderator (get-user-by-email moderator-email)))
+    (unless moderator
+      (error "Unable to find moderator with email \"~A\""
+             moderator-email))
+    
+    (loop for item in github-items
+          for url = (get-url item)
+          do (make-github-project-from-url url :moderator moderator))))
+
+
+(defmain main (moderator-email path)
+  (let* ((data (import-dir path)))
+    (create-projects data moderator-email)))

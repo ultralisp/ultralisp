@@ -175,13 +175,23 @@
         value))
 
 
+;; To reveive token in dev:
+;; curl -i -u svetlyak40wt -d '{"scopes":["public_repo"], "note": "for-ultralisp-import"}' https://api.github.com/authorizations
+(defvar *github-oauth-token* nil
+  "Set this to token to raise GitHub's rate limit from 60 to 5000 requests per hour.")
+
+
 (defcached %github-get-description (user-or-org project)
-  (-> (format nil "https://api.github.com/repos/~A/~A"
-              user-or-org
-              project)
-      (dex:get)
-      (jonathan:parse)
-      (getf :|description|)))
+  (let ((headers (when *github-oauth-token*
+                   (list (cons "Authorization"
+                               (format nil "token ~A"
+                                       *github-oauth-token*))))))
+    (-> (format nil "https://api.github.com/repos/~A/~A"
+                user-or-org
+                project)
+        (dex:get :headers headers)
+        (jonathan:parse)
+        (getf :|description|))))
 
 
 (define-condition unable-to-create-project (error)
@@ -212,16 +222,33 @@
                 :params (list :user-or-org user-or-org
                               :project project))))
 
+(defun extract-github-name (url)
+  "It should extract \"cbaggers/livesupport\" from urls like:
 
-(defun make-github-project-from-url (url)
-  (let ((project
-          (cl-ppcre:register-groups-bind (name)
-              ("https://github.com/(.*?/.*?)($|/)" url)
-            (add-or-turn-on-github-project name))))
+   http://github.com/cbaggers/livesupport
+   https://github.com/cbaggers/livesupport
+   https://github.com/cbaggers/livesupport/
+   https://github.com/cbaggers/livesupport.git
+   https://github.com/cbaggers/livesupport/issues"
+  
+  (cl-ppcre:register-groups-bind (name)
+      ("https?://github.com/(.*?/.*?)($|/|\\.git)" url)
+    name))
+
+
+(defun make-github-project-from-url (url &key (moderator nil moderator-given-p))
+  (let* ((name (extract-github-name url))
+         (project
+           (when name
+             (apply #'add-or-turn-on-github-project
+                    (list* name
+                           (when moderator-given-p
+                             (list :moderator moderator)))))))
     
     (unless project
       (error 'unable-to-create-project
-             :reason "URL does not looks like a github project"))
+             :reason (format nil "URL \"~A\" does not looks like a github project"
+                             url)))
     
     (values project)))
 
@@ -439,3 +466,4 @@
           for project = (add-or-turn-on-github-project name
                                                        :moderator moderator)
           collect project)))
+
