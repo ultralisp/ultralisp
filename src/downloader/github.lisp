@@ -9,6 +9,7 @@
                 #:get-processed-at
                 #:get-description)
   (:import-from #:ultralisp/downloader/base
+                #:downloaded-project-path
                 #:download
                 #:make-downloader)
   (:import-from #:ultralisp/pipeline/checking
@@ -32,14 +33,16 @@
   
   (let* ((tmp-dir "/tmp/checker")
          (downloaded (download project tmp-dir :latest t))
+         (path (downloaded-project-path downloaded))
          (params-update (ultralisp/downloader/base:downloaded-project-params downloaded)))
 
-    (update-and-enable-project project
-                               params-update)
-    
-    (setf (get-processed-at check)
-          (local-time:now))
-    (save-dao check)
+    (unwind-protect
+         (update-and-enable-project project
+                                    params-update)
+      ;; Here we need to make a clean up to not clutter the file system
+      (log:info "Deleting checked out" path)
+      (uiop:delete-directory-tree path
+                                  :validate t))
     
     ;; Should return a check object
     (values check)))
