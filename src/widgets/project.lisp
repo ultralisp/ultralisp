@@ -59,6 +59,11 @@
         project-name)
   (let* ((actions (get-project-actions project))
          (versions (get-versions project))
+         (current-user-is-moderator
+           (is-moderator-p project
+                           (get-current-user)))
+         (not-moderator
+           (not current-user-is-moderator))
          (changelog (sort (append actions versions)
                           #'local-time:timestamp>
                           ;; We want last actions came first
@@ -70,9 +75,9 @@
                           (lambda (&rest args)
                             (declare (ignorable args))
                             (toggle widget project))
-                          :disabled (not
-                                     (is-moderator-p project
-                                                     (get-current-user)))))
+                          :disabled not-moderator
+                          :title (when not-moderator
+                                   "You are not a moderator of this project")))
       
       (ultralisp/widgets/changelog:render changelog
                                           :timestamps t))))
