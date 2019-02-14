@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/utils
   (:use #:cl)
   (:import-from #:cl-fad)
+  (:import-from #:trivial-backtrace
+                #:print-backtrace)
   (:import-from #:uiop
                 #:ensure-absolute-pathname
                 #:ensure-directory-pathname
@@ -23,7 +25,8 @@
    #:parse-workers-hosts
    #:make-update-diff
    #:update-plist
-   #:format-timestamp))
+   #:format-timestamp
+   #:get-traceback))
 (in-package ultralisp/utils)
 
 
@@ -115,3 +118,16 @@
   (check-type timestamp local-time:timestamp)
   (format-date "%Y-%m-%d %H:%M:%S UTC"
                (timestamp-to-universal timestamp)))
+
+
+(defun get-traceback (condition)
+  "Returns a traceback as a string, supressing conditions during printing backtrace itself."
+  (handler-bind
+      ((error (lambda (condition)
+                (declare (ignorable condition))
+                #+sbcl
+                (let ((skip (find-restart 'sb-debug::skip-printing-frame)))
+                  (when skip
+                    (invoke-restart skip))))))
+      (print-backtrace condition
+                       :output nil)))

@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.4.0 (Unreleased)
+==================
+
+* Fixed the way how errors during project checks are processed. Now a
+  project with error will be disabled and check will have a traceback in
+  it's ``traceback`` slot.
+
 0.3.1 (2019-02-08)
 ==================
 

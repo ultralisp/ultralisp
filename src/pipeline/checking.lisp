@@ -3,6 +3,7 @@
   (:import-from #:ultralisp/models/action)
   (:import-from #:ultralisp/models/project
                 #:is-enabled-p
+                #:disable-project
                 #:get-source)
   (:import-from #:ultralisp/db
                 #:with-lock
@@ -11,8 +12,13 @@
                 #:get-error
                 #:added-project-check
                 #:get-pending-checks
+                #:get-processed-at
                 #:check
                 #:get-project)
+  (:import-from #:mito
+                #:save-dao)
+  (:import-from #:ultralisp/utils
+                #:get-traceback)
   (:export
    #:perform-pending-checks
    #:perform-check
@@ -37,9 +43,26 @@ and `description'."
   
   (let* ((project (get-project check))
          (source (get-source project)))
-    (perform-project-check source
-                           project
-                           check)))
+    
+    (handler-case
+        (prog1 (perform-project-check source
+                                      project
+                                      check)
+          (setf (get-error check)
+                nil))
+      (error (condition)
+        (let ((reason :check-error)
+              (traceback (get-traceback condition)))
+          (log:error "Check failed, disabling project" project traceback)
+          (setf (get-error check)
+                traceback)
+          (disable-project project
+                           :reason reason
+                           :traceback traceback))))
+    
+    (setf (get-processed-at check)
+          (local-time:now))
+    (save-dao check)))
 
 
 (defun perform-pending-checks ()
@@ -50,5 +73,3 @@ and `description'."
       (let ((checks (get-pending-checks)))
         (loop for check in checks
               do (perform-check check))))))
-
-
