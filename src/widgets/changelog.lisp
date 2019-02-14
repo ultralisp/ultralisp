@@ -81,15 +81,16 @@
            (reason (getf params :reason))
            (traceback (getf params :traceback)))
       (with-html
-        (:li ("~@[~A - ~]Project [~A](~A) was removed.~@[ Reason is: ~S.~]"
+        (:li ("~@[~A - ~]Project [~A](~A) was removed."
               (when timestamp
                 (format-timestamp (object-updated-at action)))
               url name
               reason)
-             ;; TODO: make a button to open tracebac
-             ;; (when traceback
-             ;;   (:pre traceback))
-             ))))
+             (when reason
+               (:span "Reason is: ")
+               (if traceback
+                   (:a :title traceback reason)
+                   (:span reason)))))))
   
   (:method ((action project-updated) &key timestamp)
     (let* ((project (get-project action))

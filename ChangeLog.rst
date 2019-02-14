@@ -11,7 +11,9 @@
   project with error will be disabled and check will have a traceback in
   it's ``traceback`` slot.
 * Fixed the issue with leaving checked out repositories in the
-  ``/tmp/checking`` directory after the repository was checked for updates.
+  ``/tmp/checking`` directory after the repository was checked for
+  updates.
+* If project was disabled because an error, now you can view a traceback.
 
 0.3.1 (2019-02-08)
 ==================
