@@ -1,3 +1,4 @@
+(cl:in-package :cl)
 (defpackage #:ultralisp/builder
   (:use #:cl)
   (:import-from #:local-time
@@ -33,7 +34,7 @@
                 #:get-base-url
                 #:get-dist-name
                 #:get-projects-dir)
-  (:import-from #:ultralisp/lfarm
+  (:import-from #:ultralisp/lfarm/core
                 #:submit-task)
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
@@ -155,7 +156,8 @@
                                  (dist-dir (get-dist-dir))
                                  db-user
                                  db-pass
-                                 db-host)
+                                 db-host
+                                 (download-p t))
   "This function will be performed on a worker with
    read-only access to the database.
 
@@ -163,7 +165,7 @@
    modify the database."
   (with-fields (:request-id (make-request-id))
     (check-type version version)
-
+    
     (handler-bind ((error (lambda (condition)
                             ;; We want debugger to popup if we've connected to
                             ;; the process from SLY
@@ -179,16 +181,20 @@
           (uiop:ensure-all-directories-exist (list projects-dir))
           
           (let* ((projects-dir (truename* projects-dir))
-                 (_ (log:info "Downloading projects"))
-                 (downloaded-projects (download version projects-dir))
+                 (_ (when download-p
+                      (log:info "Downloading projects")))
+                 (downloaded-projects (when download-p
+                                        (download version projects-dir)))
                  (num-downloaded-projects (length downloaded-projects))
                  commands)
             (declare (ignorable _))
-            (log:info "Projects were downloaded" num-downloaded-projects)
+            
+            (when download-p
+              (log:info "Projects were downloaded" num-downloaded-projects)
 
-            (log:info "Removing disabled projects from disk")
-            (remove-disabled-projects projects-dir
-                                      downloaded-projects)
+              (log:info "Removing disabled projects from disk")
+              (remove-disabled-projects projects-dir
+                                        downloaded-projects))
 
             (handler-bind ((error (lambda (condition)
                                     (let ((restart (find-restart 'quickdist:skip-project)))
@@ -291,3 +297,13 @@
              :projects-dir projects-dir
              :dists-dir dist-dir
              :version (get-new-version-number)))
+
+
+(ultralisp/lfarm/command:defcommand say-hello (name)
+  (log:info "Hello" name))
+
+
+(defun foo-task (the-arg)
+  (say-hello "Petya")
+  (say-hello "Masha")
+  (list :bar the-arg))

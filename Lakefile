@@ -42,5 +42,19 @@
 (task "devserver" ("deps")
       (sh "docker-compose up --build --abort-on-container-exit app"))
 
+(task "dump-db" ()
+      (sh "docker-compose run --rm db-ops dump"))
+
+(task "restore-db" ()
+      (sh "docker stop ultralisp_app ultralisp_worker")
+      (sh "docker-compose run --rm db-ops restore"))
+
+(task "generate-migration" ()
+      (sh "docker-compose rm --stop --force empty-postgres")
+      (sh "docker-compose run --rm mito generate-migration"))
+
+(task "migrate" ()
+      (sh "docker-compose run --rm mito migrate"))
+
 (task "default" ("devserver")
       ())

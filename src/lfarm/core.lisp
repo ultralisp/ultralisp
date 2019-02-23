@@ -1,19 +1,13 @@
-(defpackage #:ultralisp/lfarm
+(defpackage #:ultralisp/lfarm/core
   (:use #:cl)
   (:use #:log4cl)
   (:import-from #:log4cl-json)
   (:import-from #:slynk)
-  (:import-from #:defmain
-                #:defmain)
-  
-  ;; These dependencies need for a worker to process version builds
-  (:import-from #:ultralisp/downloader/github)
-  (:import-from #:ultralisp/downloader/version)
-  (:import-from #:ultralisp/downloader/project)
-  (:import-from #:ultralisp/uploader/fake)
-  (:import-from #:ultralisp/uploader/s3)
   
   (:import-from #:ultralisp/slynk)
+  (:import-from #:ultralisp/lfarm/command
+                #:task-with-commands
+                #:with-commands-processor)
   (:import-from #:lfarm-client)
   (:import-from #:lfarm-server
                 #:kill-tasks
@@ -33,7 +27,7 @@
   (:export
    #:submit-task
    #:connect-to-servers))
-(in-package ultralisp/lfarm)
+(in-package ultralisp/lfarm/core)
 
 ;; This package contains a patched functions from lfarm-server
 ;; to be able to quit worker correctly when it processed given
@@ -117,8 +111,10 @@
     (loop
       do (handler-case
              (return-from submit-task
-               (progn
-                 (apply #'lfarm:submit-task* channel func args)
+               (with-commands-processor
+                   (apply #'lfarm:submit-task* channel
+                          'task-with-commands
+                          func args)
                  (lfarm:try-receive-result channel :timeout (* 24 60 60))))
            #+ccl
            (ccl:socket-error ()
@@ -130,43 +126,3 @@
    It will connect to one or many workers which will build versions and run checks."
   (setf lfarm:*kernel* (lfarm:make-kernel servers)))
 
-
-(defmain main ((port "A port to listen on."
-                     :default 10100)
-               (interface "A interface to listen on."
-                          :default "localhost")
-               (slynk-port "A port to listen for connection from SLY."
-                           :default 10200
-                           :short nil)
-               (slynk-interface "An interface to listen on for connection from SLY."
-                                :default "localhost"
-                                :short nil)
-               (one-task-only "If true, then worker will quit after the task processing."
-                              :flag t)
-               (debug "If true, then output will be verbose"
-                      :flag t
-                      :env-var "DEBUG"))
-
-  (cond (debug
-         (log4cl-json:setup :level :debug)
-         (setf lfarm-common:*log-level* :debug))
-        (t
-         (log4cl-json:setup :level :info)
-         (setf lfarm-common:*log-level* :info)))
-
-  (log:info "Starting lfarm server")
-
-  (when one-task-only
-    (setf *after-last-task* 'on-last-task))
-
-  ;; To make it possible to connect to a remote SLYNK server where ports are closed
-  ;; with firewall.
-  (setf slynk:*use-dedicated-output-stream* nil)
-
-  (ultralisp/slynk:setup)
-  (slynk:create-server :dont-close t
-                       :port slynk-port
-                       :interface slynk-interface)
-  
-  (lfarm-server:start-server interface
-                             port))

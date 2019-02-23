@@ -373,6 +373,7 @@
 
 
 (defun update-and-enable-project (project data)
+  ;; TODO: remove after the new checking will be done
   (let* ((params (get-params project))
          (diff (make-update-diff params
                                  data)))

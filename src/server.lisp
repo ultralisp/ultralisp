@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:woo)
   (:import-from #:spinneret/cl-markdown)
-  (:import-from #:ultralisp/lfarm)
+  (:import-from #:ultralisp/lfarm/core)
   (:import-from #:log4cl-json)
   (:import-from #:ultralisp/github/core)
   (:import-from #:ultralisp/cron)
@@ -323,7 +323,7 @@ arguments."
       (bordeaux-threads:make-thread
        (lambda ()
          (log:info "Connecting lfarm workers" lfarm-servers)
-         (ultralisp/lfarm:connect-to-servers :servers lfarm-servers)
+         (ultralisp/lfarm/core:connect-to-servers :servers lfarm-servers)
          (log:info "Connected to lfarm workers"))
        :name "Connecting to lfarm workers")))
 

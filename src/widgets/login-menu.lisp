@@ -27,6 +27,7 @@
 
 (defmethod weblocks/widget:render ((widget login-menu))
   (let ((user (get-current-user))
+        (my-projects-url "/my/projects")
         (feedback-url "https://github.com/ultralisp/ultralisp/issues/new"))
     (if (anonymous-p user)
         (weblocks/html:with-html
@@ -43,6 +44,8 @@
                     (:ul :class "menu"
                          (:li (:a :href feedback-url
                                   "Leave feedback"))
+                         (:li (:a :href my-projects-url
+                                  "My projects"))
                          (:li (:a :href "/logout"
                                   "Logout")))))))))
 

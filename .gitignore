@@ -10,3 +10,5 @@
 /logs/
 /db/dumps/
 /quicklisp-projects/
+/test-dist/
+/test-dist2/

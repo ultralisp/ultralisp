@@ -28,7 +28,8 @@
    #:get-pending-checks
    #:get-processed-at
    #:get-checks
-   #:get-error))
+   #:get-error
+   #:get-all-checks))
 (in-package ultralisp/models/check)
 
 
@@ -117,7 +118,9 @@
                         (:added-project 'added-project-check)
                         (:via-webhook 'via-webhook-check)
                         (:via-cron 'via-cron-check))))
-      (change-class check real-type))))
+      (if real-type
+          (change-class check real-type)
+          check))))
 
 
 (defun upgrade-types (checks)
@@ -128,6 +131,11 @@
   (upgrade-types
    (select-dao 'base-check
      (where (:is-null 'processed-at)))))
+
+
+(defun get-all-checks ()
+  (upgrade-types
+   (select-dao 'base-check)))
 
 
 (defun get-check-by-id (id)

@@ -10,11 +10,15 @@
   (:import-from #:uuid
                 #:make-v4-uuid)
   (:import-from #:cl-strings
+                #:starts-with
                 #:split)
   (:import-from #:local-time
                 #:timestamp-to-universal)
   (:import-from #:metatilities
                 #:format-date)
+  (:import-from #:anaphora
+                #:aif
+                #:it)
   (:export
    #:getenv
    #:directory-mtime
@@ -26,7 +30,10 @@
    #:make-update-diff
    #:update-plist
    #:format-timestamp
-   #:get-traceback))
+   #:get-traceback
+   #:walk-dir
+   #:starts-with-slash-p
+   #:first-letter-of))
 (in-package ultralisp/utils)
 
 
@@ -57,6 +64,15 @@
     (probe-file "."))))
 
 
+(defun ensure-directory-or-file (path)
+  "If path points to existing directory, add a / to the end if it missing and making it an absolute.
+   Otherwise, check if file exists, return an absolute path to this file.
+   If neither directory nor path exists, returns nil."
+  (aif (cl-fad:directory-exists-p path)
+       it
+       (probe-file path)))
+
+
 (defun directory-mtime (path)
   (if (not (fad:directory-pathname-p path))
       (file-write-date path)
@@ -66,6 +82,34 @@
 (defun path-to-string (pathname)
   (with-output-to-string (s)
     (princ pathname s)))
+
+
+(defun %walk-dir (path thunk)
+  (let* ((path (ensure-directory-or-file path))
+        (is-directory (cl-fad:directory-exists-p path))
+        (parent-dir (if is-directory
+                        path
+                        (cl-fad:pathname-directory-pathname path))))
+
+    (flet ((process-file (absolute)
+             (let ((relative (weblocks/utils/misc:relative-path absolute parent-dir)))
+               (funcall thunk absolute relative))))
+      (if is-directory
+          (fad:walk-directory path #'process-file)
+          (process-file path)))))
+
+
+(defmacro walk-dir ((path absolute relative) &body body)
+  "Walks a directory calling the body with absolute and relative
+   symbols bound to absolute and relative paths of each file.
+
+   Path could point to a file. In this case, body will be
+   called once with absolute bound to the full path and relative
+   to the file's name."
+  `(%walk-dir ,path
+              (lambda (,absolute ,relative)
+                (declare (ignorable ,absolute ,relative))
+                ,@body)))
 
 
 (defun make-request-id ()
@@ -131,3 +175,14 @@
                     (invoke-restart skip))))))
       (print-backtrace condition
                        :output nil)))
+
+
+(defun starts-with-slash-p (s)
+  (check-type s string)
+  (starts-with s "/"))
+
+
+(defun first-letter-of (s)
+  (check-type s string)
+  (when (> (length s) 0)
+    (subseq s 0 1)))

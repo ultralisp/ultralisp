@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/downloader/github
   (:use #:cl)
   (:import-from #:legit)
+  (:import-from #:quickdist)
   (:import-from #:ultralisp/models/project
                 #:update-and-enable-project
                 #:get-last-seen-commit
@@ -45,7 +46,9 @@
                                   :validate t))
     
     ;; Should return a check object
-    (values check)))
+    (let ((system-files (quickdist::find-system-files path nil)))
+      (list check
+              system-files))))
 
 
 (defun git-clone-or-update (url dir &key commit)

@@ -8,7 +8,7 @@
 (in-package ultralisp/widgets/utils)
 
 
-(defun render-switch (state action &key disabled labels)
+(defun render-switch (state action &key disabled labels title)
   (let* ((action-code (weblocks/actions::function-or-action->action action))
          (on-click (format nil "initiateAction('~A'); return false;"
                            action-code))
@@ -24,7 +24,7 @@
       (error "Labels argument should be either nil or a list of two strings."))
     
     (with-html
-      (:span :class "switch tiny"
+      (:span :class "switch tiny" :title title
              (:input :class "switch-input"
                      :type "checkbox"
                      :checked state
