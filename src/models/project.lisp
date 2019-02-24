@@ -36,6 +36,18 @@
   (:import-from #:ultralisp/models/version
                 #:get-number
                 #:version)
+  (:import-from #:quickdist
+                #:get-path
+                #:get-filename
+                #:get-dependencies
+                #:get-system-files
+                #:get-project-prefix
+                #:get-content-sha1
+                #:get-md5sum
+                #:get-file-size
+                #:get-archive-path
+                #:get-project-url
+                #:get-project-name)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -62,8 +74,67 @@
    #:get-versions
    #:unable-to-create-project
    #:get-reason
-   #:make-github-project-from-url))
+   #:make-github-project-from-url
+   #:get-systems-info))
 (in-package ultralisp/models/project)
+
+
+(defun system-info-to-json (system-info)
+  (list :path (uiop:native-namestring (get-path system-info))
+        :project-name (get-project-name system-info)
+        :filename (get-filename system-info)
+        :name (quickdist:get-name system-info)
+        :dependencies (get-dependencies system-info)))
+
+(defun systems-info-to-json (systems-info)
+  "Prepares a list of systems info objects to be serialized to json."
+  (jonathan:to-json
+     (mapcar #'system-info-to-json
+           systems-info)))
+
+
+(defun release-info-to-json (release-info)
+  (if release-info
+      (list :project-name (get-project-name release-info)
+            :project-url (get-project-url release-info)
+            :archive-path (uiop:native-namestring (get-archive-path release-info))
+            :file-size (get-file-size release-info)
+            :md5sum (get-md5sum release-info)
+            :content-sha1 (get-content-sha1 release-info)
+            :project-prefix (get-project-prefix release-info)
+            :system-files (get-system-files release-info))
+      :null))
+
+
+(defun system-info-from-json (data)
+  "Prepares a list of systems info objects to be serialized to json."
+  (when data
+    (make-instance 'quickdist:system-info
+                   :path (getf data :path)
+                   :project-name (getf data :project-name)
+                   :filename (getf data :filename)
+                   :name (getf data :name)
+                   :dependencies (getf data :dependencies))))
+
+
+(defun release-info-from-json (data)
+  (when data
+      (make-instance 'quickdist:release-info
+                     :project-name (getf data :project-name)
+                     :project-url (getf data :project-url)
+                     :archive-path (getf data :archive-path)
+                     :file-size (getf data :file-size)
+                     :md5sum (getf data :md5sum)
+                     :content-sha1 (getf data :content-sha1)
+                     :project-prefix (getf data :project-prefix)
+                     :system-files (getf data :system-files))))
+
+
+(defun systems-info-from-json (json)
+  "Prepares a list of systems info objects to be serialized to json."
+  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
+    (mapcar #'system-info-from-json
+            data)))
 
 
 (defclass project ()
@@ -93,7 +164,19 @@
 
                             This attribute should be turned on only after some check was passed."
             :initform nil
-            :accessor is-enabled-p))
+            :accessor is-enabled-p)
+   (systems-info :col-type (:jsonb)
+                 :documentation "Contains a list of lists describing systems same way as quickdist returns."
+                 :initform nil
+                 :accessor get-systems-info
+                 :deflate #'systems-info-to-json
+                 :inflate #'systems-info-from-json)
+   (release-info :col-type (:jsonb)
+                 :documentation ""
+                 :initform nil
+                 :accessor get-release-info
+                 :deflate #'release-info-to-json
+                 :ubflate #'release-info-from-json))
   (:unique-keys name)
   (:metaclass mito:dao-table-class))
 

@@ -12,6 +12,8 @@
                 #:get-postgres-user
                 #:get-postgres-host
                 #:get-postgres-dbname)
+  (:import-from #:weblocks/response
+                #:immediate-response)
   (:export
    #:with-transaction
    #:with-connection
@@ -46,7 +48,7 @@
 
 (defmacro with-transaction (&body body)
   `(cl-dbi:with-transaction mito:*connection*
-     (handler-bind ((weblocks/response:immediate-response
+     (handler-bind ((immediate-response
                       (lambda (condition)
                         (declare (ignorable condition))
                         ;; If transaction was interrupted because

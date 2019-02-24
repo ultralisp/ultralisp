@@ -51,6 +51,7 @@
 
 (task "generate-migration" ()
       (sh "docker-compose rm --stop --force empty-postgres")
+      (sh "docker-compose build mito")
       (sh "docker-compose run --rm mito generate-migration"))
 
 (task "migrate" ()

@@ -136,7 +136,9 @@ and `description'."
 (ultralisp/lfarm/command:defcommand save-project-systems (project systems)
   (log:warn "Saving systems for" project)
   ;; TODO: make real changes to the database
-  )
+  (setf (ultralisp/models/project:get-systems-info project)
+        systems)
+  (mito:save-dao project))
 
 
 (ultralisp/lfarm/command:defcommand save-release-info (project release-info)
@@ -193,13 +195,10 @@ and `description'."
     
     (unwind-protect
          (when changes
-           (let* ((systems (collect-systems path))
-                  (release-info (make-release path project systems)))
+           (let* ((systems (collect-systems path)))
              (save-project-systems project systems)
-             (save-release-info project release-info)
-             
-             (values systems
-                     release-info)))
+             (make-release project systems)
+             (values t)))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
       (uiop:delete-directory-tree path
