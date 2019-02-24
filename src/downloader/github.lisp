@@ -13,8 +13,6 @@
                 #:downloaded-project-path
                 #:download
                 #:make-downloader)
-  (:import-from #:ultralisp/pipeline/checking
-                #:perform-project-check)
   (:import-from #:named-readtables
                 #:in-readtable)
   (:import-from #:mito
@@ -25,30 +23,6 @@
                 #:ensure-absolute-dirname))
 (in-package ultralisp/downloader/github)
 (in-readtable :interpol-syntax)
-
-
-(defmethod perform-project-check ((source (eql :github))
-                                  (project project)
-                                  (check t))
-  (log:info "Performing check of the github project" project)
-  
-  (let* ((tmp-dir "/tmp/checker")
-         (downloaded (download project tmp-dir :latest t))
-         (path (downloaded-project-path downloaded))
-         (params-update (ultralisp/downloader/base:downloaded-project-params downloaded)))
-
-    (unwind-protect
-         (update-and-enable-project project
-                                    params-update)
-      ;; Here we need to make a clean up to not clutter the file system
-      (log:info "Deleting checked out" path)
-      (uiop:delete-directory-tree path
-                                  :validate t))
-    
-    ;; Should return a check object
-    (let ((system-files (quickdist::find-system-files path nil)))
-      (list check
-              system-files))))
 
 
 (defun git-clone-or-update (url dir &key commit)

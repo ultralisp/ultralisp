@@ -19,7 +19,7 @@
    #:make-added-project-check
    #:make-via-webhook-check
    #:make-via-cron-check
-   #:check
+   #:base-check
    #:get-project
    #:project-has-changes-p
    #:get-description

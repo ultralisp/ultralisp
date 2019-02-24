@@ -24,11 +24,12 @@
                 #:added-project-check
                 #:get-pending-checks
                 #:get-processed-at
-                #:check
+                #:base-check
                 #:get-project)
   (:import-from #:mito
                 #:save-dao)
   (:import-from #:ultralisp/utils
+                #:remove-last-slash
                 #:make-update-diff
                 #:first-letter-of
                 #:get-traceback)
@@ -52,48 +53,8 @@
                 #:defcommand)
   (:export
    #:perform-pending-checks
-   #:perform-check
-   #:perform-project-check))
+   #:perform))
 (in-package ultralisp/pipeline/checking)
-
-
-(defgeneric perform-project-check (source project check)
-  (:documentation "Performs actual check if project has changed in the remote source.
-
-If it changed, then method should set `processed-at' attribute of the check and exit.
-Otherwise, it should set an error description to the `error' attribute of the check.
-
-Should return a check object."))
-
-
-(defun perform-check (check)
-  "Performs a project check. After this call, parameters
-of the project linked to the check object can be changed
-as well as check's attributes such like `project-has-changes'
-and `description'."
-  
-  (let* ((project (get-project check))
-         (source (get-source project)))
-    
-    (handler-case
-        (prog1 (perform-project-check source
-                                      project
-                                      check)
-          (setf (get-error check)
-                nil))
-      (error (condition)
-        (let ((reason :check-error)
-              (traceback (get-traceback condition)))
-          (log:error "Check failed, disabling project" project traceback)
-          (setf (get-error check)
-                traceback)
-          (disable-project project
-                           :reason reason
-                           :traceback traceback))))
-    
-    (setf (get-processed-at check)
-          (local-time:now))
-    (save-dao check)))
 
 
 (defvar *check* nil)
@@ -105,40 +66,6 @@ and `description'."
   :catched)
 
 
-(defun perform-check-remotely (check)
-  "Performs a project check. After this call, parameters
-of the project linked to the check object can be changed
-as well as check's attributes such like `project-has-changes'
-and `description'."
-  (let* ((project (get-project check))
-         (source (get-source project)))
-
-    (handler-case
-        (prog1 (perform-project-check source
-                                      project
-                                      check)
-          (setf (get-error check)
-                nil))
-      (error (condition)
-        (let ((reason :check-error)
-              (traceback (get-traceback condition)))
-          (log:error "Check failed, disabling project" project traceback)
-          (setf (get-error check)
-                traceback)
-          ;; TODO: Send command
-          ;; (disable-project project
-          ;;                  :reason reason
-          ;;                  :traceback traceback)
-          )))
-    
-    (setf (get-processed-at check)
-          (local-time:now))
-    ;; TODO: Send command
-    ;; (save-dao check)
-
-    ))
-
-
 (defun perform-pending-checks ()
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
@@ -146,7 +73,8 @@ and `description'."
     (with-lock ("performing-pending-checks-or-version-build")
       (let ((checks (get-pending-checks)))
         (loop for check in checks
-              do (perform-check check))))))
+              do (submit-task 'perform
+                              check))))))
 
 
 (defun check-if-project-was-changed (project downloaded)
@@ -193,14 +121,15 @@ and `description'."
          (let* ((downloaded (download project path :latest t))
                 (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
                                                    :ensure-directories-exist t))
+                (project-name (get-name project))
                 (release-info (quickdist:make-archive (downloaded-project-path downloaded)
-                                                      (get-name project)
+                                                      project-name
                                                       system-files
-                                                      ;; (ultralisp/variables:get-dist-dir)
                                                       archive-dir
-                                                      (get-base-url)))
+                                                      (format nil "~A/archive/~A"
+                                                              (remove-last-slash (get-base-url))
+                                                              (first-letter-of project-name))))
                 (archive-path (get-archive-path release-info))
-                (project-name (get-project-name release-info))
                 (archive-destination (format nil "/~A/archive/~A/"
                                              (get-dist-name)
                                              (first-letter-of project-name))))
@@ -213,23 +142,46 @@ and `description'."
                              :validate t))))
 
 
+(defcommand update-check-as-successful (check)
+  (setf (get-error check) nil
+        (get-processed-at check) (local-time:now))
+  (save-dao check))
+
+
+(defcommand update-check-as-failed (check traceback)
+  (check-type check base-check)
+  (check-type traceback string)
+  
+  (let ((project (get-project check)))
+    (log:error "Check failed, disabling project" project traceback)
+    (setf (get-error check) traceback
+          (get-processed-at check) (local-time:now))
+    (save-dao check)
+    (disable-project project
+                     :reason :check-error
+                     :traceback traceback)))
+
+
 (defun perform (check &key force)
-  (let* ((tmp-dir "/tmp/checker")
-         (project (get-project check))
-         (downloaded (download project tmp-dir :latest t))
-         (path (downloaded-project-path downloaded))
-         (changes (check-if-project-was-changed project downloaded)))
-    
-    (unwind-protect
-         (when (or changes
-                   force)
-           (let* ((systems (collect-systems path)))
-             (save-project-systems project systems)
-             (make-release project systems)
-             (update-and-enable-project project
-                                        (downloaded-project-params downloaded))
-             (values t)))
-      ;; Here we need to make a clean up to not clutter the file system
-      (log:info "Deleting checked out" path)
-      (delete-directory-tree path
-                             :validate t))))
+  (handler-bind ((error (lambda (condition)
+                          (update-check-as-failed check
+                                                  (get-traceback condition)))))
+      (let* ((tmp-dir "/tmp/checker")
+             (project (get-project check))
+             (downloaded (download project tmp-dir :latest t))
+             (path (downloaded-project-path downloaded)))
+     
+        (unwind-protect
+             (when (or (check-if-project-was-changed project downloaded)
+                       force)
+               (let* ((systems (collect-systems path)))
+                 (save-project-systems project systems)
+                 (make-release project systems)
+                 (update-and-enable-project project
+                                            (downloaded-project-params downloaded))
+                 (update-check-as-successful check)
+                 (values t)))
+          ;; Here we need to make a clean up to not clutter the file system
+          (log:info "Deleting checked out" path)
+          (delete-directory-tree path
+                                 :validate t)))))

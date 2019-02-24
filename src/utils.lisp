@@ -33,7 +33,8 @@
    #:get-traceback
    #:walk-dir
    #:starts-with-slash-p
-   #:first-letter-of))
+   #:first-letter-of
+   #:remove-last-slash))
 (in-package ultralisp/utils)
 
 
@@ -186,3 +187,8 @@
   (check-type s string)
   (when (> (length s) 0)
     (subseq s 0 1)))
+
+
+(defun remove-last-slash (s)
+  (check-type s string)
+  (string-right-trim "/" s))

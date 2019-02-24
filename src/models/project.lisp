@@ -77,7 +77,8 @@
    #:unable-to-create-project
    #:get-reason
    #:make-github-project-from-url
-   #:get-systems-info))
+   #:get-systems-info
+   #:get-release-info))
 (in-package ultralisp/models/project)
 
 

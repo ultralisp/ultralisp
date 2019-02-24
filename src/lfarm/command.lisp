@@ -76,6 +76,7 @@
    Car of this cons is returned as a result,
    but before it will be returned, all catched
    commands are executed."
+  ;; TODO: make this code a function and call it using the macro
   `(let ((response
            (progn ,@body)))
      (check-type response cons)
