@@ -48,6 +48,8 @@
                 #:get-archive-path
                 #:get-project-url
                 #:get-project-name)
+  (:import-from #:ultralisp/lfarm/command
+                #:defcommand)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -207,7 +209,19 @@
                       (jonathan:parse
                        ;; Jonathan for some reason is unable to work with
                        ;; `base-string' type, returned by database
-                       (coerce text 'simple-base-string)))))
+                       (coerce text 'simple-base-string))))
+   (systems-info :col-type (:jsonb)
+                 :documentation "Contains a list of lists describing systems same way as quickdist returns."
+                 :initform nil
+                 :accessor get-systems-info
+                 :deflate #'systems-info-to-json
+                 :inflate #'systems-info-from-json)
+   (release-info :col-type (:jsonb)
+                 :documentation ""
+                 :initform nil
+                 :accessor get-release-info
+                 :deflate #'release-info-to-json
+                 :inflate #'release-info-from-json))
   (:documentation "Items of this class store a snapshot of the project's state
                    at the moment when a particular version was built.")
   (:metaclass mito:dao-table-class))
@@ -457,7 +471,7 @@
   (values project))
 
 
-(defun update-and-enable-project (project data)
+(defcommand update-and-enable-project (project data)
   ;; TODO: remove after the new checking will be done
   (let* ((params (get-params project))
          (diff (make-update-diff params
@@ -478,8 +492,7 @@
       (setf (get-params project)
             (update-plist params
                           data))
-      (save-dao project)))
-  project)
+      (save-dao project))))
 
 
 (defun disable-project (project &key reason traceback) 
@@ -510,6 +523,8 @@
               :name (get-name project)
               :description (get-description project)
               :params (get-params project)
+              :systems-info (get-systems-info project)
+              :release-info (get-release-info project)
               :created-at (mito:object-created-at project)
               :updated-at (mito:object-updated-at project)))
 

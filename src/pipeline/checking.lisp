@@ -7,6 +7,7 @@
   (:import-from #:ultralisp/lfarm/core
                 #:submit-task)
   (:import-from #:ultralisp/models/project
+                #:update-and-enable-project
                 #:get-name
                 #:get-systems-info
                 #:get-release-info
@@ -28,6 +29,7 @@
   (:import-from #:mito
                 #:save-dao)
   (:import-from #:ultralisp/utils
+                #:make-update-diff
                 #:first-letter-of
                 #:get-traceback)
   (:import-from #:ultralisp/variables
@@ -46,6 +48,8 @@
                 #:upload)
   (:import-from #:uiop
                 #:delete-directory-tree)
+  (:import-from #:ultralisp/lfarm/command
+                #:defcommand)
   (:export
    #:perform-pending-checks
    #:perform-check
@@ -150,8 +154,8 @@ and `description'."
   (check-type downloaded downloaded-project)
   (let ((downloaded-params (downloaded-project-params downloaded))
         (project-params (get-params project)))
-    (ultralisp/utils:make-update-diff project-params
-                                      downloaded-params)))
+    (make-update-diff project-params
+                      downloaded-params)))
 
 
 (ultralisp/lfarm/command:defcommand save-project-systems (project systems)
@@ -181,7 +185,7 @@ and `description'."
                               'generate-random-string))))
 
 
-(ultralisp/lfarm/command:defcommand make-release (project systems)
+(defcommand make-release (project systems)
   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
   (let* ((path (get-tmp-directory-name))
          (system-files (get-system-files systems)))
@@ -222,6 +226,8 @@ and `description'."
            (let* ((systems (collect-systems path)))
              (save-project-systems project systems)
              (make-release project systems)
+             (update-and-enable-project project
+                                        (downloaded-project-params downloaded))
              (values t)))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
