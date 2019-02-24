@@ -2,13 +2,15 @@
   (:use #:cl)
   (:import-from #:slynk)
   (:import-from #:log4cl)
+  (:import-from #:global-vars
+                #:define-global-var)
   (:export
    #:*connections*
    #:setup))
 (in-package ultralisp/slynk)
 
 
-(global-vars:define-global-var *connections* nil
+(define-global-var *connections* nil
   "Here we'll store all Slynk connections.")
 
 
