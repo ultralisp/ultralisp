@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.3.2 (2019-02-26)
+==================
+
+* Fixed error in a cron which caused enormous number of checks created
+  every minute.
+
 0.3.1 (2019-02-08)
 ==================
 
