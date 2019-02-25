@@ -95,7 +95,8 @@
   ;; Every 24 hour we'll recheck all projects by cron
   ;; (cl-cron:make-cron-job 'create-cron-checks
   ;;                        :hash-key 'create-cron-checks
-  ;;                        :step-hour 24)
+  ;;                        :hour 0
+  ;;                        :minute 0)
   )
 
 
