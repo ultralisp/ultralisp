@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/utils
   (:use #:cl)
-  (:import-from #:cl-fad)
+  (:import-from #:cl-fad
+                #:generate-random-pathname
+                #:generate-random-string)
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:uiop
@@ -34,7 +36,9 @@
    #:walk-dir
    #:starts-with-slash-p
    #:first-letter-of
-   #:remove-last-slash))
+   #:remove-last-slash
+   #:with-tmp-directory
+   #:delete-file-if-exists))
 (in-package ultralisp/utils)
 
 
@@ -192,3 +196,28 @@
 (defun remove-last-slash (s)
   (check-type s string)
   (string-right-trim "/" s))
+
+
+(defun get-tmp-directory-name ()
+  (cl-fad:pathname-as-directory
+   (translate-logical-pathname
+    (generate-random-pathname cl-fad::*default-template*
+                              'generate-random-string))))
+
+
+(defmacro with-tmp-directory ((path) &body body)
+  `(let* ((,path (get-tmp-directory-name)))
+     (unwind-protect
+          (progn ,@body)
+       (uiop:delete-directory-tree ,path
+                                   :validate t))))
+
+
+
+(defun delete-file-if-exists (path)
+  "Deletes file if it is exists.
+
+   Returns the same path to allow chaining."
+  (when (cl-fad:file-exists-p path)
+    (delete-file path))
+  path)

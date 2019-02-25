@@ -24,6 +24,10 @@
                 #:unwind-protect/safe
                 #:with-errors-logged
                 #:receive-object)
+  (:import-from #:ultralisp/variables
+                #:get-postgres-ro-pass
+                #:get-postgres-ro-user
+                #:get-postgres-host)
   (:export
    #:submit-task
    #:connect-to-servers))
@@ -112,9 +116,12 @@
       do (handler-case
              (return-from submit-task
                (with-commands-processor
-                   (apply #'lfarm:submit-task* channel
-                          'task-with-commands
-                          func args)
+                 (apply #'lfarm:submit-task* channel
+                        'task-with-commands
+                        (get-postgres-host)
+                        (get-postgres-ro-user)
+                        (get-postgres-ro-pass)
+                        func args)
                  (lfarm:try-receive-result channel :timeout (* 24 60 60))))
            #+ccl
            (ccl:socket-error ()

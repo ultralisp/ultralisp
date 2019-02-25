@@ -1,10 +1,10 @@
-(cl:in-package :cl)
 (defpackage #:ultralisp/builder
   (:use #:cl)
   (:import-from #:local-time
                 #:now
                 #:format-timestring)
   (:import-from #:quickdist
+                #:render-template
                 #:quickdist)
   (:import-from #:ultralisp/downloader/base
                 #:remove-disabled-projects
@@ -39,6 +39,7 @@
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
+                #:get-release-info
                 #:get-name
                 #:project-version
                 #:disable-project
@@ -50,7 +51,11 @@
                 #:with-log-unhandled
                 #:with-fields)
   (:import-from #:ultralisp/utils
+                #:delete-file-if-exists
+                #:remove-last-slash
                 #:make-request-id)
+  (:import-from #:alexandria
+                #:write-string-into-file)
   (:export
    #:build
    #:build-version
@@ -148,6 +153,7 @@
     (upload dir)))
 
 
+;; TODO: remove this function and probably all commands above
 (defun build-version-remotely (version
                                &key
                                  (projects-dir (get-projects-dir))
@@ -245,6 +251,72 @@
             commands))))))
 
 
+(defun create-metadata-for (version path &key (version-number (get-number version)))
+  (log:info "Creating metadata for version" version-number)
+  (let* ((all-projects (ultralisp/models/project:get-projects version))
+         (projects (remove-if-not 'ultralisp/models/project:get-release-info all-projects))
+         (dist-name (get-dist-name))
+         (base-url (remove-last-slash (get-base-url)))
+         (template-data (list :name dist-name
+                              :version version-number
+                              :base-url base-url))
+         (dist-info-content (render-template quickdist:*distinfo-template*
+                                             template-data)))
+    (flet ((make-path (template &rest args)
+             (ensure-directories-exist
+              (merge-pathnames (apply #'format
+                                      nil
+                                      template
+                                      args)
+                               path)))
+           (to-string (obj)
+             (format nil "~A" obj))
+           (write-file (filename content &key
+                                 (if-exists :supersede))
+             (log:info "Writing file" filename)
+             (write-string-into-file content filename
+                                     :if-exists if-exists
+                                     :if-does-not-exist :create)))
+      
+      (write-file (make-path "~A.txt" dist-name)
+                  dist-info-content)
+      (write-file (make-path "~A/~A/distinfo.txt" dist-name version-number)
+                  dist-info-content)
+      
+      (loop with release-path = (delete-file-if-exists
+                                 (make-path "~A/~A/releases.txt" dist-name version-number))
+            with systems-path = (delete-file-if-exists
+                                 (make-path "~A/~A/systems.txt" dist-name version-number))
+            with *print-pretty* = nil
+            for project in projects
+            for release-info = (ultralisp/models/project:get-release-info project)
+            for systems-info = (ultralisp/models/project:get-systems-info project)
+            do (write-file release-path
+                           (to-string release-info)
+                           :if-exists :append)
+               (dolist (system-info systems-info)
+                 (write-file systems-path
+                             (to-string system-info)
+                             :if-exists :append))))
+    projects))
+
+
+(defun build-version (version)
+  "This function generates all necessary metadata for the version and uploads them to the server."
+  (check-type version version)
+  (ultralisp/utils:with-tmp-directory (path)
+    (log:info "Building a new" version "in the" path)
+  
+    (let ((version-number (make-version-number)))
+      (setf (get-built-at version) (local-time:now)
+            (get-type version) :ready
+            (get-number version) version-number)
+    
+      (create-metadata-for version path)
+      (upload path "/")
+      (save-dao version))))
+
+
 (defun prepare-pending-version ()
   (with-transaction
     (with-lock ("performing-pending-checks-or-version-build")
@@ -254,7 +326,7 @@
           (create-projects-snapshots-for version)
           (setf (get-type version)
                 :prepared)
-          (mito:save-dao version))))))
+          (save-dao version))))))
 
 
 (defun build-prepared-versions ()
@@ -264,27 +336,28 @@
       (log:info "Checking if there is a version to build")
       
       (loop for version in (get-prepared-versions)
-            do (log:info "Submitting task to worker")
-               (let ((commands
-                       (submit-task
-                        'build-version-remotely
-                        version
-                        ;; Here we are passing all these settings
-                        ;; explicitly, to not have to specify
-                        ;; any environment variables for the "workers".
-                        :projects-dir (get-projects-dir)
-                        :name (get-dist-name)
-                        :base-url (get-base-url)
-                        :dist-dir (get-dist-dir)
-                        :db-user (get-postgres-ro-user)
-                        :db-pass (get-postgres-ro-pass)
-                        :db-host (get-postgres-host))))
-                 ;; Our worker has read-only connection to the database.
-                 ;; That is why it need to return back all actions which
-                 ;; require a database modification.
-                 (log:info "Applying commands")
-                 (loop for command in commands
-                       do (perform command)))))))
+            do (build-version version)
+               ;; (let ((commands
+               ;;         (submit-task
+               ;;          'build-version-remotely
+               ;;          version
+               ;;          ;; Here we are passing all these settings
+               ;;          ;; explicitly, to not have to specify
+               ;;          ;; any environment variables for the "workers".
+               ;;          :projects-dir (get-projects-dir)
+               ;;          :name (get-dist-name)
+               ;;          :base-url (get-base-url)
+               ;;          :dist-dir (get-dist-dir)
+               ;;          :db-user (get-postgres-ro-user)
+               ;;          :db-pass (get-postgres-ro-pass)
+               ;;          :db-host (get-postgres-host))))
+               ;;   ;; Our worker has read-only connection to the database.
+               ;;   ;; That is why it need to return back all actions which
+               ;;   ;; require a database modification.
+               ;;   (log:info "Applying commands")
+               ;;   (loop for command in commands
+               ;;         do (perform command)))
+            ))))
 
 
 (defun test-build (&key

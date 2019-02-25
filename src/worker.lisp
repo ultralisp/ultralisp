@@ -10,6 +10,7 @@
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/project)
+  (:import-from #:ultralisp/pipeline/checking)
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3))
 (in-package ultralisp/worker)

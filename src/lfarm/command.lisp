@@ -1,6 +1,10 @@
 (defpackage #:ultralisp/lfarm/command
   (:use #:cl)
   (:import-from #:serapeum)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
+  (:import-from #:ultralisp/db
+                #:with-connection)
   (:export
    #:defcommand
    #:submit-task-with-commands
@@ -46,13 +50,23 @@
      (values)))
 
 
-(defun task-with-commands (name &rest args)
+(defun task-with-commands (db-host db-user db-pass name &rest args)
   "A helper task to catch all commands executed by a worker."
   (let ((*catch-commands* t)
         (*catched* nil))
 
-    (let ((result (apply name args)))
-      (cons result *catched*))))
+    (handler-bind ((error (lambda (condition)
+                            ;; We want debugger to popup if we've connected to
+                            ;; the process from SLY
+                            ;; (invoke-debugger condition)
+                            (when ultralisp/slynk:*connections*
+                              (invoke-debugger condition)))))
+      (with-log-unhandled ()
+        (with-connection (:host db-host
+                          :username db-user
+                          :password db-pass)
+          (let ((result (apply name args)))
+            (cons result *catched*)))))))
 
 
 ;; (defun submit-task-with-commands (name &rest args)

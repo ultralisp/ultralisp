@@ -57,6 +57,8 @@
   (:import-from #:ultralisp/uploader/base
                 #:make-uploader
                 #:*uploader-type*)
+  (:import-from #:ultralisp/uploader/fake)
+  (:import-from #:ultralisp/uploader/s3)
   (:import-from #:weblocks/request-handler
                 #:handle-request)
   (:import-from #:ultralisp/db

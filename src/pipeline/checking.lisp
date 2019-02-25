@@ -1,8 +1,5 @@
 (defpackage #:ultralisp/pipeline/checking
   (:use #:cl)
-  (:import-from #:cl-fad
-                #:generate-random-string
-                #:generate-random-pathname)
   (:import-from #:ultralisp/models/action)
   (:import-from #:ultralisp/lfarm/core
                 #:submit-task)
@@ -66,7 +63,7 @@
   :catched)
 
 
-(defun perform-pending-checks ()
+(defun perform-pending-checks (&key force)
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-transaction
@@ -74,7 +71,8 @@
       (let ((checks (get-pending-checks)))
         (loop for check in checks
               do (submit-task 'perform
-                              check))))))
+                              check
+                              :force force))))))
 
 
 (defun check-if-project-was-changed (project downloaded)
@@ -106,19 +104,12 @@
   (quickdist:make-systems-info path))
 
 
-(defun get-tmp-directory-name ()
-  (cl-fad:pathname-as-directory
-   (translate-logical-pathname
-    (generate-random-pathname cl-fad::*default-template*
-                              'generate-random-string))))
-
-
 (defcommand make-release (project systems)
   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
-  (let* ((path (get-tmp-directory-name))
-         (system-files (get-system-files systems)))
+  (ultralisp/utils:with-tmp-directory (path)
     (unwind-protect
-         (let* ((downloaded (download project path :latest t))
+         (let* ((system-files (get-system-files systems))
+                (downloaded (download project path :latest t))
                 (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
                                                    :ensure-directories-exist t))
                 (project-name (get-name project))
