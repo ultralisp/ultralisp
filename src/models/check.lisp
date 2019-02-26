@@ -29,7 +29,8 @@
    #:get-processed-at
    #:get-checks
    #:get-error
-   #:get-all-checks))
+   #:get-all-checks
+   #:get-check-by-id))
 (in-package ultralisp/models/check)
 
 

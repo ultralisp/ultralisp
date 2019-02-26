@@ -209,8 +209,9 @@
   `(let* ((,path (get-tmp-directory-name)))
      (unwind-protect
           (progn ,@body)
-       (uiop:delete-directory-tree ,path
-                                   :validate t))))
+       (when (cl-fad:directory-exists-p ,path)
+         (uiop:delete-directory-tree ,path
+                                     :validate t)))))
 
 
 

@@ -21,6 +21,26 @@
    Bound by task-with-commands function.")
 
 
+(defun process-special-symbols (list)
+  "Receives a list and returns another list with keyword arguments expanded like this.
+
+   (list foo bar &key force) -> (list foo bar :force force)"
+  (loop with key-mode = nil
+        with result = nil
+        for item in list
+        do (cond
+             ((string-equal (symbol-name item) "&key")
+              (setf key-mode t))
+             ((cl-strings:starts-with (symbol-name item) "&")
+              (error "Special symbols like \"~A\" aren't supported yet." item))
+             (key-mode (uiop:appendf result
+                                     (list (alexandria:make-keyword item)
+                                           item)))
+             (t (uiop:appendf result
+                              (list item))))
+        finally (return result)))
+
+
 (defmacro defcommand (name (&rest args) &body body)
   "Defines a function which can be executed immediately,
    or delayed if *catch-commands* is t.
@@ -43,7 +63,7 @@
             (unless (boundp '*catched*)
               (error "Variable *catched* command is unbound. Seems you've set *catch-command* manually. Use task-with-commands instead!"))
             (push (cons ',name
-                        (list ,@args))
+                        (list ,@(process-special-symbols args)))
                   *catched*))
            (t
             ,@body))

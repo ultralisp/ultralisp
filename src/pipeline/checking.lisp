@@ -85,16 +85,14 @@
 
 
 (ultralisp/lfarm/command:defcommand save-project-systems (project systems)
-  (log:warn "Saving systems for" project)
-  ;; TODO: make real changes to the database
+  (log:info "Saving systems for" project)
   (setf (get-systems-info project)
         systems)
   (save-dao project))
 
 
 (ultralisp/lfarm/command:defcommand save-release-info (project release-info)
-  (log:warn "Saving release info for" project)
-  ;; TODO: make real changes to the database
+  (log:info "Saving release info for" project)
   (setf (get-release-info project)
         release-info)
   (save-dao project))
@@ -169,7 +167,8 @@
                  (save-project-systems project systems)
                  (make-release project systems)
                  (update-and-enable-project project
-                                            (downloaded-project-params downloaded))
+                                            (downloaded-project-params downloaded)
+                                            :force force)
                  (update-check-as-successful check)
                  (values t)))
           ;; Here we need to make a clean up to not clutter the file system

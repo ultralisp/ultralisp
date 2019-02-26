@@ -59,6 +59,9 @@
                 #:*uploader-type*)
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3)
+  (:import-from #:ultralisp/downloader/github)
+  (:import-from #:ultralisp/downloader/version)
+  (:import-from #:ultralisp/downloader/project)
   (:import-from #:weblocks/request-handler
                 #:handle-request)
   (:import-from #:ultralisp/db

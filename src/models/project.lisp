@@ -472,12 +472,15 @@
   (values project))
 
 
-(defcommand update-and-enable-project (project data)
+(defcommand update-and-enable-project (project data &key force)
   ;; TODO: remove after the new checking will be done
   (let* ((params (get-params project))
          (diff (make-update-diff params
                                  data)))
-    (when diff
+    (when (or diff
+              force)
+      (log:info "Updating the project and creating actions" project data force)
+      
       (cond
         ((is-enabled-p project)
          (uiop:symbol-call :ultralisp/models/action

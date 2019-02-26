@@ -16,12 +16,7 @@
                ;; that is why ultralisp/models/project can't depend on moderator
                ;; explicitly.
                "ultralisp/models/moderator"
-               "ultralisp/widgets/landing"
-               "ultralisp/uploader/s3"
-               "ultralisp/uploader/fake"
-               "ultralisp/downloader/github"
-               "ultralisp/downloader/version"
-               "ultralisp/downloader/project")
+               "ultralisp/widgets/landing")
   :in-order-to ((test-op (test-op ultralisp-test)))
   :perform (compile-op :before (o c)
                        #+ros.installing
