@@ -41,8 +41,8 @@
 
   (log:info "Starting lfarm server")
 
-  ;; (when one-task-only
-  ;;   (setf *after-last-task* 'ultralisp/lfarm/core::on-last-task))
+  (when one-task-only
+    (setf *after-last-task* 'ultralisp/lfarm/core::on-last-task))
 
   ;; To make it possible to connect to a remote SLYNK server where ports are closed
   ;; with firewall.
