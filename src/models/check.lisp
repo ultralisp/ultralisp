@@ -96,9 +96,12 @@
                (error "Unable to create check of type ~S"
                       type)))
 
-           (mito:create-dao ',class-name
-                            :project project
-                            :type type))))))
+           (cond
+             ((get-project-checks project :pending t)
+              (log:warn "Check already exists"))
+             (t (mito:create-dao ',class-name
+                                 :project project
+                                 :type type)))))))))
 
 
 (defcheck base)
@@ -152,8 +155,12 @@
                       :version version)))
 
 
-(defun get-project-checks (project)
+(defun get-project-checks (project &key pending)
   (check-type project project)
   (upgrade-types
-   (mito:retrieve-dao 'base-check
-                      :project project)))
+   (if pending
+       (select-dao 'base-check
+         (where (:and (:is-null 'processed-at)
+                      (:= 'project-id (mito:object-id project)))))
+       (mito:retrieve-dao 'base-check
+                          :project project))))
