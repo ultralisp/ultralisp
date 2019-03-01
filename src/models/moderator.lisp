@@ -14,11 +14,22 @@
 
 (defclass moderator ()
   ((user :col-type user
-         :initarg :user)
+         :initarg :user
+         :reader get-user)
    (project :col-type project
-            :initarg :project))
+            :initarg :project
+            :reader get-project))
   (:metaclass dao-table-class)
   (:auto-pk nil))
+
+
+(defmethod print-object ((obj moderator) stream)
+  (print-unreadable-object (obj stream :type t)
+    (format stream "user=~A project=~A"
+            (mito-email-auth/models:get-email
+             (get-user obj))
+            (ultralisp/models/project:get-name
+             (get-project obj)))))
 
 
 (defun make-moderator (project user)
