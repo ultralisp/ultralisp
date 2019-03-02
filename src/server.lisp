@@ -69,6 +69,7 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:ultralisp/variables
+                #:get-dist-dir
                 #:get-user-agent
                 #:get-mailgun-domain
                 #:get-mailgun-api-key
@@ -125,7 +126,15 @@
 
             (.page-header :border-bottom 1px solid "#add8e6"
                           :padding-bottom 0.5rem
-                          :margin-bottom 1rem)
+                          :margin-bottom 1rem
+             ((:and a :hover)
+              ;; Don't want a site name change it's color because
+              ;; SVG logo doesn't change it.
+              :color "#0071d8")
+             (.logo :width 1em
+                    :position relative
+                    :top -0.4em
+                    :left 0.05em))
             
             (.page-footer :color "#AAA"
                           :margin-top 3em)))
@@ -169,13 +178,13 @@
   "Additional tags for head block."
   (call-next-method)
   
-  ;; (with-html
-  ;;   (:link :rel "icon"
-  ;;          :type "image/png"
-  ;;          :href "/favicon.png")
-  ;;
-  ;;   (render-google-counter))
-  )
+  (with-html
+    (:link :rel "icon"
+           :type "image/png"
+           :href "/images/favicon.png")
+    (:link :rel "apple-touch-icon"
+           :type "image/png"
+           :href "/images/apple-touch-favicon.png")))
 
 
 (defcached (get-num-projects :timeout (* 60 5)) ()
@@ -194,7 +203,9 @@
             (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"
                   (:header :class "page-header"
                            (:h1 :class "site-name"
-                                (:a :href "/" "Ultralisp.org")
+                                (:img :src "/images/ultralisp-logo.svg"
+                                      :class "logo")
+                                (:a :href "/" "ltralisp.org")
                                 (:sup :class "num-projects"
                                       (format nil "includes ~R project~P"
                                               num-projects
@@ -214,7 +225,11 @@
   (declare (ignorable args))
   
   (make-webhook-route)
-  (ultralisp/file-server:make-route)
+  (ultralisp/file-server:make-route (get-dist-dir)
+                                    "/dist/")
+  (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"
+                                                                   "images/")
+                                    "/images/")
 
   ;; (serve-static-file
   ;;  "/favicon.png"
