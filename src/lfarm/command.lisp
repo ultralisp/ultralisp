@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/lfarm/command
   (:use #:cl)
   (:import-from #:serapeum)
+  (:import-from #:cl-strings
+                #:starts-with)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
@@ -31,7 +33,7 @@
         do (cond
              ((string-equal (symbol-name item) "&key")
               (setf key-mode t))
-             ((cl-strings:starts-with (symbol-name item) "&")
+             ((starts-with (symbol-name item) "&")
               (error "Special symbols like \"~A\" aren't supported yet." item))
              (key-mode (uiop:appendf result
                                      (list (alexandria:make-keyword item)

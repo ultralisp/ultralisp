@@ -21,6 +21,9 @@
                 #:get-built-at
                 #:get-number
                 #:version)
+  (:import-from #:ultralisp/models/check
+                #:get-processed-at
+                #:any-check)
   (:export
    #:render
    #:get-key-name
@@ -40,12 +43,12 @@
 
 
 (defgeneric render-object (action &key timestamp)
-  (:method ((action t) &key timestamp)
+  (:method ((obj t) &key timestamp)
     (with-html
       (:li ("~@[~A - ~]Unknown type of object ~A"
             (when timestamp
-              (format-timestamp (object-updated-at action)))
-            (type-of action)))))
+              (format-timestamp (object-updated-at obj)))
+            (type-of obj)))))
   
   (:method ((version version) &key timestamp)
     (let* ((number (get-number version))
@@ -110,7 +113,15 @@
                           do (:dd ("~A -> ~A" (prepare-value key before)
                                               (prepare-value key after)))
                         else
-                          do (:dd ("set to ~A" (prepare-value key after))))))))))
+                          do (:dd ("set to ~A" (prepare-value key after)))))))))
+  (:method ((check any-check) &key timestamp)
+    (with-html
+      (:li (:p ("~@[~A - ~]~A"
+                (when timestamp
+                  (format-timestamp (object-updated-at check)))
+                (if (get-processed-at check)
+                    "Finished check"
+                    "Pending check")))))))
 
 
 (defun render (objects &key timestamps)

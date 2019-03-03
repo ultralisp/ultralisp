@@ -6,12 +6,14 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
 (declaim (optimize (debug 3)
                    (safety 3)
                    (speed 1)))
+
 (progn ;;init forms
   (ros:ensure-asdf)
   #+quicklisp(ql:quickload '(;; bordeaux-threads
                              ;; log4cl
                              ultralisp/worker)
                            :silent t))
+
 
 (defpackage :ultralisp.worker
   (:use :cl)

@@ -47,15 +47,15 @@
   (let ((num-processed-tasks 0)
         (num-tasks-to-process 1))
     (with-tag :next-task
-      (log:info "reading next task")
+      (log:info "Reading next task")
       (when (< num-processed-tasks
                num-tasks-to-process)
         (flet ((clean-return (err)
                  (declare (ignore err))
-                 (log:info "end task loop" stream)
+                 (log:info "End task loop" stream)
                  (return-from task-loop))
                (corrupt-handler (err)
-                 (log:info "corrupted stream" err stream)
+                 (log:info "Corrupted stream" err stream)
                  (ignore-errors/log (send-object +corrupt-stream-flag+ stream))
                  (go :next-task))
                (next-task ()
@@ -71,11 +71,10 @@
           
           (next-task)))
       
-      (log:info "exit from task-loop because of tasks limit" stream)
-
-      (when *after-last-task*
-        (funcall *after-last-task*
-                 socket)))))
+      ;; (when *after-last-task*
+      ;;   (funcall *after-last-task*
+      ;;            socket))
+      )))
 
 
 (defun respond (message stream socket)
@@ -95,6 +94,13 @@
 
 
 (defun on-last-task (socket)
+  (log:info "Exiting from task-loop because of tasks limit")
+
+  (force-output (socket-stream socket))
+  
+  (log:info "Sleeping 5 seconds")
+  (sleep 5)
+  
   (lfarm-server::socket-close* socket)
   (uiop:quit))
 
@@ -103,8 +109,13 @@
   (let ((*package* package))
     (if (string= level
                  "info")
-        (log:info message args)
-        (log:error message args))))
+        (log:debug  "lfarm log" message args)
+        (log:error "lfarm log" message args))))
+
+
+(defun quit ()
+  (log:info "Quitting by command from master")
+  (uiop:quit))
 
 
 (defun submit-task (func &rest args)
@@ -122,7 +133,10 @@
                         (get-postgres-ro-user)
                         (get-postgres-ro-pass)
                         func args)
-                 (lfarm:try-receive-result channel :timeout (* 24 60 60))))
+                 (prog1 (lfarm:try-receive-result channel :timeout (* 24 60 60))
+                   ;; Command worker to quit, because we want it to process only
+                   ;; one task and quit, so the next task should not be affected by previous.
+                   (lfarm:submit-task* channel 'quit))))
            #+ccl
            (ccl:socket-error ()
              (log:info "Socket error catched, retrying task"))))))

@@ -30,12 +30,17 @@
    #:get-checks
    #:get-error
    #:get-all-checks
-   #:get-check-by-id))
+   #:get-check-by-id
+   #:any-check))
 (in-package ultralisp/models/check)
 
 
 (defparameter *allowed-check-types*
   '(:added-project :via-cron :via-webhook))
+
+
+(defclass any-check ()
+  ())
 
 
 (defmacro defcheck (name)
@@ -50,7 +55,7 @@
         (check-type (make-keyword name)))
     `(progn
        (export ',class-name)
-       (defclass ,class-name ()
+       (defclass ,class-name (any-check)
          ((type :col-type (or :text :null)
                 :initarg :type
                 :initform nil
@@ -101,7 +106,7 @@
               (log:warn "Check already exists"))
              (t (mito:create-dao ',class-name
                                  :project project
-                                 :type type)))))))))
+                                 :type type))))))))
 
 
 (defcheck base)

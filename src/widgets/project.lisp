@@ -25,6 +25,8 @@
                 #:is-moderator-p)
   (:import-from #:ultralisp/models/action
                 #:get-project-actions)
+  (:import-from #:ultralisp/models/check
+                #:get-project-checks)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
@@ -48,7 +50,7 @@
   (check-type project ultralisp/models/project:project)
   (if (is-enabled-p project)
       (disable-project project)
-      (enable-project project))
+      (ultralisp/models/check:make-added-project-check project))
   (weblocks/widget:update widget))
 
 
@@ -59,12 +61,15 @@
         project-name)
   (let* ((actions (get-project-actions project))
          (versions (get-versions project))
+         (checks (get-project-checks project :pending t))
          (current-user-is-moderator
            (is-moderator-p project
                            (get-current-user)))
          (not-moderator
            (not current-user-is-moderator))
-         (changelog (sort (append actions versions)
+         (changelog (sort (append actions
+                                  versions
+                                  checks)
                           #'local-time:timestamp>
                           ;; We want last actions came first
                           :key #'mito:object-updated-at)))

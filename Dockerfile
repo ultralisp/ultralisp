@@ -12,11 +12,16 @@ RUN install-dependencies
 RUN apt-get update && \
     apt-get install -y \
             python-pip \
+            supervisor \
             silversearcher-ag \
             postgresql-client && \
     pip install jsail
 
+COPY docker/worker-supervisord.conf /etc/supervisor/conf.d/worker.conf
 COPY . /app
+
+RUN ~/.roswell/bin/qlot exec ros build /app/roswell/worker.ros && mv /app/roswell/worker /app/worker
+RUN ~/.roswell/bin/qlot exec ros build /app/roswell/ultralisp-server.ros && mv /app/roswell/ultralisp-server /app/ultralisp-server
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 

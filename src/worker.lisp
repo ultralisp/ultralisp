@@ -31,15 +31,15 @@
                (debug "If true, then output will be verbose"
                       :flag t
                       :env-var "DEBUG"))
-
+  ;; To add a new line before any JSON log items will go
+  (format t "~2&")
+  
   (cond (debug
-         (log4cl-json:setup :level :debug)
-         (setf lfarm-common:*log-level* :debug))
-        (t
          (log4cl-json:setup :level :info)
-         (setf lfarm-common:*log-level* :info)))
-
-  (log:info "Starting lfarm server")
+         (setf lfarm-common:*log-level* :info))
+        (t
+         (log4cl-json:setup :level :error)
+         (setf lfarm-common:*log-level* :error)))
 
   (when one-task-only
     (setf *after-last-task* 'ultralisp/lfarm/core::on-last-task))
@@ -52,6 +52,8 @@
   (slynk:create-server :dont-close t
                        :port slynk-port
                        :interface slynk-interface)
+  
+  (log:info "Starting lfarm server")
   
   (lfarm-server:start-server interface
                              port))

@@ -14,6 +14,7 @@
                 #:disable-project
                 #:get-source)
   (:import-from #:ultralisp/db
+                #:with-connection
                 #:with-lock
                 #:with-transaction)
   (:import-from #:ultralisp/models/check
@@ -21,7 +22,7 @@
                 #:added-project-check
                 #:get-pending-checks
                 #:get-processed-at
-                #:base-check
+                #:any-check
                 #:get-project)
   (:import-from #:mito
                 #:save-dao)
@@ -48,6 +49,8 @@
                 #:delete-directory-tree)
   (:import-from #:ultralisp/lfarm/command
                 #:defcommand)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
   (:export
    #:perform-pending-checks
    #:perform))
@@ -70,9 +73,18 @@
     (with-lock ("performing-pending-checks-or-version-build")
       (let ((checks (get-pending-checks)))
         (loop for check in checks
-              do (submit-task 'perform
-                              check
-                              :force force))))))
+              ;; Here we need to establish a connection
+              ;; to process each check in a separate transaction.
+              ;; This way, errors during some checks will not affect
+              ;; others
+              do (ignore-errors
+                  (with-log-unhandled ()
+                    (with-connection ()
+                      (log4cl-json:with-fields (:check-id (mito:object-id check))
+                        (log:info "Submitting check to remote worker")
+                        (submit-task 'perform
+                                     check
+                                     :force force))))))))))
 
 
 (defun check-if-project-was-changed (project downloaded)
@@ -132,14 +144,16 @@
 
 
 (defcommand update-check-as-successful (check)
+  (log:info "Updating check as successful" check)
   (setf (get-error check) nil
         (get-processed-at check) (local-time:now))
   (save-dao check))
 
 
 (defcommand update-check-as-failed (check traceback)
-  (check-type check base-check)
+  (check-type check any-check)
   (check-type traceback string)
+  (log:info "Updating check as failed" check)
   
   (let ((project (get-project check)))
     (log:error "Check failed, disabling project" project traceback)
@@ -154,23 +168,24 @@
 (defun perform (check &key force)
   (handler-bind ((error (lambda (condition)
                           (update-check-as-failed check
-                                                  (get-traceback condition)))))
+                                                  (get-traceback condition))
+                          (return-from perform))))
       (let* ((tmp-dir "/tmp/checker")
              (project (get-project check))
              (downloaded (download project tmp-dir :latest t))
              (path (downloaded-project-path downloaded)))
      
         (unwind-protect
-             (when (or (check-if-project-was-changed project downloaded)
-                       force)
-               (let* ((systems (collect-systems path)))
-                 (save-project-systems project systems)
-                 (make-release project systems)
-                 (update-and-enable-project project
-                                            (downloaded-project-params downloaded)
-                                            :force force)
-                 (update-check-as-successful check)
-                 (values t)))
+             (prog1 (when (or (check-if-project-was-changed project downloaded)
+                              force)
+                      (let* ((systems (collect-systems path)))
+                        (save-project-systems project systems)
+                        (make-release project systems)
+                        (update-and-enable-project project
+                                                   (downloaded-project-params downloaded)
+                                                   :force force)
+                        (values t)))
+               (update-check-as-successful check))
           ;; Here we need to make a clean up to not clutter the file system
           (log:info "Deleting checked out" path)
           (delete-directory-tree path
