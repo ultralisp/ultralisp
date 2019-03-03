@@ -52,6 +52,7 @@ CREATE TABLE "check" (
     "type" TEXT,
     "project_id" BIGINT NOT NULL,
     "processed_at" TIMESTAMPTZ,
+    "processed_in" FLOAT,
     "error" TEXT,
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ
@@ -83,4 +84,4 @@ CREATE TABLE IF NOT EXISTS "schema_migrations" (
     "version" VARCHAR(255) PRIMARY KEY,
     "applied_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO schema_migrations (version) VALUES ('20190224140353');
+INSERT INTO schema_migrations (version) VALUES ('20190303201154');
