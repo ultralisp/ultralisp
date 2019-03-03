@@ -170,13 +170,13 @@
                             This attribute should be turned on only after some check was passed."
             :initform nil
             :accessor is-enabled-p)
-   (systems-info :col-type (:jsonb)
+   (systems-info :col-type (:or :jsonb :null)
                  :documentation "Contains a list of lists describing systems same way as quickdist returns."
                  :initform nil
                  :accessor get-systems-info
                  :deflate #'systems-info-to-json
                  :inflate #'systems-info-from-json)
-   (release-info :col-type (:jsonb)
+   (release-info :col-type (:or :jsonb :null)
                  :documentation ""
                  :initform nil
                  :accessor get-release-info

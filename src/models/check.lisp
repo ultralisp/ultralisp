@@ -73,6 +73,11 @@
                         :initform nil
                         :accessor get-processed-at
                         :documentation "Date and time a check was finished at.")
+          (processed-in :col-type (or :float :null)
+                        :initarg :processed-in
+                        :initform nil
+                        :accessor get-processed-in
+                        :documentation "Number of seconds required to process this check.")
           (error :col-type (or :text :null)
                  :initarg :error
                  :initform nil
