@@ -18,6 +18,7 @@
                 #:with-lock
                 #:with-transaction)
   (:import-from #:ultralisp/models/check
+                #:get-processed-in
                 #:get-error
                 #:added-project-check
                 #:get-pending-checks
@@ -84,7 +85,8 @@
                         (log:info "Submitting check to remote worker")
                         (submit-task 'perform
                                      check
-                                     :force force))))))))))
+                                     :force force))))))
+        (length checks)))))
 
 
 (defun check-if-project-was-changed (project downloaded)
@@ -123,16 +125,21 @@
                 (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
                                                    :ensure-directories-exist t))
                 (project-name (get-name project))
+                (dist-name (get-dist-name))
+                (archive-url (format nil "~A/~A/archive/~A"
+                                     (remove-last-slash (get-base-url))
+                                     dist-name
+                                     (first-letter-of project-name)))
                 (release-info (quickdist:make-archive (downloaded-project-path downloaded)
-                                                      project-name
+                                                      (cl-strings:replace-all project-name
+                                                                              "/"
+                                                                              "-")
                                                       system-files
                                                       archive-dir
-                                                      (format nil "~A/archive/~A"
-                                                              (remove-last-slash (get-base-url))
-                                                              (first-letter-of project-name))))
+                                                      archive-url))
                 (archive-path (get-archive-path release-info))
                 (archive-destination (format nil "/~A/archive/~A/"
-                                             (get-dist-name)
+                                             dist-name
                                              (first-letter-of project-name))))
 
            (upload archive-path
@@ -143,14 +150,15 @@
                              :validate t))))
 
 
-(defcommand update-check-as-successful (check)
+(defcommand update-check-as-successful (check processed-in)
   (log:info "Updating check as successful" check)
   (setf (get-error check) nil
-        (get-processed-at check) (local-time:now))
+        (get-processed-at check) (local-time:now)
+        (get-processed-in check) processed-in)
   (save-dao check))
 
 
-(defcommand update-check-as-failed (check traceback)
+(defcommand update-check-as-failed (check traceback processed-in)
   (check-type check any-check)
   (check-type traceback string)
   (log:info "Updating check as failed" check)
@@ -158,7 +166,8 @@
   (let ((project (get-project check)))
     (log:error "Check failed, disabling project" project traceback)
     (setf (get-error check) traceback
-          (get-processed-at check) (local-time:now))
+          (get-processed-at check) (local-time:now)
+          (get-processed-in check) processed-in)
     (save-dao check)
     (disable-project project
                      :reason :check-error
@@ -166,15 +175,19 @@
 
 
 (defun perform (check &key force)
-  (handler-bind ((error (lambda (condition)
-                          (update-check-as-failed check
-                                                  (get-traceback condition))
-                          (return-from perform))))
+  (let ((started-at (get-internal-real-time)))
+    (handler-bind ((error (lambda (condition)
+                            (update-check-as-failed check
+                                                    (get-traceback condition)
+                                                    (float (/ (- (get-internal-real-time)
+                                                                 started-at)
+                                                              internal-time-units-per-second)))
+                            (return-from perform))))
       (let* ((tmp-dir "/tmp/checker")
              (project (get-project check))
              (downloaded (download project tmp-dir :latest t))
              (path (downloaded-project-path downloaded)))
-     
+       
         (unwind-protect
              (prog1 (when (or (check-if-project-was-changed project downloaded)
                               force)
@@ -185,8 +198,11 @@
                                                    (downloaded-project-params downloaded)
                                                    :force force)
                         (values t)))
-               (update-check-as-successful check))
+               (update-check-as-successful check
+                                           (float (/ (- (get-internal-real-time)
+                                                        started-at)
+                                                     internal-time-units-per-second))))
           ;; Here we need to make a clean up to not clutter the file system
           (log:info "Deleting checked out" path)
           (delete-directory-tree path
-                                 :validate t)))))
+                                 :validate t))))))

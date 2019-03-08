@@ -1,7 +1,7 @@
 #!/bin/sh
 #|-*- mode:lisp -*-|#
 #|
-exec ros -Q -- $0 "$@"
+exec ros dynamic-space-size=4000 -Q -- $0 "$@"
 |#
 (declaim (optimize (debug 3)
                    (safety 3)

@@ -37,7 +37,7 @@ services:
       # we don't need to keep them in secret
       GITHUB_CLIENT_ID: 0bc769474b14267aac28
       GITHUB_SECRET: 3f46156c6bd57f4c233db9449ed556b6e545315a
-      LFARM_WORKERS: worker:10100
+      LFARM_WORKERS: worker:10100,worker:10101,worker:10103
       BASE_URL: http://localhost:8080/dist/
       PROJECTS_DIR: /app/build/sources/
       DIST_DIR: /app/build/dist/

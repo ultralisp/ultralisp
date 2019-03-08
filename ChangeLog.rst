@@ -16,6 +16,7 @@
 * If project was disabled because an error, now you can view a
   traceback.
 * Project's page now shows a description.
+* Now package-inferred systems are supported.
 
 0.3.2 (2019-02-26)
 ==================

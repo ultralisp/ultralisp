@@ -42,11 +42,8 @@
       (weblocks/html:with-html
         (:h4 ("Version ~A" version-number))
         
-        (when actions
-          (:h5 "Changes")
-          (ultralisp/widgets/changelog:render actions))
-        
         (:h5 "To install:")
+        
         (:pre (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)" dist-url))
         (:p ("or if you are using the [Qlot](https://github.com/fukamachi/qlot), then add these lines into your <code>qlfile</code>:"))
@@ -54,7 +51,13 @@
 ultralisp :all :latest"
                       dist-url))
         (:p ("and run <code>qlot update</code> in the shell."))
+        
+        (when actions
+          (:h5 "Changes")
+          (ultralisp/widgets/changelog:render actions))
 
+        ;; TODO: probably this is not a good idea
+        ;;       to show all 1500 projects here.
         (when projects
           (:h5 "Projects")
           (ultralisp/widgets/projects:render projects))))))

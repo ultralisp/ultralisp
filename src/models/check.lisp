@@ -14,6 +14,9 @@
                 #:version)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:anaphora
+                #:acond
+                #:it)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -31,7 +34,8 @@
    #:get-error
    #:get-all-checks
    #:get-check-by-id
-   #:any-check))
+   #:any-check
+   #:get-processed-in))
 (in-package ultralisp/models/check)
 
 
@@ -97,6 +101,10 @@
 
 
        (defun ,make-func-name (project)
+         "Creates or gets a check for the project.
+
+          As a second value, returns `t' if check was created, or nil
+          if it already existed in the database."
          (check-type project project)
          (let ((type ,check-type))
            (log:info "Triggering a check for" project type)
@@ -106,12 +114,14 @@
                (error "Unable to create check of type ~S"
                       type)))
 
-           (cond
+           (acond
              ((get-project-checks project :pending t)
-              (log:warn "Check already exists"))
-             (t (mito:create-dao ',class-name
-                                 :project project
-                                 :type type))))))))
+              (log:warn "Check already exists")
+              (values (first it) nil))
+             (t (values (mito:create-dao ',class-name
+                                         :project project
+                                         :type type)
+                        t))))))))
 
 
 (defcheck base)

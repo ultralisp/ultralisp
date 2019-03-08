@@ -39,6 +39,7 @@
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
+                #:get-systems-info
                 #:get-release-info
                 #:get-name
                 #:project-version
@@ -56,12 +57,24 @@
                 #:make-request-id)
   (:import-from #:alexandria
                 #:write-string-into-file)
+  (:import-from #:cl-arrows
+                #:->)
   (:export
    #:build
    #:build-version
    #:build-prepared-versions
    #:prepare-pending-version))
 (in-package ultralisp/builder)
+
+
+(defparameter *releases-header-line*
+  (format nil
+          "# project url size file-md5 content-sha1 prefix [system-file1..system-fileN]~%"))
+
+
+(defparameter *systems-header-line*
+  (format nil
+          "# project system-file system-name [dependency1..dependencyN]~%"))
 
 
 (defun get-new-version-number ()
@@ -254,7 +267,7 @@
 (defun create-metadata-for (version path &key (version-number (get-number version)))
   (log:info "Creating metadata for version" version-number)
   (let* ((all-projects (ultralisp/models/project:get-projects version))
-         (projects (remove-if-not 'ultralisp/models/project:get-release-info all-projects))
+         (projects (remove-if-not 'get-release-info all-projects))
          (dist-name (get-dist-name))
          (base-url (remove-last-slash (get-base-url)))
          (template-data (list :name dist-name
@@ -271,26 +284,32 @@
                                path)))
            (to-string (obj)
              (format nil "~A" obj))
+           
            (write-file (filename content &key
                                  (if-exists :supersede))
              (log:info "Writing file" filename)
              (write-string-into-file content filename
                                      :if-exists if-exists
-                                     :if-does-not-exist :create)))
+                                     :if-does-not-exist :create)
+             (values filename)))
       
       (write-file (make-path "~A.txt" dist-name)
                   dist-info-content)
       (write-file (make-path "~A/~A/distinfo.txt" dist-name version-number)
                   dist-info-content)
       
-      (loop with release-path = (delete-file-if-exists
-                                 (make-path "~A/~A/releases.txt" dist-name version-number))
-            with systems-path = (delete-file-if-exists
-                                 (make-path "~A/~A/systems.txt" dist-name version-number))
+      (loop with release-path = (-> "~A/~A/releases.txt"
+                                    (make-path dist-name version-number)
+                                    (delete-file-if-exists)
+                                    (write-file *releases-header-line*))
+            with systems-path = (-> "~A/~A/systems.txt"
+                                    (make-path dist-name version-number)
+                                    (delete-file-if-exists)
+                                    (write-file *systems-header-line*))
             with *print-pretty* = nil
             for project in projects
-            for release-info = (ultralisp/models/project:get-release-info project)
-            for systems-info = (ultralisp/models/project:get-systems-info project)
+            for release-info = (get-release-info project)
+            for systems-info = (get-systems-info project)
             do (write-file release-path
                            (to-string release-info)
                            :if-exists :append)
@@ -336,28 +355,7 @@
       (log:info "Checking if there is a version to build")
       
       (loop for version in (get-prepared-versions)
-            do (build-version version)
-               ;; (let ((commands
-               ;;         (submit-task
-               ;;          'build-version-remotely
-               ;;          version
-               ;;          ;; Here we are passing all these settings
-               ;;          ;; explicitly, to not have to specify
-               ;;          ;; any environment variables for the "workers".
-               ;;          :projects-dir (get-projects-dir)
-               ;;          :name (get-dist-name)
-               ;;          :base-url (get-base-url)
-               ;;          :dist-dir (get-dist-dir)
-               ;;          :db-user (get-postgres-ro-user)
-               ;;          :db-pass (get-postgres-ro-pass)
-               ;;          :db-host (get-postgres-host))))
-               ;;   ;; Our worker has read-only connection to the database.
-               ;;   ;; That is why it need to return back all actions which
-               ;;   ;; require a database modification.
-               ;;   (log:info "Applying commands")
-               ;;   (loop for command in commands
-               ;;         do (perform command)))
-            ))))
+            do (build-version version)))))
 
 
 (defun test-build (&key
