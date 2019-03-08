@@ -13,7 +13,9 @@
 * Fixed the issue with leaving checked out repositories in the
   ``/tmp/checking`` directory after the repository was checked for
   updates.
-* If project was disabled because an error, now you can view a traceback.
+* If project was disabled because an error, now you can view a
+  traceback.
+* Project's page now shows a description.
 
 0.3.2 (2019-02-26)
 ==================

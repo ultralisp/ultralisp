@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/project
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:get-description
                 #:get-versions
                 #:enable-project
                 #:disable-project
@@ -57,10 +58,9 @@
 (defun render-project (widget project project-name)
   (check-type project ultralisp/models/project:project)
   
-  (setf (get-title)
-        project-name)
   (let* ((actions (get-project-actions project))
          (versions (get-versions project))
+         (description (get-description project))
          (checks (get-project-checks project :pending t))
          (current-user-is-moderator
            (is-moderator-p project
@@ -73,9 +73,16 @@
                           #'local-time:timestamp>
                           ;; We want last actions came first
                           :key #'mito:object-updated-at)))
+    (setf (get-title)
+          (format nil "~A – ~A"
+                  project-name
+                  description))
+
+
     (with-html
       ;; Show a list of versions where it was included
-      (:h1 project-name
+      (:h1 :class "project-name"
+           project-name
            (render-switch (is-enabled-p project)
                           (lambda (&rest args)
                             (declare (ignorable args))
@@ -83,6 +90,8 @@
                           :disabled not-moderator
                           :title (when not-moderator
                                    "You are not a moderator of this project")))
+      (:h2 :class "project-description"
+           description)
       
       (ultralisp/widgets/changelog:render changelog
                                           :timestamps t))))
@@ -99,3 +108,16 @@
       (cond
         (project (render-project widget project project-name))
         (t (page-not-found))))))
+
+
+(defmethod weblocks/dependencies:get-dependencies ((widget project))
+  (append
+   (list
+    (weblocks-lass:make-dependency
+      `((:and .widget .project)
+        (.project-name
+         :margin-bottom 0)
+        (.project-description
+         :font-size 1.5em
+         :margin-bottom 1em))))
+   (call-next-method)))
