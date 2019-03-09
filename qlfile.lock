@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190308174616"))
+  :version "20190309121116"))
 ("slynk-named-readtables" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
