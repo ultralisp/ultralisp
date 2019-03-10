@@ -27,7 +27,8 @@
   (:export
    #:render
    #:get-key-name
-   #:render-action))
+   #:render-action
+   #:render-object))
 (in-package ultralisp/widgets/changelog)
 
 

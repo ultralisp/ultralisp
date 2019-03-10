@@ -5,6 +5,7 @@
   (:import-from #:ultralisp/models/project
                 #:get-all-projects)
   (:import-from #:ultralisp/models/check
+                #:get-last-project-check
                 #:make-via-cron-check)
   (:import-from #:ultralisp/utils
                 #:make-request-id)
@@ -18,13 +19,24 @@
   (:import-from #:ultralisp/builder
                 #:prepare-pending-version
                 #:build-prepared-versions)
+  (:import-from #:local-time
+                #:now
+                #:timestamp-difference)
+  (:import-from #:mito
+                #:object-updated-at)
+  (:import-from #:local-time-duration
+                #:duration-maximum
+                #:duration-as
+                #:duration-
+                #:duration-minimum)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
    #:setup
    #:stop
    #:start
-   #:*cron-jobs-hash*))
+   #:*cron-jobs-hash*
+   #:get-time-of-the-next-check))
 (in-package ultralisp/cron)
 
 
@@ -66,9 +78,40 @@
     (build-prepared-versions)))
 
 
+(defun get-time-of-the-next-check (project)
+  "Время проверки должно быть не больше недели и не меньше 1 часа.
+   При этом, на него должны влиять:
+
+   * Время когда последний раз обновлялся проект. Если обновлялся
+     недавно, то скорее всего он активно развивается, но и его надо
+     проверять чаще.
+   * Время которое было затрачено на предыдущую проверку. Чем оно больше
+     тем реже надо проверять."
+  (check-type project ultralisp/models/project:project)
+  (let* ((last-check (get-last-project-check project))
+         (checked-at (object-updated-at last-check))
+         (week (local-time-duration:duration :week 1))
+         (hour (local-time-duration:duration :hour 1))
+         (updated-at (object-updated-at project))
+         (update-interval (duration-minimum
+                           (duration-maximum
+                            (timestamp-difference checked-at
+                                                  updated-at)
+                            hour)
+                           week))
+         (time-for-check (local-time-duration:timestamp-duration+
+                           checked-at
+                           update-interval)))
+    (values time-for-check)))
+
+
 (deftask create-cron-checks ()
-  (mapc #'make-via-cron-check
-        (get-all-projects :only-enabled t)))
+  (loop with now = (now)
+        for project in (get-all-projects :only-enabled t)
+        for time-for-check = (get-time-of-the-next-check project)
+        when (local-time:timestamp< time-for-check
+                                    now)
+          do (make-via-cron-check project)))
 
 
 (defun list-cron-jobs ()
@@ -85,19 +128,18 @@
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Creating cron jobs")
   ;; Run every minute
-  ;; (cl-cron:make-cron-job 'perform-checks
-  ;;                        :hash-key 'perform-checks)
+  (cl-cron:make-cron-job 'perform-checks
+                         :hash-key 'perform-checks)
   ;; Run every 5 minutes
-  ;; (cl-cron:make-cron-job 'build-version
-  ;;                        :hash-key 'build-version
-  ;;                        :step-min 5)
+  (cl-cron:make-cron-job 'build-version
+                         :hash-key 'build-version
+                         :step-min 5)
   
-  ;; Every 24 hour we'll recheck all projects by cron
-  ;; (cl-cron:make-cron-job 'create-cron-checks
-  ;;                        :hash-key 'create-cron-checks
-  ;;                        :hour 0
-  ;;                        :minute 0)
-  )
+  ;; Every 15 minutes we'll create checks for project which need it
+  (cl-cron:make-cron-job 'create-cron-checks
+                         :hash-key 'create-cron-checks
+                         :hour 0
+                         :minute 0))
 
 
 (defun start ()

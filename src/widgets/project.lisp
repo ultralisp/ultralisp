@@ -28,6 +28,8 @@
                 #:get-project-actions)
   (:import-from #:ultralisp/models/check
                 #:get-project-checks)
+  (:import-from #:ultralisp/cron
+                #:get-time-of-the-next-check)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
@@ -55,12 +57,25 @@
   (weblocks/widget:update widget))
 
 
+(defclass next-check ()
+  ((at :initarg :at
+       :reader get-time)))
+
+
+(defmethod ultralisp/widgets/changelog:render-object ((obj next-check) &key timestamp)
+  (with-html
+    (:li ("~@[~A - ~]Planned check"
+          (when timestamp
+            (ultralisp/utils:format-timestamp (get-time obj)))))))
+
+
 (defun render-project (widget project project-name)
   (check-type project ultralisp/models/project:project)
   
   (let* ((actions (get-project-actions project))
          (versions (get-versions project))
          (description (get-description project))
+         (next-check-at (get-time-of-the-next-check project))
          (checks (get-project-checks project :pending t))
          (current-user-is-moderator
            (is-moderator-p project
@@ -93,7 +108,9 @@
       (:h2 :class "project-description"
            description)
       
-      (ultralisp/widgets/changelog:render changelog
+      (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
+                                                               :at next-check-at)
+                                                changelog)
                                           :timestamps t))))
 
 
@@ -118,6 +135,5 @@
         (.project-name
          :margin-bottom 0)
         (.project-description
-         :font-size 1.5em
-         :margin-bottom 1em))))
+         :font-size 1.5em))))
    (call-next-method)))

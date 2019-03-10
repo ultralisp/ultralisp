@@ -8,7 +8,8 @@
                 #:select-dao
                 #:dao-table-class)
   (:import-from #:sxql
-                #:where)
+                #:where
+                #:order-by)
   (:import-from #:ultralisp/models/version
                 #:make-version
                 #:version)
@@ -35,7 +36,8 @@
    #:get-all-checks
    #:get-check-by-id
    #:any-check
-   #:get-processed-in))
+   #:get-processed-in
+   #:get-last-project-check))
 (in-package ultralisp/models/check)
 
 
@@ -184,3 +186,14 @@
                       (:= 'project-id (mito:object-id project)))))
        (mito:retrieve-dao 'base-check
                           :project project))))
+
+
+(defun get-last-project-check (project)
+  "Returns a last perofrmed check"
+  (check-type project project)
+  (upgrade-type
+   (first
+    (select-dao 'base-check
+      (where (:and (:not (:is-null 'processed-at))
+                   (:= 'project-id (mito:object-id project))))
+      (order-by (:desc 'processed-at))))))

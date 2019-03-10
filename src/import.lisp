@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:defmain
                 #:defmain)
+  (:import-from #:legit)
   (:import-from #:cl-fad
                 #:walk-directory)
   (:import-from #:ultralisp/models/project
@@ -9,7 +10,8 @@
   (:import-from #:mito-email-auth/models
                 #:get-user-by-email)
   (:export
-   #:main))
+   #:main
+   #:import-quicklisp))
 (in-package ultralisp/import)
 
 
@@ -98,6 +100,9 @@
           do (make-github-project-from-url url :moderator moderator))))
 
 
-(defmain main (moderator-email path)
-  (let* ((data (import-dir path)))
-    (create-projects data moderator-email)))
+(defun import-quicklisp (moderator-email)
+  (ultralisp/utils:with-tmp-directory (path)
+    (legit:clone "https://github.com/quicklisp/quicklisp-projects" path)
+    (let ((data (import-dir path)))
+      (create-projects data moderator-email))))
+
