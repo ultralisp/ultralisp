@@ -20,14 +20,14 @@
                 #:prepare-pending-version
                 #:build-prepared-versions)
   (:import-from #:local-time
-                #:now
-                #:timestamp-difference)
+                #:now)
   (:import-from #:mito
                 #:object-updated-at)
   (:import-from #:local-time-duration
                 #:duration-maximum
                 #:duration-as
                 #:duration-
+                #:timestamp-difference
                 #:duration-minimum)
   (:export
    #:list-cron-jobs
@@ -160,3 +160,5 @@
   (if (string-equal type "error")
       (log:error message)
       (log:info message)))
+
+

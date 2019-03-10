@@ -60,12 +60,21 @@
        ,@body)))
 
 
+(defvar *was-cached* nil)
+
+
 (defmacro with-connection ((&rest connect-options) &body body)
   "Establish a new connection and start transaction"
-  `(let ((mito:*connection* (funcall #'connect
-                                     ,@connect-options)))
-     (with-transaction
-       ,@body)))
+  (let ((is-cached (getf connect-options :cached t)))
+    `(let* ((was-cached *was-cached*)
+            (mito:*connection* (funcall #'connect
+                                        ,@connect-options))
+            (*was-cached* ,is-cached))
+       (unwind-protect
+            (with-transaction
+              ,@body)
+         (unless (and ,is-cached was-cached)
+           (cl-dbi:disconnect mito:*connection*))))))
 
 
 (defun make-hash-for-lock-name (name)
