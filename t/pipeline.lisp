@@ -8,7 +8,7 @@
                 #:get-project-actions
                 #:project-added)
   (:import-from #:ultralisp/pipeline/checking
-                #:perform-check)
+                #:perform)
   (:import-from #:ultralisp/models/check
                 #:make-added-project-check)
   (:import-from #:ultralisp/models/project
@@ -25,7 +25,7 @@
         (ok (null (get-project-actions project))
             "Before checking, there shouldn't be any actions bound to the project")
 
-        (perform-check check)
+        (perform check)
         
         (let ((actions (get-project-actions project)))
           (testing "Created action should be of `project-added' type"
