@@ -15,7 +15,7 @@ RUN apt-get update && \
             supervisor \
             silversearcher-ag \
             postgresql-client && \
-    pip install jsail
+    pip install jsail dumb-init
 
 COPY docker/worker-supervisord.conf /etc/supervisor/conf.d/worker.conf
 COPY . /app
@@ -23,7 +23,8 @@ COPY . /app
 RUN ~/.roswell/bin/qlot exec ros build /app/roswell/worker.ros && mv /app/roswell/worker /app/worker
 RUN ~/.roswell/bin/qlot exec ros build /app/roswell/ultralisp-server.ros && mv /app/roswell/ultralisp-server /app/ultralisp-server
 
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+CMD ["/app/docker/entrypoint.sh"]
 
 
 # Next stage is for development only
