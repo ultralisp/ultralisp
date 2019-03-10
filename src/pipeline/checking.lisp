@@ -70,23 +70,22 @@
 (defun perform-pending-checks (&key force)
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
-  (with-transaction
-    (with-lock ("performing-pending-checks-or-version-build")
-      (let ((checks (get-pending-checks)))
-        (loop for check in checks
-              ;; Here we need to establish a connection
-              ;; to process each check in a separate transaction.
-              ;; This way, errors during some checks will not affect
-              ;; others
-              do (ignore-errors
-                  (with-log-unhandled ()
-                    (with-connection ()
-                      (log4cl-json:with-fields (:check-id (mito:object-id check))
-                        (log:info "Submitting check to remote worker")
-                        (submit-task 'perform
-                                     check
-                                     :force force))))))
-        (length checks)))))
+  (with-lock ("performing-pending-checks-or-version-build")
+    (let ((checks (get-pending-checks)))
+      (loop for check in checks
+            ;; Here we need to establish a connection
+            ;; to process each check in a separate transaction.
+            ;; This way, errors during some checks will not affect
+            ;; others
+            do (ignore-errors
+                (with-log-unhandled ()
+                  (with-connection (:cached nil)
+                    (log4cl-json:with-fields (:check-id (mito:object-id check))
+                      (log:info "Submitting check to remote worker")
+                      (submit-task 'perform
+                                   check
+                                   :force force))))))
+      (length checks))))
 
 
 (defun check-if-project-was-changed (project downloaded)
