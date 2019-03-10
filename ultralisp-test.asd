@@ -5,7 +5,8 @@
                "ultralisp"
                "ultralisp-test/models/project"
                "ultralisp-test/github/webhook"
-               "ultralisp-test/pipeline")
+               "ultralisp-test/pipeline"
+               "ultralisp-test/db")
   :perform (test-op :after (op c)
                     (symbol-call :log :config
                                  :sane2 :warn)
