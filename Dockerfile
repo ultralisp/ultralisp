@@ -17,6 +17,15 @@ RUN apt-get update && \
             postgresql-client && \
     pip install jsail dumb-init
 
+RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
+    git clone https://github.com/skarnet/skalibs && \
+    cd skalibs && ./configure && make install && cd /tmp/s6 && \
+    git clone https://github.com/skarnet/execline && \
+    cd execline && ./configure && make install && cd /tmp/s6 && \
+    git clone https://github.com/skarnet/s6 && \
+    cd s6 && ./configure && make install && \
+    cd / && rm -fr /tmp/s6
+
 COPY docker/worker-supervisord.conf /etc/supervisor/conf.d/worker.conf
 COPY . /app
 
@@ -25,6 +34,12 @@ RUN ~/.roswell/bin/qlot exec ros build /app/roswell/ultralisp-server.ros && mv /
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/app/docker/entrypoint.sh"]
+
+
+# Next stage is for development only
+FROM base as worker
+COPY ./docker/s6 /etc/s6
+ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
 
 # Next stage is for development only

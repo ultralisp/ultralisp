@@ -46,7 +46,7 @@ services:
     container_name: ultralisp_worker
     build:
       context: .
-      target: base
+      target: worker
     restart: always
     ports:
       - "127.0.0.1:14006:4005"

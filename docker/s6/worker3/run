@@ -1,0 +1,10 @@
+#!/bin/bash
+
+/app/worker \
+        --interface "0.0.0.0" \
+        --port "10102" \
+        --one-task-only \
+        --slynk-interface "0.0.0.0" \
+        --slynk-port "4007" \
+        | tee -a /app/logs/worker-3.log \
+        | jsail
