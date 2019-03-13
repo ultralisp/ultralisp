@@ -96,6 +96,7 @@
 
 
 (defun get-project-actions (project)
+  (check-type project project)
   (upgrade-types
    (mito:retrieve-dao 'base-action
                       :project project)))

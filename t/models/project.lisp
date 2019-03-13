@@ -49,9 +49,8 @@
               (get-last-seen-commit project)
               "1234")
         ;; Now we emulate a situation when project's commit hash was changed
-        (setf project
-              (update-and-enable-project project
-                                         (list :last-seen-commit "abcd")))
+        (update-and-enable-project project
+                                   (list :last-seen-commit "abcd"))
         (let ((actions (get-project-actions project)))
           (testing "Project-updated action should be created"
             (assert-that actions
@@ -69,9 +68,8 @@
       (let ((project (make-github-project "40ants" "defmain")))
         ;; Now we emulate a situation when we checked the project
         ;; and discovered it's commit hash 
-        (setf project
-              (update-and-enable-project project
-                                         (list :last-seen-commit "abcd")))
+        (update-and-enable-project project
+                                   (list :last-seen-commit "abcd"))
         
         (testing "Project should be enabled now"
           (ok (is-enabled-p project)))
@@ -96,9 +94,8 @@
               (get-last-seen-commit project)
               "1234")
         ;; Now we emulate a situation when project's commit hash was changed
-        (setf project
-              (update-and-enable-project project
-                                         (list :last-seen-commit "1234")))
+        (update-and-enable-project project
+                                   (list :last-seen-commit "1234"))
         (let ((actions (get-project-actions project)))
           (ok (null actions)
               "This should create a one action"))))))
