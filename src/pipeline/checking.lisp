@@ -205,3 +205,13 @@
           (log:info "Deleting checked out" path)
           (delete-directory-tree path
                                  :validate t))))))
+
+
+(defun test-locking (worker lock-name seconds timeout)
+  (with-connection (:cached nil)
+    (log4cl-json:with-fields (:worker worker :lock-name lock-name)
+      (log:error "Trying to get lock")
+      (ultralisp/db::get-lock2 "foo2" :timeout timeout)
+      (log:error "Locked for" seconds)
+      (sleep seconds)
+      (log:error "Unlocking"))))
