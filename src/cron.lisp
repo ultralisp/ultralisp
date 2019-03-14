@@ -128,19 +128,18 @@
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Creating cron jobs")
   ;; Run every minute
-  ;; (cl-cron:make-cron-job 'perform-checks
-  ;;                        :hash-key 'perform-checks)
+  (cl-cron:make-cron-job 'perform-checks
+                         :hash-key 'perform-checks)
   ;; Run every 5 minutes
-  ;; (cl-cron:make-cron-job 'build-version
-  ;;                        :hash-key 'build-version
-  ;;                        :step-min 5)
+  (cl-cron:make-cron-job 'build-version
+                         :hash-key 'build-version
+                         :step-min 5)
   
   ;; Every 15 minutes we'll create checks for project which need it
-  ;; (cl-cron:make-cron-job 'create-cron-checks
-  ;;                        :hash-key 'create-cron-checks
-  ;;                        :hour 0
-  ;;                        :minute 0)
-  )
+  (cl-cron:make-cron-job 'create-cron-checks
+                         :hash-key 'create-cron-checks
+                         :hour 0
+                         :minute 0))
 
 
 (defun start ()
