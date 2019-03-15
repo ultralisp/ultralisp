@@ -149,6 +149,13 @@
   (with-log-unhandled ()
     (with-connection ()
       (log:debug "Processing payload" payload)
+
+      (push payload *payloads*)
+      (setf *payloads*
+            (subseq *payloads*
+                    0
+                    (min 40
+                         (length *payloads*))))
      
       (let* ((project (find-project-related-to payload)))
         (when project
