@@ -111,7 +111,8 @@
         for time-for-check = (get-time-of-the-next-check project)
         when (local-time:timestamp< time-for-check
                                     now)
-          do (make-via-cron-check project)))
+          do (log:info "Creating cron check for" project)
+             (make-via-cron-check project)))
 
 
 (defun list-cron-jobs ()
@@ -138,8 +139,7 @@
   ;; Every 15 minutes we'll create checks for project which need it
   (cl-cron:make-cron-job 'create-cron-checks
                          :hash-key 'create-cron-checks
-                         :hour 0
-                         :minute 0))
+                         :step-min 15))
 
 
 (defun start ()
