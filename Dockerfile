@@ -3,16 +3,11 @@ FROM 40ants/base-lisp-image:0.6.0-sbcl-bin as base
 EXPOSE 80
 EXPOSE 4005
 
-ENV CC=gcc
-COPY qlfile qlfile.lock app-deps.asd /app/
-RUN install-dependencies
-
 # These a dev dependencies to simplify log reading and support
 # file search from remote Emacs.
 RUN apt-get update && \
     apt-get install -y \
             python-pip \
-            supervisor \
             silversearcher-ag \
             postgresql-client && \
     pip install jsail dumb-init
@@ -26,7 +21,10 @@ RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
     cd s6 && ./configure && make install && \
     cd / && rm -fr /tmp/s6
 
-COPY docker/worker-supervisord.conf /etc/supervisor/conf.d/worker.conf
+ENV CC=gcc
+COPY qlfile qlfile.lock app-deps.asd /app/
+RUN install-dependencies
+
 COPY . /app
 
 RUN ~/.roswell/bin/qlot exec ros build /app/roswell/worker.ros && mv /app/roswell/worker /app/worker
