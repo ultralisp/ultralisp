@@ -2,7 +2,7 @@
  ChangeLog
 ===========
 
-0.4.0 (Unreleased)
+0.4.0 (2019-03-17)
 ==================
 
 * Added a function ``ultralisp/import:main`` to import from Quicklisp
