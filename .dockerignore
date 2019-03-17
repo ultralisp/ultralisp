@@ -1,6 +1,7 @@
+.git/
 quicklisp/
+quickdist/
 build/
 postgresql-data/
 logs/
 db/dumps/
-quicklisp-projects/
