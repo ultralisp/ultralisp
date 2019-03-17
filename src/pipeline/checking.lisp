@@ -36,6 +36,7 @@
                 #:get-base-url
                 #:get-dist-name)
   (:import-from #:ultralisp/downloader/base
+                #:remove-vcs-files
                 #:downloaded-project-path
                 #:download
                 #:downloaded-project-params
@@ -123,6 +124,7 @@
                 (downloaded (download project path :latest t))
                 (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
                                                    :ensure-directories-exist t))
+                (_ (remove-vcs-files downloaded))
                 (project-name (get-name project))
                 (dist-name (get-dist-name))
                 (archive-url (format nil "~A/~A/archive/~A"
@@ -140,6 +142,7 @@
                 (archive-destination (format nil "/~A/archive/~A/"
                                              dist-name
                                              (first-letter-of project-name))))
+           (declare (ignorable _))
 
            (upload archive-path
                    archive-destination)

@@ -14,7 +14,8 @@
    #:downloaded-project
    #:downloaded-project-params
    #:downloaded-project-project
-   #:downloaded-project-path))
+   #:downloaded-project-path
+   #:remove-vcs-files))
 (in-package ultralisp/downloader/base)
 
 
@@ -82,3 +83,15 @@
                          :test #'equal)
             do (delete-directory-tree directory
                                       :validate t))))
+
+
+(defgeneric remove-vcs-files (downloaded-project-or-path)
+  (:method ((project downloaded-project))
+    (remove-vcs-files (downloaded-project-path project)))
+  (:method ((path pathname))
+    (uiop:delete-directory-tree (merge-pathnames ".git/" path)
+                                :if-does-not-exist :ignore))
+
+  (:documentation "Deletes .git subdirectory from given path"))
+
+
