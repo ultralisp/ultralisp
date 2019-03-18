@@ -88,21 +88,28 @@
           collect item))
 
 
-(defun create-projects (data moderator-email)
+(defun create-projects (data moderator-email limit)
   (let ((github-items (show-items-of-type data :the-github))
         (moderator (get-user-by-email moderator-email)))
     (unless moderator
       (error "Unable to find moderator with email \"~A\""
              moderator-email))
     
-    (loop for item in github-items
+    (loop with 5-min-ago = (ultralisp/utils:time-in-past :minute 15)
+          for item in github-items
           for url = (get-url item)
-          do (make-github-project-from-url url :moderator moderator))))
+          for project = (make-github-project-from-url url :moderator moderator)
+          for created-at = (mito:object-created-at project)
+          when (local-time:timestamp> created-at
+                                      5-min-ago)
+            do (decf limit)
+          when (= 0 limit)
+            do (return))))
 
 
-(defun import-quicklisp (moderator-email)
+(defun import-quicklisp (moderator-email limit)
   (ultralisp/utils:with-tmp-directory (path)
     (legit:clone "https://github.com/quicklisp/quicklisp-projects" path)
     (let ((data (import-dir path)))
-      (create-projects data moderator-email))))
+      (create-projects data moderator-email limit))))
 

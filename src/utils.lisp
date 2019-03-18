@@ -22,6 +22,7 @@
                 #:aif
                 #:it)
   (:export
+   #:time-in-past
    #:getenv
    #:directory-mtime
    #:ensure-absolute-dirname
@@ -169,6 +170,17 @@
                (timestamp-to-universal timestamp)))
 
 
+(defun time-in-past (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
+  (local-time-duration:timestamp-duration-
+   (local-time:now)
+   (local-time-duration:duration :week week
+                                 :day day
+                                 :hour hour
+                                 :minute minute
+                                 :sec sec
+                                 :nsec nsec)))
+
+
 (defun get-traceback (condition)
   "Returns a traceback as a string, supressing conditions during printing backtrace itself."
   (handler-bind
@@ -178,8 +190,8 @@
                 (let ((skip (find-restart 'sb-debug::skip-printing-frame)))
                   (when skip
                     (invoke-restart skip))))))
-      (print-backtrace condition
-                       :output nil)))
+    (print-backtrace condition
+                     :output nil)))
 
 
 (defun starts-with-slash-p (s)
