@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.4.2 (2019-03-19)
+==================
+
+* Show at most 3 changed projects for each version on the landing.
+* Fixed a bug with clicking on a newly added project or opening the
+  newly added project.
+
 0.4.1 (2019-03-17)
 ==================
 

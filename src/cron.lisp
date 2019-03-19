@@ -88,10 +88,16 @@
    * Время которое было затрачено на предыдущую проверку. Чем оно больше
      тем реже надо проверять."
   (check-type project ultralisp/models/project:project)
-  (let* ((last-check (get-last-project-check project))
-         (checked-at (object-updated-at last-check))
+  (let* ((year-ago (ultralisp/utils:time-in-past :day 365))
          (week (local-time-duration:duration :week 1))
          (hour (local-time-duration:duration :hour 1))
+         (last-check (get-last-project-check project))
+         (checked-at (if last-check
+                         (object-updated-at last-check)
+                         ;; If project never checked,
+                         ;; then pretend the check was a year ago.
+                         ;; We need this do do the timestamp math correct.
+                         year-ago))
          (updated-at (object-updated-at project))
          (update-interval (duration-minimum
                            (duration-maximum
