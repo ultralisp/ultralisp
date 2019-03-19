@@ -21,6 +21,9 @@
   (:import-from #:anaphora
                 #:aif
                 #:it)
+  (:import-from #:local-time-duration
+                #:duration
+                #:timestamp-duration-)
   (:export
    #:time-in-past
    #:getenv
@@ -171,14 +174,14 @@
 
 
 (defun time-in-past (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
-  (local-time-duration:timestamp-duration-
+  (timestamp-duration-
    (local-time:now)
-   (local-time-duration:duration :week week
-                                 :day day
-                                 :hour hour
-                                 :minute minute
-                                 :sec sec
-                                 :nsec nsec)))
+   (duration :week week
+             :day day
+             :hour hour
+             :minute minute
+             :sec sec
+             :nsec nsec)))
 
 
 (defun get-traceback (condition)
