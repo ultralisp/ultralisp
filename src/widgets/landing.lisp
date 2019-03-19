@@ -73,7 +73,7 @@
       (:tr 
        (:td :class "changelog-cell"
             :colspan 2
-            (ultralisp/widgets/changelog:render actions))))))
+            (ultralisp/widgets/changelog:render actions :limit 3))))))
 
 
 (defun get-projects-with-pending-checks ()
@@ -179,5 +179,6 @@ ultralisp :all :latest"
                :margin-right 0.6em
                :display inline-block)
            (dd :margin 0
-               :display inline-block)))))))
+               :display inline-block)))
+         (.and-more :margin 0)))))
    (call-next-method)))

@@ -125,13 +125,27 @@
                     "Pending check")))))))
 
 
-(defun render (objects &key timestamps)
+(defun render (objects &key timestamps limit)
   (check-type objects (or list null))
   (with-html
-    (if objects
-        (:ul :class "changelog"
-             (loop for object in objects
-                   do (render-object object
-                                     :timestamp timestamps)))
-        (:ul :class "changelog"
-             (:li "No changes")))))
+    (cond (objects
+           (:ul :class "changelog"
+                (loop with objects = (if limit
+                                         (subseq objects
+                                                 0
+                                                 (min limit
+                                                      (length objects)))
+                                         objects)
+                      for object in objects
+                      do (render-object object
+                                        :timestamp timestamps)))
+           (when (and limit
+                      (> (length objects)
+                         limit))
+             (:p :class "and-more"
+                 (format nil "And ~A more..."
+                         (- (length objects)
+                            limit)))))
+          (t
+           (:ul :class "changelog"
+                (:li "No changes"))))))
