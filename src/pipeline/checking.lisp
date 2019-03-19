@@ -28,6 +28,7 @@
   (:import-from #:mito
                 #:save-dao)
   (:import-from #:ultralisp/utils
+                #:in-repl
                 #:remove-last-slash
                 #:make-update-diff
                 #:first-letter-of
@@ -184,7 +185,9 @@
                                                     (float (/ (- (get-internal-real-time)
                                                                  started-at)
                                                               internal-time-units-per-second)))
-                            (return-from perform))))
+                            (if (in-repl)
+                                (invoke-debugger condition)
+                                (return-from perform)))))
       (let* ((tmp-dir "/tmp/checker")
              (project (get-project check))
              (downloaded (download project tmp-dir :latest t))

@@ -42,7 +42,8 @@
    #:first-letter-of
    #:remove-last-slash
    #:with-tmp-directory
-   #:delete-file-if-exists))
+   #:delete-file-if-exists
+   #:in-repl))
 (in-package ultralisp/utils)
 
 
@@ -229,7 +230,6 @@
                                      :validate t)))))
 
 
-
 (defun delete-file-if-exists (path)
   "Deletes file if it is exists.
 
@@ -237,3 +237,10 @@
   (when (cl-fad:file-exists-p path)
     (delete-file path))
   path)
+
+
+(defun in-repl ()
+  (and (find-package :slynk-gray)
+       (typep *standard-output*
+              (uiop:intern* :sly-output-stream
+                            :slynk-gray))))
