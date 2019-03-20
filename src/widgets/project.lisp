@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/project
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:get-external-url
                 #:get-description
                 #:get-versions
                 #:enable-project
@@ -75,6 +76,7 @@
   (let* ((actions (get-project-actions project))
          (versions (get-versions project))
          (description (get-description project))
+         (url (get-external-url project))
          (next-check-at (get-time-of-the-next-check project))
          (checks (get-project-checks project :pending t))
          (current-user-is-moderator
@@ -107,6 +109,8 @@
                                    "You are not a moderator of this project")))
       (:h2 :class "project-description"
            description)
+      (:p (:a :href url
+              "View project on GitHub"))
       
       (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
                                                                :at next-check-at)

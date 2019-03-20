@@ -5,7 +5,6 @@
   (:import-from #:ultralisp/models/project
                 #:get-url
                 #:get-name
-                #:get-github-url
                 #:get-description)
   (:export
    #:render))

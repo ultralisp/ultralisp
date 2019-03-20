@@ -5,14 +5,22 @@
 0.4.3 (2019-03-20)
 ==================
 
+Changes
+-------
+
 * Now disabled project will be checked by cron too. Except those project
   which were disabled manually by user.
+
+Improvements
+------------
+
 * Added a helper function ``find-projects-with-conflicting-systems``
   which can be called manually after the import from the Quicklisp to
   detect conflicts in system's names.
 
   We'll need to automate this in regular checks and disable projects
   which introduce conflicts.
+* Added a link to GitHub page on each project's page. This closes issue #7.
 
 0.4.2 (2019-03-19)
 ==================

@@ -56,7 +56,6 @@
    #:get-all-projects
    #:get-description
    #:get-url
-   #:get-github-url
    #:get-name
    #:project
    #:get-source
@@ -80,7 +79,8 @@
    #:get-systems-info
    #:get-release-info
    #:get-disable-reason
-   #:find-projects-with-conflicting-systems))
+   #:find-projects-with-conflicting-systems
+   #:get-external-url))
 (in-package ultralisp/models/project)
 
 
@@ -253,7 +253,10 @@
             name)))
 
 
-(defun get-github-url (project)
+(defun get-external-url (project)
+  ;; TODO: after support of different sources,
+  ;;       we need to abstract this function and make
+  ;;       it work with any type of project.
   (let* ((params (get-params project))
          (user-name (getf params :user-or-org))
          (project-name (getf params :project)))
