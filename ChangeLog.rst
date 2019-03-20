@@ -14,8 +14,6 @@ Changes
   https://github.com/ultralisp/ultralisp/issues instead of
   https://github.com/ultralisp/ultralisp/issues/new to not require user
   to login into the GitHub. This partially closes issue #33.
-* Added a red ribbon "Fork me on GitHub" to the front page. This finally
-  closes issue #33.
 
 Improvements
 ------------
@@ -26,7 +24,14 @@ Improvements
 
   We'll need to automate this in regular checks and disable projects
   which introduce conflicts.
-* Added a link to GitHub page on each project's page. This closes issue #7.
+* Added a link to GitHub page on each project's page. This closes issue
+  #7.
+* Added a red ribbon "Fork me on GitHub" to the front page. This finally
+  closes issue #33.
+* Added a page with all project of a single author and links like:
+  https://ultralisp.org/projects/Hexstream/ should work.
+  Also, a title on the project name was modified and now includes a link
+  to all projects by the author.
 
 0.4.2 (2019-03-19)
 ==================

@@ -70,7 +70,7 @@
             (ultralisp/utils:format-timestamp (get-time obj)))))))
 
 
-(defun render-project (widget project project-name)
+(defun render-project (widget project author-name project-name)
   (check-type project ultralisp/models/project:project)
   
   (let* ((actions (get-project-actions project))
@@ -91,15 +91,21 @@
                           ;; We want last actions came first
                           :key #'mito:object-updated-at)))
     (setf (get-title)
-          (format nil "~A – ~A"
+          (format nil "~A/~A – ~A"
+                  author-name
                   project-name
                   description))
 
 
     (with-html
       ;; Show a list of versions where it was included
-      (:h1 :class "project-name"
-           project-name
+      (:h1 :class "full-name"
+           (:a :class "author-name"
+               :href (format nil "/projects/~A" author-name)
+               author-name)
+           "/"
+           (:span :class "project-name"
+                  project-name)
            (render-switch (is-enabled-p project)
                           (lambda (&rest args)
                             (declare (ignorable args))
@@ -127,7 +133,7 @@
     (let ((project (get-github-project user-or-org
                                        project-name)))
       (cond
-        (project (render-project widget project project-name))
+        (project (render-project widget project user-or-org project-name))
         (t (page-not-found))))))
 
 
@@ -136,8 +142,11 @@
    (list
     (weblocks-lass:make-dependency
       `((:and .widget .project)
-        (.project-name
-         :margin-bottom 0)
+        (.full-name
+         :margin-bottom 0
+         (.author-name
+          :color "black")
+         (.project-name :margin-right 0.5em))
         (.project-description
          :font-size 1.5em))))
    (call-next-method)))

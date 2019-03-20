@@ -25,6 +25,8 @@
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/project
                 #:make-project-widget)
+  (:import-from #:ultralisp/widgets/projects
+                #:make-author-projects-widget)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
 
@@ -40,8 +42,10 @@
    (make-repositories-widget))
   ("/versions/\\d+"
    (make-version-widget))
-  ("/projects/.*"
+  ("/projects/.*/.*"
    (make-project-widget))
+  ("/projects/.*"
+   (make-author-projects-widget))
   (t
    (page-not-found)))
 

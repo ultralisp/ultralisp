@@ -60,7 +60,7 @@ ultralisp :all :latest"
         ;;       to show all 1500 projects here.
         (when projects
           (:h5 "Projects")
-          (ultralisp/widgets/projects:render projects))))))
+          (ultralisp/widgets/projects:render-projects-list projects))))))
 
 
 (defun make-version-widget ()

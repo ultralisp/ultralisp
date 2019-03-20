@@ -80,7 +80,8 @@
    #:get-release-info
    #:get-disable-reason
    #:find-projects-with-conflicting-systems
-   #:get-external-url))
+   #:get-external-url
+   #:get-github-projects))
 (in-package ultralisp/models/project)
 
 

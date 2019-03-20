@@ -145,7 +145,7 @@ ultralisp :all :latest"
       (when pending-projects
         (:div :class "checks"
               (:h3 "Projects to be included in the next version")
-              (ultralisp/widgets/projects:render pending-projects)))
+              (ultralisp/widgets/projects:render-projects-list pending-projects)))
       (when latest-versions
         (:div :class "latest-builds"
               (:h3 "Latest builds")
