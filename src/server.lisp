@@ -184,7 +184,10 @@
            :href "/images/favicon.png")
     (:link :rel "apple-touch-icon"
            :type "image/png"
-           :href "/images/apple-touch-favicon.png")))
+           :href "/images/apple-touch-favicon.png")
+    ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
+    (:link :rel "stylesheet"
+           :href "https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.2/gh-fork-ribbon.min.css")))
 
 
 (defcached (get-num-projects :timeout (* 60 5)) ()

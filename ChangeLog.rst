@@ -13,7 +13,9 @@ Changes
 * "Leave feedback" url now leads to the
   https://github.com/ultralisp/ultralisp/issues instead of
   https://github.com/ultralisp/ultralisp/issues/new to not require user
-  to login into the GitHub.
+  to login into the GitHub. This partially closes issue #33.
+* Added a red ribbon "Fork me on GitHub" to the front page. This finally
+  closes issue #33.
 
 Improvements
 ------------

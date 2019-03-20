@@ -96,6 +96,13 @@
         (recent-projects (get-recent-projects))
         (pending-projects (get-projects-with-pending-checks)))
     (with-html
+      ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
+      (:a :class "github-fork-ribbon left-top"
+          :href "https://github.com/ultralisp/ultralisp"
+          :data-ribbon "Fork me on GitHub"
+          :title "Fork me on GitHub"
+          "Fork me on GitHub")
+
       (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
 
       (:h3 "How to add my own project?")
