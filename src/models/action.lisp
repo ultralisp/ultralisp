@@ -1,5 +1,9 @@
 (defpackage #:ultralisp/models/action
   (:use #:cl)
+  (:import-from #:sxql
+                #:order-by
+                #:limit
+                #:where)
   (:import-from #:ultralisp/models/project
                 #:project)
   (:import-from #:jonathan)
@@ -98,8 +102,9 @@
 (defun get-project-actions (project)
   (check-type project project)
   (upgrade-types
-   (mito:retrieve-dao 'base-action
-                      :project project)))
+   (mito:select-dao 'base-action
+     (where (:= :project project))
+     (order-by (:desc :created-at)))))
 
 
 (defun get-version-actions (version)

@@ -78,7 +78,8 @@
    #:get-reason
    #:make-github-project-from-url
    #:get-systems-info
-   #:get-release-info))
+   #:get-release-info
+   #:get-disable-reason))
 (in-package ultralisp/models/project)
 
 
@@ -516,6 +517,21 @@
     (save-dao project))
   
   (values project))
+
+
+(defun get-disable-reason (project)
+  (check-type project project)
+  (unless (is-enabled-p project)
+    (let* ((last-action (first (uiop:symbol-call :ultralisp/models/action
+                                                 :get-project-actions
+                                                 project)))
+           (params (when last-action
+                     (uiop:symbol-call :ultralisp/models/action
+                                       :get-params
+                                       last-action)))
+           (reason (getf params :reason)))
+      (when reason
+        (values (make-keyword (string-upcase reason)))))))
 
 
 (defun create-project-snapshort (project version)

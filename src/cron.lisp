@@ -3,6 +3,7 @@
   (:import-from #:cl-cron)
   (:import-from #:log4cl)
   (:import-from #:ultralisp/models/project
+                #:get-disable-reason
                 #:get-all-projects)
   (:import-from #:ultralisp/models/check
                 #:get-last-project-check
@@ -113,10 +114,12 @@
 
 (deftask create-cron-checks ()
   (loop with now = (now)
-        for project in (get-all-projects :only-enabled t)
+        for project in (get-all-projects)
         for time-for-check = (get-time-of-the-next-check project)
-        when (local-time:timestamp< time-for-check
-                                    now)
+        when (and (local-time:timestamp< time-for-check
+                                         now)
+                  (not (eql (get-disable-reason project)
+                            :manual)))
           do (log:info "Creating cron check for" project)
              (make-via-cron-check project)))
 

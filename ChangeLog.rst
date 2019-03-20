@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.4.3 (2019-03-20)
+==================
+
+* Now disabled project will be checked by cron too. Except those project
+  which were disabled manually by user.
+
 0.4.2 (2019-03-19)
 ==================
 

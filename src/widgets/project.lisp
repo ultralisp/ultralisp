@@ -52,7 +52,7 @@
   (check-type widget project)
   (check-type project ultralisp/models/project:project)
   (if (is-enabled-p project)
-      (disable-project project)
+      (disable-project project :reason :manual)
       (ultralisp/models/check:make-added-project-check project))
   (weblocks/widget:update widget))
 
