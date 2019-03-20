@@ -79,7 +79,8 @@
    #:make-github-project-from-url
    #:get-systems-info
    #:get-release-info
-   #:get-disable-reason))
+   #:get-disable-reason
+   #:find-projects-with-conflicting-systems))
 (in-package ultralisp/models/project)
 
 
@@ -586,3 +587,21 @@
                                                        :moderator moderator)
           collect project)))
 
+
+(defun find-projects-with-conflicting-systems ()
+  (loop with projects = (get-all-projects :only-enabled t)
+        with system->projects = nil
+        for project in projects
+        for systems = (get-systems-info project)
+        do (loop for system-info in systems
+                 for system-name = (make-keyword
+                                    (string-upcase
+                                     (quickdist:get-name system-info)))
+                 do (push project
+                          (getf system->projects
+                                system-name)))
+        finally (return
+                  (loop for (system-name projects) on system->projects by #'cddr
+                        when (> (length projects)
+                                1)
+                          appending (list system-name projects)))))
