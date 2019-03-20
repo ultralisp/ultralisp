@@ -2,7 +2,12 @@
  ChangeLog
 ===========
 
-0.4.3 (2019-03-20)
+0.5.1 (2019-03-20)
+==================
+
+* Fixed error with renamed ``render-projects-list``.
+
+0.5.0 (2019-03-20)
 ==================
 
 Changes

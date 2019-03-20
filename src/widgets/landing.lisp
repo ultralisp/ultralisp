@@ -161,7 +161,7 @@ ultralisp :all :latest"
 
       (when recent-projects
         (:h3 "Recently added projects")
-        (ultralisp/widgets/projects:render recent-projects)))))
+        (ultralisp/widgets/projects:render-projects-list recent-projects)))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))
