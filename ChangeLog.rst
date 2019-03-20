@@ -10,6 +10,10 @@ Changes
 
 * Now disabled project will be checked by cron too. Except those project
   which were disabled manually by user.
+* "Leave feedback" url now leads to the
+  https://github.com/ultralisp/ultralisp/issues instead of
+  https://github.com/ultralisp/ultralisp/issues/new to not require user
+  to login into the GitHub.
 
 Improvements
 ------------
