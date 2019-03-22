@@ -139,8 +139,16 @@ ultralisp :all :latest"
          (:li "Running tests for updated project and all dependent systems.")
          (:li ("[Add your feature request](~A) at the Github." issues-url)))
 
-        (:p ("Any help is appreciated. [Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
-             issues-url)))
+        (:h3 "How to help")
+        (:p "Any help is appreciated. You can:")
+        (:ul
+         (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
+               issues-url))
+         (:li "Suggest your own ideas.")
+         (:li (:p ("Become a sponsor on [Liberpay](https://en.liberapay.com/Ultralisp.org/donate) and donate money to support further development:"))
+              (:p (:a :class "button success"
+                      :href "https://en.liberapay.com/Ultralisp.org/donate"
+                      "Donate $$$")))))
 
       (when pending-projects
         (:div :class "checks"
