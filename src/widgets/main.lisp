@@ -27,6 +27,8 @@
                 #:make-project-widget)
   (:import-from #:ultralisp/widgets/projects
                 #:make-author-projects-widget)
+  (:import-from #:ultralisp/widgets/sponsors
+                #:make-sponsors-widget)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
 
@@ -40,6 +42,8 @@
    (make-logout-processor))
   ("/github"
    (make-repositories-widget))
+  ("/sponsors"
+   (make-sponsors-widget))
   ("/versions/\\d+"
    (make-version-widget))
   ("/projects/.*/.*"

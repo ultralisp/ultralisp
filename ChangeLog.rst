@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.5.3 (2019-03-24)
+==================
+
+* Added a /sponsors page and a link to a company at Patreon.
+  Thanks to Jean-Philippe Paradis for suggestion!
+
 0.5.2 (2019-03-22)
 ==================
 

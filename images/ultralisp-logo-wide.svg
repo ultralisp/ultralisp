@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   sodipodi:docname="ultralisp-logo-wide.svg"
+   inkscape:export-filename="/Users/art/projects/lisp/ultralisp/images/apple-touch-favicon.png"
+   inkscape:export-xdpi="7.23"
+   inkscape:export-ydpi="7.23">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.12374369"
+     inkscape:cx="1728.4144"
+     inkscape:cy="589.96709"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:snap-text-baseline="true"
+     inkscape:window-width="1276"
+     inkscape:window-height="755"
+     inkscape:window-x="0"
+     inkscape:window-y="1"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       position="169.98341,-0.53453907"
+       orientation="0,1"
+       id="guide19"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:124.49415588px;line-height:125%;font-family:Impact;-inkscape-font-specification:'Impact Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.1123538px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="41.364685"
+       y="171.89766"
+       id="text4508"><tspan
+         sodipodi:role="line"
+         id="tspan4506"
+         x="41.364685"
+         y="296.52655"
+         style="stroke-width:3.1123538px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.58333302px;line-height:125%;font-family:Impact;-inkscape-font-specification:'Impact Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="27.528759"
+       y="124.07661"
+       id="text4512"><tspan
+         sodipodi:role="line"
+         id="tspan4510"
+         x="27.528759"
+         y="134.67139"
+         style="stroke-width:0.26458332px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.58333302px;line-height:125%;font-family:Impact;-inkscape-font-specification:'Impact Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="55.859333"
+       y="124.61115"
+       id="text4516"><tspan
+         sodipodi:role="line"
+         id="tspan4514"
+         x="55.859333"
+         y="135.20593"
+         style="stroke-width:0.26458332px" /></text>
+    <path
+       style="fill:#0071d8;fill-rule:evenodd;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0.85308057"
+       d="M 100,297 C 198.86794,295.86795 200,97 200,97 200,97 185.52798,265.49624 100.91964,264.11607 16.311304,262.7359 0,97 0,97 0,97 0.13362762,296.86636 100,297 Z"
+       id="path4518"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cczcc" />
+    <path
+       style="fill:#0071d8;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 63.860332,235.57934 c 17.558366,2.0824 23.011463,-32.02504 39.444548,-47.07907 12.61891,27.53539 22.33831,48.99921 28.74658,47.01145 0,0 8.79791,-4.38027 12.95578,-23.61879 -17.29907,13.93477 -21.62626,-17.39768 -30.95152,-43.36604 -9.32527,-25.96837 -27.333692,-55.58433 -40.310057,-55.57262 -13.120714,0.0161 -16.220075,11.93085 -15.537773,26.42954 17.45193,-46.311756 30.805146,12.90407 31.960119,27.65877 1.154972,14.75469 -38.137097,66.54636 -26.307677,68.53676 z"
+       id="path4520"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccsczcczc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:143.00517273px;line-height:125%;font-family:Impact;-inkscape-font-specification:'Impact Bold';letter-spacing:0px;word-spacing:0px;fill:#0071d8;fill-opacity:0.85490197;stroke:none;stroke-width:3.57512879px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       x="255.85812"
+       y="233.30316"
+       id="text17"
+       transform="scale(0.7841213,1.2753129)"><tspan
+         sodipodi:role="line"
+         id="tspan15"
+         x="255.85812"
+         y="233.30316"
+         style="stroke-width:3.57512879px;fill:#0071d8;fill-opacity:0.85490197;">ltralisp.org</tspan></text>
+    <rect
+       style="opacity:0.4353448;fill:none;fill-opacity:0.85490196;fill-rule:nonzero;stroke:#000000;stroke-width:0.34115499;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect826"
+       width="1031.5238"
+       height="257.88095"
+       x="-167.82144"
+       y="79.285713" />
+  </g>
+</svg>
