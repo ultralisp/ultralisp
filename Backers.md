@@ -3,3 +3,4 @@ Here we list persons, who supports [the project at Patreon.com](https://www.patr
 ## Supporters
 
 * Fed Reggiardo
+* Eitaro Fukamachi
