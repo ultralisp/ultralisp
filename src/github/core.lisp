@@ -21,7 +21,7 @@
 
 (defun make-authentication-url ()
   (format nil
-          "https://github.com/login/oauth/authorize?client_id=~A&scope=write:repo_hook,read:org"
+          "https://github.com/login/oauth/authorize?client_id=~A&scope=public_repo,write:repo_hook,read:org"
           *client-id*))
 
 
