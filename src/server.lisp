@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
   (:import-from #:woo)
+  (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm/core)
   (:import-from #:log4cl-json)
@@ -322,12 +323,12 @@ arguments."
         (setf *uploader-type*
               uploader-type))))
   
-  (setf ultralisp/github/core:*client-id* (get-github-client-id))
-  (unless ultralisp/github/core:*client-id*
+  (setf weblocks-auth/github:*client-id* (get-github-client-id))
+  (unless weblocks-auth/github:*client-id*
     (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
   
-  (setf ultralisp/github/core:*secret* (get-github-secret))
-  (unless ultralisp/github/core:*secret*
+  (setf weblocks-auth/github:*secret* (get-github-secret))
+  (unless weblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
   
   (setf mailgun:*user-agent* (get-user-agent))

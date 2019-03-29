@@ -8,12 +8,3 @@
 (in-package ultralisp/models/user)
 
 
-(defclass user (user-with-email)
-  ()
-  (:metaclass mito:dao-table-class))
-
-
-(defun get-all-users ()
-  (mito:select-dao 'user))
-
-
