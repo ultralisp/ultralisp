@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.5.4 (2019-03-30)
+==================
+
+* Don't require access to private GitHub repositories.
+
 0.5.3 (2019-03-24)
 ==================
 
