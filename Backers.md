@@ -4,3 +4,4 @@ Here we list persons, who supports [the project at Patreon.com](https://www.patr
 
 * Fed Reggiardo
 * Eitaro Fukamachi
+* Pascal Bourguignon
