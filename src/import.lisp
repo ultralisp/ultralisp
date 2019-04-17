@@ -7,7 +7,7 @@
                 #:walk-directory)
   (:import-from #:ultralisp/models/project
                 #:make-github-project-from-url)
-  (:import-from #:mito-email-auth/models
+  (:import-from #:weblocks-auth/models
                 #:get-user-by-email)
   (:export
    #:main

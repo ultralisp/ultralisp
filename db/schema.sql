@@ -1,10 +1,12 @@
 CREATE TABLE "user" (
     "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "nickname" TEXT NOT NULL,
     "email" VARCHAR(255),
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ
 );
 CREATE UNIQUE INDEX "unique_user_email" ON "user" ("email");
+CREATE UNIQUE INDEX "unique_user_nickname" ON "user" ("nickname");
 
 CREATE TABLE "project" (
     "id" BIGSERIAL NOT NULL PRIMARY KEY,
@@ -80,8 +82,19 @@ CREATE TABLE "registration_code" (
     "updated_at" TIMESTAMPTZ
 );
 
+CREATE TABLE "social_profile" (
+    "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "user_id" BIGINT NOT NULL,
+    "service" TEXT NOT NULL,
+    "service_user_id" TEXT NOT NULL,
+    "metadata" JSONB NOT NULL,
+    "created_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX "unique_social_profile_user_id_service_service_user_id" ON "social_profile" ("user_id", "service", "service_user_id");
+
 CREATE TABLE IF NOT EXISTS "schema_migrations" (
     "version" VARCHAR(255) PRIMARY KEY,
     "applied_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO schema_migrations (version) VALUES ('20190303201154');
+INSERT INTO schema_migrations (version) VALUES ('20190417125802');

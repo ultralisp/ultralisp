@@ -10,9 +10,6 @@
                 #:get-html-tag
                 #:render
                 #:defwidget)
-  (:import-from #:ultralisp/github/core
-                #:make-authentication-url
-                #:get-oauth-token-by)
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:f-underscore
@@ -33,10 +30,8 @@
                 #:in-readtable)
   (:import-from #:cl-arrows
                 #:->)
-  (:import-from #:mito-email-auth/weblocks
-                #:get-current-user)
-  (:import-from #:mito-email-auth/models
-                #:anonymous-p)
+  (:import-from #:weblocks-auth/github
+                #:get-scopes)
   (:import-from #:quri
                 #:url-encode)
   (:import-from #:ultralisp/db
@@ -49,6 +44,8 @@
                 #:render-form-and-button)
   (:import-from #:ultralisp/widgets/utils
                 #:render-switch)
+  (:import-from #:weblocks/response
+                #:add-retpath-to)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -124,7 +121,7 @@
 (defwidget repositories ()
   ((oauth-token :initform nil
                 :reader get-oauth-token)
-   (state :initform :waiting-for-authentication
+   (state :initform :checking-scopes
           :reader get-state)
    (thread :initform nil)
    (repositories :initform nil
@@ -223,63 +220,69 @@
            :name "searching-for-repositories"))))
 
 
+(defun render-url-input (widget)
+  (with-html
+    (:p "or insert a project's URL:")
+
+    (weblocks-ui/form:with-html-form
+        (:post
+         (lambda (&key url &allow-other-keys)
+           (log:info "CATCHED ARGS" url)
+           (handler-case
+               (let* ((project (make-github-project-from-url url))
+                      (project-url (ultralisp/models/project:get-url project)))
+                 (weblocks/response:redirect project-url))
+             (unable-to-create-project (condition)
+               (let ((reason (get-reason condition)))
+                 (log:error "Setting the reason"
+                            (get-reason condition))
+                 (setf (get-url-form-error widget)
+                       reason)
+                 (update widget))))))
+      (:table :class "url-frame"
+              (:tr :style "vertical-align: top"
+               (:td
+                (:input :type "text"
+                        :name "url")
+                (if (get-url-form-error widget)
+                    (:p :class "label alert"
+                        (get-url-form-error widget))
+                    ;; Otherwise, just show a note about webhooks
+                    (:p :class "label secondary"
+                        "But this way a project we'll not be able to setup a webhook and project will be updated only by cron.")))
+               (:td
+                (weblocks-ui/form:render-button
+                 "Add"
+                 :class "button")))))))
+
+
 (defgeneric render-with-state (widget state)
-  (:method ((state (eql :waiting-for-authentication)) (widget repositories))
-    (let* ((code (weblocks/request:get-parameter "code"))
-           (token (when code
-                    (get-oauth-token-by code))))
+  (:method ((state (eql :checking-scopes)) (widget repositories))
+    (let* ((token (weblocks-auth/github:get-token))
+           (user (weblocks-auth/models:get-current-user))
+           (scopes (get-scopes))
+           (has-required-scope (member "public_repo" scopes
+                                       :test 'string-equal)))
       (cond
-        (token
+        ((and token has-required-scope)
          (set-oauth-token widget token)
          (render widget))
-        ((or (null ultralisp/github/core:*client-id*)
-             (null ultralisp/github/core:*secret*))
-         (weblocks/html:with-html
-           (:p "Please set ultralisp/github/core:*client-id* and ultralisp/github/core:*secret*:")
-           (:pre "\(setf ultralisp/github/core:*client-id* \"0bc*************\"
-      ultralisp/github/core:*secret* \"3f46**************************\"\)
-")))
-        ((anonymous-p (get-current-user))
-         (let ((url (url-encode (weblocks/request:get-uri))))
-           (weblocks/html:with-html
-             (:p "Please login to add GitHub repositories to Ultralisp.")
-             (:p (:a :href #?"/login?retpath=${url}"
-                     :class "button"
-                     "Log in")))))
+        
         (t (weblocks/html:with-html
-             (:p "Please authenticate in GitHub to plug your repositories into Ultralisp.")
-             (:p (:a :href (make-authentication-url)
-                     :class "button"
-                     "Authenticate with Github"))
-
-             (:p "or insert a project's URL:")
-             (weblocks-ui/form:with-html-form
-                 (:post
-                  (lambda (&key url &allow-other-keys)
-                    (log:info "CATCHED ARGS" url)
-                    (handler-case
-                        (let* ((project (make-github-project-from-url url))
-                               (project-url (ultralisp/models/project:get-url project)))
-                          (weblocks/response:redirect project-url))
-                      (unable-to-create-project (condition)
-                        (let ((reason (get-reason condition)))
-                          (log:error "Setting the reason"
-                                     (get-reason condition))
-                          (setf (get-url-form-error widget)
-                                reason)
-                          (update widget))))))
-               (:table :class "url-frame"
-                       (:tr
-                        (:td
-                         (:input :type "text"
-                                 :name "url"))
-                        (:td
-                         (weblocks-ui/form:render-button
-                          "Add"
-                          :class "button")))
-                       (when (get-url-form-error widget)
-                         (:tr (:td :colspan 2
-                                   (get-url-form-error widget)))))))))))
+             (cond (user
+                    (:p "To show all your public repositories, we need additional permissions from GitHub."
+                        (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
+                               (weblocks-auth/github:render-button
+                                :scopes (list* "public_repo"
+                                               weblocks-auth/github:*default-scopes*))))
+                    (render-url-input widget))
+                   (t
+                    (:p "To be able to add your public repositories, you need to login using GitHub."
+                        (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
+                               (weblocks-auth/github:render-button
+                                :text "Login"
+                                :scopes (list* "public_repo"
+                                               weblocks-auth/github:*default-scopes*)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
     (weblocks/html:with-html
@@ -310,12 +313,14 @@
              for fork = (is-fork-p repository-widget)
              do (when (or (show-forks-p widget)
                           (not fork))
-                  (render repository-widget))))))
+                  (render repository-widget))))
+      ;; Alternative method of adding project
+      (render-url-input widget)))
   
   
   (:method ((state t) (widget repositories))
     (weblocks/html:with-html
-      (:p "This state is not supported yet."))))
+      (:p ("State \"~A\" is not supported yet." state)))))
 
 
 (defmethod render ((widget repositories))

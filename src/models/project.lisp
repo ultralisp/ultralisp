@@ -24,15 +24,13 @@
                 #:order-by
                 #:limit
                 #:where)
-  (:import-from #:mito-email-auth/weblocks
+  (:import-from #:weblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/db
                 #:with-transaction)
   (:import-from #:ultralisp/utils
                 #:update-plist
                 #:make-update-diff)
-  (:import-from #:ultralisp/models/user
-                #:get-all-users)
   (:import-from #:ultralisp/models/version
                 #:get-number
                 #:version)
@@ -212,13 +210,13 @@
                        ;; Jonathan for some reason is unable to work with
                        ;; `base-string' type, returned by database
                        (coerce text 'simple-base-string))))
-   (systems-info :col-type (:jsonb)
+   (systems-info :col-type (or :jsonb :null)
                  :documentation "Contains a list of lists describing systems same way as quickdist returns."
                  :initform nil
                  :accessor get-systems-info
                  :deflate #'systems-info-to-json
                  :inflate #'systems-info-from-json)
-   (release-info :col-type (:jsonb)
+   (release-info :col-type (or :jsonb :null)
                  :documentation ""
                  :initform nil
                  :accessor get-release-info
@@ -579,17 +577,6 @@
   (check-type project-version project-version)
   (mito:find-dao 'project
                  :name (get-name project-version)))
-
-
-(defun add-github-projects (names)
-  "Adds a number of github project into the database.
-
-   Here `names' is a list of string like \"40ants/cl-info\"."
-  (let ((moderator (first (get-all-users))))
-    (loop for name in names
-          for project = (add-or-turn-on-github-project name
-                                                       :moderator moderator)
-          collect project)))
 
 
 (defun find-projects-with-conflicting-systems ()

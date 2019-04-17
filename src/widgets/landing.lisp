@@ -91,7 +91,7 @@
 (defmethod render ((widget landing-widget))
   (setf (get-title)
         "Ultralisp - Fast Common Lisp Repository")
-  
+
   (let ((latest-versions (get-latest-versions))
         (recent-projects (get-recent-projects))
         (pending-projects (get-projects-with-pending-checks)))

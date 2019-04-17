@@ -5,7 +5,6 @@
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm/core)
   (:import-from #:log4cl-json)
-  (:import-from #:ultralisp/github/core)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
@@ -45,8 +44,6 @@
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
-  (:import-from #:ultralisp/models/user
-                #:user)
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/mail
                 #:send-login-code)
@@ -298,12 +295,6 @@ arguments."
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
 
-  (setf mito-email-auth/models:*user-class*
-        'user)
-  
-  (setf mito-email-auth/models:*send-code-callback*
-        'send-login-code)
-
   (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*
     (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
@@ -330,9 +321,8 @@ arguments."
   (setf weblocks-auth/github:*secret* (get-github-secret))
   (unless weblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
-  
-  (setf mailgun:*user-agent* (get-user-agent))
 
+  (setf mailgun:*user-agent* (get-user-agent))
   
   (setf *cache-remote-dependencies-in*
         ;; TODO: make configurable
