@@ -22,6 +22,7 @@ services:
       - ./db/:/app/db/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
+      - ./new-libs/:/app/new-libs/
       - ./build/:/app/build/
     depends_on:
       - postgres
@@ -58,6 +59,7 @@ services:
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/
       - ./logs/:/app/logs/
+      - ./new-libs/:/app/new-libs/
       - ./build/:/app/build/
     depends_on:
       - postgres

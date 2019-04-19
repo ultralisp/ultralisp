@@ -1,7 +1,8 @@
 (defpackage #:ultralisp/models/moderator
   (:use #:cl)
-  (:import-from #:ultralisp/models/user
-                #:user)
+  (:import-from #:weblocks-auth/models
+                #:user
+                #:get-email)
   (:import-from #:ultralisp/models/project
                 #:project)
   (:import-from #:mito
@@ -26,7 +27,7 @@
 (defmethod print-object ((obj moderator) stream)
   (print-unreadable-object (obj stream :type t)
     (format stream "user=~A project=~A"
-            (mito-email-auth/models:get-email
+            (get-email
              (get-user obj))
             (ultralisp/models/project:get-name
              (get-project obj)))))

@@ -21,7 +21,7 @@
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/utils
                 #:render-switch)
-  (:import-from #:mito-email-auth/weblocks
+  (:import-from #:weblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/moderator
                 #:is-moderator-p)

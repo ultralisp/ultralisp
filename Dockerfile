@@ -9,6 +9,7 @@ RUN apt-get update && \
     apt-get install -y \
             python-pip \
             silversearcher-ag \
+            lsof \
             postgresql-client && \
     pip install jsail dumb-init
 

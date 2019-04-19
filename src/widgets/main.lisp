@@ -14,7 +14,7 @@
                 #:make-version-widget)
   (:import-from #:ultralisp/widgets/landing
                 #:make-landing-widget)
-  (:import-from #:mito-email-auth/weblocks
+  (:import-from #:weblocks-auth/core
                 #:make-logout-processor
                 #:make-login-processor)
   (:import-from #:ultralisp/widgets/login-menu

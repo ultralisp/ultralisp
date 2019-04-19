@@ -1,10 +1,10 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
   (:import-from #:woo)
+  (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/lfarm/core)
   (:import-from #:log4cl-json)
-  (:import-from #:ultralisp/github/core)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
@@ -44,8 +44,6 @@
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
-  (:import-from #:ultralisp/models/user
-                #:user)
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/mail
                 #:send-login-code)
@@ -297,12 +295,6 @@ arguments."
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
 
-  (setf mito-email-auth/models:*user-class*
-        'user)
-  
-  (setf mito-email-auth/models:*send-code-callback*
-        'send-login-code)
-
   (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*
     (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
@@ -322,16 +314,15 @@ arguments."
         (setf *uploader-type*
               uploader-type))))
   
-  (setf ultralisp/github/core:*client-id* (get-github-client-id))
-  (unless ultralisp/github/core:*client-id*
+  (setf weblocks-auth/github:*client-id* (get-github-client-id))
+  (unless weblocks-auth/github:*client-id*
     (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
   
-  (setf ultralisp/github/core:*secret* (get-github-secret))
-  (unless ultralisp/github/core:*secret*
+  (setf weblocks-auth/github:*secret* (get-github-secret))
+  (unless weblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
-  
-  (setf mailgun:*user-agent* (get-user-agent))
 
+  (setf mailgun:*user-agent* (get-user-agent))
   
   (setf *cache-remote-dependencies-in*
         ;; TODO: make configurable

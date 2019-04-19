@@ -17,7 +17,6 @@ ultralisp :all :latest
 # TODO: Move these dependencies to ultralisp in future
 
 # github mailgun 40ants/mailgun :tag v0.1.2
-# github mito-email-auth 40ants/mito-email-auth :tag v0.1.2
 # github link-header 40ants/cl-link-header :tag v0.1.1
 
 
