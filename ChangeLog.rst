@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.6.0 (2019-04-19)
+==================
+
+* Authentication was refactored and now it use GitHub instead of
+  codes, sent by email. But this is temprorary and more identity
+  providers will be supported in future. To add them, we need to
+  extend a ``weblocks-auth`` library.
+
 0.5.4 (2019-03-30)
 ==================
 
