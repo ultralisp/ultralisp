@@ -1,4 +1,7 @@
-ALTER TABLE "user" ADD COLUMN "nickname" text NOT NULL;
+ALTER TABLE "user" ADD COLUMN "nickname" text;
+UPDATE "user" SET nickname = email;
+ALTER TABLE "user" ALTER COLUMN nickname SET NOT NULL;
+
 CREATE UNIQUE INDEX "unique_user_nickname" ON "user" ("nickname");
 
 CREATE TABLE "social_profile" (
