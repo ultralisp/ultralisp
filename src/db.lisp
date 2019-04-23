@@ -75,6 +75,16 @@
             (with-transaction
               ,@body)
          (unless (and ,is-cached was-cached)
+           ;; We don't want to close nested cached connections
+           ;; because they should be closed only on upper level
+           ;; Here is a state table showing in which cases connect
+           ;; will be closed:
+           ;; | top connect | nested connect | close top | close nested |
+           ;; | cached?     | cached?        | connect?  | connect?     |
+           ;; |-------------+----------------+-----------+--------------|
+           ;; | nil         | nil            | t         | t            |
+           ;; | nil         | t              | t         | t            |
+           ;; | t           | t              | t         | nil          |
            (cl-dbi:disconnect mito:*connection*))))))
 
 
