@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.7.0 (2019-05-03)
+==================
+
+* Added support for prometheus /metrics handle with basic metrics about SBCL's
+  state and Ultralisp's entities.
+
 0.6.0 (2019-04-19)
 ==================
 
