@@ -1,7 +1,10 @@
 (defpackage #:ultralisp-test/github/webhook
   (:use #:cl
-        #:rove
-        #:hamcrest/rove)
+        #:rove)
+  (:import-from #:hamcrest/rove
+                #:assert-that
+                #:contains
+                #:has-type)
   (:import-from #:ultralisp-test/utils
                 #:with-test-db)
   (:import-from #:ultralisp/models/project

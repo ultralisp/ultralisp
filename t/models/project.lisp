@@ -1,7 +1,10 @@
 (defpackage #:ultralisp-test/models/project
   (:use #:cl
-        #:rove
-        #:hamcrest/rove)
+        #:rove)
+  (:import-from #:hamcrest/rove
+                #:assert-that
+                #:contains
+                #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
                 #:with-test-db

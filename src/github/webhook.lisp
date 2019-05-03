@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/github/webhook
   (:use #:cl)
-  
+
+  (:import-from #:weblocks/session)
   (:import-from #:ultralisp/builder)
   (:import-from #:chanl)
   (:import-from #:ultralisp/uploader/base)
@@ -185,6 +186,9 @@
   "Returns a robots of the site."
   (let* ((body (getf env :body-parameters)))
     (log:debug "New payload received" body)
+
+    ;; This is API, we don't want to keep any sessions here
+    (weblocks/session:expire)
 
     ;; Github may send us a json payload or x-ww-form-urlencoded
     ;; in first case, body contains already parsed json. In second -

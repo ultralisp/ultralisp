@@ -21,3 +21,6 @@
   :perform (compile-op :before (o c)
                        #+ros.installing
                        (roswell:roswell '("install" "40ants/defmain"))))
+
+(register-system-packages "prometheus.collectors.sbcl" '(#:prometheus.sbcl))
+(register-system-packages "prometheus.collectors.process" '(#:prometheus.process))

@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/lfarm/command
   (:use #:cl)
   (:import-from #:serapeum)
+  (:import-from #:ultralisp/slynk)
   (:import-from #:cl-strings
                 #:starts-with)
   (:import-from #:log4cl-json

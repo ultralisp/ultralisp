@@ -3,10 +3,13 @@ dist ultralisp http://dist.ultralisp.org/
 ql :all :latest
 ultralisp :all :latest
 
+# Temporary, just to check if changes compile
+# github weblocks 40ants/weblocks :branch better-session-handling
+
+
 #github defmain 40ants/defmain
 
 # github log4cl-json 40ants/log4cl-json :tag v0.3.0
-# github weblocks 40ants/weblocks :branch reblocks
 # github weblocks-navigation-widget 40ants/weblocks-navigation-widget :branch master
 
 #github weblocks-ui 40ants/weblocks-ui :tag v0.7.1

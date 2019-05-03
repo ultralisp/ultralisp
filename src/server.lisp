@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
@@ -41,6 +42,11 @@
                 #:migrate)
   (:import-from #:ultralisp/github/webhook
                 #:make-webhook-route)
+  (:import-from #:ultralisp/stats
+                #:add-gauge
+                #:make-stats-route
+                #:initialize-metrics
+                #:add-counter)
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
@@ -224,8 +230,25 @@
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
-  
+
   (make-webhook-route)
+
+  (initialize-metrics)
+  (add-counter :checks-processed "A number of processed checks")
+  (add-counter :checks-failed "A number of failed checks")
+  (add-counter :projects-updated "A number of projects, updated after the check")
+  
+  (add-gauge :projects-count "A number of projects"
+             'ultralisp/metrics:get-number-of-projects)
+  (add-gauge :disabled-projects-count "A number of disabled projects"
+             'ultralisp/metrics:get-number-of-disabled-projects)
+  (add-gauge :versions-count "A number of Ultralisp versions"
+             'ultralisp/metrics:get-number-of-versions)
+  (add-gauge :users-count "A number of users"
+             'ultralisp/metrics:get-number-of-users)
+  (add-gauge :pending-checks-count "A number of not processed checks"
+             'ultralisp/metrics:get-pending-checks-count)
+  
   (ultralisp/file-server:make-route (get-dist-dir)
                                     "/dist/")
   (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"

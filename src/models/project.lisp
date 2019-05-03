@@ -48,6 +48,8 @@
                 #:get-project-name)
   (:import-from #:ultralisp/lfarm/command
                 #:defcommand)
+  (:import-from #:ultralisp/stats
+                #:increment-counter)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -482,6 +484,8 @@
     (when (or diff
               force)
       (log:info "Updating the project and creating actions" project data force)
+
+      (increment-counter :projects-updated)
       
       (cond
         ((is-enabled-p project)
