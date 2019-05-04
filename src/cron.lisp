@@ -129,6 +129,10 @@
         collect key))
 
 
+(defvar *stopped* nil
+  "This flag will be set by `stop' function to true and used by `setup' to not recreate cron jobs on server restart if they were stopeed manually.")
+
+
 (defun delete-all-cron-jobs ()
   (loop for key in (list-cron-jobs)
         do (cl-cron:delete-cron-job key)))
@@ -151,16 +155,23 @@
                          :step-min 15))
 
 
-(defun start ()
+(defun start (&key force)
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
-  (log:debug "Starting cron thread")
-  (cl-cron:start-cron))
+  (cond
+    ((and *stopped*
+          (not force))
+     (log:warn "Cron was stopped manually, add :force t to start it agaun"))
+    (t 
+     (log:debug "Starting cron thread")
+     (cl-cron:start-cron)
+     (setf *stopped* nil))))
 
 
 (defun stop ()
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Stopping cron thread")
-  (cl-cron:stop-cron))
+  (cl-cron:stop-cron)
+  (setf *stopped* t))
 
 
 ;; Here we patch this function and replace it because

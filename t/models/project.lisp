@@ -1,10 +1,14 @@
 (defpackage #:ultralisp-test/models/project
   (:use #:cl
-        #:rove
-        #:hamcrest/rove)
+        #:rove)
+  (:import-from #:hamcrest/rove
+                #:assert-that
+                #:contains
+                #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
                 #:with-test-db
+                #:with-metrics
                 #:with-login)
   (:import-from #:ultralisp/models/action
                 #:project-added
@@ -42,47 +46,49 @@
 
 (deftest test-update-and-enable-when-project-is-enabled-and-there-was-an-update
   (with-test-db
-    (testing "When project already enabled we need to create project-updated action."
-      (let ((project (make-github-project "40ants" "defmain")))
-        (setf (is-enabled-p project)
-              t
-              (get-last-seen-commit project)
-              "1234")
-        ;; Now we emulate a situation when project's commit hash was changed
-        (update-and-enable-project project
-                                   (list :last-seen-commit "abcd"))
-        (let ((actions (get-project-actions project)))
-          (testing "Project-updated action should be created"
-            (assert-that actions
-                         (contains
-                          (has-type 'project-updated)))))
-        
-        (testing "Project parameters should be updated as well"
-          (ok (equal (get-last-seen-commit project)
-                     "abcd")))))))
+    (with-metrics
+      (testing "When project already enabled we need to create project-updated action."
+        (let ((project (make-github-project "40ants" "defmain")))
+          (setf (is-enabled-p project)
+                t
+                (get-last-seen-commit project)
+                "1234")
+          ;; Now we emulate a situation when project's commit hash was changed
+          (update-and-enable-project project
+                                     (list :last-seen-commit "abcd"))
+          (let ((actions (get-project-actions project)))
+            (testing "Project-updated action should be created"
+              (assert-that actions
+                           (contains
+                            (has-type 'project-updated)))))
+         
+          (testing "Project parameters should be updated as well"
+            (ok (equal (get-last-seen-commit project)
+                       "abcd"))))))))
 
 
 (deftest test-update-and-enable-when-project-is-disabled
   (with-test-db
-    (testing "When project is idsabled we need to create project-added action."
-      (let ((project (make-github-project "40ants" "defmain")))
-        ;; Now we emulate a situation when we checked the project
-        ;; and discovered it's commit hash 
-        (update-and-enable-project project
-                                   (list :last-seen-commit "abcd"))
-        
-        (testing "Project should be enabled now"
-          (ok (is-enabled-p project)))
-        
-        (let ((actions (get-project-actions project)))
-          (testing "Project-added action should be created"
-            (assert-that actions
-                         (contains
-                          (has-type 'project-added)))))
-        
-        (testing "Project parameters should be updated as well"
-          (ok (equal (get-last-seen-commit project)
-                     "abcd")))))))
+    (with-metrics
+      (testing "When project is disabled we need to create project-added action."
+        (let ((project (make-github-project "40ants" "defmain")))
+          ;; Now we emulate a situation when we checked the project
+          ;; and discovered it's commit hash 
+          (update-and-enable-project project
+                                     (list :last-seen-commit "abcd"))
+         
+          (testing "Project should be enabled now"
+            (ok (is-enabled-p project)))
+         
+          (let ((actions (get-project-actions project)))
+            (testing "Project-added action should be created"
+              (assert-that actions
+                           (contains
+                            (has-type 'project-added)))))
+         
+          (testing "Project parameters should be updated as well"
+            (ok (equal (get-last-seen-commit project)
+                       "abcd"))))))))
 
 
 (deftest test-update-and-enable-when-project-is-enabled-and-there-is-no-difference

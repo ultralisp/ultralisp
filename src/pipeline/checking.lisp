@@ -54,6 +54,8 @@
                 #:defcommand)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
+  (:import-from #:ultralisp/stats
+                #:increment-counter)
   (:export
    #:perform-pending-checks
    #:perform))
@@ -155,6 +157,9 @@
 
 (defcommand update-check-as-successful (check processed-in)
   (log:info "Updating check as successful" check)
+
+  (increment-counter :checks-processed)
+
   (setf (get-error check) nil
         (get-processed-at check) (local-time:now)
         (get-processed-in check) processed-in)
@@ -165,6 +170,9 @@
   (check-type check any-check)
   (check-type traceback string)
   (log:info "Updating check as failed" check)
+
+  (break)
+  (increment-counter :checks-failed)
   
   (let ((project (get-project check)))
     (log:error "Check failed, disabling project" project traceback)

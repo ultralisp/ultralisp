@@ -3,8 +3,10 @@
   (:import-from #:ultralisp/db)
   (:import-from #:weblocks-test/utils)
   (:import-from #:cl-dbi)
+  (:import-from #:ultralisp/metrics)
   (:export #:with-login
-           #:with-test-db))
+           #:with-test-db
+           #:with-metrics))
 (in-package ultralisp-test/utils)
 
 
@@ -32,3 +34,8 @@
        (setf (weblocks-auth/models:get-current-user)
              user)
        ,@body)))
+
+
+(defmacro with-metrics (&body body)
+  `(progn (ultralisp/metrics:initialize)
+          ,@body))

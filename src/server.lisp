@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
@@ -41,6 +42,7 @@
                 #:migrate)
   (:import-from #:ultralisp/github/webhook
                 #:make-webhook-route)
+  (:import-from #:ultralisp/metrics)
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
@@ -224,8 +226,11 @@
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
-  
+
   (make-webhook-route)
+
+  (ultralisp/metrics:initialize)
+  
   (ultralisp/file-server:make-route (get-dist-dir)
                                     "/dist/")
   (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"
