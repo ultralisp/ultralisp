@@ -1,5 +1,8 @@
 (defpackage #:ultralisp/metrics
   (:use #:cl)
+  (:import-from #:ultralisp/stats
+                #:add-counter
+                #:add-gauge)
   (:import-from #:ultralisp/models/project
                 #:project)
   (:import-from #:mito
@@ -17,7 +20,8 @@
    #:get-number-of-projects
    #:get-number-of-users
    #:get-number-of-versions
-   #:get-pending-checks-count))
+   #:get-pending-checks-count
+   #:initialize))
 (in-package ultralisp/metrics)
 
 
@@ -45,3 +49,25 @@
 ;; frequently
 (defcached (get-pending-checks-count :timeout 60) ()
   (count-dao 'base-check :processed-at :null))
+
+
+
+(defun initialize ()
+  (ultralisp/stats:initialize)
+  
+  (add-counter :checks-processed "A number of processed checks")
+  (add-counter :checks-failed "A number of failed checks")
+  (add-counter :projects-updated "A number of projects, updated after the check")
+
+  (add-gauge :projects-count "A number of projects"
+             'ultralisp/metrics:get-number-of-projects)
+  (add-gauge :disabled-projects-count "A number of disabled projects"
+             'ultralisp/metrics:get-number-of-disabled-projects)
+  (add-gauge :versions-count "A number of Ultralisp versions"
+             'ultralisp/metrics:get-number-of-versions)
+  (add-gauge :users-count "A number of users"
+             'ultralisp/metrics:get-number-of-users)
+  (add-gauge :pending-checks-count "A number of not processed checks"
+             'ultralisp/metrics:get-pending-checks-count)
+  
+  (values))

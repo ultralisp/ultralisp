@@ -3,8 +3,7 @@
   (:import-from #:ultralisp/db)
   (:import-from #:weblocks-test/utils)
   (:import-from #:cl-dbi)
-  (:import-from #:ultralisp/stats
-                #:initialize-metrics)
+  (:import-from #:ultralisp/metrics)
   (:export #:with-login
            #:with-test-db
            #:with-metrics))
@@ -38,5 +37,5 @@
 
 
 (defmacro with-metrics (&body body)
-  `(progn (initialize-metrics)
+  `(progn (ultralisp/metrics:initialize)
           ,@body))

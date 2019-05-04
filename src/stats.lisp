@@ -26,10 +26,10 @@
                 #:to-snake-case)
   (:export
    #:make-stats-route
-   #:initialize-metrics
    #:increment-counter
    #:add-counter
-   #:add-gauge))
+   #:add-gauge
+   #:initialize))
 (in-package ultralisp/stats)
 
 
@@ -75,7 +75,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call initialize-metrics before calling this function."))
+    (error "Please call ultralisp/stats:initialize before calling this function."))
   
   (setf (gethash name (get-counters *collector*))
         (prom:make-counter :name (to-snake-case (symbol-name name))
@@ -89,7 +89,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call initialize-metrics before calling this function."))
+    (error "Please call ultralisp/stats:initialize before calling this function."))
   
   (setf (gethash name (get-gauges *collector*))
         (cons (prom:make-gauge :name (to-snake-case (symbol-name name))
@@ -107,7 +107,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call initialize-metrics before calling this function."))
+    (error "Please call ultralisp/stats:initialize before calling this function."))
   
   (let ((counter (gethash name (get-counters *collector*))))
     (unless counter
@@ -118,7 +118,7 @@
                             :labels labels)))
 
 
-(defun initialize-metrics ()
+(defun initialize ()
   (unless *registry*
     (setf *registry* (make-registry))
     (setf *collector* (make-weblocks-stats *registry*))
