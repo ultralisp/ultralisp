@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/lfarm/command
+(defpackage #:ultralisp/rpc/command
   (:use #:cl)
   (:import-from #:serapeum)
   (:import-from #:ultralisp/slynk)
@@ -13,7 +13,7 @@
    #:submit-task-with-commands
    #:with-commands-processor
    #:task-with-commands))
-(in-package ultralisp/lfarm/command)
+(in-package ultralisp/rpc/command)
 
 
 (defparameter *catch-commands* nil)
@@ -91,21 +91,6 @@
           (let ((result (apply name args)))
             (cons result *catched*)))))))
 
-
-;; (defun submit-task-with-commands (name &rest args)
-;;   (log:info "Submitting task to remote machine")
-;;   (let* ((response
-;;            (apply #'submit-task 'ultralisp/lfarm/command::task-with-commands
-;;                   name
-;;                   args))
-;;          (result (car response))
-;;          (commands (cdr response)))
-;;     (loop for command in commands
-;;           for func-name = (car command)
-;;           for func-args = (cdr command)
-;;           do (apply func-name
-;;                     func-args))
-;;     result))
 
 
 (defmacro with-commands-processor (&body body)

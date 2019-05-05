@@ -1,11 +1,13 @@
 (defpackage #:ultralisp/variables
-  (:use #:cl))
+  (:use #:cl)
+  (:import-from #:function-cache
+                #:defcached))
 (in-package ultralisp/variables)
 
 
 (defmacro def-env-var (getter var-name &optional default)
   `(progn
-     (defun ,getter ()
+     (defcached ,getter ()
        "If `value' is not given, then tries to extract it from env variables or fall back to default."
        (or (uiop:getenv ,var-name)
            ,default))
@@ -57,8 +59,9 @@
   "POSTGRES_RO_PASS"
   "ultralisp_ro")
 
-(def-env-var get-lfarm-workers
-  "LFARM_WORKERS")
+(def-env-var get-gearman-server
+  "GEARMAN_SERVER"
+  "gearman:4730")
 
 (def-env-var get-github-client-id
   "GITHUB_CLIENT_ID")

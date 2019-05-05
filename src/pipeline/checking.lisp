@@ -1,8 +1,10 @@
 (defpackage #:ultralisp/pipeline/checking
   (:use #:cl)
   (:import-from #:ultralisp/models/action)
-  (:import-from #:ultralisp/lfarm/core
+  (:import-from #:ultralisp/rpc/core
                 #:submit-task)
+  (:import-from #:ultralisp/rpc/command
+                #:defcommand)
   (:import-from #:ultralisp/models/project
                 #:update-and-enable-project
                 #:get-name
@@ -50,8 +52,6 @@
                 #:upload)
   (:import-from #:uiop
                 #:delete-directory-tree)
-  (:import-from #:ultralisp/lfarm/command
-                #:defcommand)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
   (:import-from #:ultralisp/stats
@@ -60,15 +60,6 @@
    #:perform-pending-checks
    #:perform))
 (in-package ultralisp/pipeline/checking)
-
-
-(defvar *check* nil)
-
-(defun catch-check (check)
-  ;; FOR DEBUG
-  (setf *check* check)
-  (setf ultralisp/lfarm/core::*after-last-task* nil)
-  :catched)
 
 
 (defun perform-pending-checks (&key force)
@@ -101,14 +92,14 @@
                       downloaded-params)))
 
 
-(ultralisp/lfarm/command:defcommand save-project-systems (project systems)
+(defcommand save-project-systems (project systems)
   (log:info "Saving systems for" project)
   (setf (get-systems-info project)
         systems)
   (save-dao project))
 
 
-(ultralisp/lfarm/command:defcommand save-release-info (project release-info)
+(defcommand save-release-info (project release-info)
   (log:info "Saving release info for" project)
   (setf (get-release-info project)
         release-info)

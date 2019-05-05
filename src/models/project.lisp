@@ -46,7 +46,7 @@
                 #:get-archive-path
                 #:get-project-url
                 #:get-project-name)
-  (:import-from #:ultralisp/lfarm/command
+  (:import-from #:ultralisp/rpc/command
                 #:defcommand)
   (:import-from #:ultralisp/stats
                 #:increment-counter)

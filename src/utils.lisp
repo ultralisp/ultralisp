@@ -32,7 +32,6 @@
    #:ensure-existing-file
    #:path-to-string
    #:make-request-id
-   #:parse-workers-hosts
    #:make-update-diff
    #:update-plist
    #:format-timestamp
@@ -125,21 +124,6 @@
 (defun make-request-id ()
   "Makes unique request-id for usage in logs."
   (uuid:print-bytes nil (make-v4-uuid)))
-
-
-(defun parse-workers-hosts (string)
-  "Parses comma-separated string like that:
-
-   localhost:10100,localhost:10101
-
-   And returns a list:
-
-   '((\"localhost\" 10100)
-     (\"localhost\" 10101))
-"
-  (loop for item in (split string ",")
-        for (host port) = (split item ":")
-        collect (list host (parse-integer port))))
 
 
 (defun make-update-diff (data update)

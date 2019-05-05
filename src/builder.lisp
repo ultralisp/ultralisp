@@ -34,8 +34,7 @@
                 #:get-base-url
                 #:get-dist-name
                 #:get-projects-dir)
-  (:import-from #:ultralisp/lfarm/core
-                #:submit-task)
+  
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/models/project
@@ -368,13 +367,3 @@
              :projects-dir projects-dir
              :dists-dir dist-dir
              :version (get-new-version-number)))
-
-
-(ultralisp/lfarm/command:defcommand say-hello (name)
-  (log:info "Hello" name))
-
-
-(defun foo-task (the-arg)
-  (say-hello "Petya")
-  (say-hello "Masha")
-  (list :bar the-arg))

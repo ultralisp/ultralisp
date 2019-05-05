@@ -4,7 +4,6 @@
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
-  (:import-from #:ultralisp/lfarm/core)
   (:import-from #:log4cl-json)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
@@ -35,7 +34,6 @@
   (:import-from #:ultralisp/widgets/main
                 #:make-main-widget)
   (:import-from #:ultralisp/utils
-                #:parse-workers-hosts
                 #:getenv)
   (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/models/migration
@@ -75,8 +73,7 @@
                 #:get-mailgun-api-key
                 #:get-github-client-id
                 #:get-github-secret
-                #:get-uploader-type
-                #:get-lfarm-workers)
+                #:get-uploader-type)
   (:import-from #:function-cache
                 #:defcached)
   (:import-from #:ultralisp/models/project
@@ -288,15 +285,13 @@
    server with same arguments.")
 
 
-(defun start (&rest args &key lfarm-workers &allow-other-keys)
+(defun start (&rest args)
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
   (log:info "Starting ultralisp" args)
 
   (setf *previous-args* args)
   
-  (remove-from-plistf args :lfarm-workers)
-
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
 
@@ -334,17 +329,6 @@ arguments."
         #P"/tmp/weblocks-cache/ultralisp/")
   (setf (get-language)
         "en")
-
-  (let ((lfarm-servers (or lfarm-workers
-                           (parse-workers-hosts
-                            (get-lfarm-workers)))))
-    (when lfarm-servers
-      (bordeaux-threads:make-thread
-       (lambda ()
-         (log:info "Connecting lfarm workers" lfarm-servers)
-         (ultralisp/lfarm/core:connect-to-servers :servers lfarm-servers)
-         (log:info "Connected to lfarm workers"))
-       :name "Connecting to lfarm workers")))
 
   (log:info "Starting cron jobs")
   (ultralisp/cron:setup)
@@ -405,9 +389,7 @@ arguments."
               port)
       (start :port port
              :interface interface
-             :debug debug
-             :lfarm-workers (when workers
-                              (parse-workers-hosts workers))))
+             :debug debug))
 
     (format t "To start HTTP server:~%")
     (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
@@ -421,3 +403,25 @@ arguments."
     do (sleep 60))
   
   (format t "Exiting. Why? I don't know! This should never happen~%"))
+
+
+(defun serialize (object)
+  (base64:usb8-array-to-base64-string
+   (flex:with-output-to-sequence (stream)
+     (cl-store:store object stream))))
+
+(defun deserialize (base64-string)
+  (flex:with-input-from-sequence
+      (stream (base64:base64-string-to-usb8-array base64-string))
+    (cl-store:restore stream)))
+
+
+(defun test-gearman (arg)
+  (let ((returned-value nil))
+    (cl-gearman:with-client (client "gearman:4730")
+      (log:info "Submitting job")
+      (let* ((raw-result (cl-gearman:submit-job client "upcase" :arg (serialize arg)))
+             (result (deserialize raw-result)))
+        (log:info "Result received" result)
+        (setf returned-value result)))
+    returned-value))
