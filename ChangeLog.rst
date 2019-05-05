@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.8.0 (2019-05-05)
+==================
+
+* Using gearman instead of lfarm, for remote task execution.
+
 0.7.1 (2019-05-05)
 ==================
 
