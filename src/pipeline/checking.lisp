@@ -171,7 +171,6 @@
   (check-type traceback string)
   (log:info "Updating check as failed" check)
 
-  (break)
   (increment-counter :checks-failed)
   
   (let ((project (get-project check)))

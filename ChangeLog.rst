@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.7.1 (2019-05-05)
+==================
+
+* Removed ``(break)`` causing server restarts from time to time.
+
 0.7.0 (2019-05-03)
 ==================
 
