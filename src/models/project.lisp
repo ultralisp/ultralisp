@@ -477,7 +477,6 @@
 
 
 (defcommand update-and-enable-project (project data &key force)
-  ;; TODO: remove after the new checking will be done
   (let* ((params (get-params project))
          (diff (make-update-diff params
                                  data)))

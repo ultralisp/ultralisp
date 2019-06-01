@@ -62,11 +62,16 @@
 (in-package ultralisp/pipeline/checking)
 
 
-(defun perform-pending-checks (&key force)
+(defun perform-pending-checks (&key (force nil force-p))
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (with-lock ("performing-pending-checks-or-version-build")
-    (let ((checks (get-pending-checks)))
+    (let ((checks (get-pending-checks))
+          ;; we need this to not pass :force argument
+          ;; if it is default, because 'peform function
+          ;; chooses default value depending on check's type
+          (perform-params (when force-p
+                            (list :force force))))
       (loop for check in checks
             ;; Here we need to establish a connection
             ;; to process each check in a separate transaction.
@@ -77,9 +82,10 @@
                   (with-connection (:cached nil)
                     (log4cl-json:with-fields (:check-id (mito:object-id check))
                       (log:info "Submitting check to remote worker")
-                      (submit-task 'perform
-                                   check
-                                   :force force))))))
+                      (apply 'submit-task
+                             'perform
+                             check
+                             perform-params))))))
       (length checks))))
 
 
@@ -175,7 +181,8 @@
                      :traceback traceback)))
 
 
-(defun perform (check &key force)
+(defun perform (check &key (force (eql (ultralisp/models/check:get-type check)
+                                       :added-project)))
   (let ((started-at (get-internal-real-time)))
     (handler-bind ((error (lambda (condition)
                             (update-check-as-failed check
