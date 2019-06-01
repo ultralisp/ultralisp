@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.8.1 (2019-05-21)
+==================
+
+* Fixed error prevented enabling a project after it was disabled.
+
 0.8.0 (2019-05-05)
 ==================
 
