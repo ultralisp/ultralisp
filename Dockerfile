@@ -27,6 +27,7 @@ COPY qlfile qlfile.lock app-deps.asd /app/
 RUN install-dependencies
 
 COPY . /app
+COPY ./docker/.distignore /root/.config/quickdist/
 
 RUN ~/.roswell/bin/qlot exec ros build /app/roswell/worker.ros && mv /app/roswell/worker /app/worker
 RUN ~/.roswell/bin/qlot exec ros build /app/roswell/ultralisp-server.ros && mv /app/roswell/ultralisp-server /app/ultralisp-server
