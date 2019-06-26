@@ -3,11 +3,6 @@ dist ultralisp http://dist.ultralisp.org/
 ql :all :latest
 ultralisp :all :latest
 
-# temporary until qlot and quickdist versions are available 
-ql uiop :latest
-github qlot fukamachi/qlot
-github quickdist ultralisp/quickdist
-
 # Temporary, just to check if changes compile
 # github weblocks 40ants/weblocks :branch better-session-handling
 
