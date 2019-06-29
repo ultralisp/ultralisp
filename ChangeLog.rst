@@ -2,6 +2,15 @@
  ChangeLog
 ===========
 
+0.9.0 (2019-06-29)
+==================
+
+* Ignoring some system files was supported, but they are hardcoded
+  in the ``docker/.distignore`` file. This should allow to add a
+  `numcl <https://github.com/numcl/numcl>`_ library.
+
+  Thanks to Nikolai Matiushev for the pull request.
+
 0.8.1 (2019-05-21)
 ==================
 
