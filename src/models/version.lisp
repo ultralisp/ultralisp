@@ -69,7 +69,7 @@
 
 (defun get-prepared-versions ()
   (mito:retrieve-dao 'version
-                     :type "PREPARED"))
+                     :type :prepared))
 
 
 ;; (defun make-version (&key (type :pending))

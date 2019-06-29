@@ -9,7 +9,8 @@
                 #:dao-table-class)
   (:export #:moderator
            #:is-moderator-p
-           #:get-moderators))
+           #:get-moderators
+           #:make-moderator))
 (in-package ultralisp/models/moderator)
 
 

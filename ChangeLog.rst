@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.9.1 (2019-06-30)
+==================
+
+* Function ``get-preparend-version`` was fixed to work with latest Mito.
+
 0.9.0 (2019-06-29)
 ==================
 
