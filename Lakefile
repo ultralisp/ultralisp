@@ -8,8 +8,16 @@
 
 (use-syntax :interpol)
 
+
+(defun search-version-in-changelog (lines)
+  (let* ((line (nth 4 lines))
+         (space-pos (position #\Space line)))
+    (when space-pos
+      (subseq line 0 space-pos))))
+
+
 (defun get-current-version ()
-  (uiop:read-file-form "version.lisp-expr"))
+  (uiop:read-file-line "ChangeLog.rst" :at #'search-version-in-changelog))
 
 
 (defvar tag #?"40ants/ultralisp:${(get-current-version)}")
