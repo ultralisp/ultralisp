@@ -29,7 +29,7 @@
                 #:with-html-string)
   (:import-from #:weblocks/response
                 #:immediate-response)
-  (:import-from #:uiop
+  (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/widgets/main
                 #:make-main-widget)
@@ -78,6 +78,8 @@
                 #:defcached)
   (:import-from #:ultralisp/models/project
                 #:get-all-projects)
+  (:import-from #:weblocks/error-handler
+                #:on-error)
   (:shadow #:restart)
   (:export
    #:main
@@ -194,7 +196,8 @@
 (defmethod weblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
   (let ((spinneret::*pre* t)
-        (num-projects (get-num-projects)))
+        (num-projects (or (get-num-projects)
+                          0)))
     (render-yandex-counter)
     (render-google-counter)
   
@@ -242,30 +245,38 @@
 
 
 (defmethod on-error ((app app) condition)
-  "Default implementation returns a plain text page and 500 status code."
-  (declare (ignorable app))
-  
-  (when (weblocks/debug:status)
-    (invoke-debugger condition))
-  
   (setf (weblocks/page:get-title)
         "Some shit happened with ultralisp.org")
 
-  (when condition
-    (let ((traceback (print-backtrace :condition condition
-                                      :stream nil)))
-      (log:error "Returning 500 error to user" traceback)))
+  (let ((traceback (when condition
+                     (print-backtrace condition
+                                      :output nil))))
+    (when traceback
+      (log:error "Returning 500 error to user" traceback))
 
-  (immediate-response
-   ;; TODO: replace with weblocks/response:return-page
-   (with-html-string
-     (weblocks/page:render
-      (weblocks/app:get-current)
-      (with-html-string
-        (:h3 "Some shit happened.")
-        (:h4 "Don't panic."))))
-   :code 500
-   :content-type "text/html"))
+    (let ((content
+            (cond
+              ((weblocks/debug:status)
+               (with-html-string
+                 (:h3 "Some shit happened.")
+                 (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+                 (when condition
+                   (:h5 ("~A" condition)))
+                 (when traceback
+                   (:pre traceback))))
+              (t
+               (with-html-string
+                 (:h3 "Some shit happened.")
+                 (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!")))))))
+      
+      (immediate-response
+       ;; TODO: replace with weblocks/response:return-page
+       (with-html-string
+         (weblocks/page:render
+          (weblocks/app:get-current)
+          content))
+       :code 500
+       :content-type "text/html"))))
 
 
 (defmethod handle-request ((app app))
