@@ -48,7 +48,12 @@
 ;; Here we use lesser timeout because this value will change more
 ;; frequently
 (defcached (get-pending-checks-count :timeout 60) ()
-  (count-dao 'base-check :processed-at :null))
+  (length (remove-if-not (lambda (check)
+                           (null (ultralisp/models/check:get-processed-at check)))
+                         (mito:retrieve-dao 'base-check)))
+  ;; TODO: return when https://github.com/fukamachi/mito/issues/56 will be fixed
+  ;; (count-dao 'base-check :processed-at :null)
+  )
 
 
 

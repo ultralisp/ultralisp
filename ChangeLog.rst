@@ -6,6 +6,7 @@
 ===================
 
 * Fixed a way how error page is rendered.
+* Fixed error in Prometheus handle, caused restarts.
 
 0.9.1 (2019-06-30)
 ==================
