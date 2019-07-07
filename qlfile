@@ -23,7 +23,7 @@ ultralisp :all :latest
 # github link-header 40ants/cl-link-header :tag v0.1.1
 
 
-# github quickdist ultralisp/quickdist :tag v0.4.1
+github quickdist ultralisp/quickdist :tag v0.14.0
 
 # github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables

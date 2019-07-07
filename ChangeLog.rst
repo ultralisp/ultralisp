@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.10.1 (2019-07-07)
+===================
+
+* Moving to a new ``quickdist`` to fix issue with distignoring all asd files.
+
 0.10.0 (2019-07-07)
 ===================
 

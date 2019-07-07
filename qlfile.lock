@@ -5,11 +5,18 @@
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20190626083502"))
+  :version "20190707191024"))
+("quickdist" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.14.0")
+  :version "github-3a7941f13638c7429dbebc22c7212990f8a6e3f3"
+  :repos "ultralisp/quickdist"
+  :url "https://github.com/ultralisp/quickdist/archive/3a7941f13638c7429dbebc22c7212990f8a6e3f3.tar.gz"
+  :ref "3a7941f13638c7429dbebc22c7212990f8a6e3f3"))
 ("slynk-named-readtables" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
-  :version "github-df4ed79064cf85275804e201899b677bef4ab3f5"
+  :version "github-6b37ed2201174caa86a44e8ac3350dd09e91e606"
   :repos "joaotavora/sly-named-readtables"
-  :url "https://github.com/joaotavora/sly-named-readtables/archive/df4ed79064cf85275804e201899b677bef4ab3f5.tar.gz"
-  :ref "df4ed79064cf85275804e201899b677bef4ab3f5"))
+  :url "https://github.com/joaotavora/sly-named-readtables/archive/6b37ed2201174caa86a44e8ac3350dd09e91e606.tar.gz"
+  :ref "6b37ed2201174caa86a44e8ac3350dd09e91e606"))
