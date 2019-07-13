@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/projects
   (:use #:cl)
   (:import-from #:weblocks/request)
+  (:import-from #:weblocks/page)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
   (:import-from #:weblocks/html
@@ -49,10 +50,13 @@
     ;; This is not an idiomatic Weblocks code because we should
     ;; make a database query only when widget gets created, not
     ;; during the render.
-    (let ((projects (ultralisp/models/project:get-github-projects (list user-or-org))))
+    (let ((projects (ultralisp/models/project:get-github-projects (list user-or-org)))
+          (title (format nil "All projects of ~A" user-or-org)))
       (cond
         (projects (with-html
                     (:h1 :class "author-name"
-                         ("All projects of ~A" user-or-org))
+                         title)
+                    (setf (weblocks/page:get-title)
+                          title)
                     (render-projects-list projects)))
         (t (page-not-found))))))

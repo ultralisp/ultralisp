@@ -6,6 +6,7 @@
 ===================
 
 * Added a cron task to remove checks processed more than a week ago.
+* Fixed a title on a "user's projects" page. This closes issue #54.
 
 0.10.1 (2019-07-07)
 ===================
