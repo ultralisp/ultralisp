@@ -68,6 +68,10 @@
   (perform-pending-checks))
 
 
+(deftask remove-old-checks ()
+  (mito:execute-sql "DELETE FROM public.check WHERE processed_at < now() - '7 day'::interval"))
+
+
 (deftask build-version (:need-connection nil)
   ;; Here we get separate connections and transaction
   ;; because when we do version build, it will be
@@ -144,6 +148,12 @@
   ;; Run every minute
   (cl-cron:make-cron-job 'perform-checks
                          :hash-key 'perform-checks)
+
+  ;; Evey hour remove old checks
+  (cl-cron:make-cron-job 'remove-old-checks
+                         :hash-key 'remove-old-checks
+                         :step-min 60)
+
   ;; Run every 5 minutes
   (cl-cron:make-cron-job 'build-version
                          :hash-key 'build-version
@@ -152,7 +162,8 @@
   ;; Every 15 minutes we'll create checks for project which need it
   (cl-cron:make-cron-job 'create-cron-checks
                          :hash-key 'create-cron-checks
-                         :step-min 15))
+                         :step-min 15)
+  (values))
 
 
 (defun start (&key force)
@@ -180,5 +191,3 @@
   (if (string-equal type "error")
       (log:error message)
       (log:info message)))
-
-

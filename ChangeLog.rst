@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.11.0 (2019-07-13)
+===================
+
+* Added a cron task to remove checks processed more than a week ago.
+
 0.10.1 (2019-07-07)
 ===================
 
