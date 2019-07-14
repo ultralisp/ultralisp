@@ -12,6 +12,9 @@ Changes
 * Now if no asd files were found for the project, it is disabled.
 * Start only one worker process in development mode, and don't kill
   it after each task execution. This simplify debugging.
+* Added a ``ultralisp/debug`` package and function ``check-project``
+  which can be used for checking how project is processed by the pipeline.
+  
 
 Fixes
 -----
