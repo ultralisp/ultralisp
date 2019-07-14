@@ -5,8 +5,17 @@
 0.11.0 (2019-07-13)
 ===================
 
+Changes
+-------
+
 * Added a cron task to remove checks processed more than a week ago.
+* Now if no asd files were found for the project, it is disabled.
+
+Fixes
+-----
+
 * Fixed a title on a "user's projects" page. This closes issue #54.
+
 
 0.10.1 (2019-07-07)
 ===================
