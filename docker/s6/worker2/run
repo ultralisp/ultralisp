@@ -1,8 +1,0 @@
-#!/bin/bash
-
-/app/worker \
-        --one-task-only \
-        --slynk-interface "0.0.0.0" \
-        --slynk-port "4006" \
-        | tee -a /app/logs/worker-2.log \
-        | jsail

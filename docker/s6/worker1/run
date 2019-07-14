@@ -1,7 +1,6 @@
 #!/bin/bash
 
 /app/worker \
-        --one-task-only \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \
         | tee -a /app/logs/worker-1.log \

@@ -10,6 +10,8 @@ Changes
 
 * Added a cron task to remove checks processed more than a week ago.
 * Now if no asd files were found for the project, it is disabled.
+* Start only one worker process in development mode, and don't kill
+  it after each task execution. This simplify debugging.
 
 Fixes
 -----
