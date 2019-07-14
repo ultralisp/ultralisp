@@ -202,6 +202,10 @@
              (prog1 (when (or (check-if-project-was-changed project downloaded)
                               force)
                       (let* ((systems (collect-systems path)))
+
+                        (unless systems
+                          (error "No asd files were found!"))
+
                         (save-project-systems project systems)
                         (make-release project systems)
                         (update-and-enable-project project
