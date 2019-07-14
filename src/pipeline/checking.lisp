@@ -113,7 +113,11 @@
 
 
 (defun collect-systems (path)
-  (quickdist:make-systems-info path))
+  (quickdist:make-systems-info path
+                               ;; This way we'll not ignore nested asd files.
+                               ;; We need this because of issue:
+                               ;; https://github.com/ultralisp/ultralisp/issues/55
+                               :ignore-filename-p (constantly nil)))
 
 
 (defcommand make-release (project systems)

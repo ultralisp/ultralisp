@@ -15,6 +15,9 @@ Fixes
 -----
 
 * Fixed a title on a "user's projects" page. This closes issue #54.
+* Now asd files are seached in the nested directories too. This closes issue #55,
+  but probably some other projects will be broken because their nested asd files
+  can't be loaded.
 
 
 0.10.1 (2019-07-07)
