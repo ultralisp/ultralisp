@@ -1,10 +1,10 @@
 (defpackage #:ultralisp/widgets/main
   (:use #:cl)
   (:import-from #:weblocks-navigation-widget
-                #:defwidget)
+                #:defroutes)
   (:import-from #:weblocks/html
                 #:with-html-string)
-  
+
   ;; Just depdendencies
   (:import-from #:log)
   (:import-from #:weblocks/app)
@@ -33,7 +33,7 @@
 (in-package ultralisp/widgets/main)
 
 
-(defwidget main-widget
+(defroutes main-routes
     ("/"
      (make-landing-widget))
   ("/login"
