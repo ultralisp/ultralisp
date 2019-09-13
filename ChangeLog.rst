@@ -2,6 +2,24 @@
  ChangeLog
 ===========
 
+0.12.0 (2019-09-13)
+===================
+
+Changes
+-------
+
+* Version quicklisp dist was upgraded from ``2019-05-21`` to ``2019-08-13``.
+* Version ultralisp dist was upgraded from ``20190707191024`` to ``20190913192004``.
+
+Fixes
+-----
+
+* New ultralisp dist contains a new ``quickdist`` library, where fixed an issue
+  `number 51 <https://github.com/ultralisp/ultralisp/issues/51>`_. Because of this
+  bug, all systems like ``slynk``, which have their asd files in nested subdirectories,
+  were broken.
+
+
 0.11.0 (2019-07-13)
 ===================
 

@@ -3,6 +3,7 @@
 /src/#builder.lisp#
 /quickdist/
 /quicklisp/
+/.qlot/
 /build/
 /roswell/ultralisp
 /postgresql-data/
