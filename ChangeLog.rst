@@ -9,7 +9,7 @@ Changes
 -------
 
 * Version quicklisp dist was upgraded from ``2019-05-21`` to ``2019-08-13``.
-* Version ultralisp dist was upgraded from ``20190707191024`` to ``20190913192004``.
+* Version ultralisp dist was upgraded from ``20190707191024`` to ``20190913195004``.
 
 Fixes
 -----
