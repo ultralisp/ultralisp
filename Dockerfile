@@ -1,4 +1,4 @@
-FROM 40ants/base-lisp-image:0.6.0-sbcl-bin as base
+FROM 40ants/base-lisp-image:0.9.0-sbcl-bin as base
 
 EXPOSE 80
 EXPOSE 4005
