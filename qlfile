@@ -1,6 +1,6 @@
 dist ultralisp http://dist.ultralisp.org/
 
-ql :all 2019-05-21
+ql :all :latest
 ultralisp :all 20190707191024
 
 # Temporary, just to check if changes compile

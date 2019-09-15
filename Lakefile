@@ -47,11 +47,15 @@
       (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
       (sh "qlot exec gen-deps-system --except ultralisp,sb-concurrency,sb-bsd-sockets,sb-cltl2,sb-introspect,sb-posix,sb-rotate-byte,asdf app"))
 
-(task "devserver" ("deps")
+(task ("devserver" build) ("deps")
+      (when build
+        (execute "build-devserver"))
+      
       (sh "docker-compose up --abort-on-container-exit app"))
 
 (task "build-devserver" ("deps")
-      (sh "docker-compose build app"))
+      (sh "docker-compose build app")
+      (sh "docker-compose build worker"))
 
 (task "dump-db" ()
       (sh "docker-compose run --rm db-ops dump"))
@@ -67,6 +71,9 @@
 
 (task "migrate" ()
       (sh "docker-compose run --rm mito migrate"))
+
+(task "dbshell" ()
+      (sh "psql postgresql://ultralisp:ultralisp@localhost"))
 
 (task "default" ("devserver")
       ())
