@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.13.0 (2019-09-15)
+===================
+
+Fixes
+-----
+
+* Upgraded to a Quickdist version 0.16.0 where releases.txt metadata was fixed.
+
 0.12.0 (2019-09-14)
 ===================
 
