@@ -6,10 +6,8 @@
 (ultralisp/cron:stop)
 (ultralisp/db:connect-toplevel)
 
-(ultralisp/models/project:get-github-project "joaotavora" "sly")
-(ultralisp/models/check:make-via-cron-check *)
-
 (ultralisp/rpc/core:submit-task 'ultralisp/pipeline/checking:perform
-   *
-   :force t)
+                                (ultralisp/models/check:make-via-cron-check
+                                 (ultralisp/models/project:get-github-project "guicho271828" "type-i"))
+                                :force t)
 #+END_SRC
