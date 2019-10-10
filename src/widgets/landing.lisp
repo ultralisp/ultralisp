@@ -145,7 +145,7 @@ ultralisp :all :latest"
          (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
                issues-url))
          (:li "Suggest your own ideas.")
-         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberpay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development:"))
+         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development:"))
               (:div :class "donate"
                     (:a :class "button success"
                         :href "https://www.patreon.com/join/ultralisp"
@@ -154,7 +154,7 @@ ultralisp :all :latest"
                            " ")
                     (:a :class "button success"
                         :href "https://en.liberapay.com/Ultralisp.org/donate"
-                        "Donate $$$ at Liberpay"))
+                        "Donate $$$ at Liberapay"))
               (:p ("Gold sponsors will be listed at the bottom of this page, and grand sponsors on [this separate page](/sponsors).")))))
 
       (when pending-projects
