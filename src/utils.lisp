@@ -42,7 +42,8 @@
    #:remove-last-slash
    #:with-tmp-directory
    #:delete-file-if-exists
-   #:in-repl))
+   #:in-repl
+   #:with-trace))
 (in-package ultralisp/utils)
 
 
@@ -228,3 +229,18 @@
        (typep *standard-output*
               (uiop:intern* :sly-output-stream
                             :slynk-gray))))
+
+
+(defmacro with-trace ((code-name) &body body)
+    (alexandria:with-gensyms (result)
+      `(progn
+         (log:debug "TRACE: Calling" ,code-name)
+         (let ((,result (handler-bind (((or error
+                                            weblocks/response:immediate-response)
+                                         (lambda (condition)
+                                           (log:debug "TRACE: Call to" ,code-name
+                                                      "raised" condition))))
+                          (multiple-value-list (progn ,@body)))))
+           (log:debug "TRACE: Call to" ,code-name
+                      "returned this values list:" ,result)
+           (values-list ,result)))))

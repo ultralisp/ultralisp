@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/widgets/main
   (:use #:cl)
   (:import-from #:weblocks-navigation-widget
-                #:defwidget)
+                #:defroutes)
   (:import-from #:weblocks/html
                 #:with-html-string)
   
@@ -29,11 +29,13 @@
                 #:make-author-projects-widget)
   (:import-from #:ultralisp/widgets/sponsors
                 #:make-sponsors-widget)
+  (:import-from #:ultralisp/widgets/search
+                #:make-search-page)
   (:export #:make-main-widget))
 (in-package ultralisp/widgets/main)
 
 
-(defwidget main-widget
+(defroutes main-widget
     ("/"
      (make-landing-widget))
   ("/login"
@@ -42,6 +44,8 @@
    (make-logout-processor))
   ("/github"
    (make-repositories-widget))
+  ("/search/"
+   (make-search-page))
   ("/sponsors"
    (make-sponsors-widget))
   ("/versions/\\d+"

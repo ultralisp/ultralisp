@@ -17,15 +17,14 @@
                 #:make-process-collector)
   (:import-from #:weblocks/session)
   (:import-from #:weblocks/routes
-                #:serve
-                #:add-route
-                #:route)
+                #:defroute)
   (:import-from #:routes
                 #:parse-template)
   (:import-from #:kebab
                 #:to-snake-case)
+  (:import-from #:ultralisp/app
+                #:app)
   (:export
-   #:make-stats-route
    #:increment-counter
    #:add-counter
    #:add-gauge
@@ -129,23 +128,10 @@
       #+sbcl
       (make-threads-collector)
       (make-process-collector)))
-
-  (make-stats-route)
   (values))
 
 
-(defclass stats-route (route)
-  ())
-
-
-(defun make-stats-route ()
-  (log:info "Making a route for a Prometheus stats")
-  (let ((route (make-instance 'stats-route
-                              :template (parse-template "/metrics"))))
-    (add-route route)))
-
-
-(defmethod serve ((route stats-route) env)
+(defroute (app /metrics :content-type "text/plain")
   (with-log-unhandled ()
     (with-connection ()
       (let ((content (if *registry*
@@ -153,7 +139,4 @@
                          "")))
         ;; This is API, we don't want to keep any sessions here
         (weblocks/session:expire)
-       
-        (list 200
-              '(:content-type "text/plain")
-              (list content))))))
+        (values content)))))

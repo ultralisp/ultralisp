@@ -6,9 +6,7 @@
   (:import-from #:chanl)
   (:import-from #:ultralisp/uploader/base)
   (:import-from #:weblocks/routes
-                #:serve
-                #:add-route
-                #:route)
+                #:defroute)
   (:import-from #:routes
                 #:parse-template)
   (:import-from #:alexandria
@@ -32,24 +30,14 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
                 #:with-connection)
+  (:import-from #:ultralisp/app
+                #:app)
   (:export
-   #:make-webhook-route
    #:get-webhook-url))
 (in-package ultralisp/github/webhook)
 
 
 (defvar *github-webhook-path* "/webhook/github")
-
-
-(defclass webhook-route (route)
-  ())
-
-
-(defun make-webhook-route (&optional (uri *github-webhook-path*))
-  (log:info "Making a route for a webhook")
-  (let ((route (make-instance 'webhook-route
-                              :template (parse-template uri))))
-    (add-route route)))
 
 
 (defvar *payloads* nil
@@ -182,9 +170,8 @@
     (t (log:debug "Thread for payload processing is already running"))))
 
 
-(defmethod serve ((route webhook-route) env)
-  "Returns a robots of the site."
-  (let* ((body (getf env :body-parameters)))
+(defroute (app /webhook/github :content-type "text/plain")
+  (let* ((body (weblocks/request:get-parameters)))
     (log:debug "New payload received" body)
 
     ;; This is API, we don't want to keep any sessions here
@@ -208,10 +195,8 @@
     (ensure-processor-thread-is-running)
 
     (log:debug "DONE")
-    
-    (list 200
-          '(:content-type "text/plain")
-          (list "OK"))))
+
+    (values "OK")))
 
 
 (defun get-webhook-url ()

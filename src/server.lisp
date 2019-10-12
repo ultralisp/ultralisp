@@ -16,8 +16,6 @@
   (:import-from #:weblocks/session)
   (:import-from #:weblocks-ui
                 #:*foundation-dependencies*)
-  (:import-from #:weblocks/app
-                #:defapp)
   (:import-from #:weblocks/page
                 #:render-headers
                 #:get-language)
@@ -36,10 +34,11 @@
   (:import-from #:ultralisp/utils
                 #:getenv)
   (:import-from #:ultralisp/file-server)
+  (:import-from #:ultralisp/app
+                #:app)
   (:import-from #:ultralisp/models/migration
                 #:migrate)
-  (:import-from #:ultralisp/github/webhook
-                #:make-webhook-route)
+  (:import-from #:ultralisp/github/webhook)
   (:import-from #:ultralisp/metrics)
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
@@ -60,6 +59,7 @@
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/project)
+  (:import-from #:weblocks/request)
   (:import-from #:weblocks/request-handler
                 #:handle-request)
   (:import-from #:ultralisp/db
@@ -87,13 +87,6 @@
    #:restart
    #:stop))
 (in-package ultralisp/server)
-
-
-(defapp app
-  :prefix "/"
-  :description "The UltraLisp.org server."
-  :autostart nil
-  :debug t)
 
 
 (defmethod weblocks/session:init ((app app))
@@ -214,7 +207,14 @@
                                               num-projects
                                               num-projects)))
                            (:h2 :class "motto"
-                                "A fast-moving Common Lisp software distribution."))
+                                "A fast-moving Common Lisp software distribution.")
+                           (let ((query (weblocks/request:get-parameter "query")))
+                             (:form :method "GET"
+                                    :action "/search/"
+                                    (:input :type "text"
+                                            :name "query"
+                                            :value query
+                                            :placeholder "search a symbol"))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
                           (with-html (:raw body-string))))
@@ -226,8 +226,6 @@
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
-
-  (make-webhook-route)
 
   (ultralisp/metrics:initialize)
   

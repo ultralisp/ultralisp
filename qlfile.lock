@@ -1,11 +1,18 @@
 ("quicklisp" .
  (:class qlot.source.ql:source-ql-all
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2019-08-13"))
+  :version "2019-10-08"))
 ("ultralisp" .
  (:class qlot.source.ql:source-ql-all
-  :initargs (:distribution "http://dist.ultralisp.org/" :%version "20190707191024")
-  :version "20190707191024"))
+  :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
+  :version "20191011145005"))
+("cl-dbi" .
+ (:class qlot.source.github:source-github
+  :initargs (:project-name "cl-dbi" :repos "svetlyak40wt/cl-dbi" :ref nil :branch "49-fix-manual-commit" :tag nil)
+  :version "github-1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf"
+  :repos "svetlyak40wt/cl-dbi"
+  :url "https://github.com/svetlyak40wt/cl-dbi/archive/1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf.tar.gz"
+  :ref "1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf"))
 ("quickdist" .
  (:class qlot.source.github:source-github
   :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")

@@ -57,7 +57,9 @@
                         ;; we need to commit transaction.
                         ;; Otherwise, cl-dbi will rollback any
                         ;; changes made during request processing.
-                        (cl-dbi:commit mito:*connection*))))
+                        (log:info "Commiting transaction because of \"immediate-response\"")
+                        (cl-dbi:commit mito:*connection*)
+                        (log:info "AFTER COMMIT"))))
        ,@body)))
 
 

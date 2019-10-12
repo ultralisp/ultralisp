@@ -1,7 +1,9 @@
 dist ultralisp http://dist.ultralisp.org/
 
 ql :all :latest
-ultralisp :all 20190707191024
+ultralisp :all :latest
+
+github cl-dbi svetlyak40wt/cl-dbi :branch 49-fix-manual-commit
 
 # Temporary, just to check if changes compile
 # github weblocks 40ants/weblocks :branch better-session-handling
