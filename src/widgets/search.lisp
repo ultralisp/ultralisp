@@ -15,6 +15,11 @@
                 #:regex-replace-all)
   (:import-from #:weblocks/dependencies
                 #:get-dependencies)
+  (:import-from #:alexandria
+                #:make-keyword)
+  (:import-from #:rutils
+                #:fmt
+                #:take)
   (:export
    #:make-search-page))
 (in-package ultralisp/widgets/search)
@@ -49,26 +54,54 @@
       (3bmd:parse-string-and-print-to-stream replaced s))))
 
 
-(defgeneric render-item (type name doc)
-  (:method (type name doc)
+(defgeneric render-item (type name doc &rest rest)
+  (:method (type name doc &key arguments system project)
     (with-html
       (:li (:span :class "name" name)
+           (when arguments
+             (:span :class "args" arguments))
            (:span :class "type" type)
            (:div :class "doc"
-                 (:raw (to-html doc)))))))
+                 (:raw (to-html doc)))
+           (when project
+             (:div :class "item-footer project"
+                   (:label "project:")
+                   (:a :href (fmt "/projects/~A" project)
+                       project)))
+           (when system
+             (:div :class "item-footer system"
+                   (:label "system:")
+                   (:span system)))))))
+
+
+(defun to-uppercased-symbols (item)
+  (append (take 3 item) ;; First 3 items are type name doc
+          ;; Rest items are keyword arguments
+          (loop for (key value) on (cdddr item) by #'cddr
+                appending (list (make-keyword (string-upcase key))
+                                value))))
+
 
 (defmethod render ((widget search-results))
-  (let* ((query (weblocks/request:get-parameter "query"))
-         (results (search-objects query)))
-    (with-html
-      (cond
-        (results
-         (:p ("Results for \"~A\"" query))
-         (:ul :class "search-results"
-          (loop for item in results
-                do (apply #'render-item item))))
-        (t
-         (:p ("No results for \"~A\"" query)))))))
+  (let ((query (weblocks/request:get-parameter "query")))
+    (setf (weblocks/page:get-title)
+          (fmt "Search results for \"~A\"" query))
+    (handler-case
+        (let ((results (search-objects query)))
+          (with-html
+            (cond
+              (results
+               (:p ("Results for \"~A\"" query))
+               (:ul :class "search-results"
+                    (loop for item in results
+                          for uppercased = (to-uppercased-symbols item)
+                          do (apply #'render-item
+                                    uppercased))))
+              (t
+               (:p ("No results for \"~A\"" query))))))
+      (ultralisp/search:bad-query ()
+        (with-html
+          (:p ("Unable to parse \"~A\"" query)))))))
 
 
 (defmethod get-dependencies ((widget search-results))
@@ -78,7 +111,16 @@
       `(.search-results
         :margin 0
         (li :list-style-type none
+            :margin-bottom 1em
             (.name :font-weight bold)
             (.type :margin-left 0.7em
-                   :color gray)))))
+                   :color gray)
+            (.args :margin-left 0.7em
+                   :color gray)
+            (.doc
+             ((:and p :last-child) :margin-bottom 0))
+            (.item-footer
+             :display inline-block
+             :font-size 0.75em
+             (label :display inline-block))))))
    (call-next-method)))

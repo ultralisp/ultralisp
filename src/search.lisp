@@ -8,11 +8,15 @@
   (:import-from #:alexandria
                 #:make-keyword)
   (:export
-   #:search-objects))
+   #:search-objects
+   #:bad-query))
 (in-package ultralisp/search)
 
 
 (defparameter *elastic-host* "elastic")
+
+(defvar *current-system-name* nil)
+(defvar *current-project-name* nil)
 
 
 (defun index (collection id data)
@@ -27,29 +31,52 @@
               :headers '(("Content-Type" . "application/json"))))))
 
 
+(defun delete-index ()
+  (let ((url (fmt "http://~A:9200/symbols"
+                  *elastic-host*)))
+    (jonathan:parse
+     (dex:delete url :headers '(("Content-Type" . "application/json"))))))
+
+
+(define-condition bad-query (error)
+  ())
+
+
 (defun search-objects (term)
   ;; TODO: научиться обрабатывать 400 ответы от Elastic
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
-  (loop with url = (fmt "http://~A:9200/symbols/_search"
-                        *elastic-host*)
-        with query = (list
-                      :|query| (list
-                                :|query_string|
-                                (list :|fields|
-                                      (list "DOCUMENTATION" "TYPE" "NAME")
-                                      :|query| term)))
-        with content = (jonathan:to-json query)
-        with response = (jonathan:parse (dex:post url
-                                                  :content content
-                                                  :headers '(("Content-Type" . "application/json"))))
-        for hit in (getf (getf response
-                               :|hits|)
-                         :|hits|)
-        for name = (getf hit :|_id|)
-        for source = (getf hit :|_source|)
-        for doc = (getf source :documentation)
-        for type = (getf source :type)
-        collect (list (make-keyword type) name doc)))
+  (handler-case
+      (loop with url = (fmt "http://~A:9200/symbols/_search"
+                            *elastic-host*)
+            with query = (list
+                          :|query| (list
+                                    :|query_string|
+                                    (list :|fields|
+                                          (list "documentation" "name")
+                                          :|query| term)))
+            with content = (jonathan:to-json query)
+            with response = (jonathan:parse (dex:post url
+                                                      :content content
+                                                      :headers '(("Content-Type" . "application/json"))))
+            for hit in (getf (getf response
+                                   :|hits|)
+                             :|hits|)
+            for name = (getf hit :|_id|)
+            for source = (getf hit :|_source|)
+            for doc = (getf source :|documentation|)
+            for type = (getf source :|type|)
+            for system = (getf source :|system|)
+            for project = (getf source :|project|)
+            collect (list (make-keyword type)
+                          name
+                          doc
+                          :arguments (getf source :|arguments|)
+                          :system system
+                          :project project))
+    (dexador.error:http-request-not-found ()
+      nil)
+    (dexador.error:http-request-bad-request ()
+      (error 'bad-query))))
 
 
 (defun symbol-function-type (symbol)
@@ -137,10 +164,21 @@ default values from the arglist."
                (setf add-space nil))))
 
 (defun get-function-documentation* (symbol type doc)
-  (list :type type
-        :documentation (prepare-text doc)
-        ;; :arguments (arglist symbol)
-        ))
+  (append
+   (when *current-system-name*
+     (list :|system| *current-system-name*))
+   
+   (when *current-project-name*
+     (list :|project| *current-project-name*))
+   
+   (list :|type| type
+         :|name| (string-downcase
+                  (symbol-name symbol))
+         :|package| (string-downcase
+                     (package-name (symbol-package symbol)))
+         :|documentation| (prepare-text doc)
+         :|arguments| (format nil "~S"
+                              (arglist symbol)))))
 
 
 (defun encode-class (symbol)
@@ -162,11 +200,11 @@ default values from the arglist."
 (defun get-methods (generic-function)
   (loop with methods = (closer-mop:generic-function-methods generic-function)
         for method in methods
-        for specializer = (closer-mop:method-specializers method)
+        for specializers = (closer-mop:method-specializers method)
         for lambda-list = (closer-mop:method-lambda-list method)
         collect (list
                  (fmt "~A"
-                      (mapcar #'encode-specializer specializer))
+                      (mapcar #'encode-specializer specializers))
                  (or (documentation method t) ""))))
 
 
@@ -216,9 +254,16 @@ default values from the arglist."
 
 
 (defun get-variable-documentation* (symbol type)
-  (list
-   :type type
-   :documentation (prepare-text (or (documentation symbol type) ""))))
+  (append
+   (when *current-system-name*
+     (list :|system| *current-system-name*))
+   
+   (when *current-project-name*
+     (list :|project| *current-project-name*))
+   
+   (list
+    :|type| type
+    :|documentation| (prepare-text (or (documentation symbol type) "")))))
 
 
 (defun arglist (symbol)
@@ -247,7 +292,7 @@ default values from the arglist."
 
 (defmethod get-value-documentation (symbol (type (eql 'type)))
   (list*
-   :slots (get-class-slots symbol)
+   :|slots| (get-class-slots symbol)
    (get-variable-documentation* symbol type)))
 
 
@@ -258,21 +303,24 @@ default values from the arglist."
     (do-external-symbols (symbol current-package)
       (let ((external (is-external symbol package)))
         (when external
-          (let ((full-symbol-name (encode-symbol symbol)))
+          (let* ((full-symbol-name (encode-symbol symbol))
+                 (object-id (if *current-project-name*
+                                (fmt "~A:~A" *current-project-name* full-symbol-name)
+                                full-symbol-name)))
             (when (symbol-function-type symbol)
               (index "symbols"
-                     full-symbol-name
+                     object-id
                      (get-function-documentation symbol
-                                                 (symbol-function-type symbol))))
+                                                (symbol-function-type symbol))))
         
             (when (class-p symbol)
               (index "symbols"
-                     full-symbol-name
+                     object-id
                      (get-value-documentation symbol 'type)))
         
             (when (variable-p symbol)
               (index "symbols"
-                     full-symbol-name
+                     object-id
                      (get-value-documentation symbol 'variable)))))))))
 
 
