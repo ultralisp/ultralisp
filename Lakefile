@@ -75,5 +75,8 @@
 (task "dbshell" ()
       (sh "psql postgresql://ultralisp:ultralisp@localhost"))
 
+(task "build-packages-extractor" ()
+      (sh "qlot exec ros run --eval '(asdf:make :packages-extractor)'"))
+
 (task "default" ("devserver")
       ())

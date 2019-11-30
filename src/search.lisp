@@ -7,6 +7,10 @@
                 #:fmt)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:ultralisp/downloader/base
+                #:downloaded-project-path
+                #:download)
+  (:import-from #:ultralisp/models/project)
   (:export
    #:search-objects
    #:bad-query))
@@ -325,5 +329,24 @@ default values from the arglist."
 
 
 (defun index-all-packages ()
+  "Временная функия для тестирования индесатора"
   (mapc #'index-symbols (list-all-packages)))
 
+
+(defun index-project (project)
+  (let* ((tmp-dir "/tmp/indexer")
+         (downloaded (download project tmp-dir :latest t))
+         (path (downloaded-project-path downloaded)))
+    
+    (unwind-protect
+         (loop with systems = (ultralisp/models/project:get-systems-info project)
+               with *current-project-name* = (ultralisp/models/project:get-name project)
+               for system in systems
+               for *current-system-name* = (quickdist:get-name system)
+               for packages = (load-system-and-return-packages *current-system-name*)
+               do (mapc #'index-symbols
+                        packages))
+      ;; Here we need to make a clean up to not clutter the file system
+      (log:info "Deleting checked out" path)
+      (uiop:delete-directory-tree path
+                                  :validate t))))
