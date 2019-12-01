@@ -26,7 +26,7 @@
           collect (list :system (first parsed)
                         :packages (rest parsed)))))
 
-(defun get-packages (system-names &key (extractor-binary-path "src/packages-extractor"))
+(defun get-packages (system-names &key (extractor-binary-path "/app/packages-extractor"))
   "External function to use in other Ultralisp code.
    Runs packages extractor in a separate process which
    does not have any dependencies and is able to
