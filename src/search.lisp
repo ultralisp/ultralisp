@@ -10,7 +10,15 @@
   (:import-from #:ultralisp/downloader/base
                 #:downloaded-project-path
                 #:download)
-  (:import-from #:ultralisp/models/project)
+  (:import-from #:ultralisp/models/project
+                #:get-all-projects
+                #:get-github-project)
+  (:import-from #:ultralisp/packages-extractor-api
+                #:get-packages)
+  (:import-from #:ultralisp/rpc/core
+                #:submit-task)
+  (:import-from #:log4cl-json
+                #:with-log-unhandled)
   (:export
    #:search-objects
    #:bad-query))
@@ -144,6 +152,7 @@ default values from the arglist."
 (defun encode-xref (symbol)
   (encode-symbol symbol ":cl:symbol:`~~~a`"))
 
+
 (defun encode-literal (symbol)
   (if (equal (symbol-package symbol) (find-package 'keyword))
       (format nil "``~s``" symbol)
@@ -151,9 +160,11 @@ default values from the arglist."
 
 
 (defun prepare-text (text)
-  "Removes spaces from left and right of each line, then joins lines not separated by an empty line into single paragraphs."
+  "Removes spaces from left and right of each line, then joins
+   lines not separated by an empty line into single paragraphs."
   (with-output-to-string (output)
     (loop with add-space = nil
+          with some-lines-written = nil
           for line in (rutil:split #\Newline text)
           for stripped = (string-trim '(#\Space)
                                       line)
@@ -161,11 +172,20 @@ default values from the arglist."
             do (write-char #\Space output)
           when (> (length stripped) 0)
             do (write-string stripped output)
-               (setf add-space t)
+               (setf add-space t
+                     some-lines-written t)
           else
-            do (write-char #\Newline output)
-               (write-char #\Newline output)
-               (setf add-space nil))))
+            when some-lines-written
+              do (write-char #\Newline output)
+                 (write-char #\Newline output)
+                 (setf add-space nil
+                       some-lines-written nil))))
+
+(defun arglist-as-string (symbol)
+  (let ((*package* (symbol-package symbol))
+        (*print-case* :downcase))
+    (format nil "~S"
+            (arglist symbol))))
 
 (defun get-function-documentation* (symbol type doc)
   (append
@@ -181,8 +201,7 @@ default values from the arglist."
          :|package| (string-downcase
                      (package-name (symbol-package symbol)))
          :|documentation| (prepare-text doc)
-         :|arguments| (format nil "~S"
-                              (arglist symbol)))))
+         :|arguments| (arglist-as-string symbol))))
 
 
 (defun encode-class (symbol)
@@ -302,38 +321,43 @@ default values from the arglist."
 
 (defun index-symbols (package)
   (let ((current-package (etypecase package
+                           (string (find-package (string-upcase package)))
                            (keyword (find-package package))
                            (package package))))
-    (do-external-symbols (symbol current-package)
-      (let ((external (is-external symbol package)))
-        (when external
-          (let* ((full-symbol-name (encode-symbol symbol))
-                 (object-id (if *current-project-name*
-                                (fmt "~A:~A" *current-project-name* full-symbol-name)
-                                full-symbol-name)))
-            (when (symbol-function-type symbol)
-              (index "symbols"
-                     object-id
-                     (get-function-documentation symbol
-                                                (symbol-function-type symbol))))
-        
-            (when (class-p symbol)
-              (index "symbols"
-                     object-id
-                     (get-value-documentation symbol 'type)))
-        
-            (when (variable-p symbol)
-              (index "symbols"
-                     object-id
-                     (get-value-documentation symbol 'variable)))))))))
+    (cond
+      (current-package
+       (do-external-symbols (symbol current-package)
+         (let ((external (is-external symbol package)))
+           (when external
+             (let* ((full-symbol-name (encode-symbol symbol))
+                    (object-id (if *current-project-name*
+                                   (fmt "~A:~A" *current-project-name* full-symbol-name)
+                                   full-symbol-name)))
+               (when (symbol-function-type symbol)
+                 (index "symbols"
+                        object-id
+                        (get-function-documentation symbol
+                                                    (symbol-function-type symbol))))
+             
+               (when (class-p symbol)
+                 (index "symbols"
+                        object-id
+                        (get-value-documentation symbol 'type)))
+             
+               (when (variable-p symbol)
+                 (index "symbols"
+                        object-id
+                        (get-value-documentation symbol 'variable))))))))
+      (t (log:error "Unable to find package" package)))))
 
 
 (defun index-all-packages ()
-  "Временная функия для тестирования индесатора"
+  "Временная функция для тестирования индесатора"
   (mapc #'index-symbols (list-all-packages)))
 
 
 (defun index-project (project)
+  "Эту фукнцию надо вызывать внутри воркера."
   (let* ((tmp-dir "/tmp/indexer")
          (downloaded (download project tmp-dir :latest t))
          (path (downloaded-project-path downloaded)))
@@ -342,11 +366,30 @@ default values from the arglist."
          (loop with systems = (ultralisp/models/project:get-systems-info project)
                with *current-project-name* = (ultralisp/models/project:get-name project)
                for system in systems
-               for *current-system-name* = (quickdist:get-name system)
-               for packages = (load-system-and-return-packages *current-system-name*)
-               do (mapc #'index-symbols
-                        packages))
+               for data = (get-packages (quickdist:get-name system))
+               do (loop for item in data
+                        for *current-system-name* = (getf item :system)
+                        for packages = (getf item :packages)
+                        do (mapc #'index-symbols
+                                 packages)))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
       (uiop:delete-directory-tree path
                                   :validate t))))
+
+
+(defun index-projects (&rest names)
+  (let ((projects (if names
+                      (loop for name in names
+                            for splitted = (cl-strings:split name #\/)
+                            collect (get-github-project (first splitted)
+                                                        (second splitted)))
+                      (get-all-projects :only-enabled t))))
+    (loop for project in projects
+          do (log:info "Indexing project" project)
+             (ignore-errors
+              (log4cl-json:with-fields
+                  (:project-name (ultralisp/models/project:get-name project))
+                (with-log-unhandled ()
+                  (submit-task
+                   'index-project project)))))))

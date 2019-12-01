@@ -23,7 +23,8 @@
    #:get-lock-name
    #:sql-fetch-all
    #:get-lock
-   #:execute))
+   #:execute
+   #:connect-toplevel-in-dev))
 (in-package ultralisp/db)
 
 
@@ -45,6 +46,16 @@
 
 (defun connect-toplevel ()
   (setf mito:*connection* (connect :cached nil)))
+
+
+(defun connect-toplevel-in-dev ()
+  (setf mito:*connection*
+        (cl-dbi:connect :postgres
+                        :host "postgres"
+                        :port 5432
+                        :database-name "ultralisp"
+                        :username "ultralisp"
+                        :password "ultralisp")))
 
 
 (defmacro with-transaction (&body body)

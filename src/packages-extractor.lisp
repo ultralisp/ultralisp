@@ -71,28 +71,32 @@
 (defun load-system-and-return-packages (system-name)
   (unless (boundp '*component-packages*)
     (error "Use this function inside the with-packages-collected macro"))
+  
+  ;; Probably, this is a package inferred system
+  ;; then we need to load a parent system because
+  ;; it can have some required dependencies, like ningle do.
+  (when (find #\/ system-name)
+    (ignore-errors
+     (ql:quickload (asdf:primary-system-name system-name)
+                   :silent t)))
+  
   (ql:quickload system-name :silent t)
+  
   (values (get-system-packages system-name)
           *component-packages*))
 
 
-(defun get-packages (system-names)
-  "External function to use in other Ultralisp code.
-   Runs packages extractor in a separate process which
-   does not have any dependencies and is able to
-   load a system from scratch."
-  (with-output-to-string (s)
-    (uiop:run-program (format nil "qlot exec src/packages-extractor~{ ~A~}"
-                              system-names)
-                      :ignore-error-status t
-                      :output t
-                      :error-output t)))
-
-
 (defun main ()
+  "Extracts documentation from all given systems and pushes this documentation
+   to the elastic search."
   (with-packages-collected
-    (loop for system-name in (uiop:command-line-arguments)
-          for packages = (load-system-and-return-packages system-name)
-          do (format t "~A~{ ~A~}~%"
-                     system-name
-                     (mapcar #'package-name packages)))))
+    (handler-bind ((asdf:load-system-definition-error
+                     (lambda (c)
+                       (format *error-output* "ERROR: ~A~%" c)
+                       (uiop:quit 1))))
+      (loop for system-name in (uiop:command-line-arguments)
+            for packages = (load-system-and-return-packages system-name)
+            do (format t "~A~{ ~A~}~%"
+                       system-name
+                       (mapcar #'package-name packages))))))
+
