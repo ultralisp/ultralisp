@@ -11,6 +11,7 @@
                 #:downloaded-project-path
                 #:download)
   (:import-from #:ultralisp/models/project
+                #:get-recently-updated-projects
                 #:get-all-projects
                 #:get-github-project)
   (:import-from #:ultralisp/packages-extractor-api
@@ -357,7 +358,7 @@ default values from the arglist."
 
 
 (defun index-project (project)
-  "Эту фукнцию надо вызывать внутри воркера."
+  "Эту функцию надо вызывать внутри воркера."
   (let* ((tmp-dir "/tmp/indexer")
          (downloaded (download project tmp-dir :latest t))
          (path (downloaded-project-path downloaded)))
@@ -378,13 +379,20 @@ default values from the arglist."
                                   :validate t))))
 
 
-(defun index-projects (&rest names)
-  (let ((projects (if names
-                      (loop for name in names
-                            for splitted = (cl-strings:split name #\/)
-                            collect (get-github-project (first splitted)
-                                                        (second splitted)))
-                      (get-all-projects :only-enabled t))))
+(defun index-projects (&key names since)
+  (when (and names since)
+    (error "Only \"since\" or \"names\" should be specified"))
+  
+  (let ((projects (cond
+                    (names
+                     (loop for name in names
+                           for splitted = (cl-strings:split name #\/)
+                           collect (get-github-project (first splitted)
+                                                       (second splitted))))
+                    (since (get-recently-updated-projects
+                            :since since))
+                    ;; Reindexing all projects
+                    (t (get-all-projects :only-enabled t)))))
     (loop for project in projects
           do (log:info "Indexing project" project)
              (ignore-errors

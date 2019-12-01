@@ -29,6 +29,7 @@
   (:import-from #:ultralisp/db
                 #:with-transaction)
   (:import-from #:ultralisp/utils
+                #:time-in-past
                 #:update-plist
                 #:make-update-diff)
   (:import-from #:ultralisp/models/version
@@ -81,7 +82,8 @@
    #:get-disable-reason
    #:find-projects-with-conflicting-systems
    #:get-external-url
-   #:get-github-projects))
+   #:get-github-projects
+   #:get-recently-updated-projects))
 (in-package ultralisp/models/project)
 
 
@@ -371,6 +373,13 @@
     (order-by (:desc :created-at))
     (limit limit)))
 
+(defun get-recently-updated-projects (&key (since (time-in-past :day 1)))
+  "Returns a list of recently added projects to show them on a landing page."
+  (select-dao 'project
+    (where (:and :enabled
+                 (:> :updated-at
+                     since)))
+    (order-by (:desc :updated-at))))
 
 (defun get-github-project (user-or-org project)
   (first
