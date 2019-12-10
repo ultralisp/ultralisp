@@ -1,29 +1,20 @@
 ("quicklisp" .
- (:class qlot.source.ql:source-ql-all
+ (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2019-10-08"))
+  :version "2019-11-30"))
 ("ultralisp" .
- (:class qlot.source.ql:source-ql-all
+ (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20191011145005"))
+  :version "20191209200507"))
 ("cl-dbi" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "cl-dbi" :repos "svetlyak40wt/cl-dbi" :ref nil :branch "49-fix-manual-commit" :tag nil)
-  :version "github-1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf"
-  :repos "svetlyak40wt/cl-dbi"
-  :url "https://github.com/svetlyak40wt/cl-dbi/archive/1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf.tar.gz"
-  :ref "1dd01fbc52915b144a77ef64e9e2b62a9e70e2bf"))
+ (:class qlot/source/github:source-github
+  :initargs (:repos "svetlyak40wt/cl-dbi" :ref nil :branch "49-fix-manual-commit" :tag nil)
+  :version "github-25ccb2a1d2c9f97f5bf16988c47b8c79"))
 ("quickdist" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "quickdist" :repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")
-  :version "github-a72bc5a2c4e99332fec9a98de102a80b7512ee6b"
-  :repos "ultralisp/quickdist"
-  :url "https://github.com/ultralisp/quickdist/archive/a72bc5a2c4e99332fec9a98de102a80b7512ee6b.tar.gz"
-  :ref "a72bc5a2c4e99332fec9a98de102a80b7512ee6b"))
+ (:class qlot/source/github:source-github
+  :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")
+  :version "github-be76e126b0cb3ff3fa60d2bf129032f8"))
 ("slynk-named-readtables" .
- (:class qlot.source.github:source-github
-  :initargs (:project-name "slynk-named-readtables" :repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
-  :version "github-6b37ed2201174caa86a44e8ac3350dd09e91e606"
-  :repos "joaotavora/sly-named-readtables"
-  :url "https://github.com/joaotavora/sly-named-readtables/archive/6b37ed2201174caa86a44e8ac3350dd09e91e606.tar.gz"
-  :ref "6b37ed2201174caa86a44e8ac3350dd09e91e606"))
+ (:class qlot/source/github:source-github
+  :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
+  :version "github-ab9cff202f4c659d9f26560718b776cb"))

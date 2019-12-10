@@ -1,7 +1,7 @@
 dist ultralisp http://dist.ultralisp.org/
 
-ql :all :latest
-ultralisp :all :latest
+# ql :all :latest
+# ultralisp :all :latest
 
 github cl-dbi svetlyak40wt/cl-dbi :branch 49-fix-manual-commit
 

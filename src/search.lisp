@@ -29,6 +29,7 @@
 (defparameter *elastic-host* "elastic")
 
 (defvar *current-system-name* nil)
+(defvar *current-package-name* nil)
 (defvar *current-project-name* nil)
 
 
@@ -65,7 +66,7 @@
                           :|query| (list
                                     :|query_string|
                                     (list :|fields|
-                                          (list "documentation" "name")
+                                          (list "documentation" "symbol" "package")
                                           :|query| term)))
             with content = (jonathan:to-json query)
             with response = (jonathan:parse (dex:post url
@@ -74,18 +75,25 @@
             for hit in (getf (getf response
                                    :|hits|)
                              :|hits|)
-            for name = (getf hit :|_id|)
             for source = (getf hit :|_source|)
             for doc = (getf source :|documentation|)
             for type = (getf source :|type|)
+            for symbol = (getf source :|symbol|)
             for system = (getf source :|system|)
             for project = (getf source :|project|)
+            ;; This is a symbol's package:
+            for package = (getf source :|package|)
+            ;; And this is a package where symbol
+            ;; was exported from:
+            for original-package = (getf source :|original-package|)
             collect (list (make-keyword type)
-                          name
+                          symbol
                           doc
                           :arguments (getf source :|arguments|)
-                          :system system
-                          :project project))
+                          :project project
+                          :package package
+                          :original-package original-package
+                          :system system))
     (dexador.error:http-request-not-found ()
       nil)
     (dexador.error:http-request-bad-request ()
@@ -188,19 +196,28 @@ default values from the arglist."
     (format nil "~S"
             (arglist symbol))))
 
-(defun get-function-documentation* (symbol type doc)
+(defun get-common-documentation* (symbol)
   (append
    (when *current-system-name*
-     (list :|system| *current-system-name*))
+     (list :|system| (string-downcase *current-system-name*)))
    
    (when *current-project-name*
-     (list :|project| *current-project-name*))
+     (list :|project| (string-downcase *current-project-name*)))
+   
+   (when *current-package-name*
+     (list :|package| (string-downcase *current-package-name*)))
+   
+   (list
+    :|original-package| (string-downcase
+                         (package-name (symbol-package symbol)))
+    :|symbol| (string-downcase (symbol-name symbol)))))
+
+
+(defun get-function-documentation* (symbol type doc)
+  (append
+   (get-common-documentation* symbol)
    
    (list :|type| type
-         :|name| (string-downcase
-                  (symbol-name symbol))
-         :|package| (string-downcase
-                     (package-name (symbol-package symbol)))
          :|documentation| (prepare-text doc)
          :|arguments| (arglist-as-string symbol))))
 
@@ -279,12 +296,7 @@ default values from the arglist."
 
 (defun get-variable-documentation* (symbol type)
   (append
-   (when *current-system-name*
-     (list :|system| *current-system-name*))
-   
-   (when *current-project-name*
-     (list :|project| *current-project-name*))
-   
+   (get-common-documentation* symbol)
    (list
     :|type| type
     :|documentation| (prepare-text (or (documentation symbol type) "")))))
@@ -321,14 +333,16 @@ default values from the arglist."
 
 
 (defun index-symbols (package)
-  (let ((current-package (etypecase package
-                           (string (find-package (string-upcase package)))
-                           (keyword (find-package package))
-                           (package package))))
+  (let* ((current-package (etypecase package
+                            (string (find-package (string-upcase package)))
+                            (keyword (find-package package))
+                            (package package)))
+         (*current-package-name* (when current-package
+                                   (package-name current-package))))
     (cond
       (current-package
        (do-external-symbols (symbol current-package)
-         (let ((external (is-external symbol package)))
+         (let ((external (is-external symbol current-package)))
            (when external
              (let* ((full-symbol-name (encode-symbol symbol))
                     (object-id (if *current-project-name*
@@ -364,15 +378,26 @@ default values from the arglist."
          (path (downloaded-project-path downloaded)))
     
     (unwind-protect
-         (loop with systems = (ultralisp/models/project:get-systems-info project)
-               with *current-project-name* = (ultralisp/models/project:get-name project)
-               for system in systems
-               for data = (get-packages (quickdist:get-name system))
-               do (loop for item in data
-                        for *current-system-name* = (getf item :system)
-                        for packages = (getf item :packages)
-                        do (mapc #'index-symbols
-                                 packages)))
+         (uiop:with-current-directory (path)
+           ;; Prepare qlfile and install the dependencies
+           (alexandria:with-output-to-file (s (merge-pathnames #P"qlfile"
+                                                               path))
+             ;; TODO: Add an ultralisp settings here
+             (format s "dist ultralisp http://dist.ultralisp.org/~%")
+             (uiop:run-program "qlot install"))
+           
+           (loop with systems = (ultralisp/models/project:get-systems-info project)
+                 with *current-project-name* = (ultralisp/models/project:get-name project)
+                 for system in systems
+                 for data = (get-packages (quickdist:get-name system)
+                                          :work-dir path)
+                 do (log:info "Indexing system" system)
+                    (loop for item in data
+                          for *current-system-name* = (getf item :system)
+                          for packages = (getf item :packages)
+                          do (loop for package in packages
+                                   do (log:info "Indexing package" package)
+                                      (index-symbols package)))))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
       (uiop:delete-directory-tree path

@@ -55,9 +55,10 @@
 
 
 (defgeneric render-item (type name doc &rest rest)
-  (:method (type name doc &key arguments system project)
+  (:method (type name doc &key arguments system project package original-package)
     (with-html
-      (:li (:span :class "name" name)
+      (:li (:span :class "name"
+                  ("~:@(~A:~A~)" package name))
            (when arguments
              (:span :class "args" arguments))
            (:span :class "type" type)
@@ -71,7 +72,11 @@
            (when system
              (:div :class "item-footer system"
                    (:label "system:")
-                   (:span system)))))))
+                   (:span system)))
+           (when original-package
+             (:div :class "item-footer package"
+                   (:label "original-package:")
+                   (:span original-package)))))))
 
 
 (defun to-uppercased-symbols (item)
@@ -88,10 +93,10 @@
           (fmt "Search results for \"~A\"" query))
     (handler-case
         (let ((results (search-objects query)))
+          ;; (break)
           (with-html
             (cond
               (results
-               (:p ("Results for \"~A\"" query))
                (:ul :class "search-results"
                     (loop for item in results
                           for uppercased = (to-uppercased-symbols item)

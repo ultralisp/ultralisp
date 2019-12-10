@@ -26,7 +26,7 @@
           collect (list :system (first parsed)
                         :packages (rest parsed)))))
 
-(defun get-packages (system-names &key (extractor-binary-path "/app/packages-extractor"))
+(defun get-packages-orig (system-names &key (extractor-binary-path "/app/packages-extractor"))
   "External function to use in other Ultralisp code.
    Runs packages extractor in a separate process which
    does not have any dependencies and is able to
@@ -58,5 +58,43 @@
                      (uiop:run-program command
                                    :output output
                                    :error error-output)))))))
+        ;; In any case we just log error and return nothing
+        (uiop/run-program:subprocess-error ())))))
+
+(defun get-packages (system-names &key (extractor-binary-path "/app/packages-extractor")
+                                    (work-dir "/app"))
+  "External function to use in other Ultralisp code.
+   Runs packages extractor in a separate process which
+   does not have any dependencies and is able to
+   load a system from scratch."
+  (let* ((system-names (uiop:ensure-list system-names))
+         (command (format nil "qlot exec ~A~{ ~A~}"
+                          extractor-binary-path
+                          system-names)))
+    (uiop:with-current-directory (work-dir)
+      (handler-case
+          (with-fields (:systems system-names)
+            (with-log-unhandled ()
+              (let (response)
+                (with-output-to-string (output)
+                  (with-output-to-string (error-output)
+                    (handler-bind ((uiop:subprocess-error
+                                     (lambda (c)
+                                       (let ((exit-code (uiop:subprocess-error-code c))
+                                             (command (uiop:subprocess-error-command c))
+                                             (output (get-output-stream-string
+                                                      output))
+                                             (error-output (get-output-stream-string
+                                                            error-output)))
+                                         (log:error "packages-extractor returned"
+                                                    exit-code
+                                                    command
+                                                    output
+                                                    error-output)))))
+                      (uiop:run-program command
+                                        :output output
+                                        :error error-output)
+                      (setf response (get-output-stream-string output)))))
+                (parse-packages-output response))))
         ;; In any case we just log error and return nothing
         (uiop/run-program:subprocess-error ())))))
