@@ -5,6 +5,8 @@
   (:import-from #:log4cl-json
                 #:with-log-unhandled
                 #:with-fields)
+  (:import-from #:function-cache
+                #:defcached)
   (:export
    #:get-packages))
 (in-package ultralisp/packages-extractor-api)
@@ -61,17 +63,19 @@
         ;; In any case we just log error and return nothing
         (uiop/run-program:subprocess-error ())))))
 
-(defun get-packages (system-names &key (extractor-binary-path "/app/packages-extractor")
+(defcached get-packages (system-names &key (extractor-binary-path "/app/packages-extractor")
                                     (work-dir "/app"))
   "External function to use in other Ultralisp code.
    Runs packages extractor in a separate process which
    does not have any dependencies and is able to
    load a system from scratch."
+  (log:info "Getting packages for" system-names)
   (let* ((system-names (uiop:ensure-list system-names))
          (command (format nil "qlot exec ~A~{ ~A~}"
                           extractor-binary-path
                           system-names)))
     (uiop:with-current-directory (work-dir)
+      (log:info "Calling" command work-dir)
       (handler-case
           (with-fields (:systems system-names)
             (with-log-unhandled ()

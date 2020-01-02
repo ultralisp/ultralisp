@@ -92,8 +92,8 @@
     (setf (weblocks/page:get-title)
           (fmt "Search results for \"~A\"" query))
     (handler-case
-        (let ((results (search-objects query)))
-          ;; (break)
+        (multiple-value-bind (results total)
+            (search-objects query)
           (with-html
             (cond
               (results
@@ -101,7 +101,10 @@
                     (loop for item in results
                           for uppercased = (to-uppercased-symbols item)
                           do (apply #'render-item
-                                    uppercased))))
+                                    uppercased)))
+               (when (> total (length results))
+                 (:p ("And ~A more"
+                      (- total (length results))))))
               (t
                (:p ("No results for \"~A\"" query))))))
       (ultralisp/search:bad-query ()

@@ -3,6 +3,8 @@
   (:import-from #:dexador)
   (:import-from #:jonathan)
   (:import-from #:closer-mop)
+  (:import-from #:qlot)
+  (:import-from #:qlot/install)
   (:import-from #:rutils
                 #:fmt)
   (:import-from #:alexandria
@@ -31,6 +33,7 @@
 (defvar *current-system-name* nil)
 (defvar *current-package-name* nil)
 (defvar *current-project-name* nil)
+(defvar *current-system-path* nil)
 
 
 (defun index (collection id data)
@@ -75,11 +78,16 @@
             for hit in (getf (getf response
                                    :|hits|)
                              :|hits|)
+            for total = (getf (getf (getf response
+                                          :|hits|)
+                                    :|total|)
+                              :|value|)
             for source = (getf hit :|_source|)
             for doc = (getf source :|documentation|)
             for type = (getf source :|type|)
             for symbol = (getf source :|symbol|)
             for system = (getf source :|system|)
+            for system-path = (getf source :|system-path|)
             for project = (getf source :|project|)
             ;; This is a symbol's package:
             for package = (getf source :|package|)
@@ -93,7 +101,9 @@
                           :project project
                           :package package
                           :original-package original-package
-                          :system system))
+                          :system-path system-path
+                          :system system) into results
+            finally (return (values results total)))
     (dexador.error:http-request-not-found ()
       nil)
     (dexador.error:http-request-bad-request ()
@@ -193,13 +203,16 @@ default values from the arglist."
 (defun arglist-as-string (symbol)
   (let ((*package* (symbol-package symbol))
         (*print-case* :downcase))
-    (format nil "~S"
+    (format nil "~:S"
             (arglist symbol))))
 
 (defun get-common-documentation* (symbol)
   (append
    (when *current-system-name*
      (list :|system| (string-downcase *current-system-name*)))
+
+   (when *current-system-path*
+     (list :|system-path| (format nil "~A" *current-system-path*)))
    
    (when *current-project-name*
      (list :|project| (string-downcase *current-project-name*)))
@@ -333,7 +346,9 @@ default values from the arglist."
 
 
 (defun index-symbols (package)
-  (let* ((current-package (etypecase package
+  ;; TODO: remove current-system-path
+  (let* ((*current-system-path* (ql:where-is-system *current-system-name*))
+         (current-package (etypecase package
                             (string (find-package (string-upcase package)))
                             (keyword (find-package package))
                             (package package)))
@@ -371,37 +386,89 @@ default values from the arglist."
   (mapc #'index-symbols (list-all-packages)))
 
 
+(defun safe-quickload (system)
+  (flet ((abort-if-possible (c)
+           (let ((restart (find-restart 'abort)))
+             (when restart
+               (log:warn "Aborting condition" c)
+               (invoke-restart restart))))
+         (continue-if-possible (c)
+           (let ((restart (find-restart 'continue)))
+             (when restart
+               (log:warn "Continuing on condition" c)
+               (invoke-restart restart))))
+         (shadow-import-if-possible (c)
+           #+sbcl
+           (let ((restart (find-restart 'sb-impl::shadowing-import-it)))
+             (when restart
+               (log:warn "Shadowing import on condition" c)
+               (invoke-restart restart)))))
+    (handler-bind ((simple-error
+                     (lambda (c)
+                       (let ((message (simple-condition-format-control c)))
+                         (when (cl-strings:starts-with
+                                message
+                                "Dependency looping")
+                           (abort-if-possible c))
+                         (when (search "overwriting old FUN-INFO" message)
+                           (continue-if-possible c)))))
+                   #+sbcl
+                   (sb-ext:name-conflict #'shadow-import-if-possible)
+                   #+sbcl
+                   (sb-ext:package-locked-error
+                     #'continue-if-possible)
+                   (quicklisp-client:system-not-found
+                     #'abort-if-possible))
+      (ql:quickload system))))
+
+
 (defun index-project (project)
   "Эту функцию надо вызывать внутри воркера."
-  (let* ((tmp-dir "/tmp/indexer")
-         (downloaded (download project tmp-dir :latest t))
-         (path (downloaded-project-path downloaded)))
-    
+  (let* ((path (or (probe-file #P"/tmp/indexer/40ants-weblocks/")
+                   (downloaded-project-path
+                    (download project "/tmp/indexer" :latest t)))))
+
     (unwind-protect
          (uiop:with-current-directory (path)
+           (log:info "Working in" path)
            ;; Prepare qlfile and install the dependencies
            (alexandria:with-output-to-file (s (merge-pathnames #P"qlfile"
-                                                               path))
-             ;; TODO: Add an ultralisp settings here
+                                                               path)
+                                              :if-exists :supersede)
              (format s "dist ultralisp http://dist.ultralisp.org/~%")
-             (uiop:run-program "qlot install"))
-           
-           (loop with systems = (ultralisp/models/project:get-systems-info project)
-                 with *current-project-name* = (ultralisp/models/project:get-name project)
-                 for system in systems
-                 for data = (get-packages (quickdist:get-name system)
-                                          :work-dir path)
-                 do (log:info "Indexing system" system)
-                    (loop for item in data
-                          for *current-system-name* = (getf item :system)
-                          for packages = (getf item :packages)
-                          do (loop for package in packages
-                                   do (log:info "Indexing package" package)
-                                      (index-symbols package)))))
+             (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
+                                                           path))))
+               (when lock-file
+                 (delete-file lock-file)))
+             (qlot/install:install-project path :install-deps nil))
+
+           (log:info "Entering local quicklisp")
+           (qlot:with-local-quicklisp (path)
+             (loop with systems = (ultralisp/models/project:get-systems-info project)
+                   with *current-project-name* = (ultralisp/models/project:get-name project)
+                   with asdf:*central-registry* = (cons path asdf:*central-registry*)
+                   for system in systems
+                   do (log:info "Checking system" system)
+                      (let ((data (get-packages (quickdist:get-name system)
+                                                :work-dir path)))
+                        (log:info "Indexing system" system data)
+                        (loop for item in data
+                              for *current-system-name* = (getf item :system)
+                              for packages = (getf item :packages)
+                              ;; TODO: abort on these conditions
+                              ;; QUICKLISP-CLIENT:SYSTEM-NOT-FOUND
+                              ;; SIMPLE-ERROR Dependency looping -- already tried to load.*
+                              do (safe-quickload *current-system-name*)
+                                 (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
+                                   (loop for package in packages
+                                         do (log:info "Indexing package" package)
+                                            (index-symbols package)))))
+                   )))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
-      (uiop:delete-directory-tree path
-                                  :validate t))))
+      ;; (uiop:delete-directory-tree path
+      ;;                             :validate t)
+      )))
 
 
 (defun index-projects (&key names since)
