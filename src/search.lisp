@@ -432,9 +432,8 @@ default values from the arglist."
 
 (defun index-project (project)
   "Эту функцию надо вызывать внутри воркера."
-  (let* ((path (or (probe-file #P"/tmp/indexer/40ants-weblocks/")
-                   (downloaded-project-path
-                    (download project "/tmp/indexer" :latest t)))))
+  (let* ((path (downloaded-project-path
+                (download project "/tmp/indexer" :latest t))))
 
     (unwind-protect
          (uiop:with-current-directory (path)
@@ -463,9 +462,6 @@ default values from the arglist."
                         (loop for item in data
                               for *current-system-name* = (getf item :system)
                               for packages = (getf item :packages)
-                              ;; TODO: abort on these conditions
-                              ;; QUICKLISP-CLIENT:SYSTEM-NOT-FOUND
-                              ;; SIMPLE-ERROR Dependency looping -- already tried to load.*
                               do (safe-quickload *current-system-name*)
                                  (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
                                    (loop for package in packages
@@ -474,9 +470,8 @@ default values from the arglist."
                    )))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
-      ;; (uiop:delete-directory-tree path
-      ;;                             :validate t)
-      )))
+      (uiop:delete-directory-tree path
+                                  :validate t))))
 
 
 (defun index-projects (&key names force (limit 10))
