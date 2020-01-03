@@ -22,6 +22,7 @@
                 #:aif
                 #:it)
   (:import-from #:local-time-duration
+                #:timestamp-duration+
                 #:duration
                 #:timestamp-duration-)
   (:export
@@ -43,7 +44,8 @@
    #:with-tmp-directory
    #:delete-file-if-exists
    #:in-repl
-   #:with-trace))
+   #:with-trace
+   #:time-in-future))
 (in-package ultralisp/utils)
 
 
@@ -161,6 +163,16 @@
 
 (defun time-in-past (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
   (timestamp-duration-
+   (local-time:now)
+   (duration :week week
+             :day day
+             :hour hour
+             :minute minute
+             :sec sec
+             :nsec nsec)))
+
+(defun time-in-future (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
+  (timestamp-duration+
    (local-time:now)
    (duration :week week
              :day day

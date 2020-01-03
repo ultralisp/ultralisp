@@ -22,6 +22,9 @@
                 #:submit-task)
   (:import-from #:log4cl-json
                 #:with-log-unhandled)
+  (:import-from #:ultralisp/models/index
+                #:set-index-status
+                #:get-projects-to-index)
   (:export
    #:search-objects
    #:bad-query))
@@ -471,25 +474,25 @@ default values from the arglist."
       )))
 
 
-(defun index-projects (&key names since)
-  (when (and names since)
-    (error "Only \"since\" or \"names\" should be specified"))
-  
+(defun index-projects (&key names force)
   (let ((projects (cond
                     (names
                      (loop for name in names
                            for splitted = (cl-strings:split name #\/)
                            collect (get-github-project (first splitted)
                                                        (second splitted))))
-                    (since (get-recently-updated-projects
-                            :since since))
                     ;; Reindexing all projects
-                    (t (get-all-projects :only-enabled t)))))
+                    (force (get-all-projects :only-enabled t))
+                    ;; 
+                    (t (get-projects-to-index)))))
     (loop for project in projects
           do (log:info "Indexing project" project)
-             (ignore-errors
-              (log4cl-json:with-fields
-                  (:project-name (ultralisp/models/project:get-name project))
-                (with-log-unhandled ()
-                  (submit-task
-                   'index-project project)))))))
+             (handler-case
+                 (log4cl-json:with-fields
+                     (:project-name (ultralisp/models/project:get-name project))
+                   (with-log-unhandled ()
+                     (submit-task
+                      'index-project project)
+                     (set-index-status project :ok)))
+               (error ()
+                 (set-index-status project :failed))))))
