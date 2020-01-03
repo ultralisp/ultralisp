@@ -21,10 +21,14 @@
   (:import-from #:ultralisp/rpc/core
                 #:submit-task)
   (:import-from #:log4cl-json
+                #:with-fields
                 #:with-log-unhandled)
   (:import-from #:ultralisp/models/index
                 #:set-index-status
                 #:get-projects-to-index)
+  (:import-from #:local-time
+                #:timestamp-difference
+                #:now)
   (:export
    #:search-objects
    #:bad-query
@@ -487,13 +491,22 @@ default values from the arglist."
                     ;; 
                     (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
+          for started-at = (now)
           do (log:info "Indexing project" project)
-             (handler-case
-                 (log4cl-json:with-fields
-                     (:project-name (ultralisp/models/project:get-name project))
-                   (with-log-unhandled ()
-                     (submit-task
-                      'index-project project)
-                     (set-index-status project :ok)))
-               (error ()
-                 (set-index-status project :failed))))))
+             (flet ((get-total-time ()
+                      (floor (timestamp-difference
+                              (now)
+                              started-at))))
+               (handler-case
+                   (with-fields
+                       (:project-name (ultralisp/models/project:get-name project))
+                     (with-log-unhandled ()
+                       (submit-task
+                        'index-project project)
+                       (set-index-status project
+                                         :ok
+                                         :total-time (get-total-time))))
+                 (error ()
+                   (set-index-status project
+                                     :failed
+                                     :total-time (get-total-time))))))))

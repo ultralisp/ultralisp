@@ -42,21 +42,30 @@
 
 (defun set-index-status (project status
                          &key
-                           (next-update-at (time-in-future :day 7)))
+                           (next-update-at (time-in-future :day 7))
+                           (total-time 0))
   (check-type project project)
   (check-type status (member :ok :failed))
   (if (get-index-status project)
       (mito:execute-sql "UPDATE project_index SET status = ?,
                                 last_update_at = NOW(),
-                                next_update_at = ?
+                                next_update_at = ?,
+                                total_time = ?
                           WHERE project_id = ?"
                         (list (status-to-postgres status)
                               next-update-at
+                              total-time
                               (mito:object-id project)))
-      (mito:execute-sql "INSERT INTO project_index (project_id, last_update_at, next_update_at, status)
+      (mito:execute-sql "INSERT INTO project_index (
+                                   project_id,
+                                   last_update_at,
+                                   next_update_at,
+                                   total_time,
+                                   status)
                                 VALUES (?, NOW(), ?, ?)"
                         (list (mito:object-id project)
                               next-update-at
+                              total-time
                               (status-to-postgres status)))))
 
 
