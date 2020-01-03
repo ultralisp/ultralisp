@@ -128,6 +128,10 @@
              (make-via-cron-check project)))
 
 
+(deftask index-projects ()
+  (ultralisp/search:index-projects))
+
+
 (defun list-cron-jobs ()
   (loop for key being the hash-key of cl-cron::*cron-jobs-hash*
         collect key))
@@ -145,24 +149,30 @@
 (defun setup ()
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Creating cron jobs")
-  ;; Run every minute
-  ;; (cl-cron:make-cron-job 'perform-checks
-  ;;                        :hash-key 'perform-checks)
+  (unless (uiop:getenv "CRON_DISABLED")
+    ;; Run every minute
+    (cl-cron:make-cron-job 'perform-checks
+                           :hash-key 'perform-checks)
 
-  ;; Evey hour remove old checks
-  ;; (cl-cron:make-cron-job 'remove-old-checks
-  ;;                        :hash-key 'remove-old-checks
-  ;;                        :step-min 60)
+    ;; Evey hour remove old checks
+    (cl-cron:make-cron-job 'remove-old-checks
+                           :hash-key 'remove-old-checks
+                           :step-min 60)
 
-  ;; Run every 5 minutes
-  ;; (cl-cron:make-cron-job 'build-version
-  ;;                        :hash-key 'build-version
-  ;;                        :step-min 5)
+    ;; Run every 5 minutes
+    (cl-cron:make-cron-job 'build-version
+                           :hash-key 'build-version
+                           :step-min 5)
   
-  ;; Every 15 minutes we'll create checks for project which need it
-  ;; (cl-cron:make-cron-job 'create-cron-checks
-  ;;                        :hash-key 'create-cron-checks
-  ;;                        :step-min 15)
+    ;; Every 15 minutes we'll create checks for project which need it
+    (cl-cron:make-cron-job 'create-cron-checks
+                           :hash-key 'create-cron-checks
+                           :step-min 15)
+
+    ;; Every hour we'll index projects to make them searchable
+    (cl-cron:make-cron-job 'index-projects
+                           :hash-key 'index-projects
+                           :step-min 60))
   (values))
 
 

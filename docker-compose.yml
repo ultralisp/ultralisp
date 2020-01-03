@@ -44,6 +44,9 @@ services:
       BASE_URL: http://localhost:8080/dist/
       PROJECTS_DIR: /app/build/sources/
       DIST_DIR: /app/build/dist/
+      # For development we most probably don't want to run
+      # cron jobs
+      CRON_DISABLED: yes
 
   gearman:
     container_name: ultralisp_gearman

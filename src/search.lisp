@@ -27,7 +27,8 @@
                 #:get-projects-to-index)
   (:export
    #:search-objects
-   #:bad-query))
+   #:bad-query
+   #:index-projects))
 (in-package ultralisp/search)
 
 
@@ -474,7 +475,7 @@ default values from the arglist."
       )))
 
 
-(defun index-projects (&key names force)
+(defun index-projects (&key names force (limit 10))
   (let ((projects (cond
                     (names
                      (loop for name in names
@@ -484,7 +485,7 @@ default values from the arglist."
                     ;; Reindexing all projects
                     (force (get-all-projects :only-enabled t))
                     ;; 
-                    (t (get-projects-to-index)))))
+                    (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
           do (log:info "Indexing project" project)
              (handler-case
