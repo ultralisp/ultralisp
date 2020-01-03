@@ -49,6 +49,7 @@
   (:import-from #:lparallel
                 #:make-kernel)
   (:import-from #:alexandria
+                #:random-elt
                 #:remove-from-plistf
                 #:make-keyword)
   (:import-from #:ultralisp/uploader/base
@@ -89,6 +90,11 @@
 (in-package ultralisp/server)
 
 
+(defparameter +search-help+
+  (list "signal - this will search in symbol's name and documentation."
+        "project:\"40ants/weblocks\" AND symbol:\"request\""
+        "package:\"weblocks/actions\" to search all symbols exported from a package."))
+
 (defmethod weblocks/session:init ((app app))
   (make-main-widget))
 
@@ -105,6 +111,13 @@
 
             (.motto
              :font-size 1.5em)
+
+            (.search-help
+             :margin 0
+             :font-size 0.75rem
+             :position relative
+             :top -0.5rem
+             :color gray)
 
             (.num-projects
              :font-size 0.3em
@@ -210,11 +223,15 @@
                                 "A fast-moving Common Lisp software distribution.")
                            (let ((query (weblocks/request:get-parameter "query")))
                              (:form :method "GET"
+                                    :class "search-form"
                                     :action "/search/"
                                     (:input :type "text"
                                             :name "query"
                                             :value query
-                                            :placeholder "search a symbol"))))
+                                            :placeholder "search a symbol"))
+                             (:p :class "search-help"
+                                 ("Try: ~A"
+                                  (random-elt +search-help+)))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
                           (with-html (:raw body-string))))
