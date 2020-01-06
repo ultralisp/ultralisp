@@ -221,17 +221,19 @@
                                               num-projects)))
                            (:h2 :class "motto"
                                 "A fast-moving Common Lisp software distribution.")
-                           (let ((query (weblocks/request:get-parameter "query")))
-                             (:form :method "GET"
-                                    :class "search-form"
-                                    :action "/search/"
-                                    (:input :type "text"
-                                            :name "query"
-                                            :value query
-                                            :placeholder "search a symbol"))
-                             (:p :class "search-help"
-                                 ("Try: ~A"
-                                  (random-elt +search-help+)))))
+                           (let ((query (weblocks/request:get-parameter "query"))
+                                 (show-search (null (uiop:getenv "HIDE_SEARCH"))))
+                             (when show-search
+                               (:form :method "GET"
+                                      :class "search-form"
+                                      :action "/search/"
+                                      (:input :type "text"
+                                              :name "query"
+                                              :value query
+                                              :placeholder "search a symbol"))
+                               (:p :class "search-help"
+                                   ("Try: ~A"
+                                    (random-elt +search-help+))))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
                           (with-html (:raw body-string))))

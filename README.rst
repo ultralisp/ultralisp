@@ -122,6 +122,15 @@ Connect to the REPL and run:
    (setf rove:*debug-on-error* t)
    (asdf:test-system :ultralisp-test)
 
+Interesting environment variables
+---------------------------------
+
+* ``HIDE_SEARCH`` - if you set it, then search bar will not render.
+  But this does not disables projects indexing.
+* ``CRON_DISABLED`` - turn off all cron jobs like project chechking,
+  new version builds etc. Probably, we should create an admin page
+  to perform these actions manually.
+
 
 Hosting Ultralisp on your own server
 ====================================
