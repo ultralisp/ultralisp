@@ -64,10 +64,11 @@
 
 
 (define-condition bad-query (error)
-  ())
+  ((original-error :initarg :original-error
+                   :reader get-original-error)))
 
 
-(defun search-objects (term)
+(defun search-objects (term &key (from 0))
   ;; TODO: научиться обрабатывать 400 ответы от Elastic
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
   (handler-case
@@ -78,18 +79,20 @@
                                     :|query_string|
                                     (list :|fields|
                                           (list "documentation" "symbol" "package")
-                                          :|query| term)))
+                                          :|query| term))
+                          :|from| from)
             with content = (jonathan:to-json query)
-            with response = (jonathan:parse (dex:post url
-                                                      :content content
-                                                      :headers '(("Content-Type" . "application/json"))))
+            with response = (jonathan:parse
+                             (dex:post url
+                                       :content content
+                                       :headers '(("Content-Type" . "application/json"))))
+            with total = (getf (getf (getf response
+                                           :|hits|)
+                                     :|total|)
+                               :|value|)
             for hit in (getf (getf response
                                    :|hits|)
                              :|hits|)
-            for total = (getf (getf (getf response
-                                          :|hits|)
-                                    :|total|)
-                              :|value|)
             for source = (getf hit :|_source|)
             for doc = (getf source :|documentation|)
             for type = (getf source :|type|)
@@ -111,11 +114,17 @@
                           :original-package original-package
                           :system-path system-path
                           :system system) into results
-            finally (return (values results total)))
+            finally (return (values results
+                                    total
+                                    (when (< (+ from (length results))
+                                             total)
+                                      (lambda ()
+                                        (search-objects term
+                                                        :from (+ from (length results))))))))
     (dexador.error:http-request-not-found ()
       nil)
-    (dexador.error:http-request-bad-request ()
-      (error 'bad-query))))
+    (dexador.error:http-request-bad-request (condition)
+      (error 'bad-query :original-error condition))))
 
 
 (defun symbol-function-type (symbol)
