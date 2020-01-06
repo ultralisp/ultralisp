@@ -46,7 +46,7 @@ services:
       DIST_DIR: /app/build/dist/
       # For development we most probably don't want to run
       # cron jobs
-      CRON_DISABLED: yes
+      CRON_DISABLED: "yes"
 
   gearman:
     container_name: ultralisp_gearman
