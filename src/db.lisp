@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/db
   (:use #:cl)
   (:import-from #:cl-dbi)
+  (:import-from #:cl-postgres)
   (:import-from #:mito)
   (:import-from #:ironclad
                 #:octets-to-integer
