@@ -2,7 +2,7 @@ version: 2
 jobs:
   sbcl:
     docker:
-      - image: 40ants/base-lisp-image:0.9.0-sbcl-bin
+      - image: 40ants/base-lisp-image:0.10.1-sbcl-bin
       - image: postgres:10
         environment:
           POSTGRES_USER: ultralisp
