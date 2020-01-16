@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.14.0 (2020-01-16)
+===================
+
+Changes
+-------
+
+* Added a full text search among all symbols from all systems known to Ultralisp.org
+
 0.13.0 (2019-09-15)
 ===================
 
