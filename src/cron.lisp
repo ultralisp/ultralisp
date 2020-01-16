@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:cl-cron)
   (:import-from #:log4cl)
+  (:import-from #:ultralisp/search)
   (:import-from #:ultralisp/models/project
                 #:get-disable-reason
                 #:get-all-projects)
