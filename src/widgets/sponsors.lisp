@@ -25,7 +25,7 @@
         "Ultralisp - Sponsors")
   
   (with-html
-    (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberpay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
+    (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
     (:div :class "donate"
           (:a :class "button success"
               :href "https://www.patreon.com/join/ultralisp"
@@ -34,4 +34,4 @@
                  " ")
           (:a :class "button success"
               :href "https://en.liberapay.com/Ultralisp.org/donate"
-              "Donate $$$ at Liberpay"))))
+              "Donate $$$ at Liberapay"))))

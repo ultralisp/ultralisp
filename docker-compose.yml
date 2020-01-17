@@ -16,7 +16,7 @@ services:
       - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
-      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+      - ./.qlot/local-projects:/app/.qlot/local-projects
       - ./src/:/app/src/
       - ./t/:/app/t/
       - ./db/:/app/db/
@@ -26,6 +26,7 @@ services:
       - ./build/:/app/build/
     depends_on:
       - postgres
+      - elastic
       - worker
       - gearman
     environment:
@@ -35,6 +36,7 @@ services:
       POSTGRES_PASS: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASS: ultralisp_ro
+      ELASTIC_HOST: elastic
       # These tokens are from the development app and
       # we don't need to keep them in secret
       GITHUB_CLIENT_ID: 0bc769474b14267aac28
@@ -42,6 +44,9 @@ services:
       BASE_URL: http://localhost:8080/dist/
       PROJECTS_DIR: /app/build/sources/
       DIST_DIR: /app/build/dist/
+      # For development we most probably don't want to run
+      # cron jobs
+      CRON_DISABLED: "yes"
 
   gearman:
     container_name: ultralisp_gearman
@@ -71,10 +76,12 @@ services:
       - ./build/:/app/build/
     depends_on:
       - postgres
+      - elastic
       - gearman
     environment:
       DEBUG: 1
       MODE: worker
+      ELASTIC_HOST: elastic
 
   postgres:
     container_name: ultralisp_db
@@ -88,6 +95,18 @@ services:
     volumes:
       - ./postgresql-data:/var/lib/postgresql/data
       - ./docker/initdb.d/:/docker-entrypoint-initdb.d/
+
+  elastic:
+    container_name: ultralisp_elastic
+    image: "elasticsearch:7.3.2"
+    restart: always
+    environment:
+      discovery.type: single-node
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
+    # volumes:
+    #   - ./elastic-data:/usr/share/elasticsearch/data
 
   empty-postgres:
     container_name: ultralisp_empty_db

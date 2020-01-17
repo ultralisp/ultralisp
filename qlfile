@@ -1,7 +1,9 @@
 dist ultralisp http://dist.ultralisp.org/
 
-ql :all :latest
-ultralisp :all :latest
+# ql :all :latest
+# ultralisp :all :latest
+
+github cl-dbi svetlyak40wt/cl-dbi :branch 49-fix-manual-commit
 
 # Temporary, just to check if changes compile
 # github weblocks 40ants/weblocks :branch better-session-handling
@@ -23,7 +25,7 @@ ultralisp :all :latest
 # github link-header 40ants/cl-link-header :tag v0.1.1
 
 
-github quickdist ultralisp/quickdist :tag v0.14.0
+github quickdist ultralisp/quickdist :tag v0.16.0
 
 # github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables

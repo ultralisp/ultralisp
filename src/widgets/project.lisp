@@ -74,6 +74,18 @@
   (check-type project ultralisp/models/project:project)
   
   (let* ((actions (get-project-actions project))
+         ;; TODO: Optimize get-version
+         ;; seconds  |     gc     |   consed  | calls |  sec/call  |  name
+         ;; -------------------------------------------------------
+         ;;      0.190 |      0.000 | 3,454,016 |     1 |   0.189999 | GET-VERSIONS
+         ;;      0.080 |      0.000 |   776,720 |     1 |   0.079999 | GET-PROJECT-ACTIONS
+         ;;      0.040 |      0.000 |   410,864 |     3 |   0.013327 | RENDER
+         ;;      0.020 |      0.000 |   275,248 |     1 |   0.019994 | RENDER-PROJECT
+         ;;      0.000 |      0.000 |         0 |     1 |   0.000000 | GET-DESCRIPTION
+         ;;      0.000 |      0.000 |         0 |     1 |   0.000000 | GET-EXTERNAL-URL
+         ;;      0.000 |      0.000 |   163,824 |     1 |   0.000000 | GET-PROJECT-CHECKS
+         ;; -------------------------------------------------------
+         ;;      0.330 |      0.000 | 5,080,672 |     9 |            | Total
          (versions (get-versions project))
          (description (get-description project))
          (url (get-external-url project))
@@ -84,9 +96,10 @@
                            (get-current-user)))
          (not-moderator
            (not current-user-is-moderator))
-         (changelog (sort (append actions
-                                  versions
-                                  checks)
+         (changelog (sort nil
+                          ;; (append actions
+                          ;;         versions
+                          ;;         checks)
                           #'local-time:timestamp>
                           ;; We want last actions came first
                           :key #'mito:object-updated-at)))
@@ -117,7 +130,7 @@
            description)
       (:p (:a :href url
               "View project on GitHub"))
-      
+       
       (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
                                                                :at next-check-at)
                                                 changelog)

@@ -92,7 +92,6 @@
             (cons result *catched*)))))))
 
 
-
 (defmacro with-commands-processor (&body body)
   "Executes body and it should return a cons.
    Car of this cons is returned as a result,

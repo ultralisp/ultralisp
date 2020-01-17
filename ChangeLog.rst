@@ -2,6 +2,40 @@
  ChangeLog
 ===========
 
+0.14.0 (2020-01-16)
+===================
+
+Changes
+-------
+
+* Added a full text search among all symbols from all systems known to Ultralisp.org
+
+0.13.0 (2019-09-15)
+===================
+
+Fixes
+-----
+
+* Upgraded to a Quickdist version 0.16.0 where releases.txt metadata was fixed.
+
+0.12.0 (2019-09-14)
+===================
+
+Changes
+-------
+
+* Quicklisp upgraded from 2019-05-21 to 2019-08-13.
+
+Fixes
+-----
+
+* Upgraded to a new ``quickdist`` library, where issue
+  `number 51 <https://github.com/ultralisp/ultralisp/issues/51>`_ was fixed.
+
+  Because of this bug, all systems like ``slynk``, which have their asd files
+  in nested subdirectories, were broken.
+
+
 0.11.0 (2019-07-13)
 ===================
 

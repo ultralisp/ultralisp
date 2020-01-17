@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/db
   (:use #:cl)
   (:import-from #:cl-dbi)
+  (:import-from #:cl-postgres)
   (:import-from #:mito)
   (:import-from #:ironclad
                 #:octets-to-integer
@@ -23,7 +24,8 @@
    #:get-lock-name
    #:sql-fetch-all
    #:get-lock
-   #:execute))
+   #:execute
+   #:connect-toplevel-in-dev))
 (in-package ultralisp/db)
 
 
@@ -47,6 +49,16 @@
   (setf mito:*connection* (connect :cached nil)))
 
 
+(defun connect-toplevel-in-dev ()
+  (setf mito:*connection*
+        (cl-dbi:connect :postgres
+                        :host "postgres"
+                        :port 5432
+                        :database-name "ultralisp"
+                        :username "ultralisp"
+                        :password "ultralisp")))
+
+
 (defmacro with-transaction (&body body)
   `(cl-dbi:with-transaction mito:*connection*
      (handler-bind ((immediate-response
@@ -57,7 +69,9 @@
                         ;; we need to commit transaction.
                         ;; Otherwise, cl-dbi will rollback any
                         ;; changes made during request processing.
-                        (cl-dbi:commit mito:*connection*))))
+                        (log:info "Commiting transaction because of \"immediate-response\"")
+                        (cl-dbi:commit mito:*connection*)
+                        (log:info "AFTER COMMIT"))))
        ,@body)))
 
 

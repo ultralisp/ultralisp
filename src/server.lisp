@@ -16,8 +16,6 @@
   (:import-from #:weblocks/session)
   (:import-from #:weblocks-ui
                 #:*foundation-dependencies*)
-  (:import-from #:weblocks/app
-                #:defapp)
   (:import-from #:weblocks/page
                 #:render-headers
                 #:get-language)
@@ -36,10 +34,11 @@
   (:import-from #:ultralisp/utils
                 #:getenv)
   (:import-from #:ultralisp/file-server)
+  (:import-from #:ultralisp/app
+                #:app)
   (:import-from #:ultralisp/models/migration
                 #:migrate)
-  (:import-from #:ultralisp/github/webhook
-                #:make-webhook-route)
+  (:import-from #:ultralisp/github/webhook)
   (:import-from #:ultralisp/metrics)
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
@@ -50,6 +49,7 @@
   (:import-from #:lparallel
                 #:make-kernel)
   (:import-from #:alexandria
+                #:random-elt
                 #:remove-from-plistf
                 #:make-keyword)
   (:import-from #:ultralisp/uploader/base
@@ -60,6 +60,7 @@
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/project)
+  (:import-from #:weblocks/request)
   (:import-from #:weblocks/request-handler
                 #:handle-request)
   (:import-from #:ultralisp/db
@@ -89,12 +90,10 @@
 (in-package ultralisp/server)
 
 
-(defapp app
-  :prefix "/"
-  :description "The UltraLisp.org server."
-  :autostart nil
-  :debug t)
-
+(defparameter +search-help+
+  (list "signal - this will search in symbol's name and documentation."
+        "project:\"40ants/weblocks\" AND symbol:\"request\""
+        "package:\"weblocks/actions\" to search all symbols exported from a package."))
 
 (defmethod weblocks/session:init ((app app))
   (make-main-widget))
@@ -112,6 +111,13 @@
 
             (.motto
              :font-size 1.5em)
+
+            (.search-help
+             :margin 0
+             :font-size 0.75rem
+             :position relative
+             :top -0.5rem
+             :color gray)
 
             (.num-projects
              :font-size 0.3em
@@ -214,7 +220,20 @@
                                               num-projects
                                               num-projects)))
                            (:h2 :class "motto"
-                                "A fast-moving Common Lisp software distribution."))
+                                "A fast-moving Common Lisp software distribution.")
+                           (let ((query (weblocks/request:get-parameter "query"))
+                                 (show-search (null (uiop:getenv "HIDE_SEARCH"))))
+                             (when show-search
+                               (:form :method "GET"
+                                      :class "search-form"
+                                      :action "/search/"
+                                      (:input :type "text"
+                                              :name "query"
+                                              :value query
+                                              :placeholder "search a symbol"))
+                               (:p :class "search-help"
+                                   ("Try: ~A"
+                                    (random-elt +search-help+))))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
                           (with-html (:raw body-string))))
@@ -226,8 +245,6 @@
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
-
-  (make-webhook-route)
 
   (ultralisp/metrics:initialize)
   

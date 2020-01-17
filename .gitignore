@@ -3,6 +3,7 @@
 /src/#builder.lisp#
 /quickdist/
 /quicklisp/
+/.qlot/
 /build/
 /roswell/ultralisp
 /postgresql-data/
@@ -13,3 +14,4 @@
 /test-dist/
 /test-dist2/
 /new-libs/
+/src/packages-extractor

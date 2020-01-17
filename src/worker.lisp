@@ -11,7 +11,9 @@
   (:import-from #:ultralisp/downloader/project)
   (:import-from #:ultralisp/pipeline/checking)
   (:import-from #:ultralisp/uploader/fake)
-  (:import-from #:ultralisp/uploader/s3))
+  (:import-from #:ultralisp/uploader/s3)
+  ;; And we need this to index packages
+  (:import-from #:ultralisp/search))
 (in-package ultralisp/worker)
 
 

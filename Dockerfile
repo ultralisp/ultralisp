@@ -1,4 +1,4 @@
-FROM 40ants/base-lisp-image:0.6.0-sbcl-bin as base
+FROM 40ants/base-lisp-image:0.10.1-sbcl-bin as base
 
 EXPOSE 80
 EXPOSE 4005
@@ -14,12 +14,15 @@ RUN apt-get update && \
     pip install jsail dumb-init
 
 RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
-    git clone https://github.com/skarnet/skalibs && \
-    cd skalibs && ./configure && make install && cd /tmp/s6 && \
-    git clone https://github.com/skarnet/execline && \
-    cd execline && ./configure && make install && cd /tmp/s6 && \
-    git clone https://github.com/skarnet/s6 && \
-    cd s6 && ./configure && make install && \
+    git clone https://github.com/skarnet/skalibs && cd skalibs && \
+    git checkout d6169d90477a1b467545408f4ea9570ed4f36bf9 && \
+    ./configure && make install && cd /tmp/s6 && \
+    git clone https://github.com/skarnet/execline && cd execline && \
+    git checkout 3856ce50bfc3fc23d8b819f2a3970cf2af66882b && \
+    ./configure && make install && cd /tmp/s6 && \
+    git clone https://github.com/skarnet/s6 && cd s6 \
+    git checkout 19ecbe91d2ef699f3d2a063c50cbff4d7e46eb1e && \
+    ./configure --with-lib=/usr/lib/execline && make install && \
     cd / && rm -fr /tmp/s6
 
 ENV CC=gcc
@@ -29,8 +32,15 @@ RUN install-dependencies
 COPY . /app
 COPY ./docker/.distignore /root/.config/quickdist/
 
-RUN ~/.roswell/bin/qlot exec ros build /app/roswell/worker.ros && mv /app/roswell/worker /app/worker
-RUN ~/.roswell/bin/qlot exec ros build /app/roswell/ultralisp-server.ros && mv /app/roswell/ultralisp-server /app/ultralisp-server
+RUN qlot exec ros build \
+    /app/roswell/worker.ros && \
+    mv /app/roswell/worker /app/worker
+RUN qlot exec ros build \
+    /app/roswell/ultralisp-server.ros && \
+    mv /app/roswell/ultralisp-server /app/ultralisp-server
+RUN qlot exec ros run \
+    --eval '(asdf:make :packages-extractor)' && \
+    mv /app/src/packages-extractor /app/packages-extractor
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/app/docker/entrypoint.sh"]

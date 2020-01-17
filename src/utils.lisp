@@ -22,6 +22,7 @@
                 #:aif
                 #:it)
   (:import-from #:local-time-duration
+                #:timestamp-duration+
                 #:duration
                 #:timestamp-duration-)
   (:export
@@ -42,7 +43,9 @@
    #:remove-last-slash
    #:with-tmp-directory
    #:delete-file-if-exists
-   #:in-repl))
+   #:in-repl
+   #:with-trace
+   #:time-in-future))
 (in-package ultralisp/utils)
 
 
@@ -168,6 +171,16 @@
              :sec sec
              :nsec nsec)))
 
+(defun time-in-future (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
+  (timestamp-duration+
+   (local-time:now)
+   (duration :week week
+             :day day
+             :hour hour
+             :minute minute
+             :sec sec
+             :nsec nsec)))
+
 
 (defun get-traceback (condition)
   "Returns a traceback as a string, supressing conditions during printing backtrace itself."
@@ -228,3 +241,18 @@
        (typep *standard-output*
               (uiop:intern* :sly-output-stream
                             :slynk-gray))))
+
+
+(defmacro with-trace ((code-name) &body body)
+    (alexandria:with-gensyms (result)
+      `(progn
+         (log:debug "TRACE: Calling" ,code-name)
+         (let ((,result (handler-bind (((or error
+                                            weblocks/response:immediate-response)
+                                         (lambda (condition)
+                                           (log:debug "TRACE: Call to" ,code-name
+                                                      "raised" condition))))
+                          (multiple-value-list (progn ,@body)))))
+           (log:debug "TRACE: Call to" ,code-name
+                      "returned this values list:" ,result)
+           (values-list ,result)))))
