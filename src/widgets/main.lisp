@@ -4,7 +4,7 @@
                 #:defroutes)
   (:import-from #:weblocks/html
                 #:with-html-string)
-  
+
   ;; Just depdendencies
   (:import-from #:log)
   (:import-from #:weblocks/app)
@@ -35,7 +35,7 @@
 (in-package ultralisp/widgets/main)
 
 
-(defroutes main-widget
+(defroutes main-routes
     ("/"
      (make-landing-widget))
   ("/login"
