@@ -58,7 +58,7 @@
    (page-not-found)))
 
 
-(defmethod weblocks/widget:render ((widget main-widget))
+(defmethod weblocks/widget:render ((widget main-routes))
   (weblocks/widget:render
    (make-login-menu))
 
