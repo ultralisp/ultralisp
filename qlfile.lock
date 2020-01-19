@@ -1,11 +1,11 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2019-11-30"))
+  :version "2019-12-27"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20191209200507"))
+  :version "20200119224507"))
 ("cl-dbi" .
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-dbi" :ref nil :branch "49-fix-manual-commit" :tag nil)

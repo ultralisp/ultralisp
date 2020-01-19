@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.14.3 (2020-01-20)
+===================
+
+Fixed
+-----
+
+* Upgrade to the latest Weblocks, where problem with ``x-forwarder-port`` parsing was solved.
+
 0.14.2 (2020-01-19)
 ===================
 
