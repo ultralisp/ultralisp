@@ -36,7 +36,8 @@
 (in-package ultralisp/search)
 
 
-(defparameter *elastic-host* "elastic")
+(defparameter *elastic-host* (or (uiop:getenv "ELASTIC_SEARCH_HOST")
+                                 "elastic"))
 
 (defvar *current-system-name* nil)
 (defvar *current-package-name* nil)
