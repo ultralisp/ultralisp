@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.14.2 (2020-01-19)
+===================
+
+Fixed
+-----
+
+* Creation of the main widget was fixed. Previosly broken by the refactoring.
+
 0.14.1 (2020-01-19)
 ===================
 

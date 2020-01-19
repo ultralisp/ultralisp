@@ -31,7 +31,7 @@
                 #:make-sponsors-widget)
   (:import-from #:ultralisp/widgets/search
                 #:make-search-page)
-  (:export #:make-main-widget))
+  (:export #:make-main-routes))
 (in-package ultralisp/widgets/main)
 
 

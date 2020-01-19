@@ -30,7 +30,7 @@
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
   (:import-from #:ultralisp/widgets/main
-                #:make-main-widget)
+                #:make-main-routes)
   (:import-from #:ultralisp/utils
                 #:getenv)
   (:import-from #:ultralisp/file-server)
@@ -96,7 +96,7 @@
         "package:\"weblocks/actions\" to search all symbols exported from a package."))
 
 (defmethod weblocks/session:init ((app app))
-  (make-main-widget))
+  (make-main-routes))
 
 
 (defparameter *app-dependencies*
