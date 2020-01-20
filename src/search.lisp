@@ -26,6 +26,8 @@
   (:import-from #:ultralisp/models/index
                 #:set-index-status
                 #:get-projects-to-index)
+  (:import-from #:ultralisp/variables
+                #:get-elastic-host)
   (:import-from #:local-time
                 #:timestamp-difference
                 #:now)
@@ -36,9 +38,6 @@
 (in-package ultralisp/search)
 
 
-(defparameter *elastic-host* (or (uiop:getenv "ELASTIC_SEARCH_HOST")
-                                 "elastic"))
-
 (defvar *current-system-name* nil)
 (defvar *current-package-name* nil)
 (defvar *current-project-name* nil)
@@ -48,7 +47,7 @@
 (defun index (collection id data)
   (let ((content (jonathan:to-json data))
         (url (fmt "http://~A:9200/~A/_doc/~A"
-                  *elastic-host*
+                  (get-elastic-host)
                   collection
                   (quri:url-encode id))))
     (jonathan:parse
@@ -59,7 +58,7 @@
 
 (defun delete-index ()
   (let ((url (fmt "http://~A:9200/symbols"
-                  *elastic-host*)))
+                  (get-elastic-host))))
     (jonathan:parse
      (dex:delete url :headers '(("Content-Type" . "application/json"))))))
 
@@ -74,7 +73,7 @@
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
   (handler-case
       (loop with url = (fmt "http://~A:9200/symbols/_search"
-                            *elastic-host*)
+                            (get-elastic-host))
             with query = (list
                           :|query| (list
                                     :|query_string|

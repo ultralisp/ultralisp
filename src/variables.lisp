@@ -91,3 +91,8 @@
 (def-env-var get-user-agent
   "USER_AGENT"
   "Ultralisp (https://ultralisp.org)")
+
+
+(def-env-var get-elastic-host
+  "ELASTIC_SEARCH_HOST"
+  "elastic")

@@ -2,35 +2,29 @@
  ChangeLog
 ===========
 
-0.14.3 (2020-01-20)
+0.14.4 (2020-01-20)
 ===================
 
-Fixed
------
+* Fixed discovery of the ``ELASTIC_SEARCH_HOST`` variable. Previously, it was catched during
+  the docker image building process.
+
+0.14.3 (2020-01-20)
+===================
 
 * Upgrade to the latest Weblocks, where problem with ``x-forwarder-port`` parsing was solved.
 
 0.14.2 (2020-01-19)
 ===================
 
-Fixed
------
-
 * Creation of the main widget was fixed. Previosly broken by the refactoring.
 
 0.14.1 (2020-01-19)
 ===================
 
-Added
------
-
 * Elastic search host was made configurable through ``ELASTIC_SEARCH_HOST`` env variable.
 
 0.14.0 (2020-01-16)
 ===================
-
-Added
------
 
 * Added a full text search among all symbols from all systems known to Ultralisp.org
 
