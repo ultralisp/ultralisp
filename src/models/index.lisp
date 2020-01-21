@@ -10,7 +10,8 @@
                 #:limit
                 #:where)
   (:import-from #:local-time
-                #:now)
+                #:now
+                #:format-rfc3339-timestring)
   (:import-from #:ultralisp/utils
                 #:time-in-future)
   (:export
@@ -46,6 +47,9 @@
                            (total-time 0))
   (check-type project project)
   (check-type status (member :ok :failed))
+  (setf next-update-at
+        (format-rfc3339-timestring nil
+                                   next-update-at))
   (if (get-index-status project)
       (mito:execute-sql "UPDATE project_index SET status = ?,
                                 last_update_at = NOW(),
@@ -62,7 +66,7 @@
                                    next_update_at,
                                    total_time,
                                    status)
-                                VALUES (?, NOW(), ?, ?)"
+                                VALUES (?, NOW(), ?, ?, ?)"
                         (list (mito:object-id project)
                               next-update-at
                               total-time
