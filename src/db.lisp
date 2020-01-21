@@ -158,7 +158,7 @@
 
 
 (defun try-to-get-lock (lock-name &key (signal-on-failure t))
-  (unless cl-dbi::*in-transaction*
+  (unless (cl-dbi:in-transaction mito:*connection*)
     (error "To get a lock, you need to start a transaction."))
   
   (let* ((key (make-hash-for-lock-name lock-name))
@@ -176,7 +176,7 @@
 
 (defun get-lock (lock-name &key (timeout 3000))
   ""
-  (unless cl-dbi::*in-transaction*
+  (unless (cl-dbi:in-transaction mito:*connection*)
     (error "To get a lock, you need to start a transaction."))
   
   (let ((key (make-hash-for-lock-name lock-name)))

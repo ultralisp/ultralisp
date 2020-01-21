@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.14.5 (2020-01-21)
+===================
+
+* Move to a newer ``cl-dbi``, with more checks after the manual commit or rollback.
+
 0.14.4 (2020-01-20)
 ===================
 
