@@ -17,6 +17,7 @@
   (:import-from #:ultralisp/pipeline/checking
                 #:perform-pending-checks)
   (:import-from #:ultralisp/db
+                #:with-lock
                 #:with-connection)
   (:import-from #:ultralisp/builder
                 #:prepare-pending-version
@@ -130,7 +131,8 @@
 
 
 (deftask index-projects ()
-  (ultralisp/search:index-projects))
+  (with-lock ("indexing-projects")
+    (ultralisp/search:index-projects :limit 1)))
 
 
 (defun list-cron-jobs ()
@@ -170,10 +172,10 @@
                            :hash-key 'create-cron-checks
                            :step-min 15)
 
-    ;; Every hour we'll index projects to make them searchable
+    ;; Every five minutes we'll index projects to make them searchable
     (cl-cron:make-cron-job 'index-projects
                            :hash-key 'index-projects
-                           :step-min 60))
+                           :step-min 5))
   (values))
 
 
