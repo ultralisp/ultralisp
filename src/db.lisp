@@ -139,8 +139,10 @@
   (:report (lambda (condition stream)
              (format stream
                      "Unable to aquire lock: name=~A key=~A"
-                     (get-lock-name condition)
-                     (get-key condition)))))
+                     (ignore-errors
+                      (get-lock-name condition))
+                     (ignore-errors
+                      (get-key condition))))))
 
 
 (define-condition lock-timeout (unable-to-aquire-lock)
@@ -151,9 +153,9 @@
    (lambda (condition stream)
      (format stream
              "Lock timeout: name=~A key=~A timeout=~A"
-             (get-lock-name condition)
-             (get-key condition)
-             (get-timeout condition))))
+             (ignore-errors (get-lock-name condition))
+             (ignore-errors (get-key condition))
+             (ignore-errors (get-timeout condition)))))
   (:documentation "Raised when you are trying to get lock to was unable to do this during current lock_timeout."))
 
 
@@ -193,7 +195,7 @@
                          ;; lock_not_available
                          (when (string-equal code "55P03")
                            (error 'lock-timeout
-                                  :name lock-name
+                                  :lock-name lock-name
                                   :key key
                                   :timeout timeout))))))
       (execute "SELECT pg_advisory_xact_lock(?)" key))))
