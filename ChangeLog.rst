@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.14.7 (2020-01-22)
+===================
+
+* Now we are indexing projects one by one each five minutes.
+* Idexing each project in the nested transaction.
+* Fixed reporting about a condition which is signaled when we were unable to aquire the DB lock.
+
 0.14.6 (2020-01-21)
 ===================
 
