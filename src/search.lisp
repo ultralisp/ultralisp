@@ -5,6 +5,8 @@
   (:import-from #:closer-mop)
   (:import-from #:qlot)
   (:import-from #:qlot/install)
+  (:import-from #:ultralisp/db
+                #:with-transaction)
   (:import-from #:rutils
                 #:fmt)
   (:import-from #:alexandria
@@ -505,12 +507,14 @@ default values from the arglist."
                    (with-fields
                        (:project-name (ultralisp/models/project:get-name project))
                      (with-log-unhandled ()
-                       (submit-task
-                        'index-project project)
+                       (with-transaction
+                         (submit-task
+                          'index-project project))
                        (set-index-status project
                                          :ok
                                          :total-time (get-total-time))))
                  (error ()
                    (set-index-status project
                                      :failed
-                                     :total-time (get-total-time))))))))
+                                     :total-time (get-total-time))))))
+    (log:info "DONE")))
