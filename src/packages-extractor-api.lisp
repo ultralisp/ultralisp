@@ -25,8 +25,11 @@
     (loop for line = (read-line s nil nil)
           while line
           for parsed = (split line)
-          collect (list :system (first parsed)
-                        :packages (rest parsed)))))
+          for system-name = (first parsed)
+          for packages = (rest parsed)
+          unless (string= system-name "")
+            collect (list :system system-name
+                          :packages packages))))
 
 (defun get-packages-orig (system-names &key (extractor-binary-path "/app/packages-extractor"))
   "External function to use in other Ultralisp code.
@@ -64,7 +67,7 @@
         (uiop/run-program:subprocess-error ())))))
 
 (defcached get-packages (system-names &key (extractor-binary-path "/app/packages-extractor")
-                                    (work-dir "/app"))
+                                      (work-dir "/app"))
   "External function to use in other Ultralisp code.
    Runs packages extractor in a separate process which
    does not have any dependencies and is able to
