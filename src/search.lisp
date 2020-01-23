@@ -52,6 +52,7 @@
                   (get-elastic-host)
                   collection
                   (quri:url-encode id))))
+    (log:info "Sending data to Elastic Search" collection id)
     (jonathan:parse
      (dex:put url
               :content content
@@ -61,6 +62,7 @@
 (defun delete-index ()
   (let ((url (fmt "http://~A:9200/symbols"
                   (get-elastic-host))))
+    (log:info "Deleting index")
     (jonathan:parse
      (dex:delete url :headers '(("Content-Type" . "application/json"))))))
 
@@ -73,6 +75,7 @@
 (defun search-objects (term &key (from 0))
   ;; TODO: научиться обрабатывать 400 ответы от Elastic
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
+  (log:info "Searching by" term)
   (handler-case
       (loop with url = (fmt "http://~A:9200/symbols/_search"
                             (get-elastic-host))
