@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.14.8 (2020-01-23)
+===================
+
+* Indexer was fixed to ignore empty lines from package extractor.
+
 0.14.7 (2020-01-22)
 ===================
 
