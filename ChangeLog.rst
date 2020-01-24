@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.14.9 (2020-01-24)
+===================
+
+* Index projects every one minute instead of every five.
+
 0.14.8 (2020-01-23)
 ===================
 

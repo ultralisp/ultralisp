@@ -180,7 +180,7 @@
     ;; Every five minutes we'll index projects to make them searchable
     (cl-cron:make-cron-job 'index-projects
                            :hash-key 'index-projects
-                           :step-min 5))
+                           :step-min 1))
   (values))
 
 
