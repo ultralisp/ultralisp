@@ -67,7 +67,8 @@
          (headers `(("Authorization" . ,#?"token ${token}")))
          (response (multiple-value-list (dex:get url
                                                  :headers headers
-                                                 :timeout 3)))
+                                                 :connect-timeout 3
+                                                 :read-timeout 3)))
          (data (jonathan:parse (first response)))
          (headers (third response))
          (links (link-header:parse (gethash "link" headers)))

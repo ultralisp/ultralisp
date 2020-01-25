@@ -7,6 +7,8 @@
 
 * Fixed an error which interrupted the process of adding projects to the search index in case when
   some project's system raised an error during the quickload.
+* Fixed an error during the fetching your github projects. Because of this error it was impossible
+  to select a project from the github and to add it into the Ultralisp.
 
 0.14.9 (2020-01-24)
 ===================
