@@ -7,6 +7,6 @@ if [[ "$MODE" == "worker" ]]; then
     s6-svscan /etc/s6
 else
     /app/ultralisp-server \
-        | tee -a /app/logs/app.log \
-        | jsail
+        > /app/logs/app-stdout.log \
+        2> /app/logs/app-stderr.log
 fi

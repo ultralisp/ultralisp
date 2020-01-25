@@ -5,6 +5,17 @@
 0.14.10 (2020-01-25)
 ====================
 
+Changes
+-------
+
+* Now stdout and stderr are written into the separate log files.
+  And both of them aren't redirected to the Docker. If you are running
+  Ultralisp in a Docker container, then mount a volume /app/logs to the host
+  system, to get access to the logs.
+
+Fixes
+-----
+
 * Fixed an error which interrupted the process of adding projects to the search index in case when
   some project's system raised an error during the quickload.
 * Fixed an error during the fetching your github projects. Because of this error it was impossible
