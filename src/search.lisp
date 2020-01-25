@@ -425,23 +425,28 @@ default values from the arglist."
              (when restart
                (log:warn "Shadowing import on condition" c)
                (invoke-restart restart)))))
-    (handler-bind ((simple-error
-                     (lambda (c)
-                       (let ((message (simple-condition-format-control c)))
-                         (when (cl-strings:starts-with
-                                message
-                                "Dependency looping")
-                           (abort-if-possible c))
-                         (when (search "overwriting old FUN-INFO" message)
-                           (continue-if-possible c)))))
-                   #+sbcl
-                   (sb-ext:name-conflict #'shadow-import-if-possible)
-                   #+sbcl
-                   (sb-ext:package-locked-error
-                     #'continue-if-possible)
-                   (quicklisp-client:system-not-found
-                     #'abort-if-possible))
-      (ql:quickload system))))
+    ;; In case of errors for which we don't have a special workaround,
+    ;; we want this function to return nil. Such system will not be indexed,
+    ;; but also it will not stop processing of other systems.
+    (ignore-errors
+     (with-log-unhandled ()
+       (handler-bind ((simple-error
+                        (lambda (c)
+                          (let ((message (simple-condition-format-control c)))
+                            (when (cl-strings:starts-with
+                                   message
+                                   "Dependency looping")
+                              (abort-if-possible c))
+                            (when (search "overwriting old FUN-INFO" message)
+                              (continue-if-possible c)))))
+                      #+sbcl
+                      (sb-ext:name-conflict #'shadow-import-if-possible)
+                      #+sbcl
+                      (sb-ext:package-locked-error
+                        #'continue-if-possible)
+                      (quicklisp-client:system-not-found
+                        #'abort-if-possible))
+         (ql:quickload system))))))
 
 
 (defun index-project (project)
@@ -476,12 +481,11 @@ default values from the arglist."
                         (loop for item in data
                               for *current-system-name* = (getf item :system)
                               for packages = (getf item :packages)
-                              do (safe-quickload *current-system-name*)
-                                 (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
-                                   (loop for package in packages
-                                         do (log:info "Indexing package" package)
-                                            (index-symbols package)))))
-                   )))
+                              do (when (safe-quickload *current-system-name*)
+                                   (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
+                                     (loop for package in packages
+                                           do (log:info "Indexing package" package)
+                                              (index-symbols package)))))))))
       ;; Here we need to make a clean up to not clutter the file system
       (log:info "Deleting checked out" path)
       (uiop:delete-directory-tree path

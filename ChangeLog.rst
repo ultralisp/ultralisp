@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.14.10 (2020-01-25)
+====================
+
+* Fixed an error which interrupted the process of adding projects to the search index in case when
+  some project's system raised an error during the quickload.
+
 0.14.9 (2020-01-24)
 ===================
 
