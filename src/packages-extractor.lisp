@@ -11,6 +11,10 @@
 (defvar *orig-standard-output* *standard-output*)
 (defvar *orig-error-output* *error-output*)
 
+(defparameter *timeout* 60
+  "Package extractor will interrupt the loading and consider that system has no any packages
+   if it is unable to load the system in this amount of seconds.")
+
 
 (defun get-system-packages (system-designator)
   (let* ((target-system (asdf:find-system system-designator))
@@ -115,6 +119,13 @@ TABLE."
                      (lambda (c)
                        (format *orig-error-output* "ERROR: ~A~%" c)
                        (uiop:quit 1)))
+                   (sb-ext:timeout
+                     (lambda (c)
+                       (declare (ignorable c))
+                       (format *orig-error-output*
+                               "Timeout: unable to load system in ~A seconds"
+                               *timeout*)
+                       (uiop:quit 3)))
                    (error
                      (lambda (c)
                        (declare (ignorable c))
@@ -122,13 +133,16 @@ TABLE."
                                "Condition was caught: ~A~2%" c)
                        (sb-debug:print-backtrace :stream *orig-error-output*)
                        (uiop:quit 2))))
-      (loop for system-name in (uiop:command-line-arguments)
-            for packages = (load-system-and-return-packages system-name)
-            do (format t "~A~{ ~A~}~%"
-                       system-name
-                       (mapcar #'package-name packages))
-            finally (when (uiop:getenv "DEBUG_SYSTEMS")
-                      (format *orig-error-output*
-                              "~2&ALL: ~A~%"
-                              (hash-to-alist *component-packages*)))))))
+      (sb-ext:with-timeout *timeout*
+          (loop for system-name in (uiop:command-line-arguments)
+                for packages = (load-system-and-return-packages system-name)
+                do (format t "~A~{ ~A~}~%"
+                           system-name
+                           (mapcar #'package-name packages))
+                finally (when (uiop:getenv "DEBUG_SYSTEMS")
+                          (format *orig-error-output*
+                                  "~2&ALL: ~A~%"
+                                  (hash-to-alist *component-packages*))))))))
+
+
 

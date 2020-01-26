@@ -2,6 +2,15 @@
  ChangeLog
 ===========
 
+0.14.11 (2020-01-26)
+====================
+
+* Now package extractor is limited in time. If it is unable to load system in 60 seconds,
+  it returns no packages for this system. Such system will not be indexed and available
+  for full text search.
+
+  This protects Ultralisp from hanging on loading malformed systems.
+
 0.14.10 (2020-01-25)
 ====================
 
