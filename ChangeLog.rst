@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.14.12 (2020-01-27)
+====================
+
+* Fixed an error with missing ``get-function-documentation`` method for ``call/cc`` function from ``cl-cont``.
+
 0.14.11 (2020-01-26)
 ====================
 

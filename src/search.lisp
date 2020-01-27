@@ -288,6 +288,11 @@ default values from the arglist."
   (:documentation
    "Encode documentation for a function or macro as a JSON object member."))
 
+(defmethod get-function-documentation (symbol type)
+  (log:error "Unsupported function type" symbol type)
+  (get-function-documentation*
+   symbol type (or (documentation symbol 'function) "")))
+
 (defmethod get-function-documentation (symbol (type (eql 'function)))
   (get-function-documentation*
    symbol type (or (documentation symbol type) "")))
