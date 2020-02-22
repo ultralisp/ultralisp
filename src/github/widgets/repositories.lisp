@@ -56,6 +56,14 @@
 (defvar *token* nil
   "FOR DEBUG")
 
+(defparameter *required-scopes*
+  (list
+   ;; We need this scope to be able to show your public repositories from your organizations
+   "read:org"
+   ;; And this scope allows us to add a webhook which will process all new commits
+   ;; and rebuild the Ultralisp distribution including all new great changes in your projects!
+   "admin:repo_hook"))
+
 
 (defun get-url (url &key (token *token*))
   (unless token
@@ -262,10 +270,14 @@
     (let* ((token (weblocks-auth/github:get-token))
            (user (weblocks-auth/models:get-current-user))
            (scopes (get-scopes))
-           (has-required-scope (member "public_repo" scopes
-                                       :test 'string-equal)))
+           (has-required-scopes
+             (loop for scope in *required-scopes*
+                   unless (member scope scopes
+                                  :test 'string-equal)
+                     do (return nil)
+                   finally (return t))))
       (cond
-        ((and token has-required-scope)
+        ((and token has-required-scopes)
          (set-oauth-token widget token)
          (render widget))
         
@@ -274,16 +286,16 @@
                     (:p "To show all your public repositories, we need additional permissions from GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
                                (weblocks-auth/github:render-button
-                                :scopes (list* "public_repo"
-                                               weblocks-auth/github:*default-scopes*))))
+                                :scopes (append *required-scopes*
+                                                weblocks-auth/github:*default-scopes*))))
                     (render-url-input widget))
                    (t
                     (:p "To be able to add your public repositories, you need to login using GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
                                (weblocks-auth/github:render-button
                                 :text "Login"
-                                :scopes (list* "public_repo"
-                                               weblocks-auth/github:*default-scopes*)))))))))))
+                                :scopes (append *required-scopes*
+                                                weblocks-auth/github:*default-scopes*)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
     (weblocks/html:with-html

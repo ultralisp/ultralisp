@@ -5,10 +5,28 @@
 0.14.13 (2020-02-22)
 ====================
 
+Now Ultralisp requires lesser OAuth scopes.
+
+Previosly, it requested a ``public_repo`` scope which gave a write permission
+to all your public repositores.
+
+Now Ultralisp will request two scopes:
+
+* ``read:org`` - We need this scope to be able to list all your public repositories
+  not only from your personal account but also from your organizations.
+* ``admin:repo_hook`` - And this scope allows us to add a webhook which will process
+  all new commits and rebuild the Ultralisp distribution including all new great
+  changes in your projects!
+
+
+Minor changes
+-------------
+
 * Front page loading was optimized and now it should load few times faster.
 * Quicklisp was upgraded from 2019-12-27 to 2020-02-18.
 * Ultralisp was upgraded from 20200121194004 to 20200222170508.
 * Added ability to generate flamegraph data in special debug mode.
+
 
 0.14.12 (2020-01-27)
 ====================
