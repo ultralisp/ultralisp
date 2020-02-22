@@ -8,6 +8,8 @@
 * Project's page performance was improved. Some unnecessary
   requests to the database were removed and now these pages
   show load in less than 300ms instead of 15 seconds.
+* Moved to the ultralisp distribution 20200222213506 where
+  cl-flamegraph was fixed.
 
 0.14.13 (2020-02-22)
 ====================
