@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.14.14 (2020-02-23)
+====================
+
+* Project's page performance was improved. Some unnecessary
+  requests to the database were removed and now these pages
+  show load in less than 300ms instead of 15 seconds.
+
 0.14.13 (2020-02-22)
 ====================
 

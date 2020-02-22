@@ -73,7 +73,7 @@
 (defun render-project (widget project author-name project-name)
   (check-type project ultralisp/models/project:project)
   
-  (let* ((actions (get-project-actions project))
+  (let* (;; (actions (get-project-actions project))
          ;; TODO: Optimize get-version
          ;; seconds  |     gc     |   consed  | calls |  sec/call  |  name
          ;; -------------------------------------------------------
@@ -86,11 +86,11 @@
          ;;      0.000 |      0.000 |   163,824 |     1 |   0.000000 | GET-PROJECT-CHECKS
          ;; -------------------------------------------------------
          ;;      0.330 |      0.000 | 5,080,672 |     9 |            | Total
-         (versions (get-versions project))
+         ;; (versions (get-versions project))
          (description (get-description project))
          (url (get-external-url project))
          (next-check-at (get-time-of-the-next-check project))
-         (checks (get-project-checks project :pending t))
+         ;; (checks (get-project-checks project :pending t))
          (current-user-is-moderator
            (is-moderator-p project
                            (get-current-user)))
