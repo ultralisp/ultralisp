@@ -156,6 +156,7 @@
 (defun get-pending-checks ()
   (upgrade-types
    (select-dao 'base-check
+     (mito:includes 'project)
      (where (:is-null 'processed-at)))))
 
 
