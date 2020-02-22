@@ -135,11 +135,7 @@
              ((:and a :hover)
               ;; Don't want a site name change it's color because
               ;; SVG logo doesn't change it.
-              :color "#0071d8")
-             (.logo :width 1em
-                    :position relative
-                    :top -0.4em
-                    :left 0.05em))
+              :color "#0071d8"))
             
             (.page-footer :color "#AAA"
                           :margin-top 3em)))
@@ -212,9 +208,7 @@
             (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"
                   (:header :class "page-header"
                            (:h1 :class "site-name"
-                                (:img :src "/images/ultralisp-logo.svg"
-                                      :class "logo")
-                                (:a :href "/" "ltralisp.org")
+                                (:a :href "/" "Ultralisp.org")
                                 (:sup :class "num-projects"
                                       (format nil "includes ~R project~P"
                                               num-projects
