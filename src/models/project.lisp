@@ -83,7 +83,8 @@
    #:find-projects-with-conflicting-systems
    #:get-external-url
    #:get-github-projects
-   #:get-recently-updated-projects))
+   #:get-recently-updated-projects
+   #:enabled))
 (in-package ultralisp/models/project)
 
 

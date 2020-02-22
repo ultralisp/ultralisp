@@ -29,6 +29,9 @@
   (:import-from #:local-time
                 #:timestamp-to-universal)
   (:import-from #:ultralisp/models/check
+                #:get-pending-checks-for-disabled-projects-count
+                #:get-pending-checks-for-disabled-projects
+                #:get-pending-checks-count
                 #:get-project
                 #:get-pending-checks)
   (:import-from #:ultralisp/variables
@@ -50,11 +53,11 @@
 
 (defun render-version (version)
   (check-type version version)
-  
+
   (let* ((number (get-number version))
          (built-at (get-built-at version))
          (version-type (ultralisp/models/version:get-type version))
-         (actions (ultralisp/models/action:get-version-actions version))
+         (actions (ultralisp/models/action:get-version-actions version :limit 3))
          ;; TODO: create a generic get-uri and define it for a version class
          (version-uri (format nil "/versions/~A" number)))
     (with-html
@@ -73,19 +76,15 @@
       (:tr 
        (:td :class "changelog-cell"
             :colspan 2
-            (ultralisp/widgets/changelog:render actions :limit 3))))))
+            (ultralisp/widgets/changelog:render actions))))))
 
 
 (defun get-projects-with-pending-checks ()
   "Returns all project which were added but not checked yet."
-  (let ((checks (get-pending-checks)))
-    (loop for check in checks
-          for project = (get-project check)
-          ;; if project is already enabled and included in a
-          ;; previous version, we don't need to show it in
-          ;; a pending checks list.
-          unless (is-enabled-p project)
-            collect project)))
+  (let ((checks (get-pending-checks-for-disabled-projects :limit 5))
+        (checks-count (get-pending-checks-for-disabled-projects-count)))
+    (values (mapcar #'get-project checks)
+            checks-count)))
 
 
 (defmethod render ((widget landing-widget))
@@ -93,90 +92,95 @@
         "Ultralisp - Fast Common Lisp Repository")
 
   (let ((latest-versions (get-latest-versions))
-        (recent-projects (get-recent-projects))
-        (pending-projects (get-projects-with-pending-checks)))
-    (with-html
-      ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
-      (:a :class "github-fork-ribbon left-top"
-          :href "https://github.com/ultralisp/ultralisp"
-          :data-ribbon "Fork me on GitHub"
-          :title "Fork me on GitHub"
-          "Fork me on GitHub")
+        (recent-projects (get-recent-projects)))
+    (multiple-value-bind (pending-projects pending-projects-count)
+        (get-projects-with-pending-checks)
+      (with-html
+        ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
+        (:a :class "github-fork-ribbon left-top"
+            :href "https://github.com/ultralisp/ultralisp"
+            :data-ribbon "Fork me on GitHub"
+            :title "Fork me on GitHub"
+            "Fork me on GitHub")
 
-      (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
+        (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
 
-      (:h3 "How to add my own project?")
+        (:h3 "How to add my own project?")
 
-      (:a :class "button"
-          :href "/github"
-          :title "Add your projects from Github to Ultralisp distribution!"
-          "Add projects from Github")
-      
-      (:h3 "How to use it?")
-      
-      (let* ((base-url (get-base-url))
-             (url (if (search "localhost" base-url)
-                      (concat base-url (get-dist-name) ".txt")
-                      base-url)))
-        (:p "Open your Lisp REPL and eval:")
-        (:pre (format nil "(ql-dist:install-dist \"~A\"
+        (:a :class "button"
+            :href "/github"
+            :title "Add your projects from Github to Ultralisp distribution!"
+            "Add projects from Github")
+       
+        (:h3 "How to use it?")
+       
+        (let* ((base-url (get-base-url))
+               (url (if (search "localhost" base-url)
+                        (concat base-url (get-dist-name) ".txt")
+                        base-url)))
+          (:p "Open your Lisp REPL and eval:")
+          (:pre (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)"
-                      url))
-        (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put these lines in your **qlfile**:"))
-        (:pre (format nil "dist ultralisp ~A
+                        url))
+          (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put these lines in your **qlfile**:"))
+          (:pre (format nil "dist ultralisp ~A
 ql :all :latest
 ultralisp :all :latest"
-                      url)))
+                        url)))
 
-      (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
-        (:h3 "Roadmap")
+        (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
+          (:h3 "Roadmap")
 
-        (:ul
-         (:li (:s "Plug in a real database to store projects' metadata and other information."))
-         (:li (:s "Integration with the GitHub to add projects in one click."))
-         (:li (:s "Automatic distribution's ChangeLog generation."))
-         (:li "Support for project sources other than GitHub.")
-         (:li "Running tests for updated project and all dependent systems.")
-         (:li ("[Add your feature request](~A) at the Github." issues-url)))
+          (:ul
+           (:li (:s "Plug in a real database to store projects' metadata and other information."))
+           (:li (:s "Integration with the GitHub to add projects in one click."))
+           (:li (:s "Automatic distribution's ChangeLog generation."))
+           (:li "Support for project sources other than GitHub.")
+           (:li "Running tests for updated project and all dependent systems.")
+           (:li ("[Add your feature request](~A) at the Github." issues-url)))
 
-        (:h3 "How to help")
-        (:p "Any help is appreciated. You can:")
-        (:ul
-         (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
-               issues-url))
-         (:li "Suggest your own ideas.")
-         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development:"))
-              (:div :class "donate"
-                    (:a :class "button success"
-                        :href "https://www.patreon.com/join/ultralisp"
-                        "Donate $$$ at Patreon")
-                    (:span :style "display: inline-block; width: 2em"
-                           " ")
-                    (:a :class "button success"
-                        :href "https://en.liberapay.com/Ultralisp.org/donate"
-                        "Donate $$$ at Liberapay"))
-              (:p ("Gold sponsors will be listed at the bottom of this page, and grand sponsors on [this separate page](/sponsors).")))))
+          (:h3 "How to help")
+          (:p "Any help is appreciated. You can:")
+          (:ul
+           (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
+                 issues-url))
+           (:li "Suggest your own ideas.")
+           (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development:"))
+                (:div :class "donate"
+                      (:a :class "button success"
+                          :href "https://www.patreon.com/join/ultralisp"
+                          "Donate $$$ at Patreon")
+                      (:span :style "display: inline-block; width: 2em"
+                             " ")
+                      (:a :class "button success"
+                          :href "https://en.liberapay.com/Ultralisp.org/donate"
+                          "Donate $$$ at Liberapay"))
+                (:p ("Gold sponsors will be listed at the bottom of this page, and grand sponsors on [this separate page](/sponsors).")))))
 
-      (when pending-projects
-        (:div :class "checks"
-              (:h3 "Projects to be included in the next version")
-              (ultralisp/widgets/projects:render-projects-list pending-projects)))
-      (when latest-versions
-        (:div :class "latest-builds"
-              (:h3 "Latest builds")
+        (when pending-projects
+          (:div :class "checks"
+                (:h3 "Projects to be included in the next version")
+                (ultralisp/widgets/projects:render-projects-list pending-projects)
+                (when (< (length pending-projects)
+                         pending-projects-count)
+                  (:p ("And ~A more" (- pending-projects-count
+                                         (length pending-projects)))))))
+        (when latest-versions
+          (:div :class "latest-builds"
+                (:h3 "Latest builds")
 
-              (:table :class "versions-list"
-                      (:tr
-                       (:th :class "version-cell"
-                            "Version")
-                       (:th :class "timestamp-cell"
-                            "Built-at"))
-                      (mapc #'render-version
-                            latest-versions))))
+                (:table :class "versions-list"
+                        (:tr
+                         (:th :class "version-cell"
+                              "Version")
+                         (:th :class "timestamp-cell"
+                              "Built-at"))
+                        (mapc #'render-version
+                              latest-versions))))
 
-      (when recent-projects
-        (:h3 "Recently added projects")
-        (ultralisp/widgets/projects:render-projects-list recent-projects)))))
+        (when recent-projects
+          (:h3 "Recently added projects")
+          (ultralisp/widgets/projects:render-projects-list recent-projects))))))
 
 
 (defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))

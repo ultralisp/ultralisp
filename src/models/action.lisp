@@ -107,7 +107,9 @@
      (order-by (:desc :created-at)))))
 
 
-(defun get-version-actions (version)
+(defun get-version-actions (version &key limit)
   (upgrade-types
-   (mito:retrieve-dao 'base-action
-                      :version version)))
+   (select-dao 'base-action
+     (where (:= :version version))
+     (when limit
+       (limit limit)))))

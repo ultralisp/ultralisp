@@ -4,10 +4,17 @@
                 #:get-name
                 #:project)
   (:import-from #:mito
+                #:retrieve-by-sql
+                #:includes
+                #:count-dao
                 #:save-dao
                 #:select-dao
                 #:dao-table-class)
   (:import-from #:sxql
+                #:from
+                #:make-sql-symbol
+                #:select
+                #:left-join
                 #:where
                 #:order-by)
   (:import-from #:ultralisp/models/version
@@ -37,7 +44,10 @@
    #:get-check-by-id
    #:any-check
    #:get-processed-in
-   #:get-last-project-check))
+   #:get-last-project-check
+   #:get-pending-checks-count
+   #:get-pending-checks-for-disabled-projects
+   #:get-pending-checks-for-disabled-projects-count))
 (in-package ultralisp/models/check)
 
 
@@ -153,12 +163,53 @@
   (mapcar #'upgrade-type checks))
 
 
-(defun get-pending-checks ()
+(defun get-pending-checks (&key limit)
   (upgrade-types
    (select-dao 'base-check
-     (mito:includes 'project)
-     (where (:is-null 'processed-at)))))
+     (includes 'project)
+     (left-join 'project
+                     :on (:= 'check.project_id
+                             'project.id))
+     (where (:is-null 'processed-at))
+     (when limit
+       (sxql:limit limit)))))
 
+(defun get-pending-checks-count ()
+  (let ((sql (select ((:as (:count :*)
+                       :count))
+               (from (make-sql-symbol (mito.dao::table-name (mito.util:ensure-class 'base-check))))
+               (left-join 'project
+                          :on (:= 'check.project_id
+                                  'project.id))
+               (where (:and (:is-null 'processed_at)
+                       :project.enabled)))))
+    (getf (first (retrieve-by-sql sql))
+          :count)))
+
+
+(defun get-pending-checks-for-disabled-projects (&key limit)
+  (upgrade-types
+   (select-dao 'base-check
+     (includes 'project)
+     (left-join 'project
+                     :on (:= 'check.project_id
+                             'project.id))
+     (where (:and (:is-null 'processed-at)
+                  (:not :project.enabled)))
+     (when limit
+       (sxql:limit limit)))))
+
+(defun get-pending-checks-for-disabled-projects-count ()
+  (let ((sql (select ((:as (:count :*)
+                       :count))
+               (from (make-sql-symbol (mito.dao::table-name (mito.util:ensure-class 'base-check))))
+               (left-join 'project
+                          :on (:= 'check.project_id
+                                  'project.id))
+               (where (:and (:is-null 'processed_at)
+                            (:not :project.enabled))))))
+    (getf (first (retrieve-by-sql sql))
+          :count)))
 
 (defun get-all-checks ()
   (upgrade-types

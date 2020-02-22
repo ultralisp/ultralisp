@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.14.13 (2020-02-22)
+====================
+
+* Front page loading was optimized and now it should load few times faster.
+
 0.14.12 (2020-01-27)
 ====================
 
