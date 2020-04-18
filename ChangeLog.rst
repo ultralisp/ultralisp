@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.14.15 (2020-04-19)
+====================
+
+* Trying to fix checking of mmontone/ten project by adding
+  a project path to ``asdf:*central-registry*``.
+  
+
 0.14.14 (2020-02-23)
 ====================
 
