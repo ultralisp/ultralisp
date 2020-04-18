@@ -205,6 +205,10 @@
         (unwind-protect
              (prog1 (when (or (check-if-project-was-changed project downloaded)
                               force)
+                      ;; We should run this perform function inside a worker
+                      ;; process which will be killed after the finishing the task.
+                      ;; That is why it is OK to change a *central-registry* here:
+                      (pushnew path asdf:*central-registry*)
                       (let* ((systems (collect-systems path)))
 
                         (unless systems
