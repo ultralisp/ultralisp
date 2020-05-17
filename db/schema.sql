@@ -97,4 +97,18 @@ CREATE TABLE IF NOT EXISTS "schema_migrations" (
     "version" VARCHAR(255) PRIMARY KEY,
     "applied_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
-INSERT INTO schema_migrations (version) VALUES ('20190417125802');
+
+create type index_status as enum ('ok', 'failed');
+
+create table "project_index" (
+       "id" bigserial not null primary key,
+       "project_id" bigint not null references project (id),
+       "total_time" bigint not null default 0,
+       "last_update_at" timestamptz,
+       "next_update_at" timestamptz,
+       "status" index_status
+);
+
+create unique index "unique_project_index_project_id" ON "project_index" ("project_id");
+
+-- INSERT INTO schema_migrations (version) VALUES ('20200102180000');
