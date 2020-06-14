@@ -45,6 +45,7 @@
 
 
 (defun render-action (action)
+  (declare (ignorable action))
   (with-html
     (:li "FOO")))
 
