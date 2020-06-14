@@ -40,7 +40,7 @@
 (defgeneric prepare-value (key value)
   (:method ((key (eql :last-seen-commit)) value)
     (when value
-      (str:prune 8 value :ellipsis "…"))))
+      (str:shorten 8 value :ellipsis "…"))))
 
 
 (defgeneric render-object (action &key timestamp)
