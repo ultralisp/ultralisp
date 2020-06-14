@@ -102,7 +102,16 @@
                           ;;         checks)
                           #'local-time:timestamp>
                           ;; We want last actions came first
-                          :key #'mito:object-updated-at)))
+                          :key #'mito:object-updated-at))
+         (is-enabled (is-enabled-p project))
+         (reason (unless is-enabled
+                   (ultralisp/models/project:get-disable-reason project)))
+         (reason-description
+           (when reason
+             (case reason
+               (:manual "Turned off manually")
+               (:system-conflict "System conflict")
+               (t (format nil "~A" reason))))))
     (setf (get-title)
           (format nil "~A/~A – ~A"
                   author-name
@@ -119,13 +128,16 @@
            "/"
            (:span :class "project-name"
                   project-name)
-           (render-switch (is-enabled-p project)
+           (render-switch is-enabled
                           (lambda (&rest args)
                             (declare (ignorable args))
                             (toggle widget project))
                           :disabled not-moderator
                           :title (when not-moderator
-                                   "You are not a moderator of this project")))
+                                   "You are not a moderator of this project"))
+           (when reason-description
+             (:span :class "disable-reason"
+                    reason-description)))
       (:h2 :class "project-description"
            description)
       (:p (:a :href url
@@ -161,5 +173,9 @@
           :color "black")
          (.project-name :margin-right 0.5em))
         (.project-description
-         :font-size 1.5em))))
+         :font-size 1.5em)
+        (.disable-reason
+         :position relative
+         :font-size 0.3em
+         :top -0.4em))))
    (call-next-method)))
