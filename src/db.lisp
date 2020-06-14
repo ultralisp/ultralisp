@@ -121,11 +121,11 @@
 
 
 (defun execute (sql &rest params)
-  (apply #'cl-dbi:execute (cl-dbi:prepare mito:*connection* sql) params))
+  (cl-dbi:execute (cl-dbi:prepare mito:*connection* sql) params))
 
 
 (defun sql-fetch-all (sql &rest params)
-  (cl-dbi:fetch-all (apply #'cl-dbi:execute (cl-dbi:prepare mito:*connection* sql) params)))
+  (cl-dbi:fetch-all (cl-dbi:execute (cl-dbi:prepare mito:*connection* sql) params)))
 
 
 (define-condition unable-to-aquire-lock (simple-error)
