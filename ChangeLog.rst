@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.15.0 (2020-06-14)
+===================
+
+* Dependencies updated.
+* Now more safe version of cl-dbi should be used and
+  it should not corrupt a connection pool.
+* Added a code to disable conflicting projects manually.
+
 0.14.15 (2020-04-19)
 ====================
 
