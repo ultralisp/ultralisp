@@ -30,7 +30,7 @@
 
 
 (defun connect (&key host database-name username password
-                  (cached t))
+                     (cached t))
   (funcall (if cached
                'cl-dbi:connect-cached
                'cl-dbi:connect)
