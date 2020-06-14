@@ -62,7 +62,9 @@
                                      (invoke-debugger condition)
                                      (return-from ,name nil)))))
            (with-log-unhandled ()
-             ,body))
+             (handler-case (progn ,body)
+               (ultralisp/db:lock-timeout ()
+                 (log:debug "Unable to acquire log, seems task already in progress.")))))
          (log:debug "Cron task is done" ',name)))))
 
 

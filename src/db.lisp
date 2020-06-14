@@ -25,7 +25,8 @@
    #:sql-fetch-all
    #:get-lock
    #:execute
-   #:connect-toplevel-in-dev))
+   #:connect-toplevel-in-dev
+   #:lock-timeout))
 (in-package ultralisp/db)
 
 
