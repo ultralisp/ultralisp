@@ -7,3 +7,7 @@ github slynk-named-readtables joaotavora/sly-named-readtables
 
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
+
+# To be able to run sblint using:
+# qlot exec sblint
+github sblint cxxxr/sblint
