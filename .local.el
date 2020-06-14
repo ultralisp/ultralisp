@@ -43,7 +43,7 @@
 
 
 (setq sly-contribs '(sly-fancy
-                     sly-tramp-docker
+;;                     sly-tramp-docker
                      ;; sly-named-readtables
                      ;; sly-package-inferred
                      ))

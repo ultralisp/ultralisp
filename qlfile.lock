@@ -1,15 +1,15 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2020-02-18"))
+  :version "2020-04-27"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20200222213506"))
-("cl-dbi" .
+  :version "20200518034005"))
+("cl-str" .
  (:class qlot/source/github:source-github
-  :initargs (:repos "svetlyak40wt/cl-dbi" :ref nil :branch "49-fix-manual-commit" :tag nil)
-  :version "github-3dcda8b9f9753063aa36804114f8137c"))
+  :initargs (:repos "vindarel/cl-str" :ref nil :branch nil :tag nil)
+  :version "github-fc9e54270a3666cc5701973f3427908a"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")
