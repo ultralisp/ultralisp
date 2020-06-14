@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+0.15.1 (2020-06-14)
+===================
+
+* Fixed use of cl-dbi:execute, which now want parameters as a list.
+* Don't log as unhandled errors lock timeouts from cron jobs.
+
+  This makes log less cluttered with false error messages.
+
 0.15.0 (2020-06-14)
 ===================
 
