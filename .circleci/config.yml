@@ -2,7 +2,7 @@ version: 2
 jobs:
   sbcl:
     docker:
-      - image: 40ants/base-lisp-image:0.10.1-sbcl-bin
+      - image: 40ants/base-lisp-image:0.12.0-sbcl-bin
       - image: postgres:10
         environment:
           POSTGRES_USER: ultralisp
@@ -15,6 +15,10 @@ jobs:
           command: |
             install-dependencies
             ros install rove
+            # Without this package cl-coveralls fails when uploading
+            # report to the server
+            apt-get update 
+            apt-get install -y file
       - run:
           name: Check environment
           command: |
@@ -28,12 +32,16 @@ jobs:
           # that is why here it is commented and start via ros run instead
           # command: qlot exec rove ultralisp-test.asd
           command: |
+            COVERALLS=true \
+            COVERALLS_REPO_TOKEN=oSCs0D19ccZ2cRcsUmZkfYL8ph5vV1Ni4 \
             CC=gcc \
             qlot exec ros run \
                --eval '(ql:quickload :ultralisp-test :silent t)' \
+               --eval '(ql:quickload :cl-coveralls :silent t)' \
                --eval '(log:config :sane2 :warn)' \
-               --eval '(let ((result (rove:run :ultralisp-test)))
-                         (uiop:quit (if result 0 1))))'
+               --eval '(let ((result (coveralls:with-coveralls (:exclude (list ".qlot/"))
+                                       (rove:run :ultralisp-test))))
+                         (uiop:quit (if result 0 1)))'
 
 workflows:
   version: 2
