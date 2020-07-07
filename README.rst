@@ -2,6 +2,13 @@
  Ultralisp
 ===========
 
+.. image:: https://circleci.com/gh/ultralisp/ultralisp.svg?style=svg
+   :target: https://circleci.com/gh/ultralisp/ultralisp
+
+.. image:: https://coveralls.io/repos/github/ultralisp/ultralisp/badge.svg?branch=coveralls
+   :target: https://coveralls.io/github/ultralisp/ultralisp?branch=coveralls
+
+
 What is this?
 =============
 
