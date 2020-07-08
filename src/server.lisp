@@ -375,8 +375,10 @@ arguments."
   (apply #'start *previous-args*))
 
 
-(defmain main ((workers "A comma-separated list of workers to connect to in form \"localhost:10100,localhost:10101\". If not given, then we'll not try to connect to any workers and version building will not be available.")
-               (dont-start-server "Don't start HTTP server."
+(defvar slynk:*use-dedicated-output-stream*)
+
+
+(defmain main ((dont-start-server "Don't start HTTP server."
                                   :flag t))
   (log4cl-json:setup :level :debug)
 

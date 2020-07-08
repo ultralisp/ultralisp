@@ -116,7 +116,9 @@
 
     ;; Now we'll upload a dist to the server
     (when upload
-      (ultralisp/uploader/base:upload dist-dir))))
+      (error "This code was broken at some moment, upload requires two parameters. But everything seems work. Probably it is not executed.")
+      ;; (ultralisp/uploader/base:upload dist-dir)
+      )))
 
 
 (defun update-all (&key (build t)
@@ -131,7 +133,9 @@
        :dist-dir dist-dir))
     
     (when upload
-      (ultralisp/uploader/base:upload dist-dir))))
+      (error "This code was broken at some moment, upload requires two parameters. But everything seems work. Probably it is not executed.")
+      ;; (ultralisp/uploader/base:upload dist-dir)
+      )))
 
 
 (defun process-payload (payload)

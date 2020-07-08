@@ -26,4 +26,6 @@
          :name name
          :base-url base-url)
   (when upload
-    (upload dist-dir)))
+    (error "This code was broken at some moment, upload requires two parameters. But everything seems work. Probably it is not used anymore.")
+    ;; (upload dist-dir)
+    ))
