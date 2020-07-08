@@ -15,6 +15,7 @@ jobs:
           command: |
             install-dependencies
             ros install rove
+            ros install cxxxr/sblint
             # Without this package cl-coveralls fails when uploading
             # report to the server
             apt-get update 
@@ -26,6 +27,9 @@ jobs:
             echo 'Current dir:'
             pwd
             ls -lh
+      - run:
+          name: Run linter
+          command: qlot exec sblint ultralisp.asd ultralisp-test.asd
       - run:
           name: Run tests
           # rove as a separate command goes into a infinite loop for some reason

@@ -162,7 +162,9 @@
 (defmethod perform ((command upload-command))
   (let* ((dir (get-dir command)))
     (log:info "Uploading" dir)
-    (upload dir)))
+    (error "This code was broken at some moment, upload requires two parameters. But everything seems work. Probably it is not executed.")
+    ;; (upload dir)
+    ))
 
 
 ;; TODO: remove this function and probably all commands above
