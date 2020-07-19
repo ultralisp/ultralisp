@@ -22,8 +22,9 @@
                 #:get-packages)
   (:import-from #:ultralisp/rpc/core
                 #:submit-task)
-  (:import-from #:log4cl-json
-                #:with-fields
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
+  (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/models/index
                 #:set-index-status

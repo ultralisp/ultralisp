@@ -4,7 +4,7 @@
   (:import-from #:ultralisp/slynk)
   (:import-from #:cl-strings
                 #:starts-with)
-  (:import-from #:log4cl-json
+  (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
                 #:with-connection)

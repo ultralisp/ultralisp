@@ -36,7 +36,7 @@
                 #:url-encode)
   (:import-from #:ultralisp/db
                 #:with-connection)
-  (:import-from #:log4cl-json
+  (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/widgets/spinner
                 #:make-spinner)

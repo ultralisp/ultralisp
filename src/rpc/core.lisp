@@ -1,7 +1,6 @@
 (defpackage #:ultralisp/rpc/core
   (:use #:cl)
-  (:use #:log4cl)
-  (:import-from #:log4cl-json)
+  (:import-from #:log4cl)
   (:import-from #:slynk)
   (:import-from #:cl-store)
   (:import-from #:cl-gearman)

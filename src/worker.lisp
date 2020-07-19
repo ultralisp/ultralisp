@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:defmain
                 #:defmain)
+  (:import-from #:log4cl-extras/config)
   (:import-from #:ultralisp/variables
                 #:get-gearman-server)
 
@@ -59,12 +60,14 @@
                (debug "If true, then output will be verbose"
                       :flag t
                       :env-var "DEBUG"))
-  ;; To add a new line before any JSON log items will go
-  (format t "~2&")
   
-  (log4cl-json:setup :level (if debug
-                                :info
-                                :error))
+  (log4cl-extras/config:setup
+   `(:level ,(if debug
+                 :info
+                 :error)
+     :appenders ((daily :layout :json
+                        :name-format "/app/logs/worker.log"
+                        :backup-name-format "worker-%Y%m%d.log"))))
 
   ;; To make it possible to connect to a remote SLYNK server where ports are closed
   ;; with firewall.

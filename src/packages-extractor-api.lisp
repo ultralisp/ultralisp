@@ -2,8 +2,9 @@
   (:use #:cl)
   (:import-from #:cl-strings
                 #:split)
-  (:import-from #:log4cl-json
-                #:with-log-unhandled
+  (:import-from #:log4cl-extras/error
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:function-cache
                 #:defcached)
