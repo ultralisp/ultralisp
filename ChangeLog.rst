@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.16.0 (2020-07-18)
+===================
+
+* Switched to log4cl-extras and logging into the files.
+
+
 0.15.1 (2020-06-14)
 ===================
 
