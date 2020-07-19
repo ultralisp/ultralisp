@@ -52,8 +52,10 @@
                 #:upload)
   (:import-from #:uiop
                 #:delete-directory-tree)
-  (:import-from #:log4cl-json
+  (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
   (:import-from #:ultralisp/stats
                 #:increment-counter)
   (:export
@@ -80,7 +82,7 @@
             do (ignore-errors
                 (with-log-unhandled ()
                   (with-connection (:cached nil)
-                    (log4cl-json:with-fields (:check-id (mito:object-id check))
+                    (with-fields (:check-id (mito:object-id check))
                       (log:info "Submitting check to remote worker")
                       (apply 'submit-task
                              'perform

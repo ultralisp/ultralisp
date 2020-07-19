@@ -47,8 +47,9 @@
                 #:project)
   (:import-from #:uiop
                 #:truename*)
-  (:import-from #:log4cl-json
-                #:with-log-unhandled
+  (:import-from #:log4cl-extras/error
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:ultralisp/utils
                 #:delete-file-if-exists

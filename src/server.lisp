@@ -4,7 +4,7 @@
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
-  (:import-from #:log4cl-json)
+  (:import-from #:log4cl-extras/config)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
@@ -379,9 +379,23 @@ arguments."
 
 
 (defmain main ((dont-start-server "Don't start HTTP server."
-                                  :flag t))
-  (log4cl-json:setup :level :debug)
-
+                                  :flag t)
+               (log-dir "A directory to store app.log."
+                        :default "/app/logs")
+               (debug "If true, then log will be include DEBUG and INFO nessages"
+                      :flag t
+                      :short nil
+                      :env-var "DEBUG"))
+  
+  (log4cl-extras/config:setup
+   `(:level ,(if debug
+                 :info
+                 :error)
+     :appenders ((daily :layout :json
+                        :name-format ,(format nil "~A/app.log"
+                                              log-dir)
+                        :backup-name-format "app-%Y%m%d.log"))))
+  
   (let ((slynk-port 4005)
         (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
         (interface (getenv "INTERFACE" "0.0.0.0"))
@@ -424,9 +438,7 @@ arguments."
 
   ;; Now we'll wait forever for connections from SLY.
   (loop
-    do (sleep 60))
-  
-  (format t "Exiting. Why? I don't know! This should never happen~%"))
+    do (sleep 60)))
 
 
 (defun serialize (object)

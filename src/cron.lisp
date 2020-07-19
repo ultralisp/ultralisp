@@ -11,8 +11,9 @@
                 #:make-via-cron-check)
   (:import-from #:ultralisp/utils
                 #:make-request-id)
-  (:import-from #:log4cl-json
-                #:with-log-unhandled
+  (:import-from #:log4cl-extras/error
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:ultralisp/pipeline/checking
                 #:perform-pending-checks)

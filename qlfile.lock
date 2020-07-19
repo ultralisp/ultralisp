@@ -1,15 +1,11 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2020-06-10"))
+  :version "2020-07-15"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20200707013506"))
-("cl-str" .
- (:class qlot/source/github:source-github
-  :initargs (:repos "vindarel/cl-str" :ref nil :branch nil :tag nil)
-  :version "github-9575a38a5d7ef4ff7735c59ea8939d5b"))
+  :version "20200718221006"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")
@@ -18,6 +14,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
   :version "github-ab9cff202f4c659d9f26560718b776cb"))
+("log4cl-extras" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "40ants/log4cl-extras" :ref nil :branch nil :tag nil)
+  :version "github-2086179ec446a9ecd56273a38a428828"))
 ("sblint" .
  (:class qlot/source/github:source-github
   :initargs (:repos "cxxxr/sblint" :ref nil :branch nil :tag nil)

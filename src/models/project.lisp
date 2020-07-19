@@ -1,6 +1,5 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
-  (:import-from #:log4cl-json)
   (:import-from #:mito
                 #:includes
                 #:save-dao
@@ -51,7 +50,9 @@
                 #:defcommand)
   (:import-from #:ultralisp/stats
                 #:increment-counter)
-  (:import-from #:log4cl-json
+  (:import-from #:log4cl-extras/error
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:export
    #:update-and-enable-project
@@ -320,7 +321,7 @@
                           ;; and can be updated later,
                           ;; but we definitely want to log these
                           ;; errors, to not miss some system problems.
-                          (log4cl-json:with-log-unhandled ()
+                          (with-log-unhandled ()
                             (%github-get-description user-or-org
                                                      project)))
                          "")))

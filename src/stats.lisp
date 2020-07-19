@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/stats
   (:use #:cl)
   (:import-from #:log4cl)
-  (:import-from #:log4cl-json
+  (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
                 #:with-connection)
