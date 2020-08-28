@@ -56,8 +56,13 @@
                      ,@body)
                   `(progn ,@body))))
     `(defun ,name ()
-       (with-fields (:request-id (make-request-id))
-         (log:debug "Running cron task" ',name)
+       (with-fields (:request-id (make-request-id)
+                     :check-name ,(string-downcase
+                                   (symbol-name name)))
+         ;; TODO: Temporary this is logged as WARN
+         ;;       we need to implement "crossfinger" logging facility
+         ;;       in the log4cl-extras and change it back to the INFO
+         (log:warn "Running cron task" ',name)
          (handler-bind ((error (lambda (condition)
                                  (if slynk-api:*emacs-connection*
                                      (invoke-debugger condition)
@@ -82,10 +87,13 @@
   ;; because when we do version build, it will be
   ;; performed by a remote worker and prepared version
   ;; should be already committed to the database.
+  
+  (log:info "Building a new version if needed")
   (with-connection ()
     (prepare-pending-version))
   (with-connection ()
-    (build-prepared-versions)))
+    (build-prepared-versions))
+  (log:info "Building a new version if needed DONE"))
 
 
 (defun get-time-of-the-next-check (project)

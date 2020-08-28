@@ -340,6 +340,7 @@
 
 (defun prepare-pending-version ()
   (with-transaction
+    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from prepare pending version")
     (with-lock ("performing-pending-checks-or-version-build")
       (let ((version (get-pending-version)))
         (when version
@@ -353,6 +354,7 @@
 (defun build-prepared-versions ()
   "Searches and builds a pending version if any."
   (with-transaction
+    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
     (with-lock ("performing-pending-checks-or-version-build")
       (log:info "Checking if there is a version to build")
       

@@ -67,6 +67,8 @@
 (defun perform-pending-checks (&key (force nil force-p))
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
+  (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks")
+  
   (with-lock ("performing-pending-checks-or-version-build")
     (let ((checks (get-pending-checks))
           ;; we need this to not pass :force argument
@@ -204,30 +206,32 @@
              (downloaded (download project tmp-dir :latest t))
              (path (downloaded-project-path downloaded)))
        
-        (unwind-protect
-             (prog1 (when (or (check-if-project-was-changed project downloaded)
-                              force)
-                      ;; We should run this perform function inside a worker
-                      ;; process which will be killed after the finishing the task.
-                      ;; That is why it is OK to change a *central-registry* here:
-                      (pushnew path asdf:*central-registry*)
-                      (let* ((systems (collect-systems path)))
+        (with-fields (:check-id (mito:object-id check)
+                      :project (ultralisp/models/project:get-name project))
+          (unwind-protect
+               (prog1 (when (or (check-if-project-was-changed project downloaded)
+                                force)
+                        ;; We should run this perform function inside a worker
+                        ;; process which will be killed after the finishing the task.
+                        ;; That is why it is OK to change a *central-registry* here:
+                        (pushnew path asdf:*central-registry*)
+                        (let* ((systems (collect-systems path)))
 
-                        (unless systems
-                          (error "No asd files were found!"))
+                          (unless systems
+                            (error "No asd files were found!"))
 
-                        (save-project-systems project systems)
-                        (make-release project systems)
-                        (update-and-enable-project project
-                                                   (downloaded-project-params downloaded)
-                                                   :force force)
-                        (values t)))
-               (update-check-as-successful check
-                                           (float (/ (- (get-internal-real-time)
-                                                        started-at)
-                                                     internal-time-units-per-second))))
-          ;; Here we need to make a clean up to not clutter the file system
-          (log:info "Deleting checked out" path)
-          (delete-directory-tree path
-                                 :validate t))))))
+                          (save-project-systems project systems)
+                          (make-release project systems)
+                          (update-and-enable-project project
+                                                     (downloaded-project-params downloaded)
+                                                     :force force)
+                          (values t)))
+                 (update-check-as-successful check
+                                             (float (/ (- (get-internal-real-time)
+                                                           started-at)
+                                                       internal-time-units-per-second))))
+            ;; Here we need to make a clean up to not clutter the file system
+            (log:info "Deleting checked out" path)
+            (delete-directory-tree path
+                                   :validate t)))))))
 
