@@ -8,6 +8,7 @@
 * Cache github repositories list for 10 minutes instead of infinite amount of time.
 * Fixed error when adding a repository in development mode.
 * Added ability to start cron jobs manually in dev mode.
+* Fixed instructions how to use Ultralisp with Qlot.
 
 0.16.0 (2020-07-18)
 ===================

@@ -46,9 +46,8 @@
         
         (:pre (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)" dist-url))
-        (:p ("or if you are using the [Qlot](https://github.com/fukamachi/qlot), then add these lines into your <code>qlfile</code>:"))
-        (:pre (format nil "dist ultralisp ~A
-ultralisp :all :latest"
+        (:p ("or if you are using the [Qlot](https://github.com/fukamachi/qlot), then add this line into the top of your <code>qlfile</code>:"))
+        (:pre (format nil "dist ultralisp ~A"
                       dist-url))
         (:p ("and run <code>qlot update</code> in the shell."))
         
