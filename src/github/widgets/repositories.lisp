@@ -4,6 +4,7 @@
                 #:@
                 #:chain)
   (:import-from #:link-header)
+  (:import-from #:rutils)
   (:import-from #:lparallel)
   (:import-from #:weblocks/widget
                 #:update
@@ -97,7 +98,7 @@
     (getf data :|Common Lisp|)))
 
 
-(function-cache:defcached get-lisp-repositories (&key (token *token*))
+(function-cache:defcached (get-lisp-repositories :timeout 600) (&key (token *token*))
   (let* ((data (get-url "/user/repos" :token token))
          (data (lparallel:premove-if-not
                 (lambda (repository)
@@ -369,13 +370,15 @@
   (let* ((name (get-name repository))
          (hook (get-webhook-url repository))
          (token (get-token repository))
-         (url #?"https://api.github.com/repos/${name}/hooks"))
+         (url (rutils:fmt "https://api.github.com/repos/~A/hooks" name)))
     
-    (cond ((get-hook-id repository)
+    (cond ((str:containsp "localhost" hook)
+           (log:warn "Don't adding hook in development mode"))
+          ((get-hook-id repository)
            (log:warn "Hmm, hook is already configured for this repository"))
           (t
            (dex:post url
-                     :headers `(("Authorization" . ,#?"token ${token}")
+                     :headers `(("Authorization" . ,(rutils:fmt "token ~A" token))
                                 ("Content-Type" . "application/json"))
                      :content (jonathan:to-json
                                `(:|config| (:|url| ,hook

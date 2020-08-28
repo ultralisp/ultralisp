@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.16.1 (2020-08-28)
+===================
+
+* Cache github repositories list for 10 minutes instead of infinite amount of time.
+
 0.16.0 (2020-07-18)
 ===================
 
