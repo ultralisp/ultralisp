@@ -165,10 +165,11 @@
         do (cl-cron:delete-cron-job key)))
 
 
-(defun setup ()
+(defun setup (&key (force nil))
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Creating cron jobs")
-  (unless (uiop:getenv "CRON_DISABLED")
+  (when (or (null (uiop:getenv "CRON_DISABLED"))
+            force)
     ;; Run every minute
     (cl-cron:make-cron-job 'perform-checks
                            :hash-key 'perform-checks)

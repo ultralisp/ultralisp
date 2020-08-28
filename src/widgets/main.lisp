@@ -26,7 +26,8 @@
   (:import-from #:ultralisp/widgets/project
                 #:make-project-widget)
   (:import-from #:ultralisp/widgets/projects
-                #:make-author-projects-widget)
+                #:make-author-projects-widget
+                #:make-my-projects-widget)
   (:import-from #:ultralisp/widgets/sponsors
                 #:make-sponsors-widget)
   (:import-from #:ultralisp/widgets/search
@@ -54,6 +55,8 @@
    (make-project-widget))
   ("/projects/.*"
    (make-author-projects-widget))
+  ("/my/projects"
+   (make-my-projects-widget))
   (t
    (page-not-found)))
 
