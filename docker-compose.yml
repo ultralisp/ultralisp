@@ -45,7 +45,8 @@ services:
       PROJECTS_DIR: /app/build/sources/
       DIST_DIR: /app/build/dist/
       # For development we most probably don't want to run
-      # cron jobs
+      # cron jobs. To run cron jobs manually, do:
+      # (ultralisp/cron:setup :force t)
       CRON_DISABLED: "yes"
 
   gearman:
