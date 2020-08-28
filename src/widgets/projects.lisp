@@ -15,10 +15,14 @@
                 #:defwidget)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
+  (:import-from #:ultralisp/models/moderator)
+  (:import-from #:weblocks-auth/models
+                #:get-current-user)
   (:export
    #:render
    #:render-projects-list
-   #:make-author-projects-widget))
+   #:make-author-projects-widget
+   #:make-my-projects-widget))
 (in-package ultralisp/widgets/projects)
 
 
@@ -26,8 +30,15 @@
   ())
 
 
+(defwidget my-projects ()
+  ())
+
+
 (defun make-author-projects-widget ()
   (make-instance 'author-projects))
+
+(defun make-my-projects-widget ()
+  (make-instance 'my-projects))
 
 
 (defun render-projects-list (projects)
@@ -60,3 +71,19 @@
                           title)
                     (render-projects-list projects)))
         (t (page-not-found))))))
+
+
+(defmethod render ((widget my-projects))
+  (let* ((user (get-current-user))
+         (projects (sort (ultralisp/models/moderator:get-projects user)
+                         #'string<
+                         :key #'ultralisp/models/project:get-name))
+         (title "Moderated projects"))
+    (cond
+      (projects (with-html
+                  (:h1 :class "author-name"
+                       title)
+                  (setf (weblocks/page:get-title)
+                        title)
+                  (render-projects-list projects)))
+      (t (page-not-found)))))

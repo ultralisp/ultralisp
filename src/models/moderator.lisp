@@ -11,6 +11,7 @@
   (:export #:moderator
            #:is-moderator-p
            #:get-moderators
+           #:get-projects
            #:make-moderator))
 (in-package ultralisp/models/moderator)
 
@@ -62,5 +63,14 @@
   "Returns a list of project's moderator."
   (check-type project project)
   
-  (mito:retrieve-dao 'moderator
-                     :project project))
+  (mapcar #'get-user
+          (mito:retrieve-dao 'moderator
+                             :project project)))
+
+(defun get-projects (user)
+  "Returns a list of project's moderator."
+  (check-type user user)
+  
+  (mapcar #'get-project
+          (mito:retrieve-dao 'moderator
+                             :user user)))

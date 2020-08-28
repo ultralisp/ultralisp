@@ -2,12 +2,20 @@
  ChangeLog
 ===========
 
-0.16.1 (2020-08-28)
+0.17.0 (2020-08-28)
 ===================
+
+New features
+------------
+
+* Added the /my/projects page. It lists all projects where you are the moderator.
+* Added ability to start cron jobs manually in dev mode.
+
+Fixes
+-----
 
 * Cache github repositories list for 10 minutes instead of infinite amount of time.
 * Fixed error when adding a repository in development mode.
-* Added ability to start cron jobs manually in dev mode.
 * Fixed instructions how to use Ultralisp with Qlot.
 
 0.16.0 (2020-07-18)
