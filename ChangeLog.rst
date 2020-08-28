@@ -6,6 +6,7 @@
 ===================
 
 * Cache github repositories list for 10 minutes instead of infinite amount of time.
+* Fixed error when adding a repository in development mode.
 
 0.16.0 (2020-07-18)
 ===================
