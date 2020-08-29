@@ -30,7 +30,7 @@
     
     (:h2 "Grand Supporters")
     (:ul
-     (:li (:a :href "https://hexstreamsoft.com"
+     (:li (:a :href "https://www.hexstreamsoft.com"
               "Jean-Philippe Paradis"))
      (:li (:a :href "https://blackbrane.com"
               "Black Brane Systems Inc.")))
