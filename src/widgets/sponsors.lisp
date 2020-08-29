@@ -25,6 +25,16 @@
         "Ultralisp - Sponsors")
   
   (with-html
+    (:h2 "Gold Sponsors")
+    (:p "This place is vacant. Links to Gold Supporters will also be placed on the front page of the site.")
+    
+    (:h2 "Grand Supporters")
+    (:ul
+     (:li (:a :href "https://hexstreamsoft.com"
+              "Jean-Philippe Paradis"))
+     (:li (:a :href "https://blackbrane.com"
+              "Black Brane Systems Inc.")))
+    
     (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
     (:div :class "donate"
           (:a :class "button success"
