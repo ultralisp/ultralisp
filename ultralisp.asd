@@ -13,6 +13,10 @@
   :version (:read-file-line "ChangeLog.rst" :at search-version-in-changelog)
   :pathname "src"
   :depends-on ("cl-interpol"
+	       ;; To not load it when worker is starting
+	       ;; This should fix issue with bordeaux-threads recompilation:
+	       ;; https://github.com/ultralisp/ultralisp/issues/84
+	       "dbd-postgres"
                ;; We need this while will not support package inferred systems:
                ;; https://github.com/ultralisp/ultralisp/issues/3
                "weblocks-ui"

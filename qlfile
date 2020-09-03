@@ -9,7 +9,7 @@ github slynk-named-readtables joaotavora/sly-named-readtables
 # github log4cl 40ants/log4cl :branch support-sly
 
 # Because Ultralisp isnot updates this library:
-# github log4cl-extras 40ants/log4cl-extras
+github log4cl-extras 40ants/log4cl-extras
 
 # To be able to run sblint using:
 # qlot exec sblint

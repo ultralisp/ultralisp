@@ -14,6 +14,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
   :version "github-ab9cff202f4c659d9f26560718b776cb"))
+("log4cl-extras" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "40ants/log4cl-extras" :ref nil :branch nil :tag nil)
+  :version "github-b18197f91ff256032b32c8fcc27d446a"))
 ("sblint" .
  (:class qlot/source/github:source-github
   :initargs (:repos "cxxxr/sblint" :ref nil :branch nil :tag nil)
