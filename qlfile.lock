@@ -18,6 +18,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "40ants/log4cl-extras" :ref nil :branch nil :tag nil)
   :version "github-b18197f91ff256032b32c8fcc27d446a"))
+("bordeaux-threads" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "sionescu/bordeaux-threads" :ref "61e6e5645848e77367775610e4537043ea810f6d" :branch nil :tag nil)
+  :version "github-c72eca20eca6a7f6558bfc3645e946e8"))
 ("sblint" .
  (:class qlot/source/github:source-github
   :initargs (:repos "cxxxr/sblint" :ref nil :branch nil :tag nil)

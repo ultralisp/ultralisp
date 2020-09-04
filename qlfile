@@ -11,6 +11,10 @@ github slynk-named-readtables joaotavora/sly-named-readtables
 # Because Ultralisp isnot updates this library:
 github log4cl-extras 40ants/log4cl-extras
 
+# Because bug in constant definition:
+# https://github.com/ultralisp/ultralisp/issues/84
+github bordeaux-threads sionescu/bordeaux-threads :ref 61e6e5645848e77367775610e4537043ea810f6d
+
 # To be able to run sblint using:
 # qlot exec sblint
 github sblint cxxxr/sblint

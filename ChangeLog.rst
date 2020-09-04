@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+0.17.3 (2020-09-04)
+===================
+
+* Rolled back to the bordeaux-threads where wasn't defconstant.
+  This should temproary fix the problem with worker.
+
 0.17.2 (2020-09-03)
 ===================
 
