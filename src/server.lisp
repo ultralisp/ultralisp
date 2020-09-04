@@ -234,7 +234,9 @@
 
 
                   (:footer :class "page-footer"
-                           (:p ("Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
+                           (:p ("Ultralisp ~A. Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"
+                                (asdf:component-version
+                                 (asdf:find-system :ultralisp))))))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
