@@ -37,9 +37,7 @@
     (:h2 "Grand Supporters")
     (:ul
      (:li (:a :href "https://www.hexstreamsoft.com"
-              "Jean-Philippe Paradis"))
-     (:li (:a :href "https://blackbrane.com"
-              "Black Brane Systems Inc.")))
+              "Jean-Philippe Paradis")))
     
     (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
     (:div :class "donate"
