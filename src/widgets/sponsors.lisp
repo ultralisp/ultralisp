@@ -20,6 +20,12 @@
   (make-instance 'sponsors-widget))
 
 
+;; Without this method widget had "sponsours-widget" class
+;; and was removed by ADBlock:
+(defmethod weblocks/widget:get-css-classes ((widget sponsors-widget))
+  (list "widget sp-widget"))
+
+
 (defmethod render ((widget sponsors-widget))
   (setf (get-title)
         "Ultralisp - Sponsors")
