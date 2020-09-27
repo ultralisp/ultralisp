@@ -30,12 +30,15 @@ CREATE TABLE "source" (
 );
 
 
+CREATE TYPE dist_state AS ENUM ('pending', 'ready');
+
 CREATE TABLE "dist" (
     "id" BIGSERIAL NOT NULL,
     "version" BIGINT NOT NULL,
     "latest" BOOLEAN NOT NULL,
     "deleted" BOOLEAN NOT NULL,
     "name" TEXT NOT NULL,
+    "state" dist_state NOT NULL DEFAULT 'pending',
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY (id, version)
@@ -43,8 +46,8 @@ CREATE TABLE "dist" (
 
 CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
-INSERT INTO "dist" (version, latest, deleted, name, created_at, updated_at)
-     VALUES (0, True, False, 'common', now(), now());
+INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
+     VALUES (0, True, False, 'common', 'ready', now(), now());
 
 
 CREATE TABLE "dist_source" (

@@ -4,11 +4,14 @@
                 #:versioned
                 #:object-version)
   (:import-from #:ultralisp/models/dist-source)
+  (:import-from #:alexandria
+                #:make-keyword)
   (:export
    #:dist
    #:dist-name
    #:find-dist
-   #:dist-source->dist))
+   #:dist-source->dist
+   #:dist-state))
 (in-package ultralisp/models/dist)
 
 
@@ -16,6 +19,13 @@
   ((name :col-type (:text)
          :initarg :name
          :reader dist-name))
+  (state :col-type (:text)
+         :initarg :state
+         :initform :pending
+         :reader dist-state
+         :inflate (lambda (text)
+                    (make-keyword (string-upcase text)))
+         :deflate #'symbol-name)
   (:unique-keys name)
   (:primary-key id version)
   (:metaclass mito:dao-table-class))

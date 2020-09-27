@@ -15,9 +15,9 @@
                 #:defwidget)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
-  (:import-from #:ultralisp/models/moderator)
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
+  (:import-from #:ultralisp/models/moderator)
   (:export
    #:render
    #:render-projects-list
