@@ -64,6 +64,7 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
+  (:import-from #:ultralisp/models/source)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:export

@@ -8,7 +8,6 @@
                 #:get-github-project
                 #:is-enabled-p
                 #:get-project2)
-  (:import-from #:ultralisp/models/source)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
   (:import-from #:weblocks/widget
@@ -34,6 +33,8 @@
                 #:get-time-of-the-next-check)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
+  (:import-from #:ultralisp/widgets/source
+                #:make-source-widget)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
@@ -63,8 +64,8 @@
             (slot-value widget 'project )
             new-project
             (slot-value widget 'source-widgets)
-            (mapcar #'ultralisp/widgets/source:make-source-widget
-                    (ultralisp/models/source:project-sources new-project))))))
+            (mapcar #'make-source-widget
+                    (ultralisp/models/project:project-sources new-project))))))
 
 
 (defun toggle (widget project)
