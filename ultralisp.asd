@@ -27,6 +27,12 @@
                ;; that is why ultralisp/models/project can't depend on moderator
                ;; explicitly.
                "ultralisp/models/moderator"
+               ;; Other models, just to be sure
+               ;; that datamigration will be generated:
+               "ultralisp/models/dist"
+               "ultralisp/models/dist-moderator"
+               "ultralisp/models/source"
+               "ultralisp/models/dist-source" 
                "ultralisp/widgets/landing")
   :in-order-to ((test-op (test-op ultralisp-test)))
   :perform (compile-op :before (o c)

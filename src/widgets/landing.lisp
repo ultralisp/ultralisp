@@ -78,7 +78,7 @@
             :colspan 2
             (ultralisp/widgets/changelog:render actions))))))
 
-
+;; TODO: переделать на project2
 (defun get-projects-with-pending-checks ()
   "Returns all project which were added but not checked yet."
   (let ((checks (get-pending-checks-for-disabled-projects :limit 5))

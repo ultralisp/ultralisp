@@ -180,7 +180,8 @@
                                     (:= 'type "VIA-CRON"))))
         do (setf (get-processed-at check) (local-time:now)
                  (get-processed-in check) 0)
-           (save-dao check)))
+           (save-dao check)
+        counting 1))
 
 (defun get-pending-checks-count ()
   (let ((sql (select ((:as (:count :*)

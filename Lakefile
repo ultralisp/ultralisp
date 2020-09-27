@@ -85,5 +85,8 @@
 (task "build-packages-extractor" ()
       (sh "qlot exec ros run --eval '(asdf:make :packages-extractor)'"))
 
+(task "lint" ()
+      (sh "qlot exec sblint ultralisp.asd ultralisp-test.asd"))
+
 (task "default" ("devserver")
       ())

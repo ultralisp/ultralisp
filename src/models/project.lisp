@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
   (:import-from #:mito
+                #:object-id
                 #:includes
                 #:save-dao
                 #:delete-dao
@@ -19,6 +20,10 @@
                 #:split)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:ultralisp/models/versioned
+                #:versioned-table-class
+                #:object-version
+                #:versioned)
   (:import-from #:sxql
                 #:order-by
                 #:limit
@@ -50,8 +55,15 @@
                 #:defcommand)
   (:import-from #:ultralisp/stats
                 #:increment-counter)
+  (:import-from #:ultralisp/models/utils
+                #:systems-info-to-json
+                #:release-info-to-json
+                #:systems-info-from-json
+                #:release-info-from-json)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
+  (:import-from #:ultralisp/protocols/external-url
+                #:external-url)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:export
@@ -62,6 +74,8 @@
    #:get-url
    #:get-name
    #:project
+   #:project2
+   #:get-project2
    #:get-source
    #:get-params
    #:get-github-project
@@ -87,68 +101,11 @@
    #:get-external-url
    #:get-github-projects
    #:get-recently-updated-projects
-   #:enabled))
+   #:enabled
+   #:project-description
+   #:project-name
+   #:project-sources))
 (in-package ultralisp/models/project)
-
-
-(defun system-info-to-json (system-info)
-  (list :path (uiop:native-namestring (get-path system-info))
-        :project-name (get-project-name system-info)
-        :filename (get-filename system-info)
-        :name (quickdist:get-name system-info)
-        :dependencies (get-dependencies system-info)))
-
-(defun systems-info-to-json (systems-info)
-  "Prepares a list of systems info objects to be serialized to json."
-  (jonathan:to-json
-     (mapcar #'system-info-to-json
-           systems-info)))
-
-
-(defun release-info-to-json (release-info)
-  (jonathan:to-json
-   (if release-info
-       (list :project-name (get-project-name release-info)
-             :project-url (get-project-url release-info)
-             :archive-path (uiop:native-namestring (get-archive-path release-info))
-             :file-size (get-file-size release-info)
-             :md5sum (get-md5sum release-info)
-             :content-sha1 (get-content-sha1 release-info)
-             :project-prefix (get-project-prefix release-info)
-             :system-files (get-system-files release-info))
-       :null)))
-
-
-(defun system-info-from-json (data)
-  "Prepares a list of systems info objects to be serialized to json."
-  (when data
-    (make-instance 'quickdist:system-info
-                   :path (getf data :path)
-                   :project-name (getf data :project-name)
-                   :filename (getf data :filename)
-                   :name (getf data :name)
-                   :dependencies (getf data :dependencies))))
-
-
-(defun release-info-from-json (json)
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
-    (when data
-      (make-instance 'quickdist:release-info
-                     :project-name (getf data :project-name)
-                     :project-url (getf data :project-url)
-                     :archive-path (getf data :archive-path)
-                     :file-size (getf data :file-size)
-                     :md5sum (getf data :md5sum)
-                     :content-sha1 (getf data :content-sha1)
-                     :project-prefix (getf data :project-prefix)
-                     :system-files (getf data :system-files)))))
-
-
-(defun systems-info-from-json (json)
-  "Prepares a list of systems info objects to be serialized to json."
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
-    (mapcar #'system-info-from-json
-            data)))
 
 
 (defclass project ()
@@ -235,6 +192,19 @@
   (:metaclass mito:dao-table-class))
 
 
+(defclass project2 (versioned)
+  ((name :col-type (:text)
+         :initarg :name
+         :accessor project-name)
+   (description :col-type :text
+                :initarg :description
+                :accessor project-description))
+  (:unique-keys name)
+  (:primary-key id version)
+  ;; (:metaclass versioned-table-class)
+  (:metaclass mito:dao-table-class))
+
+
 (defmethod print-object ((project project) stream)
   (print-unreadable-object (project stream :type t)
     (format stream
@@ -242,6 +212,14 @@
             (get-source project)
             (get-name project)
             (is-enabled-p project))))
+
+
+(defmethod print-object ((project project2) stream)
+  (print-unreadable-object (project stream :type t)
+    (format stream
+            "~A (v~A)"
+            (project-name project)
+            (object-version project ))))
 
 
 (defmethod print-object ((project project-version) stream)
@@ -395,6 +373,14 @@
                   (to-json
                    (list :user-or-org user-or-org
                          :project project)))))
+     (limit 1))))
+
+(defun get-project2 (project-name)
+  (check-type project-name string)
+  (first
+   (select-dao 'project2
+     (where (:= :name
+                project-name))
      (limit 1))))
 
 
@@ -642,3 +628,17 @@
                         (collect project)
                         (unless dry-run
                           (disable-project project :reason :system-conflict)))))))
+
+
+(defun project-sources (project)
+  (check-type project project2)
+  (ultralisp/models/source::%project-sources
+   (object-id project)
+   (object-version project)))
+
+
+(defmethod external-url ((obj project2))
+  (loop for source in (project-sources obj)
+        for url = (external-url source)
+        when url
+          do (return-from external-url url)))
