@@ -43,6 +43,13 @@
   (check-type user weblocks-auth/models:user)
   (check-type name string)
   (with-transaction
+    ;; We aren't using unique db index, because there will be many
+    ;; versions of the same dist with the same name.
+    ;; That is why we only check for duplicate name only
+    ;; when adding a new dist.
+    (when (ultralisp/models/dist:find-dist name :raise-error nil)
+      (error "Dist with name \"~A\" already exists"
+             name))
     (let ((dist (mito:create-dao 'dist
                                  :name name
                                  ;; There is no any projects

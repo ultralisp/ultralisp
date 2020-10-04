@@ -41,6 +41,9 @@
 (file "qlfile.lock" ("qlfile")
       (sh "qlot update"))
 
+(file ".qlot/log4sly-setup.el" ("qlfile.lock")
+      (sh "qlot exec ros run -e '(ql:quickload :log4sly)' -e '(log4sly:install)' -e '(uiop:quit)'"))
+
 (task "deps" ("qlfile.lock")
       ;; Here you need to install gen-deps-system using this command
       ;; ros install 40ants/gen-deps-system

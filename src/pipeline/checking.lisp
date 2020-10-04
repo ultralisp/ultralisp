@@ -22,7 +22,6 @@
   (:import-from #:ultralisp/models/check
                 #:get-processed-in
                 #:get-error
-                #:added-project-check
                 #:get-pending-checks
                 #:get-processed-at
                 #:any-check

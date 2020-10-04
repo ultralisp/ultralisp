@@ -15,7 +15,8 @@
   (:import-from #:ultralisp/models/dist-source
                 #:dist-source)
   (:import-from #:ultralisp/models/moderator
-                #:get-moderators))
+                #:get-moderators)
+  (:export #:create-new-projects))
 (in-package ultralisp/migrations/01-project)
 
 
@@ -30,6 +31,7 @@
              (mito:create-dao 'source
                               :project-id (object-id new-project)
                               :project-version (object-version new-project)
+                              :latest t
                               :type (ultralisp/models/project:get-source old-project)
                               :params (ultralisp/models/project:get-params old-project)
                               :systems-info (ultralisp/models/project:get-systems-info old-project)
@@ -39,8 +41,7 @@
              (mito:create-dao 'dist-source
                               :dist-id (object-id dist)
                               :dist-version (object-version dist)
-                              :project-id (object-id new-project)
-                              :project-version (object-version new-project)
+                              :source-id (object-id source)
                               :source-version (object-version source)
                               :include-reason :direct))
            (moderators

@@ -2,6 +2,8 @@
   (:use #:cl)
   (:import-from #:mito
                 #:object-id)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:object-id
    #:object-version
@@ -50,8 +52,14 @@
   (let ((table-name (mito.class:table-name
                      (class-of obj)))
         (column-name "id"))
-    (setf (slot-value obj 'id)
-          (mito.db:last-insert-id
-           mito:*connection*
-           table-name
-           column-name))))
+    (unless (slot-boundp obj 'id)
+      (setf (slot-value obj 'id)
+            (mito.db:last-insert-id
+             mito:*connection*
+             table-name
+             column-name)))
+    (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = False WHERE id = ?" table-name)
+                      (list (object-id obj)))
+    (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = True WHERE id = ? AND version = ?" table-name)
+                      (list (object-id obj)
+                            (object-version obj)))))

@@ -112,19 +112,23 @@ CREATE TABLE "project2" (
 CREATE UNIQUE INDEX "unique_project2_name" ON "project2" ("name");
 
 
+--CREATE SEQUENCE IF NOT EXISTS source_id_seq;
+
 CREATE TABLE "source" (
-    "project_id" BIGINT NOT NULL,
-    "project_version" BIGINT NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "version" BIGINT NOT NULL,
     "latest" BOOLEAN NOT NULL,
     "deleted" BOOLEAN NOT NULL,
+    "project_id" BIGINT NOT NULL,
+    "project_version" BIGINT NOT NULL,
     "type" TEXT NOT NULL,
     "params" JSONB NOT NULL,
     "systems_info" JSONB,
     "release_info" JSONB,
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
-    PRIMARY KEY ("project_id", "project_version", "version"),
+    PRIMARY KEY ("id", "version"),
+    UNIQUE ("project_id", "project_version", "version"),
     FOREIGN KEY ("project_id", "project_version")
     REFERENCES "project2" ("id", "version")
 );
@@ -144,7 +148,6 @@ CREATE TABLE "dist" (
     PRIMARY KEY (id, version)
 );
 
-CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
 INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
      VALUES (0, True, False, 'common', 'ready', now(), now());
@@ -153,8 +156,7 @@ INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_a
 CREATE TABLE "dist_source" (
     "dist_id" BIGINT NOT NULL,
     "dist_version" BIGINT NOT NULL,
-    "project_id" BIGINT NOT NULL,
-    "project_version" BIGINT NOT NULL,
+    "source_id" BIGINT NOT NULL,
     "source_version" BIGINT NOT NULL,
     "include_reason" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL,
@@ -164,12 +166,12 @@ CREATE TABLE "dist_source" (
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY (
         "dist_id", "dist_version",
-        "project_id", "project_version", "source_version"
+        "source_id", "source_version"
     ),
     FOREIGN KEY ("dist_id", "dist_version")
     REFERENCES "dist" ("id", "version"),
-    FOREIGN KEY ("project_id", "project_version", "source_version")
-    REFERENCES "source" ("project_id", "project_version", "version")
+    FOREIGN KEY ("source_id", "source_version")
+    REFERENCES "source" ("id", "version")
 );
 
 CREATE TABLE "dist_moderator" (
@@ -190,6 +192,26 @@ CREATE TABLE "project_moderator" (
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY ("project_id", "user_id")
 );
+
+
+CREATE TABLE "check2" (
+    "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "type" TEXT,
+    "source_id" BIGINT NOT NULL,
+    "source_version" BIGINT NOT NULL,
+    "processed_at" TIMESTAMPTZ,
+    "processed_in" FLOAT,
+    "error" TEXT,
+    "created_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ,
+    FOREIGN KEY ("source_id", "source_version")
+    REFERENCES "source" ("id", "version")  ON DELETE CASCADE
+);
+
+-- how to reset project2 tables
+delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
+INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
+     VALUES (0, True, False, 'common', 'ready', now(), now());
 
 
 CREATE TABLE IF NOT EXISTS "schema_migrations" (

@@ -7,7 +7,6 @@
                 #:deleted-p
                 #:latest-p
                 #:object-version)
-  (:import-from #:ultralisp/models/dist-source)
   (:import-from #:ultralisp/models/utils
                 #:systems-info-to-json
                 #:release-info-to-json
@@ -27,29 +26,36 @@
    #:source-params
    #:deleted-p
    #:source-distributions
-   #:dist-source->source))
+   #:copy-source))
 (in-package ultralisp/models/source)
 
 
-(defclass source ()
-  ((project-id :col-type :bigint
+(defclass source (ultralisp/models/versioned:versioned)
+  ;; TODO: тут нужен какой-то id, который
+  ;; позволит различать разные source
+  ;; Надо посмотреть, как можно сделать
+  ;; автоинкремент, но без unique
+  (;; (id :col-type :bigint
+   ;;     :initarg :id
+   ;;     :reader object-id)
+   (project-id :col-type :bigint
                :initarg :project-id
                :reader source-project-id)
    (project-version :col-type :bigint
                     :initarg :project-version
                     :reader project-version)
-   (version :col-type :bigint
-            :initarg :version
-            :reader object-version
-            :initform 0)
-   (latest :col-type :boolean
-           :initarg :latest
-           :initform t
-           :reader latest-p)
-   (deleted :col-type :boolean
-            :initarg :deleted
-            :initform nil
-            :reader deleted-p)
+   ;; (version :col-type :bigint
+   ;;          :initarg :version
+   ;;          :reader object-version
+   ;;          :initform 0)
+   ;; (latest :col-type :boolean
+   ;;         :initarg :latest
+   ;;         :initform t
+   ;;         :reader latest-p)
+   ;; (deleted :col-type :boolean
+   ;;          :initarg :deleted
+   ;;          :initform nil
+   ;;          :reader deleted-p)
    (type :col-type (:text)
          :initarg :type
          :reader source-type
@@ -78,7 +84,7 @@
                  :deflate #'release-info-to-json
                  :inflate #'release-info-from-json))
   
-  (:primary-key project-id project-version version)
+  (:primary-key id version)
   (:metaclass mito:dao-table-class))
 
 
@@ -125,20 +131,14 @@
                   (getf params :project))))))
 
 
-(defun source-distributions (source)
-  (check-type source source)
-  (ultralisp/models/dist-source::%project-dist-source
-   (source-project-id source)
-   (project-version source)
-   (object-version source)))
 
-
-(defun dist-source->source (dist-source)
-  (check-type dist-source
-              ultralisp/models/dist-source:dist-source)
-  (first
-   (mito:retrieve-dao
-    'source
-    :project-id (ultralisp/models/dist-source:project-id dist-source)
-    :project-version (ultralisp/models/dist-source:project-version dist-source)
-    :version (ultralisp/models/dist-source:source-version dist-source))))
+(defun copy-source (source)
+  (mito:create-dao 'source
+                   :id (object-id source)
+                   :version (1+ (object-version source))
+                   :project-id (source-project-id source)
+                   :project-version (project-version source)
+                   :type (source-type source)
+                   :params (source-params source)
+                   :systems-info (source-systems-info source)
+                   :release-info (source-release-info source)))

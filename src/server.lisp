@@ -4,7 +4,7 @@
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
-  (:import-from #:log4cl-extras/config)
+  (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
@@ -388,15 +388,12 @@ arguments."
                       :flag t
                       :short nil
                       :env-var "DEBUG"))
-  
-  (log4cl-extras/config:setup
-   `(:level ,(if debug
-                 :info
-                 :error)
-     :appenders ((daily :layout :json
-                        :name-format ,(format nil "~A/app.log"
-                                              log-dir)
-                        :backup-name-format "app-%Y%m%d.log"))))
+
+
+  (ultralisp/logging:setup log-dir
+                           (if debug
+                               :info
+                               :error))
   
   (let ((slynk-port 4005)
         (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))

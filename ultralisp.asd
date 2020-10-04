@@ -13,6 +13,7 @@
   :version (:read-file-line "ChangeLog.rst" :at search-version-in-changelog)
   :pathname "src"
   :depends-on ("cl-interpol"
+               "log4sly"
 	       ;; To not load it when worker is starting
 	       ;; This should fix issue with bordeaux-threads recompilation:
 	       ;; https://github.com/ultralisp/ultralisp/issues/84
@@ -31,6 +32,7 @@
                ;; that datamigration will be generated:
                "ultralisp/models/dist"
                "ultralisp/models/dist-moderator"
+               "ultralisp/models/project-moderator"
                "ultralisp/models/source"
                "ultralisp/models/dist-source" 
                "ultralisp/widgets/landing")

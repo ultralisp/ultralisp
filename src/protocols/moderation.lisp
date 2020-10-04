@@ -7,6 +7,6 @@
 
 (defgeneric is-moderator (user obj)
   (:documentation "Returns t if user can edit the object.")
-  (:method ((user t) (obj (eql nil)))
+  (:method ((user (eql nil)) (obj t))
     "Anonymous user can be a moderator"
     nil))

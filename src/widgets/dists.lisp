@@ -47,7 +47,7 @@
              (weblocks-ui/form:with-html-form
                  (:post (lambda (&key name &allow-other-keys)
                           (when (str:containsp "/" name)
-                            (error "Project name should not contain / char."))
+                            (error "Dist name should not contain / char."))
                 
                           (let* ((nickname (get-nickname user))
                                  (full-dist-name (fmt "~A/~A"
@@ -62,7 +62,7 @@
                          (:td :style "padding: 0"
                               (:input :type "text"
                                       :name "name"
-                                      :placeholder "Project name"))
+                                      :placeholder "Dist name"))
                          (:td :style "padding: 0; padding-left: 1em"
                               (:input :type "submit"
                                       :class "button"
@@ -77,18 +77,3 @@
           (t (:p "You have no custom Quicklisp distributions yet.")
              (:p "Create one and you'll be able to group Common Lisp libraries as you want.")
              (render-form)))))))
-
-
-(let* (
-       (projects (sort (ultralisp/models/moderator:get-projects user)
-                       #'string<
-                       :key #'ultralisp/models/project:get-name))
-       (title "Moderated projects"))
-    (cond
-      (projects (with-html
-                  (:h1 :class "author-name"
-                       title)
-                  (setf (weblocks/page:get-title)
-                        title)
-                  (render-projects-list projects)))
-      (t (page-not-found))))

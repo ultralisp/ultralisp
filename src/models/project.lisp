@@ -105,7 +105,8 @@
    #:enabled
    #:project-description
    #:project-name
-   #:project-sources))
+   #:project-sources
+   #:source->project))
 (in-package ultralisp/models/project)
 
 
@@ -636,6 +637,14 @@
   (ultralisp/models/source::%project-sources
    (object-id project)
    (object-version project)))
+
+
+(defun source->project (source)
+  (check-type source ultralisp/models/source:source)
+  (first
+   (mito:retrieve-dao 'project2
+                      :id (ultralisp/models/source:source-project-id source)
+                      :version (ultralisp/models/source:project-version source))))
 
 
 (defmethod external-url ((obj project2))

@@ -3,7 +3,9 @@
   (:import-from #:ultralisp/models/project
                 #:get-name
                 #:project)
+  (:import-from #:ultralisp/models/source)
   (:import-from #:mito
+                #:object-id
                 #:retrieve-by-sql
                 #:includes
                 #:count-dao
@@ -25,6 +27,8 @@
   (:import-from #:anaphora
                 #:acond
                 #:it)
+  (:import-from #:ultralisp/models/versioned
+                #:object-version)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -47,7 +51,9 @@
    #:get-last-project-check
    #:get-pending-checks-count
    #:get-pending-checks-for-disabled-projects
-   #:get-pending-checks-for-disabled-projects-count))
+   #:get-pending-checks-for-disabled-projects-count
+   #:source-checks
+   #:make-check))
 (in-package ultralisp/models/check)
 
 
@@ -140,6 +146,69 @@
 (defcheck added-project)
 (defcheck via-webhook)
 (defcheck via-cron)
+
+(defclass check2 ()
+  ((type :col-type (or :text :null)
+         :initarg :type
+         :initform nil
+         :reader get-type
+         :documentation "Should be one of :added-project :via-webhook :via-cron"
+         :inflate (lambda (text)
+
+                    (make-keyword (string-upcase text)))
+         :deflate #'symbol-name)
+   (source-id :col-type :bigint
+              :initarg :source-id
+              :reader source-id)
+   (source-version :col-type :bigint
+                   :initarg :source-version
+                   :reader source-version)
+   (processed-in :col-type (or :float :null)
+                 :initarg :processed-in
+                 :initform nil
+                 :accessor get-processed-in
+                 :documentation "Number of seconds required to process this check.")
+   (processed-at :col-type (or :timestamptz :null)
+                 :initarg :processed-at
+                 :initform nil
+                 :accessor get-processed-at
+                 :documentation "Date and time a check was finished at.")
+   (error :col-type (or :text :null)
+          :initarg :error
+          :initform nil
+          :accessor get-error
+          :documentation "A error description. If processed-at is not null and error is nil,
+                                 then check is considered as successful."))
+  (:metaclass dao-table-class))
+
+
+   ;; #:make-added-project-check
+   ;; #:make-via-webhook-check
+   ;; #:make-via-cron-check
+
+(defun make-check (source check-type)
+  "Creates or gets a check for the project.
+
+          As a second value, returns `t' if check was created, or nil
+          if it already existed in the database."
+  (check-type source ultralisp/models/source:source)
+  
+  (unless (member check-type *allowed-check-types*)
+    (let ((*print-case* :downcase))
+      (error "Unable to create check of type ~S"
+             check-type)))
+  
+  (log:info "Triggering a check for" source check-type)
+
+  (acond
+    ((source-checks source :pending t)
+     (log:warn "Check already exists")
+     (values (first it) nil))
+    (t (values (mito:create-dao 'check2
+                                :source-id (object-id source)
+                                :source-version (object-version source)
+                                :type check-type)
+               t))))
 
 
 (defmethod get-error :around (check)
@@ -238,6 +307,7 @@
                       :version version)))
 
 
+;; TODO: remove
 (defun get-project-checks (project &key pending)
   (check-type project project)
   (upgrade-types
@@ -249,6 +319,19 @@
                           :project project))))
 
 
+(defun source-checks (source &key pending)
+  (check-type source ultralisp/models/source:source)
+  (if pending
+      (select-dao 'check2
+        (where (:and (:is-null 'processed-at)
+                     (:= 'source-id (object-id source))
+                     (:= 'source-version (object-version source)))))
+      (mito:retrieve-dao 'check2
+                         :source-id (object-id source)
+                         :source-version (object-version source))))
+
+
+;; TODO: probably rewrite
 (defun get-last-project-check (project)
   "Returns a last perofrmed check"
   (check-type project project)

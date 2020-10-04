@@ -12,9 +12,12 @@ CREATE TABLE "project2" (
 CREATE UNIQUE INDEX "unique_project2_name" ON "project2" ("name");
 
 
+CREATE SEQUENCE IF NOT EXISTS source_id_seq;
+
 CREATE TABLE "source" (
     "project_id" BIGINT NOT NULL,
     "project_version" BIGINT NOT NULL,
+    "id" BIGINT NOT NULL,
     "version" BIGINT NOT NULL,
     "latest" BOOLEAN NOT NULL,
     "deleted" BOOLEAN NOT NULL,
