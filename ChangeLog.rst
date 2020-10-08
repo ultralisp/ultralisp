@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.17.4 (2020-10-08)
+===================
+
+* Added a version number into the footer.
+* Fixed the sponsors page rendering with enabled ADBlock extension.
+* Removed Black Brane Systems from sponsors page.
+
 0.17.3 (2020-09-04)
 ===================
 
