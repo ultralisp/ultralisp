@@ -10,6 +10,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.0")
   :version "github-be76e126b0cb3ff3fa60d2bf129032f8"))
+("puri" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "git://git.kpe.io/puri.git" :ref "4bbab89d9ccbb26346899d1f496c97604fec567b")
+  :version "git-4bbab89d9ccbb26346899d1f496c97604fec567b"))
 ("slynk-named-readtables" .
  (:class qlot/source/github:source-github
   :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
