@@ -389,51 +389,54 @@ arguments."
                       :short nil
                       :env-var "DEBUG"))
 
-
-  (ultralisp/logging:setup log-dir
-                           (if debug
-                               :info
-                               :error))
   
-  (let ((slynk-port 4005)
-        (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
-        (interface (getenv "INTERFACE" "0.0.0.0"))
-        (port (getenv "PORT" 80))
-        (hostname (machine-instance))
-        (debug (when (getenv "DEBUG")
-                 t)))
+  (ultralisp/logging:setup log-dir
+                           :level (if debug
+                                      :info
+                                      :error))
 
-    ;; To make it possible to connect to a remote SLYNK server where ports are closed
-    ;; with firewall.
-    (setf slynk:*use-dedicated-output-stream* nil)
-    
-    (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
-            slynk-interface
-            slynk-port
-            slynk:*use-dedicated-output-stream*)
+  (log4cl-extras/error:with-log-unhandled ()
+    (let ((slynk-port 4005)
+          (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
+          (interface (getenv "INTERFACE" "0.0.0.0"))
+          (port (getenv "PORT" 80))
+          (hostname (machine-instance))
+          (debug (when (getenv "DEBUG")
+                   t)))
 
-    (ultralisp/slynk:setup)
-    (slynk:create-server :dont-close t
-                         :port slynk-port
-                         :interface slynk-interface)
+      (log:info "Starting the server")
 
-    ;; Now we'll ensure that tables are exists in the database
-    ;; (migrate)
+      ;; To make it possible to connect to a remote SLYNK server where ports are closed
+      ;; with firewall.
+      (setf slynk:*use-dedicated-output-stream* nil)
+      
+      (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
+              slynk-interface
+              slynk-port
+              slynk:*use-dedicated-output-stream*)
 
-    (unless dont-start-server
-      (format t "Starting HTTP server on ~A:~A~%"
-              interface
-              port)
-      (start :port port
-             :interface interface
-             :debug debug))
+      (ultralisp/slynk:setup)
+      (slynk:create-server :dont-close t
+                           :port slynk-port
+                           :interface slynk-interface)
 
-    (format t "To start HTTP server:~%")
-    (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
-            slynk-port
-            hostname)
-    (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
-    (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%"))
+      ;; Now we'll ensure that tables are exists in the database
+      ;; (migrate)
+
+      (unless dont-start-server
+        (format t "Starting HTTP server on ~A:~A~%"
+                interface
+                port)
+        (start :port port
+               :interface interface
+               :debug debug))
+
+      (format t "To start HTTP server:~%")
+      (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
+              slynk-port
+              hostname)
+      (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
+      (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%")))
 
   ;; Now we'll wait forever for connections from SLY.
   (loop

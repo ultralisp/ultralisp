@@ -152,7 +152,6 @@
         (when (or dists-to-remove
                   dists-to-add)
 
-          (log:error "KEPPP" keep-dists)
           ;; We need to create a source's copy
           ;; to increment it's version which will be bound to new
           ;; sources:
