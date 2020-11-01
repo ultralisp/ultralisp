@@ -14,6 +14,7 @@
 (in-package ultralisp/downloader/project)
 
 
+;; TODO: remove
 (defmethod download ((projects (eql :all)) projects-dir &key latest)
   "Downloads sources defined in the database into the `projects-dir'."
   (declare (ignorable projects))

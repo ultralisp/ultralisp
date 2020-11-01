@@ -22,12 +22,14 @@
                         :backup-name-format "app-%Y%m%d.log")))))
 
 
-(defun setup-for-repl (&key (level :debug))
+(defun setup-for-repl (&key (level :debug) (app "app"))
   (log4cl-extras/config:setup
    `(:level ,level
      :appenders ((this-console :layout :plain)
                  (daily :layout :json
-                        :name-format ,(format nil "~A/app.log"
+                        :name-format ,(format nil "~A/~A.log"
                                               (or *log-dir*
-                                                  "/tmp"))
-                        :backup-name-format "app-%Y%m%d.log")))))
+                                                  "/tmp")
+                                              app)
+                        :backup-name-format ,(format nil "~A-%Y%m%d.log"
+                                                     app))))))

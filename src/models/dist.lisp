@@ -20,7 +20,8 @@
    #:enabled-p
    #:disable-reason
    #:ensure-dist
-   #:get-or-create-pending-version))
+   #:get-or-create-pending-version
+   #:dist-equal))
 (in-package ultralisp/models/dist)
 
 
@@ -119,3 +120,10 @@
                            :version (1+ (object-version dist))
                            :name (dist-name dist)
                            :state :pending)))))
+
+
+(defun dist-equal (left-dist right-dist)
+  (and (equal (object-id left-dist)
+              (object-id right-dist))
+       (equal (object-version left-dist)
+              (object-version right-dist))))

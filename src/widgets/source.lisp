@@ -6,7 +6,7 @@
   (:import-from #:weblocks-lass)
   (:import-from #:weblocks/dependencies)
   (:import-from #:ultralisp/models/dist-source
-                #:update-source
+                #:update-source-dists
                 #:source-distributions)
   (:import-from #:ultralisp/models/dist-moderator)
   (:import-from #:ultralisp/protocols/external-url
@@ -69,7 +69,7 @@
           collect value into new-dist-names
           finally
              (log:info "Saving" new-dist-names url)
-             (let ((new-source (update-source source :dists new-dist-names)))
+             (let ((new-source (update-source-dists source :dists new-dist-names)))
                (setf (source parent)
                      new-source)))
     

@@ -74,10 +74,12 @@
          (log:debug "Cron task is done" ',name)))))
 
 
+;; TODO replace with perdform-checks2
 (deftask perform-checks ()
   (perform-pending-checks))
 
 
+;; TODO replace with checks2
 (deftask remove-old-checks ()
   (mito:execute-sql "DELETE FROM public.check WHERE processed_at < now() - '7 day'::interval"))
 

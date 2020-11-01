@@ -12,10 +12,28 @@
                 #:release-info-to-json
                 #:systems-info-from-json
                 #:release-info-from-json)
+  (:import-from #:ultralisp/stats
+                #:increment-counter)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:mito
                 #:object-id)
+  (:import-from #:ultralisp/rpc/command
+                #:defcommand)
+  (:import-from #:ultralisp/utils
+                #:remove-last-slash
+                #:update-plist)
+  (:import-from #:ultralisp/db
+                #:with-transaction)
+  (:import-from #:quickdist
+                #:get-archive-path
+                #:get-system-files)
+  (:import-from #:ultralisp/downloader/base
+                #:downloaded-project-path
+                #:remove-vcs-files
+                #:download)
+  (:import-from #:ultralisp/uploader/base
+                #:upload)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -26,7 +44,8 @@
    #:source-params
    #:deleted-p
    #:source-distributions
-   #:copy-source))
+   #:copy-source
+   #:get-source))
 (in-package ultralisp/models/source)
 
 
@@ -132,13 +151,82 @@
 
 
 
-(defun copy-source (source)
+(defun copy-source (source &key (params nil params-p)
+                                (systems-info nil systems-info-p)
+                                (release-info nil release-info-p))
   (mito:create-dao 'source
                    :id (object-id source)
                    :version (1+ (object-version source))
                    :project-id (source-project-id source)
                    :project-version (project-version source)
                    :type (source-type source)
-                   :params (source-params source)
-                   :systems-info (source-systems-info source)
-                   :release-info (source-release-info source)))
+                   :params (if params-p
+                               params
+                               (source-params source))
+                   :systems-info (if systems-info-p
+                                     systems-info
+                                     (source-systems-info source))
+                   :release-info (if release-info-p
+                                     release-info
+                                     (source-release-info source))))
+
+
+(defun get-source (id version)
+  (first
+   (mito:retrieve-dao 'source
+                      :id id
+                      :version version)))
+
+
+(defun make-release (source systems)
+  "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
+  (let (release-info)
+    (ultralisp/utils:with-tmp-directory (path)
+      (unwind-protect
+           (let* ((system-files (get-system-files systems))
+                  (downloaded (download source path :latest t))
+                  (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
+                                                     :ensure-directories-exist t))
+                  (_ (remove-vcs-files downloaded))
+                  (project (uiop:symbol-call :ultralisp/models/project :source->project source))
+                  (project-name (uiop:symbol-call :ultralisp/models/project :project-name project))
+                  (source-id (mito:object-id source))
+                  (archive-url (format nil "~A/archive/~A"
+                                       (remove-last-slash (ultralisp/variables:get-base-url))
+                                       source-id))
+                  (archive-destination (format nil "/archive/~A/"
+                                               source-id)))
+             (declare (ignorable _))
+             (setf release-info
+                   (quickdist:make-archive (downloaded-project-path downloaded)
+                                           (cl-strings:replace-all project-name
+                                                                   "/"
+                                                                   "-")
+                                           system-files
+                                           archive-dir
+                                           archive-url))
+             (let ((archive-path (get-archive-path release-info)))
+               (upload archive-path
+                       archive-destination)))
+        (uiop:delete-directory-tree path
+                                    :validate t)))
+    release-info))
+
+
+(defcommand create-new-source-version (source systems params)
+  "Creates a new source version and attached it to a new or existing pending version.
+   Params are replaced but extendded"
+  (log:info "Creating new source version" source systems params)
+
+  (with-transaction
+    (increment-counter :sources-updated)
+
+    (let* ((release-info (make-release source systems))
+           (new-source
+             (copy-source source
+                          :systems-info systems
+                          :release-info release-info
+                          :params (update-plist (source-params source)
+                                                params))))
+      (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
+                        source new-source :enable t))))

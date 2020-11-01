@@ -6,6 +6,7 @@
   (:import-from #:ultralisp/models/dist
                 #:get-or-create-pending-version
                 #:dist-name
+                #:dist-equal
                 #:ensure-dist)
   (:import-from #:ultralisp/models/source)
   (:import-from #:mito
@@ -27,7 +28,10 @@
    #:dist-source->dist
    #:source->dists
    #:source-distributions
-   #:update-source))
+   #:update-source-dists
+   #:create-pending-dists-for-new-source-version
+   #:make-disable-reason
+   #:disable-reason-type))
 (in-package ultralisp/models/dist-source)
 
 
@@ -53,17 +57,20 @@
    (enabled :col-type :boolean
             :initarg :enabled
             :initform t
-            :reader enabled-p)
+            :documentation "This field can be changed only on dist-source linked to the :pending dist."
+            :accessor enabled-p)
    (disable-reason :col-type :jsonb
                    :initarg :disable-reason
                    :initform nil
-                   :reader disable-reason
+                   :accessor disable-reason
                    :deflate #'jonathan:to-json
                    :inflate (lambda (text)
                               (jonathan:parse
                                ;; Jonathan for some reason is unable to work with
                                ;; `base-string' type, returned by database
-                               (coerce text 'simple-base-string))))
+                               (coerce text 'simple-base-string)))
+                   :documentation "A plist with like this: '(:type :manual :comment \"Renamed the project.\")
+                                   This field can be changed only on dist-source linked to the :pending dist.")
    (deleted :col-type :boolean
             :initarg :deleted
             :initform nil
@@ -119,7 +126,7 @@
 ;;     :version (ultralisp/models/dist-source:source-version dist-source))))
 
 
-(defun update-source (source &key (url nil url-p)
+(defun update-source-dists (source &key (url nil url-p)
                                   (dists nil dists-p)
                                   (include-reason :direct))
   (declare (ignorable url))
@@ -195,3 +202,71 @@
                                     :deleted t))))))
   ;; Now we'll return old or a new source: 
   source)
+
+
+(defun disable-reason-type (reason)
+  (getf reason :type))
+
+
+(defun make-disable-reason (type &key comment traceback)
+  (check-type type (member :check-error
+                           :manual))
+  (append (list :type type)
+          (when comment
+            (list :comment comment))
+          (when traceback
+            (list :traceback traceback))))
+
+
+(defun create-pending-dists-for-new-source-version (old-source new-source &key
+                                                                          (enable nil enable-p)
+                                                                          disable-reason)
+  "Creates pending dist copies and links new source using dist-source copies.
+
+   If enable == t then new-source is linked as enabled unless previous link has been disabled manually.
+
+   Links marked as \"deleted\" aren't copied.
+
+   If source is already linked to the pending-dist,
+   then it's dist-source's enabled, disable-reason are updated.
+   "
+  (with-transaction
+    (loop for old-dist-source in (source-distributions old-source)
+          for old-dist = (dist-source->dist old-dist-source)
+          for pending-dist = (get-or-create-pending-version old-dist)
+          for old-disable-reason = (disable-reason old-dist-source)
+          for old-disable-reason-type = (disable-reason-type old-disable-reason)
+          for old-enabled = (enabled-p old-dist-source)
+          for new-enabled = (cond 
+                              ((eql :manual old-disable-reason-type) old-enabled)
+                              (enable-p enable)
+                              (t old-enabled))
+          for new-disable-reason = (unless new-enabled
+                                     (or disable-reason
+                                         old-disable-reason))
+          do (let ((already-linked-dist-source
+                     (first
+                      (mito:retrieve-dao 'dist-source
+                                         :dist-id (object-id pending-dist)
+                                         :dist-version (object-version pending-dist)
+                                         :source-id (object-id new-source)
+                                         :source-version (object-version new-source)))))
+               (cond
+                 ;; This case can be when we are setting enable == t and disable reason
+                 ;; for the checked source.
+                 ;; In this case we just update existing dist-source:
+                 (already-linked-dist-source
+                  (setf (enabled-p already-linked-dist-source) new-enabled)
+                  (setf (disable-reason already-linked-dist-source) new-disable-reason)
+                  (mito:save-dao already-linked-dist-source))
+                 (t
+                  (unless (deleted-p old-dist-source)
+                    (mito:create-dao 'dist-source
+                                     :dist-id (object-id pending-dist)
+                                     :dist-version (object-version pending-dist)
+                                     :source-id (object-id new-source)
+                                     :source-version (object-version new-source)
+                                     :include-reason (include-reason old-dist-source)
+                                     :enabled new-enabled
+                                     :disable-reason new-disable-reason
+                                     :deleted nil))))))))

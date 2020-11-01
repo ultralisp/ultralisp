@@ -9,7 +9,7 @@
   ;; These dependencies need for a worker to process version builds
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
-  (:import-from #:ultralisp/downloader/project)
+  (:import-from #:ultralisp/downloader/source)
   (:import-from #:ultralisp/pipeline/checking)
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3)

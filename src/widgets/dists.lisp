@@ -39,7 +39,8 @@
 (defmethod weblocks/widget:render ((widget dists-widget))
   (let* ((title "Moderated dists")
          (user (get-current-user))
-         (dists (moderated-dists user)))
+         (dists (when user
+                  (moderated-dists user))))
     (setf (weblocks/page:get-title)
           title)
     
@@ -70,6 +71,8 @@
       (with-html
         (:h1 title)
         (cond
+          ((null user)
+           (:p "Please log in to add custom distributions."))
           (dists
            (:ul :class "dists-list"
                 (mapc #'render-dist dists))

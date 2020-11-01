@@ -59,7 +59,7 @@
   (:import-from #:ultralisp/uploader/s3)
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
-  (:import-from #:ultralisp/downloader/project)
+  (:import-from #:ultralisp/downloader/source)
   (:import-from #:weblocks/request)
   (:import-from #:weblocks/request-handler
                 #:handle-request)

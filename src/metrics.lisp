@@ -62,8 +62,10 @@
   
   (add-counter :checks-processed "A number of processed checks")
   (add-counter :checks-failed "A number of failed checks")
+  (add-counter :sources-updated "A number of sources, updated after the check")
+  ;; TODO: remove
   (add-counter :projects-updated "A number of projects, updated after the check")
-
+  
   (add-gauge :projects-count "A number of projects"
              'ultralisp/metrics:get-number-of-projects)
   (add-gauge :disabled-projects-count "A number of disabled projects"

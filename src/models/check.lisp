@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/check
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:project-sources
                 #:get-name
                 #:project)
   (:import-from #:ultralisp/models/source)
@@ -53,7 +54,11 @@
    #:get-pending-checks-for-disabled-projects
    #:get-pending-checks-for-disabled-projects-count
    #:source-checks
-   #:make-check))
+   #:make-check
+   #:pending-checks
+   #:make-checks
+   #:check->source
+   #:check->project))
 (in-package ultralisp/models/check)
 
 
@@ -178,19 +183,22 @@
           :initform nil
           :accessor get-error
           :documentation "A error description. If processed-at is not null and error is nil,
+
                                  then check is considered as successful."))
   (:metaclass dao-table-class))
 
 
-   ;; #:make-added-project-check
-   ;; #:make-via-webhook-check
-   ;; #:make-via-cron-check
+
+
+;; #:make-added-project-check
+;; #:make-via-webhook-check
+;; #:make-via-cron-check
 
 (defun make-check (source check-type)
   "Creates or gets a check for the project.
 
-          As a second value, returns `t' if check was created, or nil
-          if it already existed in the database."
+   As a second value, returns `t' if check was created, or nil
+   if it already existed in the database."
   (check-type source ultralisp/models/source:source)
   
   (unless (member check-type *allowed-check-types*)
@@ -209,6 +217,14 @@
                                 :source-version (object-version source)
                                 :type check-type)
                t))))
+
+
+(defun make-checks (project check-type)
+  "Creates checks of given type for all project sources."
+  (check-type project ultralisp/models/project:project2)
+  
+  (loop for source in (project-sources project)
+        collect (make-check source check-type)))
 
 
 (defmethod get-error :around (check)
@@ -232,13 +248,14 @@
   (mapcar #'upgrade-type checks))
 
 
+;; TODO: remove, replaced withh pending-checks
 (defun get-pending-checks (&key limit)
   (upgrade-types
    (select-dao 'base-check
      (includes 'project)
      (left-join 'project
-                     :on (:= 'check.project_id
-                             'project.id))
+                :on (:= 'check.project_id
+                        'project.id))
      (where (:is-null 'processed-at))
      (when limit
        (sxql:limit limit)))))
@@ -329,6 +346,35 @@
       (mito:retrieve-dao 'check2
                          :source-id (object-id source)
                          :source-version (object-version source))))
+
+
+(defun check->source (check)
+  (check-type check check2)
+  (values
+   (ultralisp/models/source:get-source (source-id check)
+                                       (source-version check))))
+
+
+(defun check->project (check)
+  (check-type check check2)
+  (ultralisp/models/project:source->project
+   (check->source check)))
+
+
+(defun pending-checks ()
+  (select-dao 'check2
+    (where (:is-null 'processed-at))))
+
+
+(defmethod print-object ((check check2) stream)
+  (print-unreadable-object (check stream :type t)
+    (let ((source (check->source check)))
+      (format stream "~A ~A for ~A"
+              (if (get-processed-at check)
+                  "DONE"
+                  "PENDING")
+              (get-type check)
+              source))))
 
 
 ;; TODO: probably rewrite
