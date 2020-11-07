@@ -21,8 +21,8 @@
                 #:with-lock
                 #:with-connection)
   (:import-from #:ultralisp/builder
-                #:prepare-pending-version
-                #:build-prepared-versions)
+                #:prepare-pending-dists
+                #:build-prepared-dists)
   (:import-from #:local-time
                 #:now)
   (:import-from #:mito
@@ -89,7 +89,7 @@
         (make-hash-table :test 'equal :synchronized t)))
 
 
-(deftask build-version (:need-connection nil)
+(deftask build-dists (:need-connection nil)
   ;; Here we get separate connections and transaction
   ;; because when we do version build, it will be
   ;; performed by a remote worker and prepared version
@@ -97,9 +97,10 @@
   
   (log:info "Building a new version if needed")
   (with-connection ()
-    (prepare-pending-version))
+    (prepare-pending-dists))
+  
   (with-connection ()
-    (build-prepared-versions))
+    (build-prepared-dists))
   (log:info "Building a new version if needed DONE"))
 
 
@@ -191,8 +192,8 @@
                            :step-min 15)
 
     ;; Run every 5 minutes
-    (cl-cron:make-cron-job 'build-version
-                           :hash-key 'build-version
+    (cl-cron:make-cron-job 'build-dists
+                           :hash-key 'build-dists
                            :step-min 5)
   
     ;; Every 15 minutes we'll create checks for project which need it

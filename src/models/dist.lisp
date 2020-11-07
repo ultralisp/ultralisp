@@ -21,7 +21,10 @@
    #:disable-reason
    #:ensure-dist
    #:get-or-create-pending-version
-   #:dist-equal))
+   #:dist-equal
+   #:get-pending-dists
+   #:dist-built-at
+   #:get-prepared-dists))
 (in-package ultralisp/models/dist)
 
 
@@ -29,16 +32,42 @@
   ((name :col-type (:text)
          :initarg :name
          :reader dist-name)
+   (quicklisp-version :col-type (:text)
+                      :initform ""
+                      :documentation "This field is updated by :function:`ultralisp/builder::build-pending-dist`.
+                                      It contains a datetime of the moment when the distribution was built."
+                      :accessor dist-quicklisp-version)
+   (built-at :col-type (or :timestamptz
+                           :null)
+             :initform nil
+             :accessor dist-built-at)
    (state :col-type (:text)
           :initarg :state
           :initform :pending
-          :reader dist-state
+          :type (member
+                 ;; Initial state, in this state new versions of
+                 ;; project sources can be associated with a dist:
+                 :pending
+                 ;; In this state no new sources can be attached
+                 ;; to the dist and it's quicklisp-version
+                 ;; is already generated. Now it just waits for
+                 ;; metadata generation:
+                 :prepared
+                 ;; Metadata was generated and uploaded to the storage,
+                 ;; at the moment when state becomes :ready, built-at
+                 ;; slot gets filled: 
+                 :ready)
+          :accessor dist-state
           :inflate (lambda (text)
                      (make-keyword (string-upcase text)))
           :deflate (lambda (symbol)
                      (string-downcase (symbol-name symbol)))))
   (:unique-keys name)
-  (:primary-key id version)
+  ;; It is important to use symbols from versioned package
+  ;; because otherwise mito is not able to find slots in the object
+  ;; when doing update-dao
+  (:primary-key ultralisp/models/versioned::id
+                ultralisp/models/versioned::version)
   (:metaclass mito:dao-table-class))
 
 
@@ -120,6 +149,15 @@
                            :version (1+ (object-version dist))
                            :name (dist-name dist)
                            :state :pending)))))
+
+
+(defun get-pending-dists ()
+  (mito.dao:retrieve-dao 'dist
+                         :state :pending))
+
+(defun get-prepared-dists ()
+  (mito.dao:retrieve-dao 'dist
+                         :state :prepared))
 
 
 (defun dist-equal (left-dist right-dist)

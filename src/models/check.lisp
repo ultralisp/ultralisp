@@ -287,8 +287,8 @@
    (select-dao 'base-check
      (includes 'project)
      (left-join 'project
-                     :on (:= 'check.project_id
-                             'project.id))
+                :on (:= 'check.project_id
+                        'project.id))
      (where (:and (:is-null 'processed-at)
                   (:not :project.enabled)))
      (when limit

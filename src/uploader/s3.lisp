@@ -67,6 +67,8 @@
           (put-object absolute
                       bucket
                       key))))))
+
+
 ;; (defmethod make-uploader ((type (eql :s3)))
 ;;   (lambda (dir &key to)
 ;;     (let* ((absolute-dir (probe-file dir))

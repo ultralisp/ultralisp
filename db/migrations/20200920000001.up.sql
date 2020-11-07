@@ -41,16 +41,18 @@ CREATE TABLE "dist" (
     "latest" BOOLEAN NOT NULL,
     "deleted" BOOLEAN NOT NULL,
     "name" TEXT NOT NULL,
+    "quicklisp_version" TEXT NOT NULL DEFAULT '',
     "state" dist_state NOT NULL DEFAULT 'pending',
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
+    "built_at" TIMESTAMPTZ,
     PRIMARY KEY (id, version)
 );
 
 CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
 INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
-     VALUES (0, True, False, 'common', 'ready', now(), now());
+     VALUES (0, True, False, 'ultralisp', 'ready', now(), now());
 
 
 CREATE TABLE "dist_source" (

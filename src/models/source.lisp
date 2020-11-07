@@ -45,7 +45,11 @@
    #:deleted-p
    #:source-distributions
    #:copy-source
-   #:get-source))
+   #:get-source
+   #:bound-source
+   #:enabled-p
+   #:disable-reason
+   #:include-reason))
 (in-package ultralisp/models/source)
 
 
@@ -107,6 +111,50 @@
   (:metaclass mito:dao-table-class))
 
 
+(defclass bound-source ()
+  ((source :initarg :source
+           :reader source)
+   (enabled :initarg :enabled
+            :reader enabled-p)
+   (disable-reason :initarg :disable-reason
+                   :reader disable-reason)
+   (include-reason :initarg :include-reason
+                   :reader include-reason))
+  (:documentation "Represents the source bound to some distribution.
+
+                   Objects of this type are returned by ultralisp/models/source-dist:dist->sources functionn."))
+
+
+;; We'll define a few readers to make bound-dist work the same like usual dist does:
+
+(defmethod object-id ((obj bound-source))
+  (object-id (source obj)))
+
+(defmethod object-version ((obj bound-source))
+  (object-version (source obj)))
+
+(defmethod source-project-id ((obj bound-source))
+  (source-project-id (source obj)))
+
+(defmethod project-version ((obj bound-source))
+  (project-version (source obj)))
+
+(defmethod source-type ((obj bound-source))
+  (source-type (source obj)))
+
+(defmethod source-params ((obj bound-source))
+  (source-params (source obj)))
+
+(defmethod source-systems-info ((obj bound-source))
+  (source-systems-info (source obj)))
+
+(defmethod source-release-info ((obj bound-source))
+  (source-release-info (source obj)))
+
+(defmethod deleted-p ((obj bound-source))
+  (deleted-p (source obj)))
+
+
 (defun params-to-string (source)
   (let ((type (source-type source)))
     (if (eql type :github)
@@ -121,6 +169,20 @@
 
 
 (defmethod print-object ((obj source) stream)
+  (print-unreadable-object (obj stream :type t)
+    (format stream
+            "~A (v~A)~A~A"
+            (params-to-string obj)
+            (object-version obj)
+            (if (deleted-p obj)
+                " deleted"
+                "")
+            (if (source-release-info obj)
+                " has-release-info"
+                ""))))
+
+
+(defmethod print-object ((obj bound-source) stream)
   (print-unreadable-object (obj stream :type t)
     (format stream
             "~A (v~A)~A~A"

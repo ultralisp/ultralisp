@@ -31,7 +31,9 @@
    #:update-source-dists
    #:create-pending-dists-for-new-source-version
    #:make-disable-reason
-   #:disable-reason-type))
+   #:disable-reason-type
+   #:dist-source->source
+   #:dist->sources))
 (in-package ultralisp/models/dist-source)
 
 
@@ -94,12 +96,40 @@
     :version (dist-version dist-source))))
 
 
-(defun source-distributions (source)
-  (check-type source ultralisp/models/source:source)
-  (mito:retrieve-dao 'dist-source
-                     :source-id (object-id source)
-                     :source-version (object-version source)
-                     :deleted "false"))
+(defun dist-source->source (dist-source)
+  (check-type dist-source
+              ultralisp/models/dist-source:dist-source)
+  (mito:find-dao
+   'ultralisp/models/source:source
+   :id (source-id dist-source)
+   :version (source-version dist-source)))
+
+
+(defgeneric source-distributions (source)
+  (:method ((source ultralisp/models/source:source))
+    "Returns all source distributions given source belongs to
+     except those where it was deleted."
+    (mito:retrieve-dao 'dist-source
+                       :source-id (object-id source)
+                       :source-version (object-version source)
+                       :deleted "false"))
+  (:method ((dist ultralisp/models/dist:dist))
+    "Returns all source distributions which are enabled and not
+     deleted in the given dist."
+    (mito:select-dao 'dist-source
+      (sxql:left-join 'ultralisp/models/source:source
+                      :on (:and (:= 'dist_source.source_id
+                                    'source.id)
+                                (:= 'dist_source.source_version
+                                    'source.version)))
+      (sxql:where (:and (:= 'dist_source.dist_id
+                            (object-id dist))
+                        (:<= 'dist_source.dist_version
+                             (object-version dist))
+                        (:= 'source.latest
+                            "true")
+                        (:= 'source.deleted
+                            "false"))))))
 
 
 (defun source->dists (source)
@@ -114,16 +144,17 @@
                                :disable-reason (disable-reason dist-source)
                                :include-reason (include-reason dist-source))))
 
-
-;; (defun dist-source->source (dist-source)
-;;   (check-type dist-source
-;;               ultralisp/models/dist-source:dist-source)
-;;   (first
-;;    (mito:retrieve-dao
-;;     'source
-;;     :project-id (ultralisp/models/dist-source:project-id dist-source)
-;;     :project-version (ultralisp/models/dist-source:project-version dist-source)
-;;     :version (ultralisp/models/dist-source:source-version dist-source))))
+(defun dist->sources (dist)
+  "Returns all sources bound to the dist dist objects along with their enabled flag"
+  (check-type dist
+              ultralisp/models/dist:dist)
+  (loop for dist-source in (source-distributions dist)
+        for source = (dist-source->source dist-source)
+        collect (make-instance 'ultralisp/models/source:bound-source
+                               :source source
+                               :enabled (enabled-p dist-source)
+                               :disable-reason (disable-reason dist-source)
+                               :include-reason (include-reason dist-source))))
 
 
 (defun update-source-dists (source &key (url nil url-p)
