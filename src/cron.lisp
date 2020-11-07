@@ -84,6 +84,11 @@
   (mito:execute-sql "DELETE FROM public.check WHERE processed_at < now() - '7 day'::interval"))
 
 
+(deftask recreate-cl-dbi-hash ()
+  (setf cl-dbi::*threads-connection-pool*
+        (make-hash-table :test 'equal :synchronized t)))
+
+
 (deftask build-version (:need-connection nil)
   ;; Here we get separate connections and transaction
   ;; because when we do version build, it will be
@@ -180,6 +185,10 @@
     (cl-cron:make-cron-job 'remove-old-checks
                            :hash-key 'remove-old-checks
                            :step-min 60)
+    
+    (cl-cron:make-cron-job 'recreate-cl-dbi-hash
+                           :hash-key 'recreate-cl-dbi-hash
+                           :step-min 15)
 
     ;; Run every 5 minutes
     (cl-cron:make-cron-job 'build-version
