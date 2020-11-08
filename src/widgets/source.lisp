@@ -145,8 +145,7 @@
        (:tr (:td "Distributions")
             (:td (mapc #'render-distribution
                        distributions)))
-       (setf cl-user::*source* source)
-
+       
        (when (ultralisp/protocols/moderation:is-moderator
               (weblocks-auth/models:get-current-user)
               (ultralisp/models/project:source->project source))
@@ -183,8 +182,6 @@
     ;; for rendering.
     (assert (not deleted))
 
-    (setf cl-user::*obj* (list source current-dists))
-    
     (flet ((is-enabled (dist)
              (member (ultralisp/models/dist:dist-name dist)
                      current-dists

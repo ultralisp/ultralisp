@@ -3,7 +3,8 @@
   (:import-from #:ultralisp/models/project
                 #:project-sources
                 #:get-name
-                #:project)
+                #:project
+                #:project2)
   (:import-from #:ultralisp/models/source)
   (:import-from #:mito
                 #:object-id
@@ -19,7 +20,8 @@
                 #:select
                 #:left-join
                 #:where
-                #:order-by)
+                #:order-by
+                #:limit)
   (:import-from #:ultralisp/models/version
                 #:make-version
                 #:version)
@@ -58,7 +60,10 @@
    #:pending-checks
    #:make-checks
    #:check->source
-   #:check->project))
+   #:check->project
+   #:get-last-project-checks
+   #:get-last-source-check
+   #:get-check2-by-id))
 (in-package ultralisp/models/check)
 
 
@@ -250,6 +255,7 @@
 
 ;; TODO: remove, replaced withh pending-checks
 (defun get-pending-checks (&key limit)
+  (error "Shold be removed")
   (upgrade-types
    (select-dao 'base-check
      (includes 'project)
@@ -377,13 +383,31 @@
               source))))
 
 
-;; TODO: probably rewrite
-(defun get-last-project-check (project)
-  "Returns a last perofrmed check"
-  (check-type project project)
-  (upgrade-type
-   (first
-    (select-dao 'base-check
-      (where (:and (:not (:is-null 'processed-at))
-                   (:= 'project-id (mito:object-id project))))
-      (order-by (:desc 'processed-at))))))
+(defun get-last-source-check (source)
+  (check-type source ultralisp/models/source:source)
+  (first
+   (select-dao 'check2
+     (where (:and (:= 'source-id (mito:object-id source))
+                  (:= 'source-version (object-version source))))
+     (order-by (:desc 'processed-at))
+     (limit 1))))
+
+
+(defun get-last-project-checks (project)
+  "Returns a last performed checks for each of the project's sources.
+   Checks are sorted from most recent to older."
+  (check-type project project2)
+  (flet ((check-timestamp (check)
+           (or (get-processed-at check)
+               (mito:object-updated-at check))))
+    (loop for source in (project-sources project)
+          for check = (get-last-source-check source)
+          when check
+          collect check into results
+          finally (return (sort results #'local-time:timestamp>
+                                :key #'check-timestamp)))))
+
+
+(defun get-check2-by-id (id)
+  (mito:find-dao 'check2
+                 :id id))

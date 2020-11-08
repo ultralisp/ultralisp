@@ -8,8 +8,8 @@ github slynk-named-readtables joaotavora/sly-named-readtables
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
 
-# Because Ultralisp isnot updates this library:
-github log4cl-extras 40ants/log4cl-extras
+# Because Ultralisp is not updates this library:
+github log4cl-extras 40ants/log4cl-extras :ref 71cf724fa6392084b41177f706faa48bb559f575
 
 # Because bug in constant definition:
 # https://github.com/ultralisp/ultralisp/issues/84
@@ -18,3 +18,7 @@ github bordeaux-threads sionescu/bordeaux-threads :ref 61e6e5645848e77367775610e
 # To be able to run sblint using:
 # qlot exec sblint
 github sblint cxxxr/sblint :ref 1037296f604c3210ce073a53539d4ae95b0c2f8c
+
+# This branch has an important fix:
+# https://github.com/fukamachi/mito/pull/73
+github mito svetlyak40wt/mito :branch fix-insert-dao-with-given-key

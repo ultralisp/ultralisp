@@ -68,6 +68,8 @@
   (:import-from #:ultralisp/models/source
                 #:source-systems-info
                 #:source-release-info)
+  (:import-from #:ultralisp/models/dist-source
+                #:dist->sources)
   (:export
    #:build
    #:build-version
@@ -281,7 +283,7 @@
    project sources included into the dist."
   (log:info "Creating metadata for version" version-number "of" dist)
   
-  (let* ((sources (ultralisp/models/dist-source:dist->sources dist))
+  (let* ((sources (dist->sources dist))
          ;; TODO: remove, seems we don't need this anymore
          ;; (projects (remove-if-not 'get-release-info all-projects))
          (dist-name (ultralisp/models/dist:dist-name dist))

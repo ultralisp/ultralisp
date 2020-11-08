@@ -26,7 +26,7 @@
                 #:check2
                 #:get-processed-in
                 #:get-error
-                #:get-pending-checks
+                #:pending-checks
                 #:get-processed-at
                 #:any-check
                 #:get-project)
@@ -71,36 +71,43 @@
                 #:make-disable-reason)
   (:export
    #:perform-pending-checks
-   #:perform))
+   #:perform
+   #:perform-remotely))
 (in-package ultralisp/pipeline/checking)
 
 
-(defun perform-pending-checks (&key (force nil force-p))
+(defun perform-remotely (check &key (force nil force-p))
+  "This function can be called manually to debug source checking."
+  (let ((perform-params (when force-p
+                          (list :force force))))
+    (with-log-unhandled ()
+      (with-connection (:cached nil)
+        (with-fields (:check-id (mito:object-id check))
+          (log:info "Submitting check to remote worker")
+          (apply 'submit-task
+                 'perform2
+                 check
+                 perform-params))))))
+
+
+(defun perform-pending-checks (&key force)
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks")
   
   (with-lock ("performing-pending-checks-or-version-build")
-    (let ((checks (get-pending-checks))
+    (let ((checks (pending-checks))
           ;; we need this to not pass :force argument
           ;; if it is default, because 'peform function
           ;; chooses default value depending on check's type
-          (perform-params (when force-p
-                            (list :force force))))
+          )
       (loop for check in checks
             ;; Here we need to establish a connection
             ;; to process each check in a separate transaction.
             ;; This way, errors during some checks will not affect
             ;; others
             do (ignore-errors
-                (with-log-unhandled ()
-                  (with-connection (:cached nil)
-                    (with-fields (:check-id (mito:object-id check))
-                      (log:info "Submitting check to remote worker")
-                      (apply 'submit-task
-                             'perform
-                             check
-                             perform-params))))))
+                (perform-remotely check :force force)))
       (length checks))))
 
 

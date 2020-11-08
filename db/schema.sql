@@ -134,7 +134,7 @@ CREATE TABLE "source" (
 );
 
 
-CREATE TYPE dist_state AS ENUM ('pending', 'ready');
+CREATE TYPE dist_state AS ENUM ('pending', 'prepared', 'ready');
 
 CREATE TABLE "dist" (
     "id" BIGSERIAL NOT NULL,

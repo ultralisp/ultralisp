@@ -49,7 +49,8 @@
    #:bound-source
    #:enabled-p
    #:disable-reason
-   #:include-reason))
+   #:include-reason
+   #:get-all-sources))
 (in-package ultralisp/models/source)
 
 
@@ -292,3 +293,18 @@
                                                 params))))
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source new-source :enable t))))
+
+
+(defun get-all-sources ()
+  "Returns a list of all sources which aren't deleted.
+
+   Only latest version is returned.
+
+   We need this function to iterate over all sources and
+   schedule checks.
+
+   NOTE: Probably this should be rewritten to some sort of paginated
+   iterator to not fetch all data from the database at once."
+  (mito:retrieve-dao 'source
+                     :deleted "false"
+                     :latest "true"))

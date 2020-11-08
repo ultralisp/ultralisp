@@ -89,7 +89,7 @@
 
 
 (defun common-dist ()
-  (find-dist "common"))
+  (find-dist "ultralisp"))
 
 
 (defclass bound-dist ()
@@ -137,6 +137,16 @@
     (find-dist name)))
 
 
+(defun get-next-dist-version (dist)
+  "Returns a number to be the next version for the dist."
+  (getf (first
+         (mito:retrieve-by-sql "
+     SELECT COALESCE(MAX(version) + 1, 0) as version
+       FROM dist
+      WHERE id = ?" :binds (list (object-id dist))))
+        :version))
+
+
 (defun get-or-create-pending-version (dist)
   (with-transaction
     (let* ((id (object-id dist))
@@ -146,7 +156,7 @@
       (or existing
           (mito:create-dao 'dist
                            :id id
-                           :version (1+ (object-version dist))
+                           :version (get-next-dist-version dist)
                            :name (dist-name dist)
                            :state :pending)))))
 

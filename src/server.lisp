@@ -81,6 +81,18 @@
                 #:get-all-projects)
   (:import-from #:weblocks/error-handler
                 #:on-error)
+
+  ;; Extra dependencies with implementation of important protocols:
+  (:import-from #:ultralisp/models/moderator)
+  ;; Other models, just to be sure
+  ;; that datamigration will be generated:
+  (:import-from #:ultralisp/models/dist)
+  (:import-from #:ultralisp/models/dist-moderator)
+  (:import-from #:ultralisp/models/project-moderator)
+  ;; (:import-from #:ultralisp/models/source)
+  ;; (:import-from #:ultralisp/models/dist-source)
+  (:import-from #:ultralisp/widgets/landing)
+  
   (:shadow #:restart)
   (:export
    #:main
