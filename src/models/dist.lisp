@@ -24,7 +24,9 @@
    #:dist-equal
    #:get-pending-dists
    #:dist-built-at
-   #:get-prepared-dists))
+   #:get-prepared-dists
+   #:latest-dists
+   #:dist-quicklisp-version))
 (in-package ultralisp/models/dist)
 
 
@@ -175,3 +177,9 @@
               (object-id right-dist))
        (equal (object-version left-dist)
               (object-version right-dist))))
+
+
+(defun latest-dists (&key (limit 10))
+  (mito:select-dao 'dist
+    (sxql:order-by (:desc :created-at))
+    (sxql:limit limit)))

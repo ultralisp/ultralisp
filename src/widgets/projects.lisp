@@ -45,9 +45,9 @@
   (with-html
     (:table :class "projects-list"
             (loop for project in projects
-                  for description = (get-description project)
-                  for url = (get-url project)
-                  for name = (get-name project)
+                  for description = (ultralisp/models/project:project-description project)
+                  for url = (ultralisp/models/project:project-url project)
+                  for name = (ultralisp/models/project:project-name project)
                   do (:tr
                       (:td :style "white-space: nowrap"
                            (:a :href url

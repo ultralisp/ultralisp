@@ -106,7 +106,8 @@
    #:project-description
    #:project-name
    #:project-sources
-   #:source->project))
+   #:source->project
+   #:project-url))
 (in-package ultralisp/models/project)
 
 
@@ -240,6 +241,13 @@
             name)))
 
 
+(defun project-url (project)
+  (check-type project project2)
+  (let* ((name (project-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
 (defun get-external-url (project)
   ;; TODO: after support of different sources,
   ;;       we need to abstract this function and make
@@ -352,8 +360,7 @@
 
 (defun get-recent-projects (&key (limit 10))
   "Returns a list of recently added projects to show them on a landing page."
-  (select-dao 'project
-    (where :enabled)
+  (select-dao 'project2
     (order-by (:desc :created-at))
     (limit limit)))
 
@@ -640,7 +647,8 @@
 
 
 (defun source->project (source)
-  (check-type source ultralisp/models/source:source)
+  (check-type source (or ultralisp/models/source:source
+                         ultralisp/models/source:bound-source))
   (first
    (mito:retrieve-dao 'project2
                       :id (ultralisp/models/source:source-project-id source)
