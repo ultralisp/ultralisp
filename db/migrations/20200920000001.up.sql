@@ -51,8 +51,8 @@ CREATE TABLE "dist" (
 
 CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
-INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
-     VALUES (0, True, False, 'ultralisp', 'ready', now(), now());
+INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, built_at)
+     VALUES (0, True, False, 'ultralisp', 'ready', now(), now(), now());
 
 
 CREATE TABLE "dist_source" (
