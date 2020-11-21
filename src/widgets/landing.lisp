@@ -113,7 +113,7 @@
          (number (ultralisp/models/dist:dist-quicklisp-version dist))
          (built-at (ultralisp/models/dist:dist-built-at dist))
          (state (ultralisp/models/dist:dist-state dist))
-         (bound-sources (dist->sources dist))
+         (bound-sources (dist->sources dist :this-version t))
          ;; TODO: create a generic get-uri and define it for a version class
          (version-uri ""
                       ;; (format nil "/versions/~A" number)

@@ -83,7 +83,8 @@
 
 (defun find-dist (name &key (raise-error t))
   (let ((result (mito.dao:find-dao 'dist
-                                   :name name)))
+                                   :name name
+                                   :latest "true")))
     (when (and (null result)
                raise-error)
       (error "Unable to find dist with name \"~A\"" name))
