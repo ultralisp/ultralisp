@@ -50,7 +50,8 @@
    #:enabled-p
    #:disable-reason
    #:include-reason
-   #:get-all-sources))
+   #:get-all-sources
+   #:get-github-sources))
 (in-package ultralisp/models/source)
 
 
@@ -308,3 +309,18 @@
   (mito:retrieve-dao 'source
                      :deleted "false"
                      :latest "true"))
+
+
+(defun get-github-sources (usernames)
+  "Receives a list of usernames or orgnames and returns a list
+   of GitHub sources, known to Ultralisp."
+  (mito:select-dao 'source
+    (sxql:where (:and
+                 (:= 'latest
+                     "true")
+                 (:= 'deleted
+                     "false")
+                 (:= 'type
+                     "GITHUB")
+                 (:in (:raw "params->>'USER-OR-ORG'")
+                      usernames)))))

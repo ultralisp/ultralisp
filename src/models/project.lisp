@@ -418,6 +418,7 @@
      (limit 1))))
 
 
+;; TODO: remove after refactoring
 (defun get-github-projects (usernames)
   "Receives a list of usernames or orgnames and returns a list
    of GitHub projects, known to Ultralisp."

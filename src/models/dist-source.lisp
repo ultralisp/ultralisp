@@ -108,36 +108,47 @@
    :version (source-version dist-source)))
 
 
-(defgeneric source-distributions (source)
-  (:method ((source ultralisp/models/source:source))
+(defgeneric source-distributions (source &key)
+  (:method ((source ultralisp/models/source:source) &key (enabled nil enabled-given-p))
     "Returns all source distributions given source belongs to
      except those where it was deleted."
-    (mito:retrieve-dao 'dist-source
-                       :source-id (object-id source)
-                       :source-version (object-version source)
-                       :deleted "false"))
-  (:method ((dist ultralisp/models/dist:dist))
+    (apply #'mito:retrieve-dao
+           'dist-source
+           :source-id (object-id source)
+           :source-version (object-version source)
+           :deleted "false"
+           (when enabled-given-p
+             (list :enabled
+                   (if enabled
+                       "true"
+                       "false")))))
+  (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p))
     "Returns all source distributions which are enabled and not
      deleted in the given dist.
 
      Note: Results contain all sources linked to the previous
      dist versions."
-    (mito:select-dao 'dist-source
-      (sxql:left-join 'ultralisp/models/source:source
-                      :on (:and (:= 'dist_source.source_id
-                                    'source.id)
-                                (:= 'dist_source.source_version
-                                    'source.version)))
-      (sxql:where (:and (:= 'dist_source.dist_id
-                            (object-id dist))
-                        (:= 'dist_source.enabled
-                            "true")
-                        (:<= 'dist_source.dist_version
-                             (object-version dist))
-                        (:= 'source.latest
-                            "true")
-                        (:= 'source.deleted
-                            "false"))))))
+    (let ((clauses
+            `(:and (:= dist_source.dist_id
+                       ,(object-id dist))
+                   @,(when enabled-given-p
+                       `((:= dist_source.enabled
+                             ,(if enabled
+                                  "true"
+                                  "false"))))
+                   (:<= dist_source.dist_version
+                        ,(object-version dist))
+                   (:= source.latest
+                       "true")
+                   (:= source.deleted
+                       "false"))))
+      (mito:select-dao 'dist-source
+        (sxql:left-join 'ultralisp/models/source:source
+                        :on (:and (:= 'dist_source.source_id
+                                      'source.id)
+                                  (:= 'dist_source.source_version
+                                      'source.version)))
+        (sxql:where clauses)))))
 
 
 (defun %this-version-source-distributions (dist &key (enabled nil enabled-given-p))
@@ -160,11 +171,14 @@
       (sxql:where clauses))))
 
 
-(defun source->dists (source)
+(defun source->dists (source &key (enabled nil enabled-given-p))
   "Returns dist objects along with their enabled flag"
   (check-type source
               ultralisp/models/source:source)
-  (loop for dist-source in (source-distributions source)
+  (loop for dist-source in (apply #'source-distributions
+                                  source
+                                  (when enabled-given-p
+                                    (list :enabled enabled)))
         for dist = (dist-source->dist dist-source)
         collect (make-instance 'ultralisp/models/dist:bound-dist
                                :dist dist
@@ -179,14 +193,15 @@
               ultralisp/models/dist:dist)
   (loop for dist-source in (cond
                              (this-version
-                              (apply '%this-version-source-distributions
+                              (apply #'%this-version-source-distributions
                                      dist
                                      (when enabled-given-p
                                        (list :enabled enabled))))
                              (t
-                              (when enabled-given-p
-                                (error "Argument :enabled can be used onlyy with :this-version t."))
-                              (source-distributions dist)))
+                              (apply #'source-distributions
+                                     dist
+                                     (when enabled-given-p
+                                       (list :enabled enabled)))))
         for source = (dist-source->source dist-source)
         collect (make-instance 'ultralisp/models/source:bound-source
                                :source source
@@ -305,7 +320,7 @@
    then it's dist-source's enabled, disable-reason are updated.
    "
   (with-transaction
-    (loop for old-dist-source in (source-distributions old-source)
+    (loop for old-dist-source in (source-distributions old-source :enabled t)
           for old-dist = (dist-source->dist old-dist-source)
           for pending-dist = (get-or-create-pending-version old-dist)
           for old-disable-reason = (disable-reason old-dist-source)
