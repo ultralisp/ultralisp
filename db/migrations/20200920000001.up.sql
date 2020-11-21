@@ -51,8 +51,10 @@ CREATE TABLE "dist" (
 
 CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
-INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, built_at)
-     VALUES (0, True, False, 'ultralisp', 'ready', now(), now(), now());
+INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, built_at, quicklisp_version)
+     VALUES (0, True, False, 'ultralisp', 'ready', now(), now(),
+             (select built_at from version where type = 'READY' order by built_at desc limit 1),
+             (select number from version where type = 'READY' order by built_at desc limit 1));
 
 
 CREATE TABLE "dist_source" (

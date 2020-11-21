@@ -213,8 +213,10 @@ CREATE TABLE "check2" (
 -- how to reset project2 tables
 -- delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
 
-INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, built_at)
-     VALUES (0, True, False, 'common', 'ready', now(), now(), now());
+INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, built_at, quicklisp_version)
+     VALUES (0, True, False, 'ultralisp', 'ready', now(), now(),
+             (select built_at from version where type = 'READY' order by built_at desc limit 1),
+             (select number from version where type = 'READY' order by built_at desc limit 1));
 
 
 CREATE TABLE IF NOT EXISTS "schema_migrations" (
