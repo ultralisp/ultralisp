@@ -131,7 +131,7 @@
     (let ((clauses
             `(:and (:= dist_source.dist_id
                        ,(object-id dist))
-                   @,(when enabled-given-p
+                   ,@(when enabled-given-p
                        `((:= dist_source.enabled
                              ,(if enabled
                                   "true"
@@ -211,8 +211,9 @@
 
 
 (defun update-source-dists (source &key (url nil url-p)
-                                  (dists nil dists-p)
-                                  (include-reason :direct))
+                                        (dists nil dists-p)
+                                        (include-reason :direct)
+                                        (disable-reason :manual))
   (declare (ignorable url))
   (check-type source ultralisp/models/source:source)
   (when url-p
@@ -283,7 +284,9 @@
                                     ;; dist.
                                     :include-reason (include-reason dist)
                                     ;; Important to set this flag:
-                                    :deleted t))))))
+                                    :deleted t
+                                    :enabled nil
+                                    :disable-reason (make-disable-reason disable-reason)))))))
   ;; Now we'll return old or a new source: 
   source)
 

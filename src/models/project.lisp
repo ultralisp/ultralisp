@@ -71,6 +71,7 @@
   (:import-from #:ultralisp/models/dist
                 #:common-dist)
   (:import-from #:ultralisp/models/dist-source
+                #:update-source-dists
                 #:add-source-to-dist)
   (:export
    #:update-and-enable-project
@@ -479,7 +480,7 @@
   "Creates or updates a record in database adding current user to moderators list."
   (let ((project (get-project2 name)))
     (when project
-      (disable-project2 project))
+      (remove-project-from-dists project))
     project))
 
 
@@ -566,10 +567,14 @@
   (values project))
 
 
-(defun disable-project2 (project &key reason traceback) 
+(defun remove-project-from-dists (project) 
   "Disables project."
   (check-type project project2)
-  (error "Not implemented")
+  
+  ;; This will delete links of this project
+  ;; with all distributions
+  (loop for source in (project-sources project)
+        do (update-source-dists source :dists nil))
   
   ;; (when (is-enabled-p project)
   ;;   (log:info "Disabling project" project)

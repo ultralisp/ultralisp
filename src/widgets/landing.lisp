@@ -104,6 +104,8 @@
                   "added and waits for a check")
                  (:check-error
                   "disabled because of error")
+                 (:manual
+                  "removed manually")
                  (t
                   "")))))))))
 
