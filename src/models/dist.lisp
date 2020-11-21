@@ -81,10 +81,16 @@
             (object-version obj))))
 
 
-(defun find-dist (name &key (raise-error t))
-  (let ((result (mito.dao:find-dao 'dist
-                                   :name name
-                                   :latest "true")))
+(defun find-dist (name &key (raise-error t)
+                            (quicklisp-version nil quicklisp-version-p))
+  (let ((result (apply #'mito.dao:find-dao
+                       'dist
+                       :name name
+                       (append
+                        (unless quicklisp-version-p
+                          (list :latest "true"))
+                        (when quicklisp-version-p
+                          (list :quicklisp-version quicklisp-version))))))
     (when (and (null result)
                raise-error)
       (error "Unable to find dist with name \"~A\"" name))
