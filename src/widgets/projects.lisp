@@ -75,9 +75,9 @@
 
 (defmethod render ((widget my-projects))
   (let* ((user (get-current-user))
-         (projects (sort (ultralisp/models/moderator:get-projects user)
+         (projects (sort (ultralisp/models/project-moderator:user->projects user)
                          #'string<
-                         :key #'ultralisp/models/project:get-name))
+                         :key #'ultralisp/models/project:project-name))
          (title "Moderated projects"))
     (cond
       (projects (with-html

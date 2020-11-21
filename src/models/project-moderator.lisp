@@ -12,7 +12,8 @@
            #:project-id
            #:user-id
            #:moderator
-           #:moderated-project))
+           #:moderated-project
+           #:user->projects))
 (in-package ultralisp/models/project-moderator)
 
 
@@ -34,6 +35,16 @@
   (first
    (mito:retrieve-dao 'user
                       :id (user-id project-moderator))))
+
+(defun user->projects (user)
+  (check-type user user)
+  (mito.dao:select-by-sql
+   'project2
+   "SELECT project2.* FROM project2
+      JOIN project_moderator ON project2.id = project_moderator.project_id
+     WHERE project_moderator.user_id = ?
+       AND project2.latest = True"
+   :binds (list (mito:object-id user))))
 
 (defun moderated-project (project-moderator)
   (first
