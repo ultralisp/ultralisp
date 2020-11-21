@@ -22,7 +22,6 @@
                 #:unable-to-create-project
                 #:make-github-project-from-url
                 #:is-enabled-p
-                #:turn-off-github-project
                 #:add-or-turn-on-github-project
                 #:get-params
                 #:get-github-projects)
@@ -405,7 +404,7 @@
           (t
            (log:warn "Hmm, hook is already removed for" repository)))
 
-    (turn-off-github-project name)
+    (ultralisp/models/project:turn-off-project2 name)
     (values)))
 
 

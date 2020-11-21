@@ -111,7 +111,8 @@
    #:project-name
    #:project-sources
    #:source->project
-   #:project-url))
+   #:project-url
+   #:turn-off-project2))
 (in-package ultralisp/models/project)
 
 
@@ -472,6 +473,14 @@
       project)))
 
 
+(defun turn-off-project2 (name)
+  "Creates or updates a record in database adding current user to moderators list."
+  (let ((project (get-project2 name)))
+    (when project
+      (disable-project2 project))
+    project))
+
+
 (defun delete-project (project)
   (delete-dao project))
 
@@ -551,6 +560,28 @@
           nil)
 
     (save-dao project))
+  
+  (values project))
+
+
+(defun disable-project2 (project &key reason traceback) 
+  "Disables project."
+  (check-type project project2)
+  (error "Not implemented")
+  
+  ;; (when (is-enabled-p project)
+  ;;   (log:info "Disabling project" project)
+
+  ;;   ;; Also, we need to create a new action, related to this project
+  ;;   (uiop:symbol-call :ultralisp/models/action
+  ;;                     :make-project-removed-action
+  ;;                     project
+  ;;                     :reason reason
+  ;;                     :traceback traceback)
+  ;;   (setf (is-enabled-p project)
+  ;;         nil)
+
+  ;;   (save-dao project))
   
   (values project))
 
