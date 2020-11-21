@@ -67,6 +67,10 @@
   (:import-from #:ultralisp/models/source)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
+  (:import-from #:ultralisp/models/dist
+                #:common-dist)
+  (:import-from #:ultralisp/models/dist-source
+                #:add-source-to-dist)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -298,27 +302,46 @@
            :reader get-reason)))
 
 
-(defun make-github-project (user-or-org project)
-  (let ((name (concatenate 'string
-                           user-or-org
-                           "/"
-                           project))
-        (description (or (ignore-errors
-                          ;; We ignore errors here, because
-                          ;; description is not very important
-                          ;; and can be updated later,
-                          ;; but we definitely want to log these
-                          ;; errors, to not miss some system problems.
-                          (with-log-unhandled ()
-                            (%github-get-description user-or-org
-                                                     project)))
-                         "")))
-    (create-dao 'project
-                :source :github
-                :name name
-                :description description
-                :params (list :user-or-org user-or-org
-                              :project project))))
+(defun add-source (project &key type params)
+  (check-type project project2)
+  (check-type type keyword)
+  (check-type params list)
+  (mito:create-dao 'ultralisp/models/source:source
+                   :project-id (object-id project)
+                   :project-version (object-version project)
+                   :type type
+                   :params params))
+
+
+(defun make-github-project (user-or-org project-name)
+  (ultralisp/db:with-transaction
+    (let* ((full-project-name (concatenate 'string
+                              user-or-org
+                              "/"
+                              project-name))
+           (description (or (ignore-errors
+                             ;; We ignore errors here, because
+                             ;; description is not very important
+                             ;; and can be updated later,
+                             ;; but we definitely want to log these
+                             ;; errors, to not miss some system problems.
+                             (with-log-unhandled ()
+                               (%github-get-description user-or-org
+                                                        project-name)))
+                            ""))
+           (project (create-dao 'project2
+                                :name full-project-name
+                                :description description))
+           (source (add-source project
+                               :type :github
+                               :params (list :user-or-org user-or-org
+                                             :project project-name))))
+      ;; Bind source to the pending version of a common dist
+      (add-source-to-dist (common-dist)
+                          source)
+      
+      project)))
+
 
 (defun extract-github-name (url)
   "It should extract \"cbaggers/livesupport\" from urls like:
@@ -410,7 +433,7 @@
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((project (get-github-project user-or-org project-name)))
+    (let ((project (get-project2 name)))
       
       (unless project
         (log:info "Adding github project to the database" project)
@@ -420,20 +443,19 @@
       ;; Here we only making user a moderator if
       ;; nobody else owns a project. Otherwise, he
       ;; need to prove his ownership.
-      (unless (uiop:symbol-call :ultralisp/models/moderator
-                                :get-moderators
-                                project)
-        (uiop:symbol-call :ultralisp/models/moderator
-                          :make-moderator
-                          project
-                          moderator))
+      (when (and moderator
+                 (null (ultralisp/protocols/moderation:moderators project)))
+        (ultralisp/protocols/moderation:make-moderator
+         moderator
+         project))
       
       ;; Also, we need to trigger a check of this project
       ;; and to enabled it and to include into the next build
       ;; of a new Ultralisp version.
       (uiop:symbol-call :ultralisp/models/check
-                        :make-added-project-check
-                        project)
+                        :make-checks
+                        project
+                        :added-project)
       
       project)))
 

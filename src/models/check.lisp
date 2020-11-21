@@ -63,7 +63,8 @@
    #:check->project
    #:get-last-project-checks
    #:get-last-source-check
-   #:get-check2-by-id))
+   #:get-check2-by-id
+   #:check2))
 (in-package ultralisp/models/check)
 
 
@@ -255,16 +256,18 @@
 
 ;; TODO: remove, replaced withh pending-checks
 (defun get-pending-checks (&key limit)
+  (declare (ignore limit))
   (error "Shold be removed")
-  (upgrade-types
-   (select-dao 'base-check
-     (includes 'project)
-     (left-join 'project
-                :on (:= 'check.project_id
-                        'project.id))
-     (where (:is-null 'processed-at))
-     (when limit
-       (sxql:limit limit)))))
+  ;; (upgrade-types
+  ;;  (select-dao 'base-check
+  ;;    (includes 'project)
+  ;;    (left-join 'project
+  ;;               :on (:= 'check.project_id
+  ;;                       'project.id))
+  ;;    (where (:is-null 'processed-at))
+  ;;    (when limit
+  ;;      (sxql:limit limit))))
+  )
 
 (defun cancel-pending-cron-checks ()
   (loop for check in (select-dao 'base-check

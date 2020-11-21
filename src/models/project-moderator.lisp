@@ -7,7 +7,9 @@
   (:import-from #:ultralisp/models/project
                 #:project2)
   (:import-from #:ultralisp/protocols/moderation
-                #:is-moderator)
+                #:is-moderator
+                #:make-moderator
+                #:moderators)
   (:export #:project-moderator
            #:project-id
            #:user-id
@@ -36,6 +38,7 @@
    (mito:retrieve-dao 'user
                       :id (user-id project-moderator))))
 
+
 (defun user->projects (user)
   (check-type user user)
   (mito.dao:select-by-sql
@@ -45,6 +48,7 @@
      WHERE project_moderator.user_id = ?
        AND project2.latest = True"
    :binds (list (mito:object-id user))))
+
 
 (defun moderated-project (project-moderator)
   (first
@@ -64,4 +68,20 @@
 (defmethod is-moderator ((user user) (project project2))
   (mito:retrieve-dao 'project-moderator
                      :project-id (mito:object-id project)
-                     :project-id (mito:object-id project)))
+                     :user-id (mito:object-id user)))
+
+
+(defmethod moderators ((project project2))
+  (mito.dao:select-by-sql
+   'user
+   "SELECT \"user\".* FROM \"user\"
+      JOIN project_moderator ON \"user\".id = project_moderator.user_id
+     WHERE project_moderator.project_id = ?
+"
+   :binds (list (mito:object-id project))))
+
+
+(defmethod make-moderator ((user user) (project project2))
+  (mito:create-dao  'project-moderator
+                    :project-id (mito:object-id project)
+                    :user-id (mito:object-id user)))

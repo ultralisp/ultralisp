@@ -240,7 +240,7 @@
            (log:info "CATCHED ARGS" url)
            (handler-case
                (let* ((project (make-github-project-from-url url))
-                      (project-url (ultralisp/models/project:get-url project)))
+                      (project-url (ultralisp/models/project:project-url project)))
                  (weblocks/response:redirect project-url))
              (unable-to-create-project (condition)
                (let ((reason (get-reason condition)))

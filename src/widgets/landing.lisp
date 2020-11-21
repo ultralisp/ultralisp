@@ -95,7 +95,15 @@
             (ultralisp/models/project:project-name project)
             (cond
               ((ultralisp/models/source:enabled-p source) "added")
-              (t "FIX ME, the reason is unknown!")))))))
+              (t
+               (case
+                   (alexandria:make-keyword
+                    (getf (ultralisp/models/source:disable-reason source)
+                          :type))
+                 (:just-added
+                  "added and waits for a check")
+                 (t
+                  "")))))))))
 
 ;;* 
 (defun render-dist (dist)

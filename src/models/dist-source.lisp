@@ -33,7 +33,8 @@
    #:make-disable-reason
    #:disable-reason-type
    #:dist-source->source
-   #:dist->sources))
+   #:dist->sources
+   #:add-source-to-dist))
 (in-package ultralisp/models/dist-source)
 
 
@@ -51,6 +52,8 @@
                    :initarg :source-version
                    :reader source-version)
    (include-reason :col-type :text
+                   ;; Can be:
+                   ;; - :direct
                    :initarg :include-reason
                    :reader include-reason
                    :deflate #'symbol-name
@@ -301,3 +304,29 @@
                                      :enabled new-enabled
                                      :disable-reason new-disable-reason
                                      :deleted nil))))))))
+
+
+(defun add-source-to-dist (dist source &key (include-reason :direct))
+  "Creates pending dist and links the source using dist-source.
+
+   Source is linked in \"disabled\" state.
+   "
+  (let* ((pending-dist (get-or-create-pending-version dist))
+         (already-linked-dist-source
+           (first
+            (mito:retrieve-dao 'dist-source
+                               :dist-id (object-id pending-dist)
+                               :dist-version (object-version pending-dist)
+                               :source-id (object-id source)
+                               :source-version (object-version source)))))
+    (unless already-linked-dist-source
+      (mito:create-dao 'dist-source
+                       :dist-id (object-id pending-dist)
+                       :dist-version (object-version pending-dist)
+                       :source-id (object-id source)
+                       :source-version (object-version source)
+                       :include-reason include-reason
+                       :enabled nil
+                       :disable-reason '(:type :just-added
+                                         :comment "This source waits for the check.")
+                       :deleted nil))))
