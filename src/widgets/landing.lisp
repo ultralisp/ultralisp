@@ -94,7 +94,7 @@
             ;; TODO: Add a link to the project
             (ultralisp/models/project:project-name project)
             (cond
-              ((ultralisp/models/source:enabled-p source) "added")
+              ((ultralisp/models/source:enabled-p source) "enabled")
               (t
                (case
                    (alexandria:make-keyword
@@ -102,6 +102,8 @@
                           :type))
                  (:just-added
                   "added and waits for a check")
+                 (:check-error
+                  "disabled because of error")
                  (t
                   "")))))))))
 

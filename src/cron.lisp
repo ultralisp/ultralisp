@@ -43,7 +43,8 @@
    #:stop
    #:start
    #:*cron-jobs-hash*
-   #:get-time-of-the-next-check))
+   #:get-time-of-the-next-check
+   #:simulate-cron))
 (in-package ultralisp/cron)
 
 

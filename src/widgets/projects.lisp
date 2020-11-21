@@ -18,6 +18,8 @@
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/moderator)
+  (:import-from #:ultralisp/models/project-moderator
+                #:user->projects)
   (:export
    #:render
    #:render-projects-list
@@ -75,7 +77,7 @@
 
 (defmethod render ((widget my-projects))
   (let* ((user (get-current-user))
-         (projects (sort (ultralisp/models/project-moderator:user->projects user)
+         (projects (sort (user->projects user)
                          #'string<
                          :key #'ultralisp/models/project:project-name))
          (title "Moderated projects"))

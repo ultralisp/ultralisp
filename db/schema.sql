@@ -211,7 +211,8 @@ CREATE TABLE "check2" (
 );
 
 -- how to reset project2 tables
-delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
+-- delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
+
 INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
      VALUES (0, True, False, 'common', 'ready', now(), now());
 

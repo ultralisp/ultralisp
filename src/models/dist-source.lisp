@@ -279,6 +279,11 @@
 
 (defun make-disable-reason (type &key comment traceback)
   (check-type type (member :check-error
+                           ;; When source gets added to the distribution,
+                           ;; it has this disable reason.
+                           ;; However, if it has some release-info,
+                           ;; it is added as "enabled".
+                           :just-added
                            :manual))
   (append (list :type type)
           (when comment
@@ -355,13 +360,24 @@
                                :source-id (object-id source)
                                :source-version (object-version source)))))
     (unless already-linked-dist-source
-      (mito:create-dao 'dist-source
-                       :dist-id (object-id pending-dist)
-                       :dist-version (object-version pending-dist)
-                       :source-id (object-id source)
-                       :source-version (object-version source)
-                       :include-reason include-reason
-                       :enabled nil
-                       :disable-reason '(:type :just-added
-                                         :comment "This source waits for the check.")
-                       :deleted nil))))
+      
+      (let* ((has-release-info (ultralisp/models/source:source-release-info source))
+             (enabled (when has-release-info
+                        t))
+             (disable-reason (unless has-release-info
+                               ;; When source gets added to the distribution,
+                               ;; it has this disable reason.
+                               ;; However, if it has some release-info,
+                               ;; it is added as "enabled", because we don't
+                               ;; need to check it to build the distribution.
+                               (make-disable-reason :just-added
+                                                    :comment "This source waits for the check."))))
+          (mito:create-dao 'dist-source
+                           :dist-id (object-id pending-dist)
+                           :dist-version (object-version pending-dist)
+                           :source-id (object-id source)
+                           :source-version (object-version source)
+                           :include-reason include-reason
+                           :enabled enabled
+                           :disable-reason disable-reason
+                           :deleted nil)))))

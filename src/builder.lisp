@@ -382,14 +382,25 @@
 
 (defun prepare-dist (dist)
   (check-type dist ultralisp/models/dist:dist)
+  
   (when (eql (dist-state dist)
              :pending)
     (log:info "Preparing the" dist)
+
+    ;; We only want to "prepare" dist if it has
+    ;; some changes. Sources added and not checked yet
+    ;; aren't considered as a "change".
+    (let ((changes (loop for source in (dist->sources dist :this-version t)
+                         for disable-reason = (ultralisp/models/source:disable-reason source)
+                         for disable-reason-type = (ultralisp/models/dist-source:disable-reason-type disable-reason)
+                         unless (eql disable-reason-type :just-added)
+                         collect source)))
     
-    (let ((version-number (make-version-number)))
-      (setf (dist-state dist) :prepared
-            (dist-quicklisp-version dist) version-number)
-      (save-dao dist))))
+      (when changes
+        (let ((version-number (make-version-number)))
+          (setf (dist-state dist) :prepared
+                (dist-quicklisp-version dist) version-number)
+          (save-dao dist))))))
 
 
 (defun build-dist (dist)

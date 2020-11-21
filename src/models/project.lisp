@@ -24,6 +24,7 @@
                 #:versioned-table-class
                 #:object-version
                 #:versioned)
+  (:import-from #:ultralisp/protocols/moderation)
   (:import-from #:sxql
                 #:order-by
                 #:limit
