@@ -90,8 +90,8 @@
   (check-type source bound-source)
   (let* ((project (ultralisp/models/project:source->project source)))
     (with-html
-      (:li ("Project ~A was ~A"
-            ;; TODO: Add a link to the project
+      (:li ("Project [~A](~A) was ~A"
+            (ultralisp/protocols/url:url project)
             (ultralisp/models/project:project-name project)
             (cond
               ((ultralisp/models/source:enabled-p source) "enabled")
