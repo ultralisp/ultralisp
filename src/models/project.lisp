@@ -65,6 +65,8 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
+  (:import-from #:ultralisp/protocols/url
+                #:url)
   (:import-from #:ultralisp/models/source)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
@@ -242,19 +244,6 @@
             (get-name project))))
 
 
-(defun get-url (project)
-  (let* ((name (get-name project)))
-    (format nil "/projects/~A"
-            name)))
-
-
-(defun project-url (project)
-  (check-type project project2)
-  (let* ((name (project-name project)))
-    (format nil "/projects/~A"
-            name)))
-
-
 (defun get-external-url (project)
   ;; TODO: after support of different sources,
   ;;       we need to abstract this function and make
@@ -319,9 +308,9 @@
 (defun make-github-project (user-or-org project-name)
   (ultralisp/db:with-transaction
     (let* ((full-project-name (concatenate 'string
-                              user-or-org
-                              "/"
-                              project-name))
+                                           user-or-org
+                                           "/"
+                                           project-name))
            (description (or (ignore-errors
                              ;; We ignore errors here, because
                              ;; description is not very important
@@ -334,15 +323,11 @@
                             ""))
            (project (create-dao 'project2
                                 :name full-project-name
-                                :description description))
-           (source (add-source project
-                               :type :github
-                               :params (list :user-or-org user-or-org
-                                             :project project-name))))
-      ;; Bind source to the pending version of a common dist
-      (add-source-to-dist (common-dist)
-                          source)
-      
+                                :description description)))
+      (add-source project
+                  :type :github
+                  :params (list :user-or-org user-or-org
+                                :project project-name))
       project)))
 
 
@@ -437,31 +422,48 @@
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((project (get-project2 name)))
-      
-      (unless project
-        (log:info "Adding github project to the database" project)
-        (setf project
-              (make-github-project user-or-org project-name)))
+    (ultralisp/db:with-transaction
+      (let ((project (get-project2 name)))
+       
+        (unless project
+          (log:info "Adding github project to the database" project)
+          (setf project
+                (make-github-project user-or-org project-name)))
 
-      ;; Here we only making user a moderator if
-      ;; nobody else owns a project. Otherwise, he
-      ;; need to prove his ownership.
-      (when (and moderator
-                 (null (ultralisp/protocols/moderation:moderators project)))
-        (ultralisp/protocols/moderation:make-moderator
-         moderator
-         project))
-      
-      ;; Also, we need to trigger a check of this project
-      ;; and to enabled it and to include into the next build
-      ;; of a new Ultralisp version.
-      (uiop:symbol-call :ultralisp/models/check
-                        :make-checks
-                        project
-                        :added-project)
-      
-      project)))
+        ;; Now we need to bind the source to the common distribution
+        ;; if it is not already bound:
+        (loop with dist = (common-dist)
+              for source in (project-sources project)
+              for source-type = (ultralisp/models/source:source-type source)
+              when (eql source-type :github)
+              do (add-source-to-dist dist source)
+                 ;; We only add to the common dist the first
+                 ;; source of type :github, because there
+                 ;; can be more than one such sources in projects
+                 ;; which already existed in the database,
+                 ;; but Ultralisp prohibits adding a project twice
+                 ;; into the same distribution.
+                 (return))
+        
+
+        ;; Here we only making user a moderator if
+        ;; nobody else owns a project. Otherwise, he
+        ;; need to prove his ownership.
+        (when (and moderator
+                   (null (ultralisp/protocols/moderation:moderators project)))
+          (ultralisp/protocols/moderation:make-moderator
+           moderator
+           project))
+       
+        ;; Also, we need to trigger a check of this project
+        ;; and to enabled it and to include into the next build
+        ;; of a new Ultralisp version.
+        (uiop:symbol-call :ultralisp/models/check
+                          :make-checks
+                          project
+                          :added-project)
+       
+        project))))
 
 
 (defun turn-off-github-project (name)
@@ -715,8 +717,29 @@
                       :version (ultralisp/models/source:project-version source))))
 
 
+;; TODO: remove
+(defun get-url (project)
+  (let* ((name (get-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
+(defun project-url (project)
+  (check-type project project2)
+  (let* ((name (project-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
 (defmethod external-url ((obj project2))
   (loop for source in (project-sources obj)
         for url = (external-url source)
         when url
-          do (return-from external-url url)))
+        do (return-from external-url url)))
+
+
+(defmethod url ((obj project2))
+  (check-type obj project2)
+  (let* ((name (project-name obj)))
+    (format nil "/projects/~A"
+            name)))

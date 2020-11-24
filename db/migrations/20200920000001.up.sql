@@ -60,8 +60,7 @@ INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_a
 CREATE TABLE "dist_source" (
     "dist_id" BIGINT NOT NULL,
     "dist_version" BIGINT NOT NULL,
-    "project_id" BIGINT NOT NULL,
-    "project_version" BIGINT NOT NULL,
+    "source_id" BIGINT NOT NULL,
     "source_version" BIGINT NOT NULL,
     "include_reason" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL,
@@ -71,12 +70,12 @@ CREATE TABLE "dist_source" (
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY (
         "dist_id", "dist_version",
-        "project_id", "project_version", "source_version"
+        "source_id"
     ),
     FOREIGN KEY ("dist_id", "dist_version")
     REFERENCES "dist" ("id", "version"),
-    FOREIGN KEY ("project_id", "project_version", "source_version")
-    REFERENCES "source" ("project_id", "project_version", "version")
+    FOREIGN KEY ("source_id", "source_version")
+    REFERENCES "source" ("id", "version")
 );
 
 CREATE TABLE "dist_moderator" (
@@ -95,4 +94,18 @@ CREATE TABLE "project_moderator" (
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY ("project_id", "user_id")
+);
+
+CREATE TABLE "check2" (
+    "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "type" TEXT,
+    "source_id" BIGINT NOT NULL,
+    "source_version" BIGINT NOT NULL,
+    "processed_at" TIMESTAMPTZ,
+    "processed_in" FLOAT,
+    "error" TEXT,
+    "created_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ,
+    FOREIGN KEY ("source_id", "source_version")
+    REFERENCES "source" ("id", "version")  ON DELETE CASCADE
 );

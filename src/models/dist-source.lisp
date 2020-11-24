@@ -50,7 +50,8 @@
               :reader source-id)
    (source-version :col-type :bigint
                    :initarg :source-version
-                   :reader source-version)
+                   :documentation "This field can be changed only on dist-source linked to the :pending dist."
+                   :accessor source-version)
    (include-reason :col-type :text
                    ;; Can be:
                    ;; - :direct
@@ -82,7 +83,7 @@
             :reader deleted-p))
   (:primary-key
    dist-id dist-version
-   source-id source-version)
+   source-id)
   (:metaclass mito:dao-table-class))
 
 
@@ -322,8 +323,15 @@
    If source is already linked to the pending-dist,
    then it's dist-source's enabled, disable-reason are updated.
    "
+  (log:info "Checking if we need to create a pending dist for a" new-source "copied from" old-source)
+  (log:debug "Other params are" enable enable-p disable-reason)
+
+  (unless (= (object-id old-source)
+             (object-id new-source))
+    (error "Old source and new source are versions of different sources."))
+
   (with-transaction
-    (loop for old-dist-source in (source-distributions old-source :enabled t)
+    (loop for old-dist-source in (source-distributions old-source)
           for old-dist = (dist-source->dist old-dist-source)
           for pending-dist = (get-or-create-pending-version old-dist)
           for old-disable-reason = (disable-reason old-dist-source)
@@ -336,29 +344,52 @@
           for new-disable-reason = (unless new-enabled
                                      (or disable-reason
                                          old-disable-reason))
-          do (let ((already-linked-dist-source
+          do (let ((old-dist-source-linked-to-the-pending-dist
                      (first
                       (mito:retrieve-dao 'dist-source
                                          :dist-id (object-id pending-dist)
                                          :dist-version (object-version pending-dist)
-                                         :source-id (object-id new-source)
-                                         :source-version (object-version new-source)))))
+                                         :source-id (object-id old-source)
+                                         :source-version (object-version old-source)))))
+               (log:debug "Found or created pending dist"
+                          pending-dist
+                          old-enabled
+                          old-disable-reason)
                (cond
                  ;; This case can be when we are setting enable == t and disable reason
-                 ;; for the checked source.
-                 ;; In this case we just update existing dist-source:
-                 (already-linked-dist-source
-                  (setf (enabled-p already-linked-dist-source) new-enabled)
-                  (setf (disable-reason already-linked-dist-source) new-disable-reason)
-                  (mito:save-dao already-linked-dist-source))
+                 ;; for the checked source which is bound to the pending dist.
+                 ;; In this case we just update existing dist-source, detaching the old
+                 ;; source version and attaching the new version.
+                 (old-dist-source-linked-to-the-pending-dist
+                  (log:debug "Found existing dist-source bound to a pending dist." 
+                             old-dist-source-linked-to-the-pending-dist
+                             new-enabled
+                             new-disable-reason)
+                  (setf (enabled-p old-dist-source-linked-to-the-pending-dist)
+                        new-enabled)
+                  (setf (disable-reason old-dist-source-linked-to-the-pending-dist)
+                        new-disable-reason)
+                  (setf (source-version old-dist-source-linked-to-the-pending-dist)
+                        (object-version new-source))
+
+                  (mito:save-dao old-dist-source-linked-to-the-pending-dist))
+                 
+                 ((deleted-p old-dist-source)
+                  (log:debug "Source was deleted from the dist, we'll ignore it and don't create a link to a pending dist."))
                  (t
-                  (unless (deleted-p old-dist-source)
+                  (let ((include-reason (include-reason old-dist-source)))
+                    (log:debug "Creating a link from source to the dist"
+                               new-source
+                               pending-dist
+                               new-enabled
+                               include-reason
+                               new-disable-reason)
                     (mito:create-dao 'dist-source
                                      :dist-id (object-id pending-dist)
                                      :dist-version (object-version pending-dist)
                                      :source-id (object-id new-source)
                                      :source-version (object-version new-source)
-                                     :include-reason (include-reason old-dist-source)
+                                     :include-reason include-reason
                                      :enabled new-enabled
                                      :disable-reason new-disable-reason
                                      :deleted nil))))))))

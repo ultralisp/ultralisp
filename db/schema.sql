@@ -168,7 +168,7 @@ CREATE TABLE "dist_source" (
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY (
         "dist_id", "dist_version",
-        "source_id", "source_version"
+        "source_id"
     ),
     FOREIGN KEY ("dist_id", "dist_version")
     REFERENCES "dist" ("id", "version"),
