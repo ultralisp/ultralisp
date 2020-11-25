@@ -107,7 +107,8 @@
        (loop for command in commands
              for func-name = (car command)
              for func-args = (cdr command)
-             do (apply func-name
+             do (log:debug "Executing command from worker" func-name func-args)
+                (apply func-name
                        func-args))
        result)))
 

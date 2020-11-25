@@ -9,7 +9,7 @@ github slynk-named-readtables joaotavora/sly-named-readtables
 # github log4cl 40ants/log4cl :branch support-sly
 
 # Because Ultralisp is not updates this library:
-github log4cl-extras 40ants/log4cl-extras :ref 71cf724fa6392084b41177f706faa48bb559f575
+github log4cl-extras 40ants/log4cl-extras :ref 8780a5f1a7609a32991cc5103648b03b12a4c255
 
 # Because bug in constant definition:
 # https://github.com/ultralisp/ultralisp/issues/84

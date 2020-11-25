@@ -63,6 +63,7 @@
   (:import-from #:ultralisp/stats
                 #:increment-counter)
   (:import-from #:ultralisp/models/versioned
+                #:latest-p
                 #:object-version)
   (:import-from #:ultralisp/models/source
                 #:create-new-source-version)
@@ -209,6 +210,7 @@
   (setf (get-error check) nil
         (get-processed-at check) (local-time:now)
         (get-processed-in check) processed-in)
+  
   (save-dao check))
 
 
@@ -307,7 +309,8 @@
 
 
 (defun perform2 (check2 &key (force (eql (ultralisp/models/check:get-type check2)
-                                        :added-project)))
+                                         :added-project)))
+  "Returns True if new changes were discovered during the check."
   (check-type check2 check2)
   
   (let ((started-at (get-internal-real-time)))
@@ -331,24 +334,29 @@
                       :source-version (object-version source)
                       :project (ultralisp/models/project:project-name project))
           (unwind-protect
-               (prog1 (when (or (check-if-source-was-changed source downloaded)
-                                force)
-                        ;; We should run this perform function inside a worker
-                        ;; process which will be killed after the finishing the task.
-                        ;; That is why it is OK to change a *central-registry* here:
-                        (pushnew path asdf:*central-registry*)
-                        (let* ((systems (collect-systems path)))
-
-                          (unless systems
-                            (error "No asd files were found!"))
-
-                          ;; Now we need to create another version of the source
-                          ;; with release info and bind it to a pending version
-                          (create-new-source-version source
-                                                     systems
-                                                     (downloaded-project-params downloaded))
-                          
-                          (values t)))
+               (prog1 (cond
+                        ((not (latest-p source)) ;; we only want to process checks for latest sources
+                         (log:warn "Ignoring the check because it is attached to an old version of the source")
+                         (values nil))
+                        
+                        ((or (check-if-source-was-changed source downloaded)
+                             force)
+                         ;; We should run this perform function inside a worker
+                         ;; process which will be killed after the finishing the task.
+                         ;; That is why it is OK to change a *central-registry* here:
+                         (pushnew path asdf:*central-registry*)
+                         (let* ((systems (collect-systems path)))
+                           
+                           (unless systems
+                             (error "No asd files were found!"))
+                           
+                           ;; Now we need to create another version of the source
+                           ;; with release info and bind it to a pending version
+                           (create-new-source-version source
+                                                      systems
+                                                      (downloaded-project-params downloaded))
+                           
+                           (values t))))
                  (update-check-as-successful2 check2
                                               (float (/ (- (get-internal-real-time)
                                                             started-at)

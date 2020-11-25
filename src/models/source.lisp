@@ -292,8 +292,10 @@
                           :release-info release-info
                           :params (update-plist (source-params source)
                                                 params))))
+      (log:debug "Creating a new dist version")
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
-                        source new-source :enable t))))
+                        source new-source :enable t)
+      (log:debug "New dist was created"))))
 
 
 (defun get-all-sources ()

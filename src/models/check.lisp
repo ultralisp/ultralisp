@@ -209,8 +209,9 @@
   
   (unless (member check-type *allowed-check-types*)
     (let ((*print-case* :downcase))
-      (error "Unable to create check of type ~S"
-             check-type)))
+      (error "Unable to create check of type ~S. Use one of these: ~{~A~^, ~}."
+             check-type
+             *allowed-check-types*)))
   
   (log:info "Triggering a check for" source check-type)
 
@@ -377,7 +378,9 @@
 
 (defmethod print-object ((check check2) stream)
   (print-unreadable-object (check stream :type t)
-    (let ((source (check->source check)))
+    (let ((source (or (ignore-errors
+                       (check->source check))
+                      "[unable to retrieve source]")))
       (format stream "~A ~A for ~A"
               (if (get-processed-at check)
                   "DONE"
@@ -390,9 +393,9 @@
   (check-type source ultralisp/models/source:source)
   (first
    (select-dao 'check2
-     (where (:and (:= 'source-id (mito:object-id source))
-                  (:= 'source-version (object-version source))))
-     (order-by (:desc 'processed-at))
+     (where (:= 'source-id (mito:object-id source)))
+     (order-by (:desc 'processed-at)
+               (:desc 'created-at))
      (limit 1))))
 
 

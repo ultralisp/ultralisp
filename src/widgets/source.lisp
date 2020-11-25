@@ -20,6 +20,9 @@
   (:import-from #:ultralisp/models/dist-source
                 #:source->dists
                 #:dist-source->dist)
+  (:import-from #:ultralisp/models/check
+                #:get-last-source-check
+                #:source-checks)
   (:export
    #:make-source-widget))
 (in-package ultralisp/widgets/source)
@@ -27,7 +30,12 @@
 
 (defwidget readonly-source-widget ()
   ((parent :initarg :parent
-           :reader parent)))
+           :reader parent)
+   (last-check :initarg :check
+               :initform nil
+               :type (or ultralisp/models/check:check2
+                         null)
+               :reader last-check)))
 
 
 (defwidget edit-source-widget ()
@@ -61,7 +69,8 @@
   (let* ((parent (parent widget))
          (source (source parent))
          (subwidget (make-instance 'readonly-source-widget
-                                   :parent parent)))
+                                   :parent parent
+                                   :check (get-last-source-check source))))
 
     (loop with url = (getf args :url)
           for (name value) on args by #'cddr
@@ -82,7 +91,8 @@
   (let* ((main (make-instance 'source-widget
                               :source source))
          (subwidget (make-instance 'readonly-source-widget
-                                   :parent main)))
+                                   :parent main
+                                   :check (get-last-source-check source))))
     (setf (slot-value main 'subwidget)
           subwidget)
     main))
@@ -124,6 +134,7 @@
     ;; Deleted sources should not be in the list
     ;; for rendering.
     (assert (not deleted))
+
     (with-html
       (:table
        (:tr (:td "Type")
@@ -145,6 +156,19 @@
        (:tr (:td "Distributions")
             (:td (mapc #'render-distribution
                        distributions)))
+       
+       (when (last-check widget)
+         (:tr (:td "Last check")
+              (let* ((check (last-check widget))
+                     (processed-at (ultralisp/models/check:get-processed-at check)))
+                (:td ("~A~A"
+                      (if processed-at
+                          (format nil "Finished at ~A." processed-at)
+                          "Waiting in the queue.")
+                      (if (and (ultralisp/models/check:get-processed-at check)
+                               (ultralisp/models/check:get-error check))
+                          (format nil " There was an error.")
+                          ""))))))
        
        (when (ultralisp/protocols/moderation:is-moderator
               (weblocks-auth/models:get-current-user)
