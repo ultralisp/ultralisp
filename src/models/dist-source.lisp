@@ -12,6 +12,7 @@
   (:import-from #:mito
                 #:object-id)
   (:import-from #:ultralisp/models/versioned
+                #:prev-version
                 #:object-version)
   (:import-from #:ultralisp/db
                 #:with-transaction)
@@ -93,11 +94,10 @@
 
 (defun dist-source->dist (dist-source)
   (check-type dist-source dist-source)
-  (first
-   (mito:retrieve-dao
-    'ultralisp/models/dist:dist
-    :id (dist-id dist-source)
-    :version (dist-version dist-source))))
+  (mito:find-dao
+   'ultralisp/models/dist:dist
+   :id (dist-id dist-source)
+   :version (dist-version dist-source)))
 
 
 (defun dist-source->source (dist-source)
@@ -206,9 +206,36 @@
         for source = (dist-source->source dist-source)
         collect (make-instance 'ultralisp/models/source:bound-source
                                :source source
+                               :dist dist
                                :enabled (enabled-p dist-source)
                                :disable-reason (disable-reason dist-source)
                                :include-reason (include-reason dist-source))))
+
+
+(defmethod prev-version ((obj ultralisp/models/source:bound-source))
+  (let* ((source (ultralisp/models/source:source obj))
+         (prev-source (prev-version source)))
+    (when prev-source
+      (let* ((dist (ultralisp/models/source:dist obj))
+             (prev-dist-source (mito:find-dao 'dist-source
+                                              ;; Here we use only dist-id
+                                              ;; because prev-source can be bound
+                                              ;; to another version of the same dist
+                                              :dist-id (object-id dist)
+                                              :source-id (object-id prev-source)
+                                              :source-version (object-version prev-source))))
+        (make-instance 'ultralisp/models/source:bound-source
+                       :source prev-source
+                       :dist (when prev-dist-source
+                               (ultralisp/models/dist:find-dist-version
+                                (dist-id prev-dist-source)
+                                (dist-version prev-dist-source)))
+                       :enabled (when prev-dist-source
+                                  (enabled-p prev-dist-source))
+                       :disable-reason (when prev-dist-source
+                                         (disable-reason prev-dist-source))
+                       :include-reason (when prev-dist-source
+                                         (include-reason prev-dist-source)))))))
 
 
 (defun update-source-dists (source &key (url nil url-p)
@@ -345,12 +372,11 @@
                                      (or disable-reason
                                          old-disable-reason))
           do (let ((old-dist-source-linked-to-the-pending-dist
-                     (first
-                      (mito:retrieve-dao 'dist-source
-                                         :dist-id (object-id pending-dist)
-                                         :dist-version (object-version pending-dist)
-                                         :source-id (object-id old-source)
-                                         :source-version (object-version old-source)))))
+                     (mito:find-dao 'dist-source
+                                    :dist-id (object-id pending-dist)
+                                    :dist-version (object-version pending-dist)
+                                    :source-id (object-id old-source)
+                                    :source-version (object-version old-source))))
                (log:debug "Found or created pending dist"
                           pending-dist
                           old-enabled
@@ -402,12 +428,11 @@
    "
   (let* ((pending-dist (get-or-create-pending-version dist))
          (already-linked-dist-source
-           (first
-            (mito:retrieve-dao 'dist-source
-                               :dist-id (object-id pending-dist)
-                               :dist-version (object-version pending-dist)
-                               :source-id (object-id source)
-                               :source-version (object-version source)))))
+           (mito:find-dao 'dist-source
+                          :dist-id (object-id pending-dist)
+                          :dist-version (object-version pending-dist)
+                          :source-id (object-id source)
+                          :source-version (object-version source))))
     (unless already-linked-dist-source
       
       (let* ((has-release-info (ultralisp/models/source:source-release-info source))

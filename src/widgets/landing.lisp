@@ -44,6 +44,10 @@
                 #:dist->sources)
   (:import-from #:ultralisp/models/source
                 #:bound-source)
+  (:import-from #:ultralisp/models/versioned
+                #:prev-version)
+  (:import-from #:ultralisp/protocols/render-changes
+                #:render-changes)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -88,13 +92,28 @@
 
 (defun render-bound-source (source)
   (check-type source bound-source)
-  (let* ((project (ultralisp/models/project:source->project source)))
+  (let* ((project (ultralisp/models/project:source->project source))
+         (prev-source (prev-version source)))
+
     (with-html
       (:li ("Project [~A](~A) was ~A"
             (ultralisp/protocols/url:url project)
             (ultralisp/models/project:project-name project)
             (cond
-              ((ultralisp/models/source:enabled-p source) "enabled")
+              ((null prev-source)
+               "added")
+              ((and
+                (ultralisp/models/source:enabled-p source)
+                (null (ultralisp/models/source:enabled-p prev-source)))
+               "enabled")
+              ((and
+                (null (ultralisp/models/source:enabled-p source))
+                (ultralisp/models/source:enabled-p prev-source))
+               "disabled")
+              ((and
+                (ultralisp/models/source:enabled-p source)
+                (ultralisp/models/source:enabled-p prev-source))
+               "changed")
               (t
                (case
                    (alexandria:make-keyword
@@ -107,7 +126,12 @@
                  (:manual
                   "removed manually")
                  (t
-                  "")))))))))
+                  (break)
+                  "")))))
+           (when (and
+                  (ultralisp/models/source:enabled-p source)
+                  (ultralisp/models/source:enabled-p prev-source))
+             (render-changes prev-source source))))))
 
 ;;* 
 (defun render-dist (dist)
@@ -153,8 +177,7 @@
   (setf (get-title)
         "Ultralisp - Fast Common Lisp Repository")
 
-  (let ((latest-versions (get-latest-versions))
-        (latest-dists (latest-dists))
+  (let ((latest-dists (latest-dists))
         (recent-projects (get-recent-projects)))
     (with-html
       ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
@@ -218,19 +241,6 @@ ultralisp :all :latest"
                         "Donate $$$ at Liberapay"))
               (:p ("Gold sponsors will be listed at the bottom of this page, and grand sponsors on [this separate page](/sponsors).")))))
 
-      (when latest-versions
-        (:div :class "latest-builds"
-              (:h3 "Latest builds")
-
-              (:table :class "versions-list"
-                      (:tr
-                       (:th :class "version-cell"
-                            "Version")
-                       (:th :class "timestamp-cell"
-                            "Built-at"))
-                      (mapc #'render-version
-                            latest-versions))))
-      
       (when latest-dists
         (:div :class "latest-builds"
               (:h3 "Latest builds")
@@ -257,28 +267,6 @@ ultralisp :all :latest"
     (weblocks-lass:make-dependency
       `(.dist-list
         ((:or .name-cell .version-cell .timestamp-cell)
-         :vertical-align top
-         :white-space nowrap
-         :text-align left)
-        (.timestamp-cell
-         :width 100%)
-        (.changelog-cell
-         :padding-left 1.7em
-         (.changelog
-          :margin 0
-          (p :margin 0)
-          (.diff
-           :margin 0
-           (dt :margin 0
-               :margin-right 0.6em
-               :display inline-block)
-           (dd :margin 0
-               :display inline-block)))
-         (.and-more :margin 0))))
-    ;; TODO: remove
-    (weblocks-lass:make-dependency
-      `(.versions-list
-        ((:or .version-cell .timestamp-cell)
          :vertical-align top
          :white-space nowrap
          :text-align left)

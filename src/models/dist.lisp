@@ -26,7 +26,8 @@
    #:dist-built-at
    #:get-prepared-dists
    #:latest-dists
-   #:dist-quicklisp-version))
+   #:dist-quicklisp-version
+   #:find-dist-version))
 (in-package ultralisp/models/dist)
 
 
@@ -190,3 +191,9 @@
   (mito:select-dao 'dist
     (sxql:order-by (:desc :created-at))
     (sxql:limit limit)))
+
+
+(defun find-dist-version (id version)
+  (mito:find-dao 'dist
+                 :id id
+                 :version version))

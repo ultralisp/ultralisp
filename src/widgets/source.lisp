@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/source
   (:use #:cl)
+  (:import-from #:ultralisp/protocols/render-changes)
   (:import-from #:weblocks/widget
                 #:defwidget
                 #:render)
@@ -279,3 +280,23 @@
         (.dist :margin-right 1em)
         ((:and .dist .disabled) :color "gray"))))
    (call-next-method)))
+
+
+;; Methods to render changes between source versions
+
+(defmethod ultralisp/protocols/render-changes:render ((type (eql :github)) prev-source new-source)
+  (weblocks/html:with-html
+    (:ul
+     (loop with old-params = (ultralisp/models/source:source-params prev-source)
+           with new-params = (ultralisp/models/source:source-params new-source)
+           with key-to-name = '(:last-seen-commit "commit")
+           with key-to-length = '(:last-seen-commit 8)
+           for (key new-value) on new-params by #'cddr
+           for old-value = (getf old-params key)
+           for name = (getf key-to-name key key)
+           for length = (getf key-to-length key 20)
+           unless (equal old-value new-value)
+           do (:li ("**~A** ~A ➞ ~A"
+                    name
+                    (str:shorten length old-value :ellipsis "…")
+                    (str:shorten length new-value :ellipsis "…")))))))

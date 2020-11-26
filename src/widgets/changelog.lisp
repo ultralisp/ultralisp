@@ -43,6 +43,7 @@
       (str:shorten 8 value :ellipsis "…"))))
 
 
+;; TODO: remove this code after refactoring
 (defgeneric render-object (action &key timestamp)
   (:method ((obj t) &key timestamp)
     (with-html
@@ -111,10 +112,10 @@
                   (loop for (key (before after)) on diff by #'cddr
                         do (:dt (get-key-name key))
                         when before
-                          do (:dd ("~A -> ~A" (prepare-value key before)
-                                              (prepare-value key after)))
+                        do (:dd ("~A -> ~A" (prepare-value key before)
+                                            (prepare-value key after)))
                         else
-                          do (:dd ("set to ~A" (prepare-value key after)))))))))
+                        do (:dd ("set to ~A" (prepare-value key after)))))))))
   (:method ((check any-check) &key timestamp)
     (with-html
       (:li (:p ("~@[~A - ~]~A"

@@ -51,7 +51,8 @@
    #:disable-reason
    #:include-reason
    #:get-all-sources
-   #:get-github-sources))
+   #:get-github-sources
+   #:dist))
 (in-package ultralisp/models/source)
 
 
@@ -116,15 +117,32 @@
 (defclass bound-source ()
   ((source :initarg :source
            :reader source)
+   (dist :initarg :dist
+         :initform nil
+         :documentation "
+             This slot will point to a distribution or can be nil in case
+             if the source version is not bound to the dist. Usually it
+             can be as result of prev-version call if previous source version was
+             not bound to a dist of original version.
+         "
+         :reader dist)
    (enabled :initarg :enabled
+            :initform nil
             :reader enabled-p)
    (disable-reason :initarg :disable-reason
+                   :initform nil
                    :reader disable-reason)
    (include-reason :initarg :include-reason
+                   :initform nil
                    :reader include-reason))
-  (:documentation "Represents the source bound to some distribution.
+  (:documentation "
+             Represents the source bound to some distribution.
 
-                   Objects of this type are returned by ultralisp/models/source-dist:dist->sources functionn."))
+             Objects of this type are returned by ultralisp/models/source-dist:dist->sources function.
+
+             Slots `dist', `enabled', `disable-reason' and `include-reason' can be nil
+             if the bound-source is result of `prev-version' call.
+"))
 
 
 ;; We'll define a few readers to make bound-dist work the same like usual dist does:

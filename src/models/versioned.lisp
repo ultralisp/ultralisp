@@ -10,7 +10,8 @@
    #:latest-p
    #:versioned
    #:deleted-p
-   #:versioned-table-class))
+   #:versioned-table-class
+   #:prev-version))
 (in-package ultralisp/models/versioned)
 
 
@@ -63,3 +64,18 @@
     (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = True WHERE id = ? AND version = ?" table-name)
                       (list (object-id obj)
                             (object-version obj)))))
+
+
+
+(defgeneric prev-version (obj)
+  (:method ((obj versioned))
+    (first
+     (mito:select-dao (class-of obj)
+       (sxql:where
+        (:and (:= 'id (object-id obj))
+              ;; There could be gaps in version numbers
+              ;; that is why we need to skip to the biggest
+              ;; version which less than current version.
+              (:< 'version (object-version obj))))
+       (sxql:order-by (:desc 'version))
+       (sxql:limit 1)))))
