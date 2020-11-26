@@ -12,6 +12,7 @@
   (:import-from #:ultralisp/models/dist-moderator)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
+  (:import-from #:ultralisp/protocols/url)
   (:import-from #:rutils
                 #:fmt)
   (:import-from #:weblocks/html
@@ -103,6 +104,7 @@
   (check-type dist-source ultralisp/models/dist-source:dist-source)
   (let* ((dist (dist-source->dist dist-source))
          (name (dist-name dist))
+         (url (ultralisp/protocols/url:url dist))
          (enabled (ultralisp/models/dist-source:enabled-p dist-source))
          (class (if enabled
                     "dist enabled"
@@ -113,9 +115,10 @@
                    (fmt "Disabled: ~A"
                         (ultralisp/models/dist-source:disable-reason dist-source)))))
     (with-html
-      (:span :class class
-             :title reason
-             name))))
+      (:a :class class
+          :title reason
+          :href url
+          name))))
 
 
 (defgeneric render-source (widget type source))
