@@ -105,7 +105,12 @@
               ((and
                 (ultralisp/models/source:enabled-p source)
                 (null (ultralisp/models/source:enabled-p prev-source)))
-               "enabled")
+               "enabled"
+               (format nil "enabled new source-id: ~A source-version: ~A prev: ~A"
+                       (mito:object-id source)
+                       (ultralisp/models/versioned:object-version source)
+                       prev-source)
+               )
               ((and
                 (null (ultralisp/models/source:enabled-p source))
                 (ultralisp/models/source:enabled-p prev-source))
@@ -129,6 +134,7 @@
                   (break)
                   "")))))
            (when (and
+                  prev-source
                   (ultralisp/models/source:enabled-p source)
                   (ultralisp/models/source:enabled-p prev-source))
              (render-changes prev-source source))))))

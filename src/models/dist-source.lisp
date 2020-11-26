@@ -213,29 +213,38 @@
 
 
 (defmethod prev-version ((obj ultralisp/models/source:bound-source))
+  "
+   To get the previous version of bound source, we have to find
+   a source which was bound to a previos version of the dist.
+
+   Otherwise we can choose wrong source version which was unbound
+   during the distributions list change.
+  "
   (let* ((source (ultralisp/models/source:source obj))
-         (prev-source (prev-version source)))
-    (when prev-source
-      (let* ((dist (ultralisp/models/source:dist obj))
-             (prev-dist-source (mito:find-dao 'dist-source
-                                              ;; Here we use only dist-id
-                                              ;; because prev-source can be bound
-                                              ;; to another version of the same dist
-                                              :dist-id (object-id dist)
-                                              :source-id (object-id prev-source)
-                                              :source-version (object-version prev-source))))
-        (make-instance 'ultralisp/models/source:bound-source
-                       :source prev-source
-                       :dist (when prev-dist-source
-                               (ultralisp/models/dist:find-dist-version
-                                (dist-id prev-dist-source)
-                                (dist-version prev-dist-source)))
-                       :enabled (when prev-dist-source
-                                  (enabled-p prev-dist-source))
-                       :disable-reason (when prev-dist-source
-                                         (disable-reason prev-dist-source))
-                       :include-reason (when prev-dist-source
-                                         (include-reason prev-dist-source)))))))
+         (dist (ultralisp/models/source:dist obj))
+         (prev-dist (prev-version dist)))
+    (when prev-dist
+      (let ((prev-dist-source (mito:find-dao 'dist-source
+                                             ;; Here we use only dist-id
+                                             ;; because prev-source can be bound
+                                             ;; to another version of the same dist
+                                             :dist-id (object-id prev-dist)
+                                             :dist-version (object-version prev-dist)
+                                             :source-id (object-id source))))
+        (when prev-dist-source
+          (let ((prev-source (ultralisp/models/source:find-source-version
+                              (source-id prev-dist-source)
+                              (source-version prev-dist-source))))
+            (unless prev-source
+              (error "Unable to find source with id = ~A and version = ~A"
+                     (source-id prev-dist-source)
+                     (source-version prev-dist-source)))
+            (make-instance 'ultralisp/models/source:bound-source
+                           :source prev-source
+                           :dist prev-dist
+                           :enabled (enabled-p prev-dist-source)
+                           :disable-reason (disable-reason prev-dist-source)
+                           :include-reason (include-reason prev-dist-source))))))))
 
 
 (defun update-source-dists (source &key (url nil url-p)

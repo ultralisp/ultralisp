@@ -52,7 +52,8 @@
    #:include-reason
    #:get-all-sources
    #:get-github-sources
-   #:dist))
+   #:dist
+   #:find-source-version))
 (in-package ultralisp/models/source)
 
 
@@ -345,3 +346,9 @@
                        "GITHUB")
                    (:in (:raw "params->>'USER-OR-ORG'")
                         usernames))))))
+
+
+(defun find-source-version (id version)
+  (mito:find-dao 'source
+                 :id id
+                 :version version))
