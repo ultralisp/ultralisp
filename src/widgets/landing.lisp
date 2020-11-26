@@ -48,6 +48,8 @@
                 #:prev-version)
   (:import-from #:ultralisp/protocols/render-changes
                 #:render-changes)
+  (:import-from #:ultralisp/widgets/dist
+                #:render-installation-instructions)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -144,24 +146,28 @@
   (check-type dist dist)
 
   (let* ((dist-name (ultralisp/models/dist:dist-name dist))
+         (dist-url (ultralisp/protocols/url:url dist))
          (number (ultralisp/models/dist:dist-quicklisp-version dist))
          (built-at (ultralisp/models/dist:dist-built-at dist))
          (state (ultralisp/models/dist:dist-state dist))
          (bound-sources (dist->sources dist :this-version t))
          ;; TODO: create a generic get-uri and define it for a version class
-         (version-uri ""
-                      ;; (format nil "/versions/~A" number)
-                      )
+         ;; (version-uri ""
+         ;;              ;; (format nil "/versions/~A" number)
+         ;;              )
          )
     (with-html
       (:tr
        (:td :class "name-cell"
-            dist-name)
+            (:a :href dist-url
+                dist-name))
        (:td :class "version-cell"
             (case state
               (:ready
-               (:a :href version-uri
-                   number))
+               number
+               ;; (:a :href version-uri
+               ;;     number)
+               )
               (t (:span "No version yet"))))
        (:td :class "timestamp-cell"
             (if built-at
@@ -202,22 +208,8 @@
           :title "Add your projects from Github to Ultralisp distribution!"
           "Add projects from Github")
       
-      (:h3 "How to use it?")
+      (render-installation-instructions (ultralisp/models/dist:common-dist))
       
-      (let* ((base-url (get-base-url))
-             (url (if (search "localhost" base-url)
-                      (concat base-url (get-dist-name) ".txt")
-                      base-url)))
-        (:p "Open your Lisp REPL and eval:")
-        (:pre (format nil "(ql-dist:install-dist \"~A\"
-                      :prompt nil)"
-                      url))
-        (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put these lines in your **qlfile**:"))
-        (:pre (format nil "dist ultralisp ~A
-ql :all :latest
-ultralisp :all :latest"
-                      url)))
-
       (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
         (:h3 "Roadmap")
 

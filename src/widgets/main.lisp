@@ -25,6 +25,8 @@
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/project
                 #:make-project-widget)
+  (:import-from #:ultralisp/widgets/dist
+                #:make-dist-widget)
   (:import-from #:ultralisp/widgets/projects
                 #:make-author-projects-widget
                 #:make-my-projects-widget)
@@ -55,6 +57,8 @@
    (make-version-widget))
   ("/projects/.*/.*"
    (make-project-widget))
+  ("/dists/.*"
+   (make-dist-widget))
   ("/projects/.*"
    (make-author-projects-widget))
   ("/my/projects"

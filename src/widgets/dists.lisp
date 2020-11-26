@@ -11,6 +11,7 @@
                 #:with-html)
   (:import-from #:ultralisp/models/dist
                 #:dist-name)
+  (:import-from #:ultralisp/protocols/url)
   (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist
                 #:moderated-dists)
@@ -31,9 +32,11 @@
 
 (defun render-dist (dist)
   (check-type dist ultralisp/models/dist:dist)
-  (let ((name (dist-name dist)))
+  (let ((name (dist-name dist))
+        (url (ultralisp/protocols/url:url dist)))
     (with-html
-      (:li name))))
+      (:li (:a :href url
+               name)))))
 
 
 (defmethod weblocks/widget:render ((widget dists-widget))

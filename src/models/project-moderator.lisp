@@ -66,9 +66,9 @@
 
 
 (defmethod is-moderator ((user user) (project project2))
-  (mito:retrieve-dao 'project-moderator
-                     :project-id (mito:object-id project)
-                     :user-id (mito:object-id user)))
+  (mito:find-dao 'project-moderator
+                 :project-id (mito:object-id project)
+                 :user-id (mito:object-id user)))
 
 
 (defmethod moderators ((project project2))

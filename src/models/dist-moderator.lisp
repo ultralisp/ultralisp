@@ -7,6 +7,8 @@
                 #:dist)
   (:import-from #:ultralisp/db
                 #:with-transaction)
+  (:import-from #:ultralisp/protocols/moderation
+                #:is-moderator)
   (:export
    #:dist-moderator
    #:dist-id
@@ -63,3 +65,9 @@
                        :dist-id (mito:object-id dist)
                        :user-id (mito:object-id user))
       dist)))
+
+
+(defmethod is-moderator ((user user) (dist dist))
+  (mito:find-dao 'dist-moderator
+                 :dist-id (mito:object-id dist)
+                 :user-id (mito:object-id user)))
