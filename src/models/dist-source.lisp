@@ -279,12 +279,15 @@
                 (ultralisp/models/source:copy-source source))
           
           (loop for dist in keep-dists
-                do (mito:create-dao 'dist-source
-                                    :dist-id (object-id dist)
-                                    :dist-version (object-version dist)
-                                    :source-id (object-id source)
-                                    :source-version (object-version source)
-                                    :include-reason (include-reason dist)))
+                ;; Here we need to attach to the dist a new source version
+                ;; and to detach the old one:
+                for old-dist-source = (mito:find-dao 'dist-source
+                                                     :dist-id (object-id dist)
+                                                     :dist-version (object-version dist)
+                                                     :source-id (object-id source))
+                do (setf (source-version old-dist-source)
+                         (object-version source))
+                   (mito:save-dao old-dist-source))
           
           ;; If source should be added to the dist,
           ;; we have to get/create a pending dist

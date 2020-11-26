@@ -135,7 +135,7 @@
     ;; Deleted sources should not be in the list
     ;; for rendering.
     (assert (not deleted))
-
+    
     (with-html
       (:table
        (:tr (:td "Type")

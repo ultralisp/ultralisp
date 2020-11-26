@@ -35,7 +35,8 @@
    'dist
    "SELECT dist.* FROM dist
       JOIN dist_moderator ON dist.id = dist_moderator.dist_id
-     WHERE dist_moderator.user_id = ?"
+     WHERE dist_moderator.user_id = ?
+      AND dist.latest = 'true'"
    :binds (list (mito:object-id user))))
 
 
