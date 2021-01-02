@@ -15,19 +15,19 @@ CREATE UNIQUE INDEX "unique_project2_name" ON "project2" ("name");
 CREATE SEQUENCE IF NOT EXISTS source_id_seq;
 
 CREATE TABLE "source" (
-    "project_id" BIGINT NOT NULL,
-    "project_version" BIGINT NOT NULL,
     "id" BIGINT NOT NULL,
     "version" BIGINT NOT NULL,
     "latest" BOOLEAN NOT NULL,
     "deleted" BOOLEAN NOT NULL,
+    "project_id" BIGINT NOT NULL,
+    "project_version" BIGINT NOT NULL,
     "type" TEXT NOT NULL,
     "params" JSONB NOT NULL,
     "systems_info" JSONB,
     "release_info" JSONB,
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
-    PRIMARY KEY ("project_id", "project_version", "version"),
+    PRIMARY KEY ("id", "version"),
     FOREIGN KEY ("project_id", "project_version")
     REFERENCES "project2" ("id", "version")
 );

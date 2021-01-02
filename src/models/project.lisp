@@ -25,6 +25,8 @@
                 #:object-version
                 #:versioned)
   (:import-from #:ultralisp/protocols/moderation)
+  (:import-from #:ultralisp/utils/github
+                #:extract-github-name)
   (:import-from #:sxql
                 #:order-by
                 #:limit
@@ -329,20 +331,6 @@
                   :params (list :user-or-org user-or-org
                                 :project project-name))
       project)))
-
-
-(defun extract-github-name (url)
-  "It should extract \"cbaggers/livesupport\" from urls like:
-
-   http://github.com/cbaggers/livesupport
-   https://github.com/cbaggers/livesupport
-   https://github.com/cbaggers/livesupport/
-   https://github.com/cbaggers/livesupport.git
-   https://github.com/cbaggers/livesupport/issues"
-  
-  (cl-ppcre:register-groups-bind (name)
-      ("https?://github.com/(.*?/.*?)($|/|\\.git)" url)
-    name))
 
 
 (defun make-github-project-from-url (url &key (moderator nil moderator-given-p))

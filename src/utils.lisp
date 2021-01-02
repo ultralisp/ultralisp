@@ -5,6 +5,7 @@
                 #:generate-random-string)
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
+  (:import-from #:alexandria)
   (:import-from #:uiop
                 #:ensure-absolute-pathname
                 #:ensure-directory-pathname
@@ -45,7 +46,8 @@
    #:delete-file-if-exists
    #:in-repl
    #:with-trace
-   #:time-in-future))
+   #:time-in-future
+   #:make-keyword))
 (in-package ultralisp/utils)
 
 
@@ -256,3 +258,8 @@
            (log:debug "TRACE: Call to" ,code-name
                       "returned this values list:" ,result)
            (values-list ,result)))))
+
+
+(defun make-keyword (text)
+  (alexandria:make-keyword
+   (string-upcase text)))

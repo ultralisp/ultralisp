@@ -64,9 +64,10 @@
                      :check-name ,(string-downcase
                                    (symbol-name name)))
          ;; TODO: Temporary this is logged as WARN
-         ;;       we need to implement "crossfinger" logging facility
-         ;;       in the log4cl-extras and change it back to the INFO
-         (log:warn "Running cron task" ',name)
+         ;;       because only WARN and ERROR are logged on production.
+         ;;       We need to implement "crossfinger" logging facility
+         ;;       in the log4cl-extras and change it back to the INFO.
+         (log:info "Running cron task" ',name)
          (handler-bind ((error (lambda (condition)
                                  (if slynk-api:*emacs-connection*
                                      (invoke-debugger condition)

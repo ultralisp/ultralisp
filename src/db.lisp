@@ -53,7 +53,7 @@
 (defun connect-toplevel-in-dev ()
   (setf mito:*connection*
         (cl-dbi:connect :postgres
-                        :host "postgres"
+                        :host (ultralisp/variables:get-postgres-host)
                         :port 5432
                         :database-name "ultralisp"
                         :username "ultralisp"

@@ -128,7 +128,6 @@ CREATE TABLE "source" (
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY ("id", "version"),
-    UNIQUE ("project_id", "project_version", "version"),
     FOREIGN KEY ("project_id", "project_version")
     REFERENCES "project2" ("id", "version")
 );

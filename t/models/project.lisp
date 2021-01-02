@@ -15,8 +15,9 @@
                 #:project-updated
                 #:project-removed
                 #:get-project-actions)
+  (:import-from #:ultralisp/utils/github
+                #:extract-github-name)
   (:import-from #:ultralisp/models/project
-                #:extract-github-name
                 #:disable-project
                 #:update-and-enable-project
                 #:make-github-project

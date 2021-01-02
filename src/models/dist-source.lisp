@@ -16,6 +16,8 @@
                 #:object-version)
   (:import-from #:ultralisp/db
                 #:with-transaction)
+  (:import-from #:ultralisp/utils
+                #:update-plist)
   (:export
    #:dist-source
    #:dist-id
@@ -247,88 +249,108 @@
                            :include-reason (include-reason prev-dist-source))))))))
 
 
-(defun update-source-dists (source &key (url nil url-p)
+(defun update-source-dists (source &key (params nil params-p)
                                         (dists nil dists-p)
                                         (include-reason :direct)
                                         (disable-reason :manual))
-  (declare (ignorable url))
-  (check-type source ultralisp/models/source:source)
-  (when url-p
-    (error "Changing url is not supported yet"))
-  (when dists-p
-    (with-transaction
-      (let* ((new-dists (mapcar #'ensure-dist dists))
-             (current-dists (remove-if-not
-                             #'ultralisp/models/dist:enabled-p
-                             (source->dists source)))
-             (dists-to-remove
-               (set-difference current-dists
-                               new-dists
-                               :key #'dist-name
-                               :test #'string=))
-             (dists-to-add
-               (set-difference new-dists
-                               current-dists
-                               :key #'dist-name
-                               :test #'string=))
-             ;; These dists nor added nor removed,
-             ;; we have to keep links to them
-             (keep-dists
-               (intersection current-dists
-                             new-dists
-                             :key #'dist-name
-                             :test #'string=)))
-        (when (or dists-to-remove
-                  dists-to-add)
+  "Creates a new version of the source by changing the dists and optionally updating source params.
 
-          ;; We need to create a source's copy
-          ;; to increment it's version which will be bound to new
-          ;; sources:
-          (setf source
-                (ultralisp/models/source:copy-source source))
+   Returns two values: a source object and boolean. If boolean is `t` then source was cloned and updated."
+  (check-type source ultralisp/models/source:source)
+
+  (with-transaction
+    (let (new-source)
+      (let ((new-params (update-plist (ultralisp/models/source:source-params source)
+                                      params)))
+        (flet ((ensure-there-is-a-clone ()
+                 (unless new-source
+                   (setf new-source
+                         (ultralisp/models/source:copy-source source
+                                                              :params new-params)))))
+          (when params-p
+            (ensure-there-is-a-clone))
+
+          (let* ((current-dists (remove-if-not
+                                 #'ultralisp/models/dist:enabled-p
+                                 (source->dists source)))
+                 (new-dists (if dists-p
+                                (mapcar #'ensure-dist dists)
+                                ;; If dists list was not given, then
+                                ;; we'll just keep all dists as is by
+                                ;; reataching them to a new source version.
+                                current-dists))
+                 (dists-to-remove
+                   (set-difference current-dists
+                                   new-dists
+                                   :key #'dist-name
+                                   :test #'string=))
+                 (dists-to-add
+                   (set-difference new-dists
+                                   current-dists
+                                   :key #'dist-name
+                                   :test #'string=))
+                 ;; These dists nor added nor removed,
+                 ;; we have to keep links to them
+                 (keep-dists
+                   (intersection current-dists
+                                 new-dists
+                                 :key #'dist-name
+                                 :test #'string=)))
           
-          (loop for dist in keep-dists
-                ;; Here we need to attach to the dist a new source version
-                ;; and to detach the old one:
-                for old-dist-source = (mito:find-dao 'dist-source
-                                                     :dist-id (object-id dist)
-                                                     :dist-version (object-version dist)
-                                                     :source-id (object-id source))
-                do (setf (source-version old-dist-source)
-                         (object-version source))
-                   (mito:save-dao old-dist-source))
-          
-          ;; If source should be added to the dist,
-          ;; we have to get/create a pending dist
-          ;; and to link this source to it:
-          (loop for dist in dists-to-add
-                for new-version = (get-or-create-pending-version dist)
-                do (mito:create-dao 'dist-source
-                                    :dist-id (object-id new-version)
-                                    :dist-version (object-version new-version)
-                                    :source-id (object-id source)
-                                    :source-version (object-version source)
-                                    :include-reason include-reason))
-          
-          ;; if source should be removed from some dist,
-          ;; then we have to get/create a pending dist
-          ;; and to link this source with "deleted" mark:
-          (loop for dist in dists-to-remove
-                for new-version = (get-or-create-pending-version dist)
-                do (mito:create-dao 'dist-source
-                                    :dist-id (object-id new-version)
-                                    :dist-version (object-version new-version)
-                                    :source-id (object-id source)
-                                    :source-version (object-version source)
-                                    ;; Here we reuse reason from the removed
-                                    ;; dist.
-                                    :include-reason (include-reason dist)
-                                    ;; Important to set this flag:
-                                    :deleted t
-                                    :enabled nil
-                                    :disable-reason (make-disable-reason disable-reason)))))))
-  ;; Now we'll return old or a new source: 
-  source)
+            (when dists-to-add
+              (ensure-there-is-a-clone)
+              ;; If source should be added to the dist,
+              ;; we have to get/create a pending dist
+              ;; and to link this source to it:
+              (loop for dist in dists-to-add
+                    for new-version = (get-or-create-pending-version dist)
+                    do (mito:create-dao 'dist-source
+                                        :dist-id (object-id new-version)
+                                        :dist-version (object-version new-version)
+                                        :source-id (object-id new-source)
+                                        :source-version (object-version new-source)
+                                        :include-reason include-reason)))
+
+            (when dists-to-remove
+              (ensure-there-is-a-clone)
+              ;; if source should be removed from some dist,
+              ;; then we have to get/create a pending dist
+              ;; and to link this source with "deleted" mark:
+              (loop for dist in dists-to-remove
+                    for new-version = (get-or-create-pending-version dist)
+                    do (mito:create-dao 'dist-source
+                                        :dist-id (object-id new-version)
+                                        :dist-version (object-version new-version)
+                                        :source-id (object-id new-source)
+                                        :source-version (object-version new-source)
+                                        ;; Here we reuse reason from the removed
+                                        ;; dist.
+                                        :include-reason (include-reason dist)
+                                        ;; Important to set this flag:
+                                        :deleted t
+                                        :enabled nil
+                                        :disable-reason (make-disable-reason disable-reason))))
+            
+            (when new-source
+              ;; We need to execute this section in any case if params were updated
+              ;; or if some dists were changed. In both cases, source will be
+              ;; cloned and new-version will not be nil.
+              (loop for dist in keep-dists
+                    ;; Here we need to attach to the dist a new source version
+                    ;; and to detach the old one:
+                    for old-dist-source = (mito:find-dao 'dist-source
+                                                         :dist-id (object-id dist)
+                                                         :dist-version (object-version dist)
+                                                         :source-id (object-id source))
+                    do (setf (source-version old-dist-source)
+                             (object-version new-source))
+                       (mito:save-dao old-dist-source)))))
+        ;; Now we'll return old or a new source and a True as a second
+        ;; value, if something was changed and source was cloned.
+        (values (or new-source
+                    source)
+                (when new-source
+                  t))))))
 
 
 (defun disable-reason-type (reason)

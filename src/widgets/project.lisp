@@ -34,7 +34,10 @@
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
   (:import-from #:ultralisp/widgets/source
+                #:make-add-source-widget
                 #:make-source-widget)
+  (:import-from #:fare-utils
+                #:push-last-item!)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
@@ -46,7 +49,9 @@
    (project :initform nil
             :reader project)
    (source-widgets :initform nil
-                   :reader source-widgets))
+                   :reader source-widgets)
+   (add-form :initform nil
+             :reader add-form))
   (:documentation "This widget will be updated with (setf (project-name widget) \"another/name\")
                    During update, sources list is changing."))
 
@@ -65,7 +70,16 @@
             new-project
             (slot-value widget 'source-widgets)
             (mapcar #'make-source-widget
-                    (ultralisp/models/project:project-sources new-project))))))
+                    (ultralisp/models/project:project-sources new-project))
+            (slot-value widget 'add-form)
+            (make-add-source-widget
+             new-project
+             :on-new-source
+             (lambda (source)
+               (uiop:appendf
+                (slot-value widget 'source-widgets)
+                (list (make-source-widget source)))
+               (weblocks/widget:update widget)))))))
 
 
 (defun toggle (widget project)
@@ -162,7 +176,9 @@
            description)
 
       (mapc #'render (source-widgets widget))
-       
+
+      (render (add-form widget))
+      
       ;; (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
       ;;                                                          :at next-check-at)
       ;;                                           changelog)

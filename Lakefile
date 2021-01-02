@@ -91,5 +91,8 @@
 (task "lint" ()
       (sh "qlot exec sblint ultralisp.asd ultralisp-test.asd"))
 
+(task "stop" ()
+      (sh "docker stop ultralisp_app ultralisp_worker ultralisp_empty_db ultralisp_elastic ultralisp_db"))
+
 (task "default" ("devserver")
       ())

@@ -25,24 +25,16 @@
   (:import-from #:ultralisp/models/check
                 #:get-last-source-check
                 #:source-checks)
+  (:import-from #:ultralisp/utils
+                #:make-keyword)
+  (:import-from #:ultralisp/models/source
+                #:params-from-github)
+  (:import-from #:ultralisp/utils/github
+                #:get-branches)
   (:export
-   #:make-source-widget))
+   #:make-source-widget
+   #:make-add-source-widget))
 (in-package ultralisp/widgets/source)
-
-
-(defwidget readonly-source-widget ()
-  ((parent :initarg :parent
-           :reader parent)
-   (last-check :initarg :check
-               :initform nil
-               :type (or ultralisp/models/check:check2
-                         null)
-               :reader last-check)))
-
-
-(defwidget edit-source-widget ()
-  ((parent :initarg :parent
-           :reader parent)))
 
 
 (defwidget source-widget ()
@@ -52,16 +44,74 @@
               :accessor subwidget)))
 
 
+(defwidget readonly-source-widget ()
+  ((parent :initarg :parent
+           :type source-widget
+           :reader parent)
+   (last-check :initarg :check
+               :initform nil
+               :type (or ultralisp/models/check:check2
+                         null)
+               :reader last-check)))
+
+
+(defwidget branch-select-widget ()
+  ((branches :initarg :branches
+             :reader branches)
+   (current :initarg :current
+            :reader current-branch)))
+
+
+(defun make-branch-select-widget (github-url &optional (current "main"))
+  (multiple-value-bind (branches default-branch)
+      (get-branches github-url)
+    (make-instance 'branch-select-widget
+                   :branches branches
+                   :current (or current
+                                default-branch))))
+
+
+(defwidget edit-source-widget ()
+  ((parent :initarg :parent
+           :type source-widget
+           :reader parent)
+   (branches :initarg :branches
+             :reader branches)))
+
+
+(defwidget add-source-widget ()
+  ((project :initarg :project
+            :reader project)
+   (on-new-source :initform nil
+                  :initarg :on-new-source
+                  :reader on-new-source
+                  :documentation "
+                      A function of one argument.
+                      Will be called with a new source.
+                  ")))
+
+
 (defun edit (widget)
   (check-type widget readonly-source-widget)
   (log:debug "Switching to the edit widget")
   (let* ((main (parent widget))
+         (source (source main))
+         ;; Где-то здесь надо воткнуть получение списка полей
          (subwidget (make-instance 'edit-source-widget
-                                   :parent main)))
+                                   :parent main
+                                   :branches (make-branch-select-widget
+                                              (external-url source)
+                                              (ultralisp/models/source:get-current-branch source)))))
     (setf (slot-value main 'subwidget)
           subwidget)
     (weblocks/widget:update main)))
 
+
+;; Here is the flow of working with a source.
+;; Each source type has to define it's own form for read-only
+;; rendering, editing and a method for saving results.
+;; When results are saved, there is a common part of
+;; distribution update and a custom part of fields update.
 
 (defun save (widget args)
   (check-type widget edit-source-widget)
@@ -75,18 +125,35 @@
                                    :check (get-last-source-check source))))
 
     (loop with url = (getf args :url)
+          with branch = (getf args :branch)
           for (name value) on args by #'cddr
           when (member name '(:distributions :distributions[]))
           collect value into new-dist-names
           finally
-             (log:info "Saving" new-dist-names url)
-             (let ((new-source (update-source-dists source :dists new-dist-names)))
-               (setf (source parent)
-                     new-source)))
+             (multiple-value-bind (user-name project-name)
+                 (params-from-github url)
+
+               (log:info "Saving" new-dist-names url branch)
+               
+               ;; TODO: we need to refactor this part because for other
+               ;; types of sources we'll need to process params differently:
+               (let ((new-source (update-source-dists source
+                                                      :dists new-dist-names
+                                                      :params (list :user-or-org user-name
+                                                                    :project project-name
+                                                                    :branch branch))))
+                 (setf (source parent)
+                       new-source))))
     
     (setf (slot-value parent 'subwidget)
           subwidget)
     (weblocks/widget:update parent)))
+
+
+(defun make-add-source-widget (project &key on-new-source)
+  (make-instance 'add-source-widget
+                 :project project
+                 :on-new-source on-new-source))
 
 
 (defun make-source-widget (source)
@@ -124,14 +191,22 @@
 (defgeneric render-source (widget type source))
 
 
+(defun github-url (source-params)
+  (let ((user-or-org (getf source-params :user-or-org))
+        (project-name (getf source-params :project)))
+    (if (and user-or-org project-name)
+        (format nil "https://github.com/~A/~A"
+                user-or-org
+                project-name)
+        "")))
+
+
 (defmethod render-source ((widget readonly-source-widget)
                           (type (eql :github))
                           source)
   (let* ((params (ultralisp/models/source:source-params source))
          (deleted (ultralisp/models/source:deleted-p source))
-         (url (format nil "https://github.com/~A/~A"
-                      (getf params :user-or-org)
-                      (getf params :project)))
+         (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
          (release-info (ultralisp/models/source:source-release-info source))
          (distributions (source-distributions source)))
@@ -141,51 +216,64 @@
     
     (with-html
       (:table
-       (:tr (:td "Type")
-            (:td type))
-       (:tr (:td "Source")
-            (:td (:a :href url
+       (:tr (:td :class "label-column"
+                 "Type")
+            (:td :class "field-column"
+                 type
+                 ;; Controls for editing and deleting source
+                 (when (ultralisp/protocols/moderation:is-moderator
+                        (weblocks-auth/models:get-current-user)
+                        (ultralisp/models/project:source->project source))
+                   (:div :class "source-controls float-right"
+                         (weblocks-ui/form:with-html-form
+                             (:post (lambda (&rest args)
+                                      (declare (ignorable args))
+                                      (edit widget)))
+                           (:input :type "submit"
+                                   :class "button tiny"
+                                   :name "button"
+                                   :value "Edit"))))))
+       (:tr (:td :class "label-column"
+                 "Source")
+            (:td :class "field-column"
+                 (:a :href url
                      url)))
-       (:tr (:td "Branch or tag")
-            ;; TODO: make this editable
-            (:td "master (not editable yet)"))
+       (:tr (:td :class "label-column"
+                 "Branch or tag")
+            (:td :class "field-column"
+                 (ultralisp/models/source:get-current-branch source)))
        (when last-seen-commit
-         (:tr (:td "Last seen commit")
-              (:td (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+         (:tr (:td :class "label-column"
+                   "Last seen commit")
+              (:td :class "field-column"
+                   (:a :href (fmt "~A/commit/~A" url last-seen-commit)
                        last-seen-commit))))
        (when release-info
-         (:tr (:td "Release")
-              (:td (:a :href (quickdist:get-project-url release-info)
+         (:tr (:td :class "label-column"
+                   "Release")
+              (:td :class "field-column"
+                   (:a :href (quickdist:get-project-url release-info)
                        (quickdist:get-project-url release-info)))))
-       (:tr (:td "Distributions")
-            (:td (mapc #'render-distribution
+       (:tr (:td :class "label-column"
+                 "Distributions")
+            (:td :class "field-column"
+                 (mapc #'render-distribution
                        distributions)))
        
        (when (last-check widget)
-         (:tr (:td "Last check")
+         (:tr (:td :class "label-column"
+                   "Last check")
               (let* ((check (last-check widget))
                      (processed-at (ultralisp/models/check:get-processed-at check)))
-                (:td ("~A~A"
+                (:td :class "field-column"
+                     ("~A~A"
                       (if processed-at
                           (format nil "Finished at ~A." processed-at)
                           "Waiting in the queue.")
                       (if (and (ultralisp/models/check:get-processed-at check)
                                (ultralisp/models/check:get-error check))
                           (format nil " There was an error.")
-                          ""))))))
-       
-       (when (ultralisp/protocols/moderation:is-moderator
-              (weblocks-auth/models:get-current-user)
-              (ultralisp/models/project:source->project source))
-         (:tr (:td :colspan 2
-                   (weblocks-ui/form:with-html-form
-                       (:post (lambda (&rest args)
-                                (declare (ignorable args))
-                                (edit widget)))
-                     (:input :type "submit"
-                             :class "button float-right"
-                             :name "button"
-                             :value "Edit")))))))))
+                          ""))))))))))
 
 
 (defmethod render-source ((widget edit-source-widget)
@@ -193,9 +281,7 @@
                           source)
   (let* ((params (ultralisp/models/source:source-params source))
          (deleted (ultralisp/models/source:deleted-p source))
-         (url (format nil "https://github.com/~A/~A"
-                      (getf params :user-or-org)
-                      (getf params :project)))
+         (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
          ;; (distributions (source-distributions source))
          (user (weblocks-auth/models:get-current-user))
@@ -221,41 +307,59 @@
                      (declare (ignorable args))
                      (save widget args)))
           (:table
-           (:tr (:td "Type")
-                (:td type))
-           (:tr (:td "Source")
-                (:td (:a :href url
-                         url))
-                ;; TODO: maybe add url editing some day:
-                ;; (:td (:input :value url
-                ;;              :name "url"
-                ;;              :type "text"))
-                )
-           (:tr (:td "Branch or tag")
-                ;; TODO: make this editable
-                (:td "master (not editable yet)"))
+           (:tr (:td :class "label-column"
+                     "Type")
+                (:td :class "field-column"
+                     type
+                     (:div :class "source-controls float-right"
+                           (:input :type "submit"
+                                   :class "success button float-right tiny"
+                                   :name "button"
+                                   :value "Save"))))
+           (:tr (:td :class "label-column"
+                     "Source")
+                (:td :class "field-column"
+                     (:input :value url
+                             :name "url"
+                             :type "text")))
+           (:tr (:td :class "label-column"
+                     "Branch or tag")
+                (:td :class "field-column"
+                     (render (branches widget))))
            (when last-seen-commit
-             (:tr (:td "Last seen commit")
-                  (:td (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+             (:tr (:td :class "label-column"
+                       "Last seen commit")
+                  (:td :class "field-column"
+                       (:a :href (fmt "~A/commit/~A" url last-seen-commit)
                            last-seen-commit))))
            (when release-info
-             (:tr (:td "Release")
+             (:tr (:td :class "label-column"
+                       "Release")
                   (:td (:a :href (quickdist:get-project-url release-info)
                            (quickdist:get-project-url release-info)))))
-           (:tr (:td "Distributions")
-                (:td
+           (:tr (:td :class "label-column"
+                     "Distributions")
+                (:td :class "field-column"
                  (loop for dist in all-dists
                        for name = (ultralisp/models/dist:dist-name dist)
                        do  (:input :type "checkbox"
                                    :name "distributions"
                                    :value name
                                    :checked (is-enabled dist)
-                                   (:label name)))))
-           (:tr (:td :colspan 2
-                     (:input :type "submit"
-                             :class "button float-right"
-                             :name "button"
-                             :value "Save")))))))))
+                                   (:label name)))))))))))
+
+
+(defmethod weblocks/widget:render ((widget branch-select-widget))
+  (with-html
+    (:select :name "branch"
+      (:option :disabled "disabled"
+               "Select a branch")
+      (loop with current = (current-branch widget)
+            for branch in (branches widget)
+            do (:option :selected (when (string-equal branch
+                                                      current)
+                                    "selected")
+                        branch)))))
 
 
 (defmethod weblocks/widget:render ((widget source-widget))
@@ -281,7 +385,17 @@
       `(.source-widget
         (input :margin 0)
         (.dist :margin-right 1em)
+        (.label-column :white-space "nowrap")
+        (.field-column :width "100%")
         ((:and .dist .disabled) :color "gray"))))
+   (call-next-method)))
+
+
+(defmethod weblocks/dependencies:get-dependencies ((widget edit-source-widget))
+  (append
+   (list
+    (weblocks-parenscript:make-dependency
+      (parenscript:chain console (log "Foo bar"))))
    (call-next-method)))
 
 
@@ -303,3 +417,36 @@
                     name
                     (str:shorten length old-value :ellipsis "…")
                     (str:shorten length new-value :ellipsis "…")))))))
+
+
+(defmethod weblocks/widget:render ((widget add-source-widget))
+  (let ((project (project widget))
+        (user (weblocks-auth/models:get-current-user)))
+    (weblocks/html:with-html
+      ;; Controls for editing and deleting source
+      (when (ultralisp/protocols/moderation:is-moderator user project)
+        (weblocks-ui/form:with-html-form
+            (:post (lambda (&rest args)
+                     (declare (ignorable args))
+                     (let* ((on-new-source (on-new-source widget))
+                            (source-type (make-keyword (getf args :type)))
+                            (source (ultralisp/models/source:create-source project
+                                                                           source-type)))
+                       (weblocks/utils/misc:safe-funcall on-new-source source))))
+          (:table
+           (:tr
+            (:td
+             (:label :style "min-width: 20%; white-space: nowrap"
+                     "New source of type:"))
+            (:td
+             (:select :name "type"
+               :style "min-width: 7em; margin: 0"
+               (:option :selected t
+                        "GITHUB")
+               (:option "ARCHIVE")))
+            (:td :style "width: 100%"
+                 (:input :type "submit"
+                         :class "button small"
+                         :style "margin: 0"
+                         :name "button"
+                         :value "Add")))))))))

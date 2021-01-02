@@ -98,7 +98,8 @@
    #:main
    #:start
    #:restart
-   #:stop))
+   #:stop
+   #:start-outside-docker))
 (in-package ultralisp/server)
 
 
@@ -321,9 +322,14 @@
    server with same arguments.")
 
 
-(defun start (&rest args)
+(defun start (&rest args &key (debug t)
+                           (port 8080)
+                           (interface "localhost")
+                           (server-type :woo))
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
+  (declare (ignore debug port interface server-type))
+  
   (log:info "Starting ultralisp" args)
 
   (setf *previous-args* args)
@@ -371,11 +377,43 @@ arguments."
   (ultralisp/cron:start)
 
   (log:info "Starting server" args)
-  (apply #'weblocks/server:start :server-type :woo args)
+  (apply #'weblocks/server:start args)
 
   (log:info "DONE")
   (setf *app*
         (weblocks/app:start 'app)))
+
+
+(defun start-outside-docker ()
+  "This helper to start Ultralisp in the REPL started outside of Docker.
+
+   First, start Postgres, Gearman and Worker in the Docker Compose:
+
+       lake
+
+   Then open Emacs:
+
+       qlot exec ros emacs
+
+
+   Open SLY, load `:ultralisp/server` and call `start-outside-docker`.
+
+   This way you'll have two HTTP servers:
+
+   - One started on 8080 port and running inside Docker.
+   - Second on 8081 port and running outside."
+
+  ;; These vars are the same as in the 
+  (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
+                      ("GITHUB_SECRET" "3f46156c6bd57f4c233db9449ed556b6e545315a")
+                      ("BASE_URL" "http://localhost:8081/dist/")
+                      ("CRON_DISABLED" "yes"))
+        for (name value) in vars
+        do (setf (uiop/os:getenv name)
+                 value))
+  
+  
+  (start :port 8081))
 
 
 (defun stop ()

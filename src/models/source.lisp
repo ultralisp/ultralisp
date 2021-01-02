@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/source
   (:use #:cl)
   (:import-from #:jonathan)
+  (:import-from #:cl-ppcre)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
   (:import-from #:ultralisp/models/versioned
@@ -53,7 +54,10 @@
    #:get-all-sources
    #:get-github-sources
    #:dist
-   #:find-source-version))
+   #:find-source-version
+   #:create-source
+   #:params-from-github
+   #:get-current-branch))
 (in-package ultralisp/models/source)
 
 
@@ -91,6 +95,7 @@
          :deflate #'symbol-name)
    (params :col-type (:jsonb)
            :initarg :params
+           :initform nil
            :reader source-params
            :deflate #'jonathan:to-json
            :inflate (lambda (text)
@@ -227,11 +232,40 @@
 (defmethod external-url ((obj source))
   (let ((type (source-type obj)))
     (when (eql type :github)
-        (let ((params (source-params obj)))
+      (let* ((params (source-params obj))
+             (user (getf params :user-or-org))
+             (project (getf params :project)))
+        (when (and user project)
           (format nil "https://github.com/~A/~A"
-                  (getf params :user-or-org)
-                  (getf params :project))))))
+                  user
+                  project))))))
 
+
+(defun params-from-github (url)
+  "It should extract \"cbaggers/livesupport\" from urls like:
+
+   http://github.com/cbaggers/livesupport
+   https://github.com/cbaggers/livesupport
+   https://github.com/cbaggers/livesupport/
+   https://github.com/cbaggers/livesupport.git
+   https://github.com/cbaggers/livesupport/issues
+
+   Returns username as first value and project name as the second.
+"
+  
+  (cl-ppcre:register-groups-bind (user-name project-name)
+      ("https?://github.com/(.*?)/(.*?)($|/|\\.git)" url)
+    (values user-name
+            project-name)))
+
+
+(defun create-source (project type)
+  "Creates empty source of given type."
+  (check-type type keyword)
+  (mito:create-dao 'source
+                   :project-id (object-id project)
+                   :project-version (object-version project)
+                   :type type))
 
 
 (defun copy-source (source &key (params nil params-p)
@@ -352,3 +386,8 @@
   (mito:find-dao 'source
                  :id id
                  :version version))
+
+
+(defun get-current-branch (source)
+  (getf (source-params source)
+        :branch))
