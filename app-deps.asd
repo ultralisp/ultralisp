@@ -61,4 +61,4 @@
   "weblocks/variables" "weblocks/widget" "weblocks/widgets/base"
   "weblocks/widgets/dom" "weblocks/widgets/mop"
   "weblocks/widgets/render-methods" "weblocks/widgets/root" "woo" "xsubseq"
-  "zs3"))"))
+  "zs3"))

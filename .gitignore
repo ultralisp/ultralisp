@@ -16,3 +16,4 @@
 /new-libs/
 /src/packages-extractor
 .stignore
+.sbclrc
