@@ -1,3 +1,44 @@
+* How to start server and worker outside Docker
+
+First, start Postgres, Gearman and Worker in the Docker Compose:
+
+lake
+
+Then open Emacs:
+
+qlot exec ros emacs
+
+
+Open SLY, and do:
+
+#+begin_src lisp
+
+(ql:quickload :ultralisp/server)
+
+(ultralisp/server:start-outside-docker)
+
+#+end_src
+
+This way you'll have two HTTP servers:
+
+- One started on 8080 port and running inside Docker.
+- Second on 8081 port and running outside.
+
+Open the second REPL and load ~:ultralisp/worker~.
+
+Eval ~(ultralisp/worker:process-jobs)~ there:
+
+#+begin_src lisp
+
+(ql:quickload :ultralisp/worker)
+
+(ultralisp/worker:start-outside-docker)
+
+
+#+end_src
+
+
+
 * How to run a check for some project
 
 #+BEGIN_SRC lisp

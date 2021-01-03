@@ -1,7 +1,7 @@
 (DEFSYSTEM "app-deps" :CLASS :PACKAGE-INFERRED-SYSTEM :DEPENDS-ON
- ("3bmd" "alexandria" "anaphora" "babel" "babel-streams" "bordeaux-threads"
-  "cffi" "chanl" "chipz" "chunga" "circular-streams" "cl+ssl" "cl-annot"
-  "cl-arrows" "cl-base64" "cl-change-case" "cl-containers" "cl-cookie"
+ ("3bmd" "alexandria" "anaphora" "arrows" "babel" "babel-streams"
+  "bordeaux-threads" "cffi" "chanl" "chipz" "chunga" "circular-streams"
+  "cl+ssl" "cl-annot" "cl-base64" "cl-change-case" "cl-containers" "cl-cookie"
   "cl-cron" "cl-dbi" "cl-fad" "cl-gearman" "cl-inflector" "cl-interpol"
   "cl-markdown" "cl-mustache" "cl-package-locks" "cl-postgres" "cl-ppcre"
   "cl-ppcre-unicode" "cl-reexport" "cl-store" "cl-strings" "cl-syntax"
@@ -61,4 +61,4 @@
   "weblocks/variables" "weblocks/widget" "weblocks/widgets/base"
   "weblocks/widgets/dom" "weblocks/widgets/mop"
   "weblocks/widgets/render-methods" "weblocks/widgets/root" "woo" "xsubseq"
-  "zs3"))
+  "zs3"))"))

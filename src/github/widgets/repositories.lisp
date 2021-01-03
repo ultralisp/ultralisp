@@ -28,7 +28,7 @@
   (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:weblocks-auth/github
                 #:get-scopes)

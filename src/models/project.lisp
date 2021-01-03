@@ -14,7 +14,7 @@
                 #:read-metadata)
   (:import-from #:function-cache
                 #:defcached)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:cl-strings
                 #:split)

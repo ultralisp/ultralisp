@@ -57,7 +57,7 @@
                 #:make-request-id)
   (:import-from #:alexandria
                 #:write-string-into-file)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:ultralisp/models/dist
                 #:get-prepared-dists

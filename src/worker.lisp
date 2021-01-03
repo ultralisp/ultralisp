@@ -3,6 +3,7 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:log4cl-extras/config)
+  (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/variables
                 #:get-gearman-server)
 
@@ -16,7 +17,8 @@
   ;; And we need this to index packages
   (:import-from #:ultralisp/search)
   (:export
-   #:process-jobs))
+   #:process-jobs
+   #:start-outside-docker))
 (in-package ultralisp/worker)
 
 
@@ -82,3 +84,9 @@
   
   (log:info "Waiting for tasks")
   (process-jobs :one-task-only one-task-only))
+
+
+(defun start-outside-docker ()
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "worker")
+  (process-jobs))

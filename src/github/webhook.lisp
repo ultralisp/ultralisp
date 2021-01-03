@@ -12,7 +12,7 @@
   (:import-from #:alexandria
                 #:last-elt
                 #:assoc-value)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:ultralisp/metadata
                 #:get-urn

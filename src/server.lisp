@@ -419,7 +419,8 @@ arguments."
   (setf cl-fad::*default-template*
         "/tmp/ultralisp/temp-%")
 
-  (ultralisp/logging:setup-for-repl)
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "app")
   
   (start :port 8081))
 
