@@ -403,6 +403,9 @@ arguments."
    - One started on 8080 port and running inside Docker.
    - Second on 8081 port and running outside."
 
+  #+darwin
+  (uiop:run-program "brew install gnu-tar")
+
   ;; These vars are the same as in the 
   (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
                       ("GITHUB_SECRET" "3f46156c6bd57f4c233db9449ed556b6e545315a")
@@ -411,7 +414,12 @@ arguments."
         for (name value) in vars
         do (setf (uiop/os:getenv name)
                  value))
-  
+
+  ;; For some reason default "TEMPORARY-FILES:TEMP-%" does not work on OSX:
+  (setf cl-fad::*default-template*
+        "/tmp/ultralisp/temp-%")
+
+  (ultralisp/logging:setup-for-repl)
   
   (start :port 8081))
 

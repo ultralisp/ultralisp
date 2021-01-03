@@ -61,7 +61,7 @@
 
 (def-env-var get-gearman-server
   "GEARMAN_SERVER"
-  "gearman:4730")
+  "localhost:4730")
 
 (def-env-var get-github-client-id
   "GITHUB_CLIENT_ID")

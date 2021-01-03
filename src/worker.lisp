@@ -14,7 +14,9 @@
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3)
   ;; And we need this to index packages
-  (:import-from #:ultralisp/search))
+  (:import-from #:ultralisp/search)
+  (:export
+   #:process-jobs))
 (in-package ultralisp/worker)
 
 

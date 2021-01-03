@@ -1,5 +1,7 @@
 (defpackage #:ultralisp/widgets/source
   (:use #:cl)
+  (:import-from #:parenscript
+                #:@)
   (:import-from #:ultralisp/protocols/render-changes)
   (:import-from #:weblocks/widget
                 #:defwidget
@@ -71,6 +73,19 @@
                                 default-branch))))
 
 
+(defun update-url (widget url)
+  (check-type widget branch-select-widget)
+  (check-type url string)
+  
+  (multiple-value-bind (branches default-branch)
+      (get-branches url)
+    (setf (slot-value widget 'branches)
+          branches
+          (slot-value widget 'current)
+          default-branch)
+    (weblocks/widget:update widget)))
+
+
 (defwidget edit-source-widget ()
   ((parent :initarg :parent
            :type source-widget
@@ -137,13 +152,16 @@
                
                ;; TODO: we need to refactor this part because for other
                ;; types of sources we'll need to process params differently:
-               (let ((new-source (update-source-dists source
-                                                      :dists new-dist-names
-                                                      :params (list :user-or-org user-name
-                                                                    :project project-name
-                                                                    :branch branch))))
-                 (setf (source parent)
-                       new-source))))
+               (multiple-value-bind (new-source was-cloned-p)
+                   (update-source-dists source
+                                        :dists new-dist-names
+                                        :params (list :user-or-org user-name
+                                                      :project project-name
+                                                      :branch branch))
+                 (when was-cloned-p
+                   (log:info "A new source version was created: " new-source)
+                   (setf (source parent)
+                         new-source)))))
     
     (setf (slot-value parent 'subwidget)
           subwidget)
@@ -321,7 +339,17 @@
                 (:td :class "field-column"
                      (:input :value url
                              :name "url"
-                             :type "text")))
+                             :type "text"
+                             :onchange
+                             (weblocks-parenscript:make-js-handler
+                              :lisp-code ((&key url)
+                                          (update-url (branches widget)
+                                                      url))
+                              :js-code ((event)
+                                        ;; This will pass new URL value
+                                        ;; to the backend:
+                                        (parenscript:create
+                                         :url (@ event target value)))))))
            (:tr (:td :class "label-column"
                      "Branch or tag")
                 (:td :class "field-column"

@@ -249,25 +249,31 @@
                            :include-reason (include-reason prev-dist-source))))))))
 
 
-(defun update-source-dists (source &key (params nil params-p)
+(defun update-source-dists (source &key (params nil)
                                         (dists nil dists-p)
                                         (include-reason :direct)
                                         (disable-reason :manual))
   "Creates a new version of the source by changing the dists and optionally updating source params.
 
-   Returns two values: a source object and boolean. If boolean is `t` then source was cloned and updated."
+   New version is created only if there were changes in params or dists.
+
+   Returns:
+     Two values - a source object and boolean.
+     If boolean is `t` then source was cloned and updated.
+"
   (check-type source ultralisp/models/source:source)
 
   (with-transaction
     (let (new-source)
-      (let ((new-params (update-plist (ultralisp/models/source:source-params source)
-                                      params)))
+      (multiple-value-bind (new-params params-changed-p)
+          (update-plist (ultralisp/models/source:source-params source)
+                        params)
         (flet ((ensure-there-is-a-clone ()
                  (unless new-source
                    (setf new-source
                          (ultralisp/models/source:copy-source source
                                                               :params new-params)))))
-          (when params-p
+          (when params-changed-p
             (ensure-there-is-a-clone))
 
           (let* ((current-dists (remove-if-not
@@ -330,27 +336,44 @@
                                         :deleted t
                                         :enabled nil
                                         :disable-reason (make-disable-reason disable-reason))))
-            
+          
             (when new-source
               ;; We need to execute this section in any case if params were updated
               ;; or if some dists were changed. In both cases, source will be
               ;; cloned and new-version will not be nil.
               (loop for dist in keep-dists
-                    ;; Here we need to attach to the dist a new source version
-                    ;; and to detach the old one:
+                    for new-version = (get-or-create-pending-version dist)
+                    ;; Here we need to attach to the pending dist a new source version
                     for old-dist-source = (mito:find-dao 'dist-source
                                                          :dist-id (object-id dist)
                                                          :dist-version (object-version dist)
                                                          :source-id (object-id source))
-                    do (setf (source-version old-dist-source)
-                             (object-version new-source))
-                       (mito:save-dao old-dist-source)))))
-        ;; Now we'll return old or a new source and a True as a second
-        ;; value, if something was changed and source was cloned.
-        (values (or new-source
-                    source)
-                (when new-source
-                  t))))))
+                    do (mito:create-dao 'dist-source
+                                        :dist-id (object-id new-version)
+                                        :dist-version (object-version new-version)
+                                        :source-id (object-id new-source)
+                                        :source-version (object-version new-source)
+                                        ;; Keep previous inclusion reason
+                                        :include-reason (include-reason dist))))))
+
+        ;; Also, we'll need to recheck this source
+        ;; before it will be included into the new dist versions.
+        ;; 
+        ;; We don't do this when only dists list changed, because
+        ;; dists don't affect the source's code.
+        (when params-changed-p
+          ;; We have a circular dependency:
+          ;; project -> dist-source -> check -> project :(
+          (uiop:symbol-call "ULTRALISP/MODELS/CHECK"
+                            "MAKE-CHECK"
+                            new-source :changed-project)))
+      
+      ;; Now we'll return old or a new source and a True as a second
+      ;; value, if something was changed and source was cloned.
+      (values (or new-source
+                  source)
+              (when new-source
+                t)))))
 
 
 (defun disable-reason-type (reason)

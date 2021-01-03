@@ -69,7 +69,7 @@
 
 
 (defparameter *allowed-check-types*
-  '(:added-project :via-cron :via-webhook))
+  '(:added-project :changed-project :via-cron :via-webhook))
 
 
 (defclass any-check ()
