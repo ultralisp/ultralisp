@@ -438,7 +438,9 @@
            with key-to-length = '(:last-seen-commit 8)
            for (key new-value) on new-params by #'cddr
            for old-value = (getf old-params key)
-           for name = (getf key-to-name key key)
+           for name = (getf key-to-name key
+                            (string-downcase
+                             (symbol-name key)))
            for length = (getf key-to-length key 20)
            unless (equal old-value new-value)
            do (:li ("**~A** ~A ➞ ~A"
