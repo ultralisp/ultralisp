@@ -150,10 +150,6 @@ CREATE TABLE "dist" (
 );
 
 
-INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at)
-     VALUES (0, True, False, 'ultralisp', 'ready', now(), now());
-
-
 CREATE TABLE "dist_source" (
     "dist_id" BIGINT NOT NULL,
     "dist_version" BIGINT NOT NULL,
