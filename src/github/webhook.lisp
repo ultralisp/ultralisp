@@ -20,11 +20,13 @@
   (:import-from #:cl-strings
                 #:split)
   (:import-from #:ultralisp/models/project
+                #:get-project2
                 #:get-github-project
                 #:get-all-projects)
   (:import-from #:weblocks/response
                 #:make-uri)
   (:import-from #:ultralisp/models/check
+                #:make-checks
                 #:make-via-webhook-check)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
@@ -32,6 +34,8 @@
                 #:with-connection)
   (:import-from #:ultralisp/app
                 #:app)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:get-webhook-url))
 (in-package ultralisp/github/webhook)
@@ -90,7 +94,7 @@
 
        (let* ((user-or-org (get-user-or-org-from payload))
               (project-name (get-project-name-from payload)))
-         (get-github-project user-or-org project-name)))
+         (get-project2 (fmt "~A/~A" user-or-org project-name))))
       
       (t (if current-branch
              (log:warn "Current branch does not match to main"
@@ -152,7 +156,7 @@
      
       (let* ((project (find-project-related-to payload)))
         (when project
-          (make-via-webhook-check project))))))
+          (make-checks project :via-webhook))))))
 
 
 (defun process-payloads-from-the-queue ()

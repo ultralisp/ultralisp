@@ -133,7 +133,6 @@
                  (:manual
                   "removed manually")
                  (t
-                  (break)
                   "")))))
            (when (and
                   prev-source

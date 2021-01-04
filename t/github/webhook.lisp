@@ -2,16 +2,20 @@
   (:use #:cl
         #:rove)
   (:import-from #:hamcrest/rove
+                #:has-slots
+                #:has-length
                 #:assert-that
                 #:contains
                 #:has-type)
   (:import-from #:ultralisp-test/utils
                 #:with-test-db)
   (:import-from #:ultralisp/models/project
+                #:project-sources
                 #:make-github-project)
   (:import-from #:ultralisp/github/webhook
                 #:process-payload)
   (:import-from #:ultralisp/models/check
+                #:source-checks
                 #:get-project-checks))
 (in-package ultralisp-test/github/webhook)
 
@@ -27,11 +31,17 @@
 (deftest test-case-when-webhook-receives-a-payload-for-known-project
   (with-test-db
     (testing "A new check should be created for the project"
-      (let ((payload (load-payload "push-to-master"))
-            (project (make-github-project "40ants" "log4cl-json")))
-       
+      (let* ((payload (load-payload "push-to-master"))
+             (project (make-github-project "40ants" "log4cl-json"))
+             (sources (project-sources project)))
+        
+        (assert-that sources
+                     (has-length 1))
+        
         (process-payload payload)
 
-        (let ((checks (get-project-checks project)))
-          (assert-that checks
-                       (contains (has-type 'ultralisp/models/check:via-webhook-check))))))))
+        (loop for source in sources
+              for checks = (source-checks source)
+              do (assert-that checks
+                              (contains (has-slots 'ultralisp/models/check::type
+                                                   :via-webhook))))))))
