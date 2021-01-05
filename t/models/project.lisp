@@ -18,6 +18,7 @@
   (:import-from #:ultralisp/utils/github
                 #:extract-github-name)
   (:import-from #:ultralisp/models/project
+                #:project-sources
                 #:disable-project
                 #:update-and-enable-project
                 #:make-github-project
@@ -25,6 +26,7 @@
                 #:get-last-seen-commit
                 #:add-or-turn-on-github-project)
   (:import-from #:ultralisp/models/check
+                #:source-checks
                 #:get-project-checks))
 (in-package ultralisp-test/models/project)
 
@@ -34,15 +36,13 @@
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
         (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
-               (actions (get-project-actions project))
-               (checks (get-project-checks project)))
-          
-          (ok (= (length checks)
-                 1)
-              "A new check should be created")
+               (sources (project-sources project)))
 
-          (ok (null actions)
-              "There shouldn't be any action"))))))
+          (loop for source in sources
+                for checks = (source-checks source)
+                do (ok (= (length checks)
+                          1)
+                       "A new check should be created")))))))
 
 
 (deftest test-update-and-enable-when-project-is-enabled-and-there-was-an-update
