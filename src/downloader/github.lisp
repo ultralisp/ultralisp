@@ -2,7 +2,6 @@
   (:use #:cl)
   (:import-from #:legit)
   (:import-from #:ultralisp/models/project
-                #:update-and-enable-project
                 #:get-last-seen-commit
                 #:project)
   (:import-from #:ultralisp/models/check

@@ -7,6 +7,8 @@
                 #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
+                #:get-source
+                #:make-project
                 #:with-test-db
                 #:with-metrics
                 #:with-login)
@@ -27,7 +29,14 @@
                 #:add-or-turn-on-github-project)
   (:import-from #:ultralisp/models/check
                 #:source-checks
-                #:get-project-checks))
+                #:get-project-checks)
+  (:import-from #:ultralisp/models/source
+                #:source-params
+                #:create-new-source-version)
+  (:import-from #:ultralisp/models/versioned
+                #:object-version)
+  (:import-from #:ultralisp/models/dist-source
+                #:enabled-p))
 (in-package ultralisp-test/models/project)
 
 
@@ -45,27 +54,42 @@
                        "A new check should be created")))))))
 
 
-(deftest test-update-and-enable-when-project-is-enabled-and-there-was-an-update
+(deftest test-create-new-source-version
   (with-test-db
     (with-metrics
-      (testing "When project already enabled we need to create project-updated action."
-        (let ((project (make-github-project "40ants" "defmain")))
-          (setf (is-enabled-p project)
-                t
-                (get-last-seen-commit project)
-                "1234")
+      (testing "When project check was successful and a new source version should be created and attached to the new pending dist"
+        (let* ((project (make-project "40ants" "defmain"))
+               (source (get-source project))
+               (dists (ultralisp/models/dist-source:source->dists source))
+               (dist (first dists))
+               ;; Systems can be ignored for this test:
+               (systems nil))
+          (ok (typep dist 'ultralisp/models/dist:bound-dist))
+          
+          ;; (setf  ;; (enabled-p dist) t
+          ;;       (get-last-seen-commit source)
+          ;;       "1234")
+          
           ;; Now we emulate a situation when project's commit hash was changed
-          (update-and-enable-project project
+          (create-new-source-version source
+                                     systems
+                                     ;; This value should be overriden in a new
+                                     ;; source version:
                                      (list :last-seen-commit "abcd"))
-          (let ((actions (get-project-actions project)))
-            (testing "Project-updated action should be created"
-              (assert-that actions
-                           (contains
-                            (has-type 'project-updated)))))
+          
+          (let ((new-source (get-source project)))
+            (testing "New version of the source should be created"
+              (testing "New version is not the same instance"
+                (ok (not (eq source new-source))))
+              (testing "And has a large version id"
+                (ok (> 
+                     (object-version new-source)
+                     (object-version source)))))
          
-          (testing "Project parameters should be updated as well"
-            (ok (equal (get-last-seen-commit project)
-                       "abcd"))))))))
+            (testing "Source parameters should be updated as well"
+              (ok (equal (getf (source-params new-source)
+                               :last-seen-commit)
+                         "abcd")))))))))
 
 
 (deftest test-update-and-enable-when-project-is-disabled

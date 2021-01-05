@@ -4,9 +4,17 @@
   (:import-from #:weblocks-test/utils)
   (:import-from #:cl-dbi)
   (:import-from #:ultralisp/metrics)
+  (:import-from #:ultralisp/models/project
+                #:make-github-project
+                #:project-sources)
+  (:import-from #:ultralisp/models/dist
+                #:common-dist-source
+                #:add-source-to-dist)
   (:export #:with-login
            #:with-test-db
-           #:with-metrics))
+           #:with-metrics
+           #:get-source
+           #:make-project))
 (in-package ultralisp-test/utils)
 
 
@@ -39,3 +47,17 @@
 (defmacro with-metrics (&body body)
   `(progn (ultralisp/metrics:initialize)
           ,@body))
+
+
+(defun get-source (project)
+  (first (project-sources project)))
+
+
+(defun make-project (user name)
+  "Creates a project which is already added to the common dist."
+  (let ((project (make-github-project user name)))
+    (add-source-to-dist
+     (common-dist)
+     (get-source project))
+    
+    project))
