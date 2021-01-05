@@ -29,6 +29,7 @@
                 #:get-last-seen-commit
                 #:add-or-turn-on-github-project)
   (:import-from #:ultralisp/models/check
+                #:make-check
                 #:source-checks
                 #:get-project-checks)
   (:import-from #:ultralisp/models/source
@@ -104,19 +105,39 @@
                          "abcd")))))))))
 
 
-(deftest test-project-disabling
+(deftest test-source-disabling
   (with-test-db
-    (testing "After the project was disabled, we should create a new action and version."
-      (let ((project (make-github-project "40ants" "defmain")))
-        (setf (is-enabled-p project)
-              t)
+    (with-metrics
+      (testing "When project check was unsuccessful a new source version should be created and distabled"
+        (let* ((project (make-project "40ants" "defmain"))
+               (source (get-source project)))
+          ;; First, we need to create a version which is enabled.
+          ;; After this call source should be bound to a new PENDING version.
+          (create-new-source-version source nil nil)
 
-        (disable-project project)
-        
-        (let ((actions (get-project-actions project)))
-          (assert-that actions
-                       (contains
-                        (has-type 'project-removed))))))))
+          ;; Retrieve new version of the source:
+          (let* ((source (get-source project))
+                 (dist (get-dist source))
+                 (check (make-check source :via-cron)))
+
+            (ok (enabled-p dist))
+          
+            ;; Now we emulate a situation when project's check was failed   
+            (ultralisp/pipeline/checking::update-check-as-failed2 check
+                                                                  ;; traceback
+                                                                  "Some error"
+                                                                  ;; processed-in
+                                                                  0.1)
+          
+            (let* ((new-source (get-source project))
+                   (new-dist (get-dist new-source)))
+              (testing "New version of the source should not be, because it was bound to a :PENDING dist"
+                (ok (=
+                     (object-version new-source)
+                     (object-version source))))
+
+              (testing "New source should be disabled"
+                (ok (not (enabled-p new-dist)))))))))))
 
 
 (deftest test-github-url-extraction
@@ -126,7 +147,5 @@
              "Dimercel/listopia"))
   (ok (equal (extract-github-name "https://github.com/Dimercel/listopia.git")
              "Dimercel/listopia")))
-
-;; TODO: action should be bound to a new pending version we need a separate test for it
 
 

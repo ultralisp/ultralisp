@@ -53,12 +53,18 @@
 
 
 (defun get-source (project)
-  (first (project-sources project)))
+  (let ((sources (project-sources project)))
+    (when (> (length sources) 1)
+      (error "There are more than 1 source for this project"))
+    (first sources)))
 
 
 (defun get-dist (source)
   "Retruns a bound dist for the source."
-  (first (source->dists source)))
+  (let ((dists (source->dists source)))
+   (when (> (length dists) 1)
+     (error "There are more than 1 source for this project"))
+   (first dists)))
 
 
 (defun make-project (user name)
