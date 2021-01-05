@@ -33,6 +33,8 @@
                 #:params-from-github)
   (:import-from #:ultralisp/utils/github
                 #:get-branches)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -190,7 +192,7 @@
   (let* ((dist (dist-source->dist dist-source))
          (name (dist-name dist))
          (url (ultralisp/protocols/url:url dist))
-         (enabled (ultralisp/models/dist-source:enabled-p dist-source))
+         (enabled (enabled-p dist-source))
          (class (if enabled
                     "dist enabled"
                     "dist disabled"))
@@ -307,7 +309,7 @@
          (all-dists (cons (ultralisp/models/dist:common-dist)
                           user-dists))
          (current-dists (remove-if-not
-                         #'ultralisp/models/dist:enabled-p
+                         #'enabled-p
                          (source->dists source)))
          (release-info (ultralisp/models/source:source-release-info source)))
     ;; Deleted sources should not be in the list

@@ -50,6 +50,8 @@
                 #:render-changes)
   (:import-from #:ultralisp/widgets/dist
                 #:render-installation-instructions)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -105,8 +107,8 @@
               ((null prev-source)
                "added")
               ((and
-                (ultralisp/models/source:enabled-p source)
-                (null (ultralisp/models/source:enabled-p prev-source)))
+                (enabled-p source)
+                (null (enabled-p prev-source)))
                "enabled"
                (format nil "enabled new source-id: ~A source-version: ~A prev: ~A"
                        (mito:object-id source)
@@ -114,12 +116,12 @@
                        prev-source)
                )
               ((and
-                (null (ultralisp/models/source:enabled-p source))
-                (ultralisp/models/source:enabled-p prev-source))
+                (null (enabled-p source))
+                (enabled-p prev-source))
                "disabled")
               ((and
-                (ultralisp/models/source:enabled-p source)
-                (ultralisp/models/source:enabled-p prev-source))
+                (enabled-p source)
+                (enabled-p prev-source))
                "changed")
               (t
                (case
@@ -136,8 +138,8 @@
                   "")))))
            (when (and
                   prev-source
-                  (ultralisp/models/source:enabled-p source)
-                  (ultralisp/models/source:enabled-p prev-source))
+                  (enabled-p source)
+                  (enabled-p prev-source))
              (render-changes prev-source source))))))
 
 ;;* 

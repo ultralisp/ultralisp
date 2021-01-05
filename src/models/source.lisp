@@ -35,6 +35,8 @@
                 #:download)
   (:import-from #:ultralisp/uploader/base
                 #:upload)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -48,7 +50,6 @@
    #:copy-source
    #:get-source
    #:bound-source
-   #:enabled-p
    #:disable-reason
    #:include-reason
    #:get-all-sources

@@ -18,6 +18,8 @@
                 #:with-transaction)
   (:import-from #:ultralisp/utils
                 #:update-plist)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
   (:export
    #:dist-source
    #:dist-id
@@ -25,7 +27,6 @@
    #:source-id
    #:source-version
    #:include-reason
-   #:enabled-p
    #:disable-reason
    #:deleted-p
    #:dist-source->dist
@@ -277,7 +278,7 @@
             (ensure-there-is-a-clone))
 
           (let* ((current-dists (remove-if-not
-                                 #'ultralisp/models/dist:enabled-p
+                                 #'enabled-p
                                  (source->dists source)))
                  (new-dists (if dists-p
                                 (mapcar #'ensure-dist dists)

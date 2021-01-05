@@ -7,6 +7,7 @@
                 #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
+                #:get-dist
                 #:get-source
                 #:make-project
                 #:with-test-db
@@ -35,7 +36,7 @@
                 #:create-new-source-version)
   (:import-from #:ultralisp/models/versioned
                 #:object-version)
-  (:import-from #:ultralisp/models/dist-source
+  (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p))
 (in-package ultralisp-test/models/project)
 
@@ -54,21 +55,18 @@
                        "A new check should be created")))))))
 
 
-(deftest test-create-new-source-version
+(deftest test-create-new-source-version-when-source-is-bound-to-pending-dist
   (with-test-db
     (with-metrics
       (testing "When project check was successful and a new source version should be created and attached to the new pending dist"
         (let* ((project (make-project "40ants" "defmain"))
                (source (get-source project))
-               (dists (ultralisp/models/dist-source:source->dists source))
-               (dist (first dists))
+               (dist (get-dist source))
                ;; Systems can be ignored for this test:
                (systems nil))
           (ok (typep dist 'ultralisp/models/dist:bound-dist))
-          
-          ;; (setf  ;; (enabled-p dist) t
-          ;;       (get-last-seen-commit source)
-          ;;       "1234")
+
+          (ok (not (enabled-p dist)))
           
           ;; Now we emulate a situation when project's commit hash was changed
           (create-new-source-version source
@@ -77,7 +75,8 @@
                                      ;; source version:
                                      (list :last-seen-commit "abcd"))
           
-          (let ((new-source (get-source project)))
+          (let* ((new-source (get-source project))
+                 (new-dist (get-dist new-source)))
             (testing "New version of the source should be created"
               (testing "New version is not the same instance"
                 (ok (not (eq source new-source))))
@@ -85,51 +84,24 @@
                 (ok (> 
                      (object-version new-source)
                      (object-version source)))))
+
+            (testing "The dist should not be changed, because originally source was bound to a PENDING dist"
+              (testing "New dist hash the same version"
+                (let ((old-dist (ultralisp/models/dist:dist dist))
+                      (new-dist (ultralisp/models/dist:dist new-dist)))
+                  (ok (= (object-version old-dist)
+                         (object-version new-dist)))))
+              (testing "And it is PENDING"
+                (ok (eql (ultralisp/models/dist:dist-state dist)
+                         :pending))))
+            
+            (testing "New source should be enabled"
+              (ok (enabled-p new-dist)))
          
             (testing "Source parameters should be updated as well"
               (ok (equal (getf (source-params new-source)
                                :last-seen-commit)
                          "abcd")))))))))
-
-
-(deftest test-update-and-enable-when-project-is-disabled
-  (with-test-db
-    (with-metrics
-      (testing "When project is disabled we need to create project-added action."
-        (let ((project (make-github-project "40ants" "defmain")))
-          ;; Now we emulate a situation when we checked the project
-          ;; and discovered it's commit hash 
-          (update-and-enable-project project
-                                     (list :last-seen-commit "abcd"))
-         
-          (testing "Project should be enabled now"
-            (ok (is-enabled-p project)))
-         
-          (let ((actions (get-project-actions project)))
-            (testing "Project-added action should be created"
-              (assert-that actions
-                           (contains
-                            (has-type 'project-added)))))
-         
-          (testing "Project parameters should be updated as well"
-            (ok (equal (get-last-seen-commit project)
-                       "abcd"))))))))
-
-
-(deftest test-update-and-enable-when-project-is-enabled-and-there-is-no-difference
-  (with-test-db
-    (testing "When there is no difference, we shouldn't create any action"
-      (let ((project (make-github-project "40ants" "defmain")))
-        (setf (is-enabled-p project)
-              t
-              (get-last-seen-commit project)
-              "1234")
-        ;; Now we emulate a situation when project's commit hash was changed
-        (update-and-enable-project project
-                                   (list :last-seen-commit "1234"))
-        (let ((actions (get-project-actions project)))
-          (ok (null actions)
-              "This should create a one action"))))))
 
 
 (deftest test-project-disabling
@@ -145,6 +117,7 @@
           (assert-that actions
                        (contains
                         (has-type 'project-removed))))))))
+
 
 (deftest test-github-url-extraction
   (ok (equal (extract-github-name "https://github.com/Dimercel/listopia")

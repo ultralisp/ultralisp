@@ -10,6 +10,8 @@
                 #:with-transaction)
   (:import-from #:mito
                 #:object-id)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
   (:export
    #:dist
    #:dist-name
@@ -17,7 +19,6 @@
    #:dist-state
    #:common-dist
    #:bound-dist
-   #:enabled-p
    #:disable-reason
    #:ensure-dist
    #:get-or-create-pending-version

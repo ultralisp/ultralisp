@@ -7,14 +7,17 @@
   (:import-from #:ultralisp/models/project
                 #:make-github-project
                 #:project-sources)
-  (:import-from #:ultralisp/models/dist
-                #:common-dist-source
+  (:import-from #:ultralisp/models/dist-source
+                #:source->dists
                 #:add-source-to-dist)
+  (:import-from #:ultralisp/models/dist
+                #:common-dist)
   (:export #:with-login
            #:with-test-db
            #:with-metrics
            #:get-source
-           #:make-project))
+           #:make-project
+           #:get-dist))
 (in-package ultralisp-test/utils)
 
 
@@ -51,6 +54,11 @@
 
 (defun get-source (project)
   (first (project-sources project)))
+
+
+(defun get-dist (source)
+  "Retruns a bound dist for the source."
+  (first (source->dists source)))
 
 
 (defun make-project (user name)
