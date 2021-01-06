@@ -124,13 +124,7 @@
     (weblocks/widget:update main)))
 
 
-;; Here is the flow of working with a source.
-;; Each source type has to define it's own form for read-only
-;; rendering, editing and a method for saving results.
-;; When results are saved, there is a common part of
-;; distribution update and a custom part of fields update.
-
-(defun save (widget args)
+(defun switch-to-readonly (widget)
   (check-type widget edit-source-widget)
 
   (log:debug "Switching to the view widget")
@@ -141,11 +135,26 @@
                                    :parent parent
                                    :check (get-last-source-check source))))
 
+    (setf (slot-value parent 'subwidget)
+          subwidget)
+    (weblocks/widget:update parent)))
+
+
+;; Here is the flow of working with a source.
+;; Each source type has to define it's own form for read-only
+;; rendering, editing and a method for saving results.
+;; When results are saved, there is a common part of
+;; distribution update and a custom part of fields update.
+
+(defun save (widget args)
+  (check-type widget edit-source-widget)
+
+  (let* ((parent (parent widget)))
     (loop with url = (getf args :url)
           with branch = (getf args :branch)
           for (name value) on args by #'cddr
           when (member name '(:distributions :distributions[]))
-          collect value into new-dist-names
+            collect value into new-dist-names
           finally
              (multiple-value-bind (user-name project-name)
                  (params-from-github url)
@@ -155,7 +164,7 @@
                ;; TODO: we need to refactor this part because for other
                ;; types of sources we'll need to process params differently:
                (multiple-value-bind (new-source was-cloned-p)
-                   (update-source-dists source
+                   (update-source-dists (source parent)
                                         :dists new-dist-names
                                         :params (list :user-or-org user-name
                                                       :project project-name
@@ -164,10 +173,7 @@
                    (log:info "A new source version was created: " new-source)
                    (setf (source parent)
                          new-source)))))
-    
-    (setf (slot-value parent 'subwidget)
-          subwidget)
-    (weblocks/widget:update parent)))
+    (switch-to-readonly widget)))
 
 
 (defun make-add-source-widget (project &key on-new-source)
@@ -245,6 +251,25 @@
                         (weblocks-auth/models:get-current-user)
                         (ultralisp/models/project:source->project source))
                    (:div :class "source-controls float-right"
+                         (weblocks-ui/form:with-html-form
+                             (:post
+                              (lambda (&rest args)
+                                (declare (ignorable args))
+                                (log:error "REMOVING"))
+                              :requires-confirmation-p t
+                              :confirm-question (:div (:h1 "Warning!")
+                                                      (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
+                                                      (:ul
+                                                       (loop for name in (mapcar #'dist-name
+                                                                                 (remove-if-not
+                                                                                  #'enabled-p
+                                                                                  (source->dists source)))
+                                                             do (:li name)))))
+                           (:input :type "submit"
+                                   :class "alert button tiny"
+                                   :name "button"
+                                   :value "Remove"))
+                         
                          (weblocks-ui/form:with-html-form
                              (:post (lambda (&rest args)
                                       (declare (ignorable args))
@@ -332,8 +357,16 @@
                 (:td :class "field-column"
                      type
                      (:div :class "source-controls float-right"
+                           (weblocks-ui/form:with-html-form
+                               (:post (lambda (&rest args)
+                                        (declare (ignore args))
+                                        (switch-to-readonly widget)))
+                               (:input :type "submit"
+                                       :class "secondary button tiny"
+                                       :name "button"
+                                       :value "Cancel"))
                            (:input :type "submit"
-                                   :class "success button float-right tiny"
+                                   :class "success button tiny"
                                    :name "button"
                                    :value "Save"))))
            (:tr (:td :class "label-column"
@@ -417,15 +450,11 @@
         (.dist :margin-right 1em)
         (.label-column :white-space "nowrap")
         (.field-column :width "100%")
-        ((:and .dist .disabled) :color "gray"))))
-   (call-next-method)))
+        ((:and .dist .disabled) :color "gray")
 
-
-(defmethod weblocks/dependencies:get-dependencies ((widget edit-source-widget))
-  (append
-   (list
-    (weblocks-parenscript:make-dependency
-      (parenscript:chain console (log "Foo bar"))))
+        ((.source-controls > (:or form input))
+         :display "inline-block"
+         :margin-left 1em))))
    (call-next-method)))
 
 
