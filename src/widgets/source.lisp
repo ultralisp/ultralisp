@@ -241,84 +241,93 @@
     (assert (not deleted))
     
     (with-html
-      (:table
-       (:tr (:td :class "label-column"
-                 "Type")
-            (:td :class "field-column"
-                 type
-                 ;; Controls for editing and deleting source
-                 (when (ultralisp/protocols/moderation:is-moderator
-                        (weblocks-auth/models:get-current-user)
-                        (ultralisp/models/project:source->project source))
-                   (:div :class "source-controls float-right"
-                         (weblocks-ui/form:with-html-form
-                             (:post
-                              (lambda (&rest args)
-                                (declare (ignorable args))
-                                (log:error "REMOVING"))
-                              :requires-confirmation-p t
-                              :confirm-question (:div (:h1 "Warning!")
-                                                      (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
-                                                      (:ul
-                                                       (loop for name in (mapcar #'dist-name
-                                                                                 (remove-if-not
-                                                                                  #'enabled-p
-                                                                                  (source->dists source)))
-                                                             do (:li name)))))
-                           (:input :type "submit"
-                                   :class "alert button tiny"
-                                   :name "button"
-                                   :value "Remove"))
-                         
-                         (weblocks-ui/form:with-html-form
-                             (:post (lambda (&rest args)
-                                      (declare (ignorable args))
-                                      (edit widget)))
-                           (:input :type "submit"
-                                   :class "button tiny"
-                                   :name "button"
-                                   :value "Edit"))))))
-       (:tr (:td :class "label-column"
-                 "Source")
-            (:td :class "field-column"
-                 (:a :href url
-                     url)))
-       (:tr (:td :class "label-column"
-                 "Branch or tag")
-            (:td :class "field-column"
-                 (ultralisp/models/source:get-current-branch source)))
-       (when last-seen-commit
-         (:tr (:td :class "label-column"
-                   "Last seen commit")
-              (:td :class "field-column"
-                   (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                       last-seen-commit))))
-       (when release-info
-         (:tr (:td :class "label-column"
-                   "Release")
-              (:td :class "field-column"
-                   (:a :href (quickdist:get-project-url release-info)
-                       (quickdist:get-project-url release-info)))))
-       (:tr (:td :class "label-column"
-                 "Distributions")
-            (:td :class "field-column"
-                 (mapc #'render-distribution
-                       distributions)))
+      (:table :class "unstriped"
+       (:thead
+        (:tr (:th :class "label-column"
+                  "Type")
+             (:th :class "field-column"
+                  type
+                  ;; Controls for editing and deleting source
+                  (when (ultralisp/protocols/moderation:is-moderator
+                         (weblocks-auth/models:get-current-user)
+                         (ultralisp/models/project:source->project source))
+                    (:div :class "source-controls float-right"
+                          (weblocks-ui/form:with-html-form
+                              (:post
+                               (lambda (&rest args)
+                                 (declare (ignorable args))
+                                 (log:error "REMOVING"))
+                               :requires-confirmation-p t
+                               :confirm-question (:div (:h1 "Warning!")
+                                                       (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
+                                                       (:ul
+                                                        (loop for name in (mapcar #'dist-name
+                                                                                  (remove-if-not
+                                                                                   #'enabled-p
+                                                                                   (source->dists source)))
+                                                              do (:li name)))))
+                            (:input :type "submit"
+                                    :class "alert button tiny"
+                                    :name "button"
+                                    :value "Remove"))
+                          
+                          (weblocks-ui/form:with-html-form
+                              (:post (lambda (&rest args)
+                                       (declare (ignorable args))
+                                       (edit widget)))
+                            (:input :type "submit"
+                                    :class "button tiny"
+                                    :name "button"
+                                    :value "Edit")))))))
+       (:tbody
+        (:tr (:td :class "label-column"
+                  "Source")
+             (:td :class "field-column"
+                  (:a :href url
+                      url)))
+        (:tr (:td :class "label-column"
+                  "Branch or tag")
+             (:td :class "field-column"
+                  (ultralisp/models/source:get-current-branch source)))
+        (when last-seen-commit
+          (:tr (:td :class "label-column"
+                    "Last seen commit")
+               (:td :class "field-column"
+                    (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                        last-seen-commit))))
+        (when release-info
+          (:tr (:td :class "label-column"
+                    "Release")
+               (:td :class "field-column"
+                    (:a :href (quickdist:get-project-url release-info)
+                        (quickdist:get-project-url release-info)))))
+        (:tr (:td :class "label-column"
+                  "Distributions")
+             (:td :class "field-column"
+                  (mapc #'render-distribution
+                        distributions)))
        
-       (when (last-check widget)
-         (:tr (:td :class "label-column"
-                   "Last check")
-              (let* ((check (last-check widget))
-                     (processed-at (ultralisp/models/check:get-processed-at check)))
-                (:td :class "field-column"
-                     ("~A~A"
-                      (if processed-at
-                          (format nil "Finished at ~A." processed-at)
-                          "Waiting in the queue.")
-                      (if (and (ultralisp/models/check:get-processed-at check)
-                               (ultralisp/models/check:get-error check))
-                          (format nil " There was an error.")
-                          ""))))))))))
+        (when (last-check widget)
+          (:tr (:td :class "label-column"
+                    "Last check")
+               (let* ((check (last-check widget))
+                      (processed-at (ultralisp/models/check:get-processed-at check)))
+                 (:td :class "field-column"
+                      ("~A~A"
+                       (if processed-at
+                           (format nil "Finished at ~A." processed-at)
+                           "Waiting in the queue.")
+                       (if (and (ultralisp/models/check:get-processed-at check)
+                                (ultralisp/models/check:get-error check))
+                           (format nil " There was an error.")
+                           "")))))))))))
+
+
+(defmethod render-source ((widget readonly-source-widget)
+                          (type (eql :archive))
+                          source)
+  (with-html
+    (:p "Archive sources aren't supported yet")))
 
 
 (defmethod render-source ((widget edit-source-widget)
@@ -351,65 +360,67 @@
             (:post (lambda (&rest args)
                      (declare (ignorable args))
                      (save widget args)))
-          (:table
-           (:tr (:td :class "label-column"
-                     "Type")
-                (:td :class "field-column"
-                     type
-                     (:div :class "source-controls float-right"
-                           (weblocks-ui/form:with-html-form
-                               (:post (lambda (&rest args)
-                                        (declare (ignore args))
-                                        (switch-to-readonly widget)))
-                               (:input :type "submit"
-                                       :class "secondary button tiny"
-                                       :name "button"
-                                       :value "Cancel"))
-                           (:input :type "submit"
-                                   :class "success button tiny"
-                                   :name "button"
-                                   :value "Save"))))
-           (:tr (:td :class "label-column"
-                     "Source")
-                (:td :class "field-column"
-                     (:input :value url
-                             :name "url"
-                             :type "text"
-                             :onchange
-                             (weblocks-parenscript:make-js-handler
-                              :lisp-code ((&key url)
-                                          (update-url (branches widget)
-                                                      url))
-                              :js-code ((event)
-                                        ;; This will pass new URL value
-                                        ;; to the backend:
-                                        (parenscript:create
-                                         :url (@ event target value)))))))
-           (:tr (:td :class "label-column"
-                     "Branch or tag")
-                (:td :class "field-column"
-                     (render (branches widget))))
-           (when last-seen-commit
-             (:tr (:td :class "label-column"
-                       "Last seen commit")
-                  (:td :class "field-column"
-                       (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                           last-seen-commit))))
-           (when release-info
-             (:tr (:td :class "label-column"
-                       "Release")
-                  (:td (:a :href (quickdist:get-project-url release-info)
-                           (quickdist:get-project-url release-info)))))
-           (:tr (:td :class "label-column"
-                     "Distributions")
-                (:td :class "field-column"
-                 (loop for dist in all-dists
-                       for name = (ultralisp/models/dist:dist-name dist)
-                       do  (:input :type "checkbox"
-                                   :name "distributions"
-                                   :value name
-                                   :checked (is-enabled dist)
-                                   (:label name)))))))))))
+          (:table :class "unstriped"
+           (:thead
+            (:tr (:th :class "label-column"
+                      "Type")
+                 (:th :class "field-column"
+                      type
+                      (:div :class "source-controls float-right"
+                            (weblocks-ui/form:with-html-form
+                                (:post (lambda (&rest args)
+                                         (declare (ignore args))
+                                         (switch-to-readonly widget)))
+                              (:input :type "submit"
+                                      :class "secondary button tiny"
+                                      :name "button"
+                                      :value "Cancel"))
+                            (:input :type "submit"
+                                    :class "success button tiny"
+                                    :name "button"
+                                    :value "Save")))))
+           (:tbody
+            (:tr (:td :class "label-column"
+                      "Source")
+                 (:td :class "field-column"
+                      (:input :value url
+                              :name "url"
+                              :type "text"
+                              :onchange
+                              (weblocks-parenscript:make-js-handler
+                               :lisp-code ((&key url)
+                                           (update-url (branches widget)
+                                                       url))
+                               :js-code ((event)
+                                         ;; This will pass new URL value
+                                         ;; to the backend:
+                                         (parenscript:create
+                                          :url (@ event target value)))))))
+            (:tr (:td :class "label-column"
+                      "Branch or tag")
+                 (:td :class "field-column"
+                      (render (branches widget))))
+            (when last-seen-commit
+              (:tr (:td :class "label-column"
+                        "Last seen commit")
+                   (:td :class "field-column"
+                        (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                            last-seen-commit))))
+            (when release-info
+              (:tr (:td :class "label-column"
+                        "Release")
+                   (:td (:a :href (quickdist:get-project-url release-info)
+                            (quickdist:get-project-url release-info)))))
+            (:tr (:td :class "label-column"
+                      "Distributions")
+                 (:td :class "field-column"
+                      (loop for dist in all-dists
+                            for name = (ultralisp/models/dist:dist-name dist)
+                            do  (:input :type "checkbox"
+                                        :name "distributions"
+                                        :value name
+                                        :checked (is-enabled dist)
+                                        (:label name))))))))))))
 
 
 (defmethod weblocks/widget:render ((widget branch-select-widget))
@@ -446,6 +457,7 @@
    (list
     (weblocks-lass:make-dependency
       `(.source-widget
+        :border-top "2px solid #cc4b37"
         (input :margin 0)
         (.dist :margin-right 1em)
         (.label-column :white-space "nowrap")
@@ -503,8 +515,10 @@
              (:select :name "type"
                :style "min-width: 7em; margin: 0"
                (:option :selected t
-                        "GITHUB")
-               (:option "ARCHIVE")))
+                        "GitHub")
+               (:option "Archive" :disabled t)
+               (:option "Git" :disabled t)
+               (:option "Mercurial" :disabled t)))
             (:td :style "width: 100%"
                  (:input :type "submit"
                          :class "button small"
