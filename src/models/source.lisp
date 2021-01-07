@@ -227,7 +227,8 @@
   (mito:retrieve-dao 'source
                      :project-id project-id
                      :project-version project-version
-                     :latest "true"))
+                     :latest "true"
+                     :deleted "false"))
 
 
 (defmethod external-url ((obj source))

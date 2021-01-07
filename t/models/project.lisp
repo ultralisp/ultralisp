@@ -287,7 +287,10 @@
                   (ok (equal (get-projects-linked-to-the foo-after)
                              '((:name "40ants/defmain"
                                 :enabled nil
-                                :deleted t)))))))))))))
+                                :deleted t)))))
+
+                (testing "Project-sources should not return this source anymore"
+                  (ok (null (project-sources project))))))))))))
 
 
 (deftest test-delete-source-from-pending-dist
@@ -296,5 +299,4 @@
 
 (deftest test-delete-source-from-non-pending-dist
   (run-deletion-test :pending-dists nil))
-
 

@@ -183,7 +183,8 @@
       (:h2 :class "project-description"
            description)
 
-      (mapc #'render (source-widgets widget))
+      (loop for item  (source-widgets widget)
+            do (render item))
 
       (render (add-form widget))
       
