@@ -9,7 +9,8 @@
                 #:with-test-db
                 #:with-login)
   (:import-from #:ultralisp/models/dist
-                #:dist-name-moderator
+                #:dist-name)
+  (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist
                 #:moderated-dists)
   (:import-from #:weblocks-auth/models
