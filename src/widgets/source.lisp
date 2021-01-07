@@ -9,6 +9,7 @@
   (:import-from #:weblocks-lass)
   (:import-from #:weblocks/dependencies)
   (:import-from #:ultralisp/models/dist-source
+                #:delete-source
                 #:update-source-dists
                 #:source-distributions)
   (:import-from #:ultralisp/models/dist-moderator)
@@ -35,6 +36,18 @@
                 #:get-branches)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
+  (:import-from #:mito
+                #:object-id)
+  (:import-from #:ultralisp/models/versioned
+                #:object-version)
+  (:import-from #:ultralisp/models/project
+                #:source->project)
+  (:import-from #:weblocks-auth/models
+                #:get-current-user)
+  (:import-from #:ultralisp/protocols/moderation
+                #:is-moderator)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -44,6 +57,13 @@
 (defwidget source-widget ()
   ((source :initarg :source
            :accessor source)
+   (on-delete :initform nil
+              :initarg :on-delete
+              :documentation "An optional callback.
+
+                              It will be called if the source is deleted.
+
+                              The SOURCE-WIDGET's instance is passed as a single argument to a callback.")
    (subwidget :initform nil
               :accessor subwidget)))
 
@@ -182,9 +202,10 @@
                  :on-new-source on-new-source))
 
 
-(defun make-source-widget (source)
+(defun make-source-widget (source &key on-delete)
   (let* ((main (make-instance 'source-widget
-                              :source source))
+                              :source source
+                              :on-delete on-delete))
          (subwidget (make-instance 'readonly-source-widget
                                    :parent main
                                    :check (get-last-source-check source))))
@@ -227,6 +248,20 @@
         "")))
 
 
+(defun on-delete (widget)
+  (check-type widget source-widget)
+  
+  (let ((source (source widget)))
+    (with-fields (:source-id (object-id source)
+                  :source-version (object-version source))
+      (log:error "Deleting source")
+     
+      (delete-source source)
+     
+      (weblocks/utils/misc:safe-funcall (slot-value widget 'on-delete)
+                                        widget))))
+
+
 (defmethod render-source ((widget readonly-source-widget)
                           (type (eql :github))
                           source)
@@ -240,87 +275,87 @@
     ;; for rendering.
     (assert (not deleted))
     
-    (with-html
-      (:table :class "unstriped"
-       (:thead
-        (:tr (:th :class "label-column"
-                  "Type")
-             (:th :class "field-column"
-                  type
-                  ;; Controls for editing and deleting source
-                  (when (ultralisp/protocols/moderation:is-moderator
-                         (weblocks-auth/models:get-current-user)
-                         (ultralisp/models/project:source->project source))
-                    (:div :class "source-controls float-right"
-                          (weblocks-ui/form:with-html-form
-                              (:post
-                               (lambda (&rest args)
-                                 (declare (ignorable args))
-                                 (log:error "REMOVING"))
-                               :requires-confirmation-p t
-                               :confirm-question (:div (:h1 "Warning!")
-                                                       (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
-                                                       (:ul
-                                                        (loop for name in (mapcar #'dist-name
-                                                                                  (remove-if-not
-                                                                                   #'enabled-p
-                                                                                   (source->dists source)))
-                                                              do (:li name)))))
-                            (:input :type "submit"
-                                    :class "alert button tiny"
-                                    :name "button"
-                                    :value "Remove"))
-                          
-                          (weblocks-ui/form:with-html-form
-                              (:post (lambda (&rest args)
-                                       (declare (ignorable args))
-                                       (edit widget)))
-                            (:input :type "submit"
-                                    :class "button tiny"
-                                    :name "button"
-                                    :value "Edit")))))))
-       (:tbody
-        (:tr (:td :class "label-column"
-                  "Source")
-             (:td :class "field-column"
-                  (:a :href url
-                      url)))
-        (:tr (:td :class "label-column"
-                  "Branch or tag")
-             (:td :class "field-column"
-                  (ultralisp/models/source:get-current-branch source)))
-        (when last-seen-commit
-          (:tr (:td :class "label-column"
-                    "Last seen commit")
-               (:td :class "field-column"
-                    (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                        last-seen-commit))))
-        (when release-info
-          (:tr (:td :class "label-column"
-                    "Release")
-               (:td :class "field-column"
-                    (:a :href (quickdist:get-project-url release-info)
-                        (quickdist:get-project-url release-info)))))
-        (:tr (:td :class "label-column"
-                  "Distributions")
-             (:td :class "field-column"
-                  (mapc #'render-distribution
-                        distributions)))
-       
-        (when (last-check widget)
-          (:tr (:td :class "label-column"
-                    "Last check")
-               (let* ((check (last-check widget))
-                      (processed-at (ultralisp/models/check:get-processed-at check)))
-                 (:td :class "field-column"
-                      ("~A~A"
-                       (if processed-at
-                           (format nil "Finished at ~A." processed-at)
-                           "Waiting in the queue.")
-                       (if (and (ultralisp/models/check:get-processed-at check)
-                                (ultralisp/models/check:get-error check))
-                           (format nil " There was an error.")
-                           "")))))))))))
+    (flet ((deletion-handler (&rest args)
+             (declare (ignorable args))
+             (on-delete (parent widget))))
+      (with-html
+        (:table :class "unstriped"
+                (:thead
+                 (:tr (:th :class "label-column"
+                           "Type")
+                      (:th :class "field-column"
+                           type
+                           ;; Controls for editing and deleting source
+                           (when (is-moderator
+                                  (get-current-user)
+                                  (source->project source))
+                             (:div :class "source-controls float-right"
+                                   (weblocks-ui/form:with-html-form
+                                       (:post #'deletion-handler
+                                        :requires-confirmation-p t
+                                        :confirm-question (:div (:h1 "Warning!")
+                                                                (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
+                                                                (:ul
+                                                                 (loop for name in (mapcar #'dist-name
+                                                                                           (remove-if-not
+                                                                                            #'enabled-p
+                                                                                            (source->dists source)))
+                                                                       do (:li name)))))
+                                     (:input :type "submit"
+                                             :class "alert button tiny"
+                                             :name "button"
+                                             :value "Remove"))
+                                  
+                                   (weblocks-ui/form:with-html-form
+                                       (:post (lambda (&rest args)
+                                                (declare (ignorable args))
+                                                (edit widget)))
+                                     (:input :type "submit"
+                                             :class "button tiny"
+                                             :name "button"
+                                             :value "Edit")))))))
+                (:tbody
+                 (:tr (:td :class "label-column"
+                           "Source")
+                      (:td :class "field-column"
+                           (:a :href url
+                               url)))
+                 (:tr (:td :class "label-column"
+                           "Branch or tag")
+                      (:td :class "field-column"
+                           (ultralisp/models/source:get-current-branch source)))
+                 (when last-seen-commit
+                   (:tr (:td :class "label-column"
+                             "Last seen commit")
+                        (:td :class "field-column"
+                             (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                 last-seen-commit))))
+                 (when release-info
+                   (:tr (:td :class "label-column"
+                             "Release")
+                        (:td :class "field-column"
+                             (:a :href (quickdist:get-project-url release-info)
+                                 (quickdist:get-project-url release-info)))))
+                 (:tr (:td :class "label-column"
+                           "Distributions")
+                      (:td :class "field-column"
+                           (mapc #'render-distribution
+                                 distributions)))
+                
+                 (when (last-check widget)
+                   (:tr (:td :class "label-column"
+                             "Last check")
+                        (let* ((check (last-check widget))
+                               (processed-at (ultralisp/models/check:get-processed-at check)))
+                          (:td :class "field-column"
+                               ("~A~A"
+                                (if processed-at
+                                    (format nil "Finished at ~A." processed-at)
+                                    "Waiting in the queue.")
+                                (if (and (ultralisp/models/check:get-processed-at check)
+                                         (ultralisp/models/check:get-error check))
+                                    (format nil " There was an error.")
+                                    ""))))))))))))
 
 
 (defmethod render-source ((widget readonly-source-widget)

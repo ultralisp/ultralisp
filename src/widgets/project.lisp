@@ -64,22 +64,30 @@
   (unless (equal (slot-value widget 'name)
                  new-name)
     (let ((new-project (ultralisp/models/project:get-project2 new-name)))
-      (setf (slot-value widget 'name)
-            new-name
-            (slot-value widget 'project )
-            new-project
-            (slot-value widget 'source-widgets)
-            (mapcar #'make-source-widget
-                    (ultralisp/models/project:project-sources new-project))
-            (slot-value widget 'add-form)
-            (make-add-source-widget
-             new-project
-             :on-new-source
-             (lambda (source)
-               (uiop:appendf
-                (slot-value widget 'source-widgets)
-                (list (make-source-widget source)))
-               (weblocks/widget:update widget)))))))
+      (flet ((on-delete (source-widget)
+               (with-slots (source-widgets) widget
+                 (setf source-widgets
+                       (remove source-widget
+                               source-widgets)))
+               (weblocks/widget:update widget)))
+        (setf (slot-value widget 'name)
+              new-name
+              (slot-value widget 'project )
+              new-project
+              (slot-value widget 'source-widgets)
+              (loop for source in (ultralisp/models/project:project-sources new-project)
+                    collect (make-source-widget source
+                                                :on-delete #'on-delete))
+              (slot-value widget 'add-form)
+              (make-add-source-widget
+               new-project
+               :on-new-source
+               (lambda (source)
+                 (uiop:appendf
+                  (slot-value widget 'source-widgets)
+                  (list (make-source-widget source
+                                            :on-delete #'on-delete)))
+                 (weblocks/widget:update widget))))))))
 
 
 (defun toggle (widget project)

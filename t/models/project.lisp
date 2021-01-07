@@ -7,6 +7,8 @@
                 #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
+                #:get-projects-linked-to-the
+                #:get-all-dist-projects
                 #:get-all-dist-names
                 #:get-dist
                 #:get-source
@@ -42,11 +44,25 @@
                 #:enabled-p)
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
-  (:import-from #:ultralisp/models/dist-source
+  (:import-from #:ultralisp/models/dist
+                #:dist-equal
+                #:dist-state
+                #:find-dist-source
                 #:update-source-dists)
   (:import-from #:ultralisp/models/dist-moderator
-                #:add-dist))
+                #:add-dist)
+  (:import-from #:ultralisp/models/dist-source
+                #:delete-source))
 (in-package ultralisp-test/models/project)
+
+
+(deftest test-github-url-extraction
+  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia")
+             "Dimercel/listopia"))
+  (ok (equal (extract-github-name "http://github.com/Dimercel/listopia")
+             "Dimercel/listopia"))
+  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia.git")
+             "Dimercel/listopia")))
 
 
 (deftest test-adding-github-project
@@ -196,12 +212,89 @@
                          '("bar" "foo" "ultralisp"))))))))))
 
 
-(deftest test-github-url-extraction
-  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia")
-             "Dimercel/listopia"))
-  (ok (equal (extract-github-name "http://github.com/Dimercel/listopia")
-             "Dimercel/listopia"))
-  (ok (equal (extract-github-name "https://github.com/Dimercel/listopia.git")
-             "Dimercel/listopia")))
+(defun run-deletion-test (&key pending-dists)
+  (with-test-db
+    (with-metrics
+      (with-login ()
+        (let* ((user (get-current-user))
+               (project (make-project "40ants" "defmain"))
+               (source (get-source project)))
+          (flet ((retrieve-latest-source ()
+                   (setf source (get-source project))))
+            ;; First, let's add a distribution:
+            (add-dist user "foo")
+          
+            ;; At this point, source should be bound only to
+            ;; common Ultralisp distribution.
+          
+            ;; Let's enable the source, first.
+            ;; After this call source should be bound to a new PENDING version.
+            (create-new-source-version source nil nil)
+            (retrieve-latest-source)
+            
+            (update-source-dists source
+                                 :dists '("ultralisp" "foo"))
+            (retrieve-latest-source)
+
+            (unless pending-dists
+              (ultralisp/builder::prepare-pending-dists)
+              (ultralisp/builder::build-prepared-dists))
+
+            (let ((ultralisp (find-dist "ultralisp"))
+                  (foo (find-dist "foo")))
+              
+              (if pending-dists
+                  (testing "All dist versions should be pending now"
+                    (ok (eql (dist-state ultralisp)
+                             :pending))
+                    (ok (eql (dist-state foo)
+                             :pending)))
+                  (testing "All dist versions should not be pending now"
+                    (ok (eql (dist-state ultralisp)
+                             :ready))
+                    (ok (eql (dist-state foo)
+                             :ready))))
+
+              (testing "Both dists should include the project 40ants/defmain"
+                (ok (equal (get-all-dist-projects ultralisp)
+                           '("40ants/defmain")))
+                (ok (equal (get-all-dist-projects foo)
+                           '("40ants/defmain"))))
+
+              (delete-source source)
+
+              (let ((ultralisp-after (find-dist "ultralisp"))
+                    (foo-after (find-dist "foo")))
+                (if pending-dists
+                    (testing "No new dist versions should be created, because dists were pending"
+                      (ok (dist-equal ultralisp
+                                      ultralisp-after))
+                      (ok (dist-equal foo
+                                      foo-after)))
+                    (testing "New dist versions should be created"
+                      (ok (not
+                           (dist-equal ultralisp
+                                       ultralisp-after)))
+                      (ok (not
+                           (dist-equal foo
+                                       foo-after)))))
+
+                (testing "Project 40ants/defmain should be deleted and disabled in new dists verssions"
+                  (ok (equal (get-projects-linked-to-the ultralisp-after)
+                             '((:name "40ants/defmain"
+                                :enabled nil
+                                :deleted t))))
+                  (ok (equal (get-projects-linked-to-the foo-after)
+                             '((:name "40ants/defmain"
+                                :enabled nil
+                                :deleted t)))))))))))))
+
+
+(deftest test-delete-source-from-pending-dist
+  (run-deletion-test :pending-dists t))
+
+
+(deftest test-delete-source-from-non-pending-dist
+  (run-deletion-test :pending-dists nil))
 
 

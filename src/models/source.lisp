@@ -271,7 +271,8 @@
 
 (defun copy-source (source &key (params nil params-p)
                                 (systems-info nil systems-info-p)
-                                (release-info nil release-info-p))
+                                (release-info nil release-info-p)
+                                (deleted nil deleted-p))
   (mito:create-dao 'source
                    :id (object-id source)
                    :version (1+ (object-version source))
@@ -286,7 +287,10 @@
                                      (source-systems-info source))
                    :release-info (if release-info-p
                                      release-info
-                                     (source-release-info source))))
+                                     (source-release-info source))
+                   :deleted (if deleted-p
+                                deleted
+                                (deleted-p source))))
 
 
 (defun get-source (id version)
@@ -392,3 +396,5 @@
 (defun get-current-branch (source)
   (getf (source-params source)
         :branch))
+
+
