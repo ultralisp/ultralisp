@@ -109,12 +109,7 @@
               ((and
                 (enabled-p source)
                 (null (enabled-p prev-source)))
-               "enabled"
-               (format nil "enabled new source-id: ~A source-version: ~A prev: ~A"
-                       (mito:object-id source)
-                       (ultralisp/models/versioned:object-version source)
-                       prev-source)
-               )
+               "enabled")
               ((and
                 (null (enabled-p source))
                 (enabled-p prev-source))
