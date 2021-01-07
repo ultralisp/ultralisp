@@ -7,7 +7,8 @@
   (:import-from #:ultralisp/models/project
                 #:make-github-project
                 #:project-sources)
-  (:import-from #:ultralisp/models/dist-source
+  (:import-from #:ultralisp/models/dist
+                #:dist-name-source
                 #:source->dists
                 #:add-source-to-dist)
   (:import-from #:ultralisp/models/dist
@@ -17,7 +18,8 @@
            #:with-metrics
            #:get-source
            #:make-project
-           #:get-dist))
+           #:get-dist
+           #:get-all-dist-names))
 (in-package ultralisp-test/utils)
 
 
@@ -65,6 +67,17 @@
    (when (> (length dists) 1)
      (error "There are more than 1 source for this project"))
    (first dists)))
+
+
+(defun get-all-dist-names (source &key (enabled nil enabled-given-p))
+  "Returns a sorted list of dist names for the source."
+  (let ((dists (apply #'source->dists
+                      source
+                      (when enabled-given-p
+                        (list :enabled enabled)))))
+    (sort (mapcar #'dist-name
+                  dists)
+          #'string<)))
 
 
 (defun make-project (user name)

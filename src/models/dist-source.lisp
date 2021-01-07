@@ -4,6 +4,7 @@
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:ultralisp/models/dist
+                #:dist-state
                 #:get-or-create-pending-version
                 #:dist-name
                 #:dist-equal
@@ -84,7 +85,8 @@
    (deleted :col-type :boolean
             :initarg :deleted
             :initform nil
-            :reader deleted-p))
+            :documentation "This field can be changed only on dist-source linked to the :pending dist."
+            :accessor deleted-p))
   (:primary-key
    dist-id dist-version
    source-id)
@@ -303,7 +305,7 @@
                                  new-dists
                                  :key #'dist-name
                                  :test #'string=)))
-          
+            
             (when dists-to-add
               (ensure-there-is-a-clone)
               ;; If source should be added to the dist,
@@ -311,32 +313,82 @@
               ;; and to link this source to it:
               (loop for dist in dists-to-add
                     for new-version = (get-or-create-pending-version dist)
-                    do (mito:create-dao 'dist-source
-                                        :dist-id (object-id new-version)
-                                        :dist-version (object-version new-version)
-                                        :source-id (object-id new-source)
-                                        :source-version (object-version new-source)
-                                        :include-reason include-reason)))
+                    for old-dist-source = (mito:find-dao 'dist-source
+                                                         :dist-id (object-id dist)
+                                                         :dist-version (object-version dist)
+                                                         :source-id (object-id source))
+                    do (cond
+                         ;; We only need to create a new link if a new pending
+                         ;; version was created and the source previously
+                         ;; was linked to it (and probably removed).
+                         ((and (dist-equal dist new-version)
+                               old-dist-source)
+                          ;; When dist version is the same and it is still pending,
+                          ;; we can just mark existing dist-source as enabled.
+                          (unless (eql (dist-state new-version)
+                                       :pending)
+                            (error "We can remove a new source version only to a pending dist version."))
+                          ;; First, we need to change source version in the link
+                          (setf (source-version old-dist-source)
+                                (object-version new-source))
+                          ;; Second, to set flags, showing that the source is enabled and not deleted
+                          ;; from the dist:
+                          (setf (deleted-p old-dist-source) nil
+                                (enabled-p old-dist-source) t
+                                (disable-reason old-dist-source) nil)
+                          (mito:update-dao old-dist-source))
+                         (t
+                          (mito:create-dao 'dist-source
+                                           :dist-id (object-id new-version)
+                                           :dist-version (object-version new-version)
+                                           :source-id (object-id new-source)
+                                           :source-version (object-version new-source)
+                                           :include-reason include-reason)))))
 
             (when dists-to-remove
               (ensure-there-is-a-clone)
               ;; if source should be removed from some dist,
               ;; then we have to get/create a pending dist
               ;; and to link this source with "deleted" mark:
-              (loop for dist in dists-to-remove
+              (loop with disable-reason = (make-disable-reason
+                                           disable-reason)
+                    for dist in dists-to-remove
                     for new-version = (get-or-create-pending-version dist)
-                    do (mito:create-dao 'dist-source
-                                        :dist-id (object-id new-version)
-                                        :dist-version (object-version new-version)
-                                        :source-id (object-id new-source)
-                                        :source-version (object-version new-source)
-                                        ;; Here we reuse reason from the removed
-                                        ;; dist.
-                                        :include-reason (include-reason dist)
-                                        ;; Important to set this flag:
-                                        :deleted t
-                                        :enabled nil
-                                        :disable-reason (make-disable-reason disable-reason))))
+                    for old-dist-source = (mito:find-dao 'dist-source
+                                                         :dist-id (object-id dist)
+                                                         :dist-version (object-version dist)
+                                                         :source-id (object-id source))
+                    do (cond
+                         ;; We only need to create a new link if a new pending
+                         ;; version was created.
+                         ((dist-equal dist new-version)
+                          ;; When dist version is the same and it is still pending,
+                          ;; we can just mark existing dist-source as disabled.
+                          (unless (eql (dist-state new-version)
+                                       :pending)
+                            (error "We can remove a new source version only to a pending dist version."))
+                          ;; First, we need to change source version in the link
+                          (setf (source-version old-dist-source)
+                                (object-version new-source))
+                          ;; Second, to set flags, showing that the source was disabled and removed
+                          ;; from the dist:
+                          (setf (deleted-p old-dist-source) t
+                                (enabled-p old-dist-source) nil
+                                (disable-reason old-dist-source) disable-reason)
+                          (mito:update-dao old-dist-source))
+                         (t
+                          (mito:create-dao 'dist-source
+                                           :dist-id (object-id new-version)
+                                           :dist-version (object-version new-version)
+                                           :source-id (object-id new-source)
+                                           :source-version (object-version new-source)
+                                           ;; Here we reuse reason from the removed
+                                           ;; dist.
+                                           :include-reason (include-reason dist)
+                                           ;; Important to set this flag:
+                                           :deleted t
+                                           :enabled nil
+                                           :disable-reason disable-reason)))))
           
             (when new-source
               ;; We need to execute this section in any case if params were updated
@@ -349,13 +401,29 @@
                                                          :dist-id (object-id dist)
                                                          :dist-version (object-version dist)
                                                          :source-id (object-id source))
-                    do (mito:create-dao 'dist-source
-                                        :dist-id (object-id new-version)
-                                        :dist-version (object-version new-version)
-                                        :source-id (object-id new-source)
-                                        :source-version (object-version new-source)
-                                        ;; Keep previous inclusion reason
-                                        :include-reason (include-reason dist))))))
+                    do (cond
+                         ;; We only need to create a new link if a new pending
+                         ;; version was created.
+                         ((dist-equal dist new-version)
+                          ;; When dist version is the same, but we need to bind
+                          ;; a new source version to it, then we'll modify
+                          ;; existing dist-source.
+                          ;;
+                          ;; However, we can do this only on pending dist
+                          (unless (eql (dist-state new-version)
+                                       :pending)
+                            (error "We can rebind a new source version only to a pending dist version."))
+                          (setf (source-version old-dist-source)
+                                (object-version new-source))
+                          (mito:update-dao old-dist-source))
+                         (t
+                          (mito:create-dao 'dist-source
+                                           :dist-id (object-id new-version)
+                                           :dist-version (object-version new-version)
+                                           :source-id (object-id new-source)
+                                           :source-version (object-version new-source)
+                                           ;; Keep previous inclusion reason
+                                           :include-reason (include-reason dist))))))))
 
         ;; Also, we'll need to recheck this source
         ;; before it will be included into the new dist versions.

@@ -3,6 +3,7 @@
   :pathname "t"
   :depends-on ("hamcrest"
                "ultralisp"
+               "ultralisp-test/models/dist"
                "ultralisp-test/models/project"
                "ultralisp-test/github/webhook"
                "ultralisp-test/pipeline"

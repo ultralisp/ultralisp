@@ -7,6 +7,7 @@
                 #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
+                #:get-all-dist-names
                 #:get-dist
                 #:get-source
                 #:make-project
@@ -38,7 +39,13 @@
   (:import-from #:ultralisp/models/versioned
                 #:object-version)
   (:import-from #:ultralisp/protocols/enabled
-                #:enabled-p))
+                #:enabled-p)
+  (:import-from #:weblocks-auth/models
+                #:get-current-user)
+  (:import-from #:ultralisp/models/dist-source
+                #:update-source-dists)
+  (:import-from #:ultralisp/models/dist-moderator
+                #:add-dist))
 (in-package ultralisp-test/models/project)
 
 
@@ -138,6 +145,55 @@
 
               (testing "New source should be disabled"
                 (ok (not (enabled-p new-dist)))))))))))
+
+
+(deftest test-source-distribution-changes
+  (with-test-db
+    (with-metrics
+      (with-login ()
+        (let* ((user (get-current-user))
+               (project (make-project "40ants" "defmain"))
+               (source-v0 (get-source project)))
+          ;; First, let's add a two distributions:
+          (add-dist user "foo")
+          (add-dist user "bar")
+
+          ;; At this point, source should be bound only to
+          ;; common Ultralisp distribution.
+          
+          ;; Let's enable the source, first.
+          ;; After this call source should be bound to a new PENDING version.
+          (create-new-source-version source-v0 nil nil)
+
+          (let ((source-v1 (get-source project))
+                (source-v2 nil)
+                (source-v3 nil)
+                (source-v4 nil))
+
+            (testing "Initially project should be only in \"ultralisp\" dist"
+              (ok (equal (get-all-dist-names source-v1 :enabled t)
+                         '("ultralisp"))))
+          
+            (testing "Adding source to dist \"foo\""
+              (setf source-v2
+                    (update-source-dists source-v1
+                                         :dists '("ultralisp" "foo")))
+              (ok (equal (get-all-dist-names source-v2 :enabled t)
+                         '("foo" "ultralisp"))))
+            
+            (testing "Adding source to dist \"bar\" and removing from \"foo\""
+              (setf source-v3
+                    (update-source-dists source-v2
+                                         :dists '("ultralisp" "bar")))
+              (ok (equal (get-all-dist-names source-v3)
+                         '("bar" "ultralisp"))))
+            
+            (testing "Adding source to dist \"foo\" again and removing from \"bar\""
+              (setf source-v4
+                    (update-source-dists source-v3
+                                         :dists '("ultralisp" "foo" "bar")))
+              (ok (equal (get-all-dist-names source-v4)
+                         '("bar" "foo" "ultralisp"))))))))))
 
 
 (deftest test-github-url-extraction
