@@ -92,6 +92,10 @@
   ;; (:import-from #:ultralisp/models/source)
   ;; (:import-from #:ultralisp/models/dist-source)
   (:import-from #:ultralisp/widgets/landing)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
+  (:import-from #:weblocks-auth/models
+                #:get-current-user)
   
   (:shadow #:restart)
   (:export
@@ -278,7 +282,15 @@
                      (print-backtrace condition
                                       :output nil))))
     (when traceback
-      (log:error "Returning 500 error to user" traceback))
+      (with-fields (:uri (weblocks/request:get-path)
+                    :user (let ((user (get-current-user)))
+                            (cond
+                              ((null user)
+                               "unknown")
+                              ((weblocks-auth/models:anonymous-p user)
+                               "anonymous")
+                              (t (weblocks-auth/models:get-nickname user)))))
+        (log:error "Returning 500 error to user" traceback)))
 
     (let ((content
             (cond
