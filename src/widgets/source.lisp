@@ -367,13 +367,15 @@
                  (:th :class "field-column"
                       type
                       (:div :class "source-controls float-right"
-                            (weblocks-ui/form:with-html-form
-                                (:post (lambda (&rest args)
-                                         (declare (ignore args))
-                                         (switch-to-readonly widget)))
-                              (:input :type "submit"
+                            (let ((js-code-to-cancel
+                                    (weblocks/actions:make-js-action
+                                     (lambda (&rest args)
+                                           (declare (ignore args))
+                                       (switch-to-readonly widget)))))
+                              (:input :type "button"
                                       :class "secondary button tiny"
                                       :name "button"
+                                      :onclick js-code-to-cancel
                                       :value "Cancel"))
                             (:input :type "submit"
                                     :class "success button tiny"
