@@ -183,7 +183,7 @@
       (:h2 :class "project-description"
            description)
 
-      (loop for item  (source-widgets widget)
+      (loop for item in (source-widgets widget)
             do (render item))
 
       (render (add-form widget))
