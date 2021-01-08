@@ -335,9 +335,9 @@
 
 
 (defun start (&rest args &key (debug t)
-                           (port 8080)
-                           (interface "localhost")
-                           (server-type :woo))
+                              (port 8080)
+                              (interface "localhost")
+                              (server-type :woo))
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
   (declare (ignore debug port interface server-type))
@@ -348,6 +348,11 @@ arguments."
   
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
+
+  ;; This fixes issue with Dexador's thread-safety:
+  ;; https://github.com/fukamachi/dexador/issues/88
+  (setf cl-dbi::*threads-connection-pool*
+        (make-hash-table :test 'equal :synchronized t))
 
   (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*

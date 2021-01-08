@@ -88,11 +88,6 @@
   (mito:execute-sql "DELETE FROM public.check2 WHERE processed_at < now() - '180 day'::interval"))
 
 
-(deftask recreate-cl-dbi-hash ()
-  (setf cl-dbi::*threads-connection-pool*
-        (make-hash-table :test 'equal :synchronized t)))
-
-
 (deftask build-dists (:need-connection nil)
   ;; Here we get separate connections and transaction
   ;; because when we do version build, it will be
