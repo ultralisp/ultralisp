@@ -57,6 +57,14 @@
                                  (full-dist-name (fmt "~A/~A"
                                                       nickname
                                                       name)))
+                            ;; For some reason, a dozen nicknames for users
+                            ;; created from 2019-01-26 to 2019-03-30 have emails
+                            ;; instead of nicknames.
+                            ;; I've fixed them with datamigration, but
+                            ;; to protect ourselves from the problems in future,
+                            ;; we'll check that nickname is not an email:
+                            (assert (not (str:containsp "@" nickname)))
+                            
                             (log:info "Adding dist with name" full-dist-name)
                             (add-dist user full-dist-name)
                             (weblocks/widget:update widget))))
