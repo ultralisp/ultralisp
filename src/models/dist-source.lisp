@@ -129,7 +129,8 @@
                    (if enabled
                        "true"
                        "false")))))
-  (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p))
+  (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p)
+                                                   limit)
     "Returns all source distributions which are enabled and not
      deleted in the given dist.
 
@@ -155,10 +156,12 @@
                                       'source.id)
                                   (:= 'dist_source.source_version
                                       'source.version)))
-        (sxql:where clauses)))))
+        (sxql:where clauses)
+        (sxql:limit limit)))))
 
 
-(defun %this-version-source-distributions (dist &key (enabled nil enabled-given-p))
+(defun %this-version-source-distributions (dist &key (enabled nil enabled-given-p)
+                                                     limit)
   "Returns only source distributions which are enabled 
    deleted in the given dist."
   (check-type dist ultralisp/models/dist:dist)
@@ -175,7 +178,8 @@
                            "true"
                            "false")))))))
     (mito:select-dao 'dist-source
-      (sxql:where clauses))))
+      (sxql:where clauses)
+      (sxql:limit limit))))
 
 
 (defun source->dists (source &key (enabled nil enabled-given-p))
@@ -194,7 +198,9 @@
                                :include-reason (include-reason dist-source))))
 
 
-(defun dist->sources (dist &key this-version (enabled nil enabled-given-p))
+(defun dist->sources (dist &key this-version
+                                (enabled nil enabled-given-p)
+                                limit)
   "Returns all sources bound to the dist dist objects along with their enabled flag"
   (check-type dist
               ultralisp/models/dist:dist)
@@ -202,6 +208,7 @@
                              (this-version
                               (apply #'%this-version-source-distributions
                                      dist
+                                     :limit limit
                                      (when enabled-given-p
                                        (list :enabled enabled))))
                              (t

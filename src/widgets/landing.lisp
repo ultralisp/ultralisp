@@ -146,7 +146,16 @@
          (number (ultralisp/models/dist:dist-quicklisp-version dist))
          (built-at (ultralisp/models/dist:dist-built-at dist))
          (state (ultralisp/models/dist:dist-state dist))
-         (bound-sources (dist->sources dist :this-version t))
+         (limit 5)
+         (bound-sources (dist->sources dist :this-version t :limit (1+ limit)))
+         ;; We specially requested 1 more items to determine
+         ;; if there are more items in the database:
+         (has-more (= (length bound-sources)
+                      (1+ limit)))
+         (bound-sources (subseq bound-sources
+                                0
+                                (min (length bound-sources)
+                                     limit)))
          ;; TODO: create a generic get-uri and define it for a version class
          ;; (version-uri ""
          ;;              ;; (format nil "/versions/~A" number)
@@ -178,7 +187,9 @@
             :colspan 3
             (:ul :class "changelog"
                  (mapc #'render-bound-source
-                       bound-sources)))))))
+                       bound-sources))
+            (when has-more
+              (:p "And more...")))))))
 
 
 (defmethod render ((widget landing-widget))
