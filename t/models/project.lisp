@@ -47,12 +47,12 @@
   (:import-from #:ultralisp/models/dist
                 #:dist-equal
                 #:dist-state
-                #:find-dist-source
-                #:update-source-dists)
+                #:find-dist)
   (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist)
   (:import-from #:ultralisp/models/dist-source
-                #:delete-source))
+                #:delete-source
+                #:update-source-dists))
 (in-package ultralisp-test/models/project)
 
 
