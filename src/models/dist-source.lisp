@@ -130,7 +130,7 @@
                        "true"
                        "false")))))
   (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p)
-                                                   limit)
+                                                   (limit most-positive-fixnum))
     "Returns all source distributions which are enabled and not
      deleted in the given dist.
 
@@ -161,7 +161,7 @@
 
 
 (defun %this-version-source-distributions (dist &key (enabled nil enabled-given-p)
-                                                     limit)
+                                                     (limit most-positive-fixnum))
   "Returns only source distributions which are enabled 
    deleted in the given dist."
   (check-type dist ultralisp/models/dist:dist)
