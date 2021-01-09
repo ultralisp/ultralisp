@@ -47,8 +47,6 @@
 (defmethod weblocks/widget:render ((widget maintenance))
   (with-slots (lock-filename child) widget
     (let ((lock-exists (probe-file lock-filename)))
-      (cond (lock-exists
-             (setf (weblocks/response:get-code))
-             (render-maintenance-page widget))
-            (t
-             (weblocks/widget:render child))))))
+      (if lock-exists
+          (render-maintenance-page widget)
+          (weblocks/widget:render child)))))

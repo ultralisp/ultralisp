@@ -2,6 +2,10 @@ dist ultralisp http://dist.ultralisp.org/
 
 github quickdist ultralisp/quickdist :tag v0.16.0
 
+# Because latest Drakma depends on new puri,
+# but it is not in Quicklisp yet and nor in Ultralisp:
+# git puri git://git.kpe.io/puri.git :ref 4bbab89d9ccbb26346899d1f496c97604fec567b
+
 # github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables
 
