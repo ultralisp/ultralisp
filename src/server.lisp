@@ -96,6 +96,8 @@
                 #:with-fields)
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
+  (:import-from #:ultralisp/widgets/maintenance
+                #:make-maintenance-widget)
   
   (:shadow #:restart)
   (:export
@@ -113,7 +115,8 @@
         "package:\"weblocks/actions\" to search all symbols exported from a package."))
 
 (defmethod weblocks/session:init ((app app))
-  (make-main-routes))
+  (make-maintenance-widget
+   (make-main-routes)))
 
 
 (defparameter *app-dependencies*
@@ -421,7 +424,8 @@ arguments."
    - Second on 8081 port and running outside."
 
   #+darwin
-  (uiop:run-program "brew install gnu-tar")
+  (uiop:run-program "brew install gnu-tar"
+                    :ignore-error-status t)
 
   ;; These vars are the same as in the 
   (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
@@ -436,10 +440,10 @@ arguments."
   (setf cl-fad::*default-template*
         "/tmp/ultralisp/temp-%")
 
-  (ultralisp/logging:setup-for-repl :level "error"
-                                    :app "app")
+  (start :port 8081)
   
-  (start :port 8081))
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "app"))
 
 
 (defun stop ()
