@@ -183,7 +183,6 @@
   "When cron is disabled, you can use this function in the REPL
    to do everything for complete Ultralisp update cycle."
 
-  (recreate-cl-dbi-hash)
   (remove-old-checks)
   (create-cron-checks)
   (perform-checks)
@@ -208,10 +207,6 @@
                            :hash-key 'remove-old-checks
                            :step-min 60)
     
-    (cl-cron:make-cron-job 'recreate-cl-dbi-hash
-                           :hash-key 'recreate-cl-dbi-hash
-                           :step-min 15)
-
     ;; Run every 5 minutes
     (cl-cron:make-cron-job 'build-dists
                            :hash-key 'build-dists
