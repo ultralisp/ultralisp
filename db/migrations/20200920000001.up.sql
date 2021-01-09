@@ -12,8 +12,6 @@ CREATE TABLE "project2" (
 CREATE UNIQUE INDEX "unique_project2_name" ON "project2" ("name");
 
 
-CREATE SEQUENCE IF NOT EXISTS source_id_seq;
-
 CREATE TABLE "source" (
     "id" BIGSERIAL NOT NULL,
     "version" BIGINT NOT NULL,
@@ -48,8 +46,6 @@ CREATE TABLE "dist" (
     "built_at" TIMESTAMPTZ,
     PRIMARY KEY (id, version)
 );
-
-CREATE UNIQUE INDEX "unique_dist_name" ON "dist" ("name");
 
 
 CREATE TABLE "dist_source" (
