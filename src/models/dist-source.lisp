@@ -200,7 +200,7 @@
 
 (defun dist->sources (dist &key this-version
                                 (enabled nil enabled-given-p)
-                                limit)
+                                (limit most-positive-fixnum))
   "Returns all sources bound to the dist dist objects along with their enabled flag"
   (check-type dist
               ultralisp/models/dist:dist)
@@ -214,6 +214,7 @@
                              (t
                               (apply #'source-distributions
                                      dist
+                                     :limit limit
                                      (when enabled-given-p
                                        (list :enabled enabled)))))
         for source = (dist-source->source dist-source)

@@ -62,7 +62,15 @@
 (defun render-dist (dist-widget)
   (let* ((dist (dist dist-widget))
          (name (dist-name dist-widget))
-         (sources (ultralisp/models/dist-source:dist->sources dist)))
+         (limit 50)
+         (sources (ultralisp/models/dist-source:dist->sources dist
+                                                              :limit (1+ limit)))
+         (has-more (= (length sources)
+                      (1+ limit)))
+         (sources (subseq sources
+                          0
+                          (min (length sources)
+                               limit))))
 
     (weblocks/html:with-html
       (:h1 name)
@@ -72,20 +80,25 @@
       (:h3 "Projects")
 
       (cond
-        (sources (:ul :class "dist-projects"
-                      (loop for source in sources
-                            for project = (ultralisp/models/project:source->project source)
-                            for project-name = (ultralisp/models/project:project-name project)
-                            for project-description = (ultralisp/models/project:project-description project)
-                            for url = (ultralisp/protocols/url:url project)
-                            collect (list project-name project-description url) into data
-                            ;; Before output we'll sort projects by name
-                            finally (loop for (name desc url) in (sort data #'string<
-                                                                       :key #'car)
-                                          do (:li ("[~A](~A)~@[ — ~A~]"
-                                                   url name
-                                                   (unless (string-equal desc "")
-                                                     desc)))))))
+        (sources
+         (:ul :class "dist-projects"
+              (loop for source in sources
+                    for project = (ultralisp/models/project:source->project source)
+                    for project-name = (ultralisp/models/project:project-name project)
+                    for project-description = (ultralisp/models/project:project-description project)
+                    for url = (ultralisp/protocols/url:url project)
+                    collect (list project-name project-description url) into data
+                    ;; Before output we'll sort projects by name
+                    finally (loop for (name desc url) in (sort data #'string<
+                                                               :key #'car)
+                                  do (:li ("[~A](~A)~@[ — ~A~]"
+                                           url name
+                                           (unless (string-equal desc "")
+                                             desc))))))
+         (when has-more
+           (:p (:b "This distribution has more projects, but for performance reason we can't show them all."))
+           (:p ("Future version of Ultralisp may include a search posibility. If you need it, vote for
+                [this issue](https://github.com/ultralisp/ultralisp/issues/92)."))))
         ;; TODO: Maybe add a button to add some projects?
         (t (:p "No projects yet.")
            (when (is-moderator (weblocks-auth/models:get-current-user)
