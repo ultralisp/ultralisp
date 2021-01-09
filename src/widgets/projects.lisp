@@ -81,11 +81,14 @@
                          #'string<
                          :key #'ultralisp/models/project:project-name))
          (title "Moderated projects"))
-    (cond
-      (projects (with-html
-                  (:h1 :class "author-name"
-                       title)
-                  (setf (weblocks/page:get-title)
-                        title)
-                  (render-projects-list projects)))
-      (t (page-not-found)))))
+
+    (setf (weblocks/page:get-title)
+          title)
+
+    (with-html
+      (:h1 :class "author-name"
+           title)
+      (cond
+        (projects (render-projects-list projects))
+        (t (:p "You don't have any projects yet.")
+           (:p ("[Go to this page](/github) to add your first project!")))))))
