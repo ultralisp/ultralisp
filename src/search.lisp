@@ -456,78 +456,84 @@ default values from the arglist."
 
 
 (defun index-project (project)
-  "Эту функцию надо вызывать внутри воркера."
-  (let* ((path (downloaded-project-path
-                (download project "/tmp/indexer" :latest t))))
+  "This function should be called inside the worker."
+  (declare (ignore project))
+  ;; TODO: reimplement for project2
+  ;; (let* ((path (downloaded-project-path
+  ;;               (download project "/tmp/indexer" :latest t))))
 
-    (unwind-protect
-         (uiop:with-current-directory (path)
-           (log:info "Working in" path)
-           ;; Prepare qlfile and install the dependencies
-           (alexandria:with-output-to-file (s (merge-pathnames #P"qlfile"
-                                                               path)
-                                              :if-exists :supersede)
-             (format s "dist ultralisp http://dist.ultralisp.org/~%")
-             (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
-                                                           path))))
-               (when lock-file
-                 (delete-file lock-file)))
-             (qlot/install:install-project path :install-deps nil))
+  ;;   (unwind-protect
+  ;;        (uiop:with-current-directory (path)
+  ;;          (log:info "Working in" path)
+  ;;          ;; Prepare qlfile and install the dependencies
+  ;;          (alexandria:with-output-to-file (s (merge-pathnames #P"qlfile"
+  ;;                                                              path)
+  ;;                                             :if-exists :supersede)
+  ;;            (format s "dist ultralisp http://dist.ultralisp.org/~%")
+  ;;            (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
+  ;;                                                          path))))
+  ;;              (when lock-file
+  ;;                (delete-file lock-file)))
+  ;;            (qlot/install:install-project path :install-deps nil))
 
-           (log:info "Entering local quicklisp")
-           (qlot:with-local-quicklisp (path)
-             (loop with systems = (ultralisp/models/project:get-systems-info project)
-                   with *current-project-name* = (ultralisp/models/project:get-name project)
-                   with asdf:*central-registry* = (cons path asdf:*central-registry*)
-                   for system in systems
-                   do (log:info "Checking system" system)
-                      (let ((data (get-packages (quickdist:get-name system)
-                                                :work-dir path)))
-                        (log:info "Indexing system" system data)
-                        (loop for item in data
-                              for *current-system-name* = (getf item :system)
-                              for packages = (getf item :packages)
-                              do (when (safe-quickload *current-system-name*)
-                                   (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
-                                     (loop for package in packages
-                                           do (log:info "Indexing package" package)
-                                              (index-symbols package)))))))))
-      ;; Here we need to make a clean up to not clutter the file system
-      (log:info "Deleting checked out" path)
-      (uiop:delete-directory-tree path
-                                  :validate t))))
+  ;;          (log:info "Entering local quicklisp")
+  ;;          (qlot:with-local-quicklisp (path)
+  ;;            (loop with systems = (ultralisp/models/project:get-systems-info project)
+  ;;                  with *current-project-name* = (ultralisp/models/project:get-name project)
+  ;;                  with asdf:*central-registry* = (cons path asdf:*central-registry*)
+  ;;                  for system in systems
+  ;;                  do (log:info "Checking system" system)
+  ;;                     (let ((data (get-packages (quickdist:get-name system)
+  ;;                                               :work-dir path)))
+  ;;                       (log:info "Indexing system" system data)
+  ;;                       (loop for item in data
+  ;;                             for *current-system-name* = (getf item :system)
+  ;;                             for packages = (getf item :packages)
+  ;;                             do (when (safe-quickload *current-system-name*)
+  ;;                                  (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
+  ;;                                    (loop for package in packages
+  ;;                                          do (log:info "Indexing package" package)
+  ;;                                             (index-symbols package)))))))))
+  ;;     ;; Here we need to make a clean up to not clutter the file system
+  ;;     (log:info "Deleting checked out" path)
+  ;;     (uiop:delete-directory-tree path
+  ;;                                 :validate t)))
+  )
 
 
 (defun index-projects (&key names force (limit 10))
-  (let ((projects (cond
-                    (names
-                     (loop for name in names
-                           for splitted = (cl-strings:split name #\/)
-                           collect (get-github-project (first splitted)
-                                                       (second splitted))))
-                    ;; Reindexing all projects
-                    (force (get-all-projects :only-enabled t))
-                    ;; 
-                    (t (get-projects-to-index :limit limit)))))
-    (loop for project in projects
-          for started-at = (now)
-          do (log:info "Indexing project" project)
-             (flet ((get-total-time ()
-                      (floor (timestamp-difference
-                              (now)
-                              started-at))))
-               (handler-case
-                   (with-fields
-                       (:project-name (ultralisp/models/project:get-name project))
-                     (with-log-unhandled ()
-                       (with-transaction
-                         (submit-task
-                          'index-project project))
-                       (set-index-status project
-                                         :ok
-                                         :total-time (get-total-time))))
-                 (error ()
-                   (set-index-status project
-                                     :failed
-                                     :total-time (get-total-time))))))
-    (log:info "DONE")))
+  (declare (ignore names force limit))
+  ;; TODO: reimplement for project2
+  ;; (let ((projects (cond
+  ;;                   (names
+  ;;                    (loop for name in names
+  ;;                          for splitted = (cl-strings:split name #\/)
+  ;;                          collect (get-github-project (first splitted)
+  ;;                                                      (second splitted))))
+  ;;                   ;; Reindexing all projects
+  ;;                   (force (get-all-projects :only-enabled t))
+  ;;                   ;; 
+  ;;                   (t (get-projects-to-index :limit limit)))))
+  ;;   (loop for project in projects
+  ;;         for started-at = (now)
+  ;;         do (log:info "Indexing project" project)
+  ;;            (flet ((get-total-time ()
+  ;;                     (floor (timestamp-difference
+  ;;                             (now)
+  ;;                             started-at))))
+  ;;              (handler-case
+  ;;                  (with-fields
+  ;;                      (:project-name (ultralisp/models/project:get-name project))
+  ;;                    (with-log-unhandled ()
+  ;;                      (with-transaction
+  ;;                        (submit-task
+  ;;                         'index-project project))
+  ;;                      (set-index-status project
+  ;;                                        :ok
+  ;;                                        :total-time (get-total-time))))
+  ;;                (error ()
+  ;;                  (set-index-status project
+  ;;                                    :failed
+  ;;                                    :total-time (get-total-time))))))
+  ;;   (log:info "DONE"))
+  )
