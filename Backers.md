@@ -10,7 +10,7 @@ Be the first one, [support the project](https://www.patreon.com/ultralisp) on Pa
 
 ## Senior Supporters
 
-Be the first one, [support the project](https://www.patreon.com/ultralisp) on Patreon!
+* Nikolai Matiushev
 
 ## Supporters
 
