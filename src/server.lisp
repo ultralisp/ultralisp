@@ -356,6 +356,9 @@ arguments."
   ;; https://github.com/fukamachi/dexador/issues/88
   (setf cl-dbi::*threads-connection-pool*
         (make-hash-table :test 'equal :synchronized t))
+  
+  (setf dexador.connection-cache::*threads-connection-pool*
+        (make-hash-table :test 'equal :synchronized t))
 
   (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*
