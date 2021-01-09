@@ -2,6 +2,22 @@
  ChangeLog
 ===========
 
+1.0.0 (2021-01-10)
+==================
+
+* Major release, because massive backend changes vere introduced.
+
+  Now user can create his own Quicklisp distributions and each
+  project can have multiple sources.
+
+  This way you can create an cutting edge distribution and stable distribution,
+  which will include changes from the "release" branch.
+
+  Also, database's schema was significantly changed. New Ultralisp
+  tries to keep versions of most business objects such as a project,
+  source and a distribution. This way we can track the history of each change
+  and tell which projects were included in a particular version of a distribution.
+
 0.17.4 (2020-10-08)
 ===================
 
