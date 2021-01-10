@@ -32,6 +32,8 @@
                 #:it)
   (:import-from #:ultralisp/models/versioned
                 #:object-version)
+  (:import-from #:global-vars
+                #:define-global-var)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -68,8 +70,12 @@
 (in-package ultralisp/models/check)
 
 
-(defparameter *allowed-check-types*
-  '(:added-project :changed-project :via-cron :via-webhook))
+(define-global-var +allowed-check-types+
+  '(:added-project
+    :changed-project
+    :via-cron
+    :via-webhook
+    :manual))
 
 
 (defclass any-check ()
@@ -138,7 +144,7 @@
          (let ((type ,check-type))
            (log:info "Triggering a check for" project type)
            
-           (unless (member type *allowed-check-types*)
+           (unless (member type +allowed-check-types+)
              (let ((*print-case* :downcase))
                (error "Unable to create check of type ~S"
                       type)))
@@ -207,11 +213,11 @@
    if it already existed in the database."
   (check-type source ultralisp/models/source:source)
   
-  (unless (member check-type *allowed-check-types*)
+  (unless (member check-type +allowed-check-types+)
     (let ((*print-case* :downcase))
       (error "Unable to create check of type ~S. Use one of these: ~{~A~^, ~}."
              check-type
-             *allowed-check-types*)))
+             +allowed-check-types+)))
   
   (log:info "Triggering a check for" source check-type)
 
