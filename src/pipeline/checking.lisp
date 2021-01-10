@@ -82,6 +82,10 @@
   (let ((perform-params (when force-p
                           (list :force force))))
     (with-log-unhandled ()
+      ;; Here we need to establish a connection
+      ;; to process each check in a separate transaction.
+      ;; This way, errors during some checks will not affect
+      ;; others:
       (with-connection (:cached nil)
         (with-fields (:check-id (mito:object-id check))
           (log:info "Submitting check to remote worker")
@@ -102,13 +106,15 @@
           ;; if it is default, because 'peform function
           ;; chooses default value depending on check's type
           )
-      (loop for check in checks
-            ;; Here we need to establish a connection
-            ;; to process each check in a separate transaction.
-            ;; This way, errors during some checks will not affect
-            ;; others
-            do (ignore-errors
-                (perform-remotely check :force force)))
+      (flet ((perform (check)
+               (perform-remotely check :force force)))
+        (loop for check in checks
+              do (if slynk-api:*emacs-connection*
+                     (perform check)
+                     ;; For production we want ignore error in a check
+                     ;; to let other checks be processed:
+                     (ignore-errors
+                      (perform check)))))
       (length checks))))
 
 
