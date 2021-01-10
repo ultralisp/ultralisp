@@ -365,21 +365,29 @@
                              (cond
                                (last-check
                                 (let* ((processed-at (ultralisp/models/check:get-processed-at
-                                                      last-check))
-                                       (duration (local-time-duration:human-readable-duration
+                                                      last-check)))
+                                  (cond (processed-at
+                                         (let ((duration
+                                                 (local-time-duration:human-readable-duration
                                                   (local-time-duration:timestamp-difference
                                                    (local-time:now)
-                                                   processed-at))))
-                                  (fmt "~A~A"
-                                       (if processed-at
-                                           (fmt "Finished ~A." duration)
-                                           "Waiting in the queue.")
-                                       (if (and processed-at
-                                                (ultralisp/models/check:get-error last-check))
-                                           ;; TODO: it would be cool to show an error in popup
-                                           ;; on click on word error.
-                                           " There was an error."
-                                           ""))))
+                                                   processed-at)))
+                                               (error (ultralisp/models/check:get-error last-check)))
+                                           (:span (fmt "Finished ~A. " duration))
+                                            
+                                           (when error
+                                             (:span "There was an")
+                                             (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
+                                               (:div :id popup-id
+                                                     :class "reveal large"
+                                                     :data-reveal "true"
+                                                     (:h1 "Check Error")
+                                                     (:pre error))
+                                               (:a :data-open popup-id
+                                                   "error"))
+                                             (:span "."))))
+                                        (t
+                                         "Waiting in the queue. "))))
                                (t
                                 ("No checks yet.")))
 
