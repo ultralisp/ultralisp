@@ -34,9 +34,11 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
       POSTGRES_PASS: ultralisp
+      POSTGRES_DBNAME: ultralisp_prod
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASS: ultralisp_ro
       ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
       # These tokens are from the development app and
       # we don't need to keep them in secret
       GITHUB_CLIENT_ID: 0bc769474b14267aac28
@@ -83,6 +85,7 @@ services:
       DEBUG: 1
       MODE: worker
       ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
 
   postgres:
     container_name: ultralisp_db
