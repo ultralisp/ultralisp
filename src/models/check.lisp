@@ -241,8 +241,10 @@
 
 
 (defmethod get-error :around (check)
-  (unless (get-processed-at check)
-    (error "This check wasn't processed yet.")))
+  (if (get-processed-at check)
+      (call-next-method)
+      ;; Unless check was processed we can't know the result:
+      (error "This check wasn't processed yet.")))
 
 
 (defun upgrade-type (check)

@@ -55,7 +55,7 @@
         (cl-dbi:connect :postgres
                         :host (ultralisp/variables:get-postgres-host)
                         :port 5432
-                        :database-name "ultralisp"
+                        :database-name (ultralisp/variables:get-postgres-dbname)
                         :username "ultralisp"
                         :password "ultralisp")))
 
