@@ -73,7 +73,7 @@
      (values)))
 
 
-(defun task-with-commands (db-host db-user db-pass name &rest args)
+(defun task-with-commands (db-host db-user db-pass db-name func-name &rest args)
   "A helper task to catch all commands executed by a worker."
   (let ((*catch-commands* t)
         (*catched* nil))
@@ -87,8 +87,9 @@
       (with-log-unhandled ()
         (with-connection (:host db-host
                           :username db-user
-                          :password db-pass)
-          (let ((result (apply name args)))
+                          :password db-pass
+                          :database-name db-name)
+          (let ((result (apply func-name args)))
             (cons result *catched*)))))))
 
 

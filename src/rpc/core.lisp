@@ -13,7 +13,8 @@
                 #:get-gearman-server
                 #:get-postgres-ro-pass
                 #:get-postgres-ro-user
-                #:get-postgres-host)
+                #:get-postgres-host
+                #:get-postgres-dbname)
   (:export
    #:submit-task))
 (in-package ultralisp/rpc/core)
@@ -56,5 +57,6 @@
            (get-postgres-host)
            (get-postgres-ro-user)
            (get-postgres-ro-pass)
+           (get-postgres-dbname)
            func args)))
 

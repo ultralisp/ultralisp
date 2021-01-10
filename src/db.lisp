@@ -38,8 +38,8 @@
            :postgres
            :host (or host
                      (get-postgres-host))
-           :database-name (or  database-name
-                               (get-postgres-dbname))
+           :database-name (or database-name
+                              (get-postgres-dbname))
            :username (or username
                          (get-postgres-user))
            :password (or password
