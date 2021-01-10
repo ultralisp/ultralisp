@@ -160,7 +160,8 @@
 
 (defun get-or-create-pending-version (dist)
   (with-transaction
-    (let* ((id (object-id dist))
+    (let* ((id
+             (object-id dist))
            (existing (mito.dao:find-dao 'dist
                                         :id id
                                         :state :pending)))

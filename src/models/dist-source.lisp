@@ -272,29 +272,44 @@
   "
   (let* ((source (ultralisp/models/source:source obj))
          (dist (ultralisp/models/source:dist obj))
-         (prev-dist (prev-version dist)))
-    (when prev-dist
-      (let ((prev-dist-source (mito:find-dao 'dist-source
-                                             ;; Here we use only dist-id
-                                             ;; because prev-source can be bound
-                                             ;; to another version of the same dist
-                                             :dist-id (object-id prev-dist)
-                                             :dist-version (object-version prev-dist)
-                                             :source-id (object-id source))))
-        (when prev-dist-source
-          (let ((prev-source (ultralisp/models/source:find-source-version
-                              (source-id prev-dist-source)
-                              (source-version prev-dist-source))))
-            (unless prev-source
-              (error "Unable to find source with id = ~A and version = ~A"
-                     (source-id prev-dist-source)
-                     (source-version prev-dist-source)))
-            (make-instance 'ultralisp/models/source:bound-source
-                           :source prev-source
-                           :dist prev-dist
-                           :enabled (enabled-p prev-dist-source)
-                           :disable-reason (disable-reason prev-dist-source)
-                           :include-reason (include-reason prev-dist-source))))))))
+         (current-dist-version (object-version dist)))
+    (let ((prev-dist-source
+            (first
+             (mito:select-dao 'dist-source
+               (sxql:where (:and (:= :dist-id (object-id dist))
+                                 (:= :source-id (object-id source))
+                                 ;; The same source version can be bound
+                                 ;; to different dist versions,
+                                 ;; but one dist version can't include
+                                 ;; different versions of the same
+                                 ;; source.
+                                 ;; 
+                                 ;; That is why we are searching the dist-source
+                                 ;; with a maximum version which is less than current.
+                                 ;;
+                                 ;; Note, this version can be lesser than (1- current-dist-version)
+                                 ;; because links between source and dist are created
+                                 ;; only when source was changed or enabled/disabled.
+                                 (:< :dist-version current-dist-version)))
+               (sxql:order-by (:desc :dist-version))
+               (sxql:limit 1)))))
+      (when prev-dist-source
+        (let ((prev-source (ultralisp/models/source:find-source-version
+                            (source-id prev-dist-source)
+                            (source-version prev-dist-source)))
+              (prev-dist (ultralisp/models/dist:find-dist-version
+                            (dist-id prev-dist-source)
+                            (dist-version prev-dist-source))))
+          (unless prev-source
+            (error "Unable to find source with id = ~A and version = ~A"
+                   (source-id prev-dist-source)
+                   (source-version prev-dist-source)))
+          (make-instance 'ultralisp/models/source:bound-source
+                         :source prev-source
+                         :dist prev-dist
+                         :enabled (enabled-p prev-dist-source)
+                         :disable-reason (disable-reason prev-dist-source)
+                         :include-reason (include-reason prev-dist-source)))))))
 
 
 (defun update-source-dists (source &key (params nil)
@@ -589,7 +604,6 @@
                                new-disable-reason
                                old-dist-source
                                existing-dist-source)
-                    ;; (break)
                     (mito:create-dao 'dist-source
                                      :dist-id (object-id pending-dist)
                                      :dist-version (object-version pending-dist)

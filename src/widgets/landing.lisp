@@ -99,36 +99,44 @@
   (let* ((project (ultralisp/models/project:source->project source))
          (prev-source (prev-version source)))
 
+    (when (string-equal (ultralisp/models/project:project-name project)
+                        "Shinmera/flow")
+      (break))
+
     (with-html
-      (:li ("Project [~A](~A) was ~A"
+      (:li ("Project [~A](~A) ~A"
             (ultralisp/protocols/url:url project)
             (ultralisp/models/project:project-name project)
             (cond
               ((null prev-source)
-               "added")
+               "was added")
               ((and
                 (enabled-p source)
                 (null (enabled-p prev-source)))
-               "enabled")
+               "was enabled")
               ((and
                 (null (enabled-p source))
                 (enabled-p prev-source))
-               "disabled")
+               "was disabled")
               ((and
                 (enabled-p source)
                 (enabled-p prev-source))
-               "changed")
+               "was changed")
               (t
                (case
                    (alexandria:make-keyword
                     (getf (ultralisp/models/source:disable-reason source)
                           :type))
                  (:just-added
-                  "added and waits for a check")
+                  "was added and waits for a check")
                  (:check-error
-                  "disabled because of error")
+                  (if (and
+                       (null (enabled-p source))
+                       (null (enabled-p prev-source)))
+                      "still disabled because of error"
+                      "was disabled because of error"))
                  (:manual
-                  "removed manually")
+                  "was removed manually")
                  (t
                   "")))))
            (when (and
