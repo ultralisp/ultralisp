@@ -272,7 +272,10 @@
          (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
          (release-info (ultralisp/models/source:source-release-info source))
-         (distributions (source-distributions source)))
+         (distributions (source-distributions source))
+         (user-is-moderator (is-moderator
+                             (get-current-user)
+                             (source->project source))))
     ;; Deleted sources should not be in the list
     ;; for rendering.
     (assert (not deleted))
@@ -289,9 +292,7 @@
                         (:th :class "field-column"
                              type
                              ;; Controls for editing and deleting source
-                             (when (is-moderator
-                                    (get-current-user)
-                                    (source->project source))
+                             (when user-is-moderator
                                (:div :class "source-controls float-right"
                                      (weblocks-ui/form:with-html-form
                                          (:post #'deletion-handler
@@ -378,20 +379,21 @@
                                (t
                                 ("No checks yet.")))
 
-                             (weblocks-ui/form:with-html-form
-                                 (:post (lambda (&rest args)
-                                          (declare (ignore args))
-                                          ;; This call will create a new check
-                                          ;; only if it is not exist yet:
-                                          (make-check source
-                                                      :manual)
-                                          (weblocks/widget:update widget))
-                                  :class "float-right")
-                               (:input :type "submit"
-                                       :class "button tiny secondary"
-                                       :name "button"
-                                       :value "Check"
-                                       :title "Put the check into the queue.")))))))))))
+                             (when user-is-moderator
+                               (weblocks-ui/form:with-html-form
+                                   (:post (lambda (&rest args)
+                                            (declare (ignore args))
+                                            ;; This call will create a new check
+                                            ;; only if it is not exist yet:
+                                            (make-check source
+                                                        :manual)
+                                            (weblocks/widget:update widget))
+                                    :class "float-right")
+                                 (:input :type "submit"
+                                         :class "button tiny secondary"
+                                         :name "button"
+                                         :value "Check"
+                                         :title "Put the check into the queue."))))))))))))
 
 
 (defmethod render-source ((widget readonly-source-widget)
