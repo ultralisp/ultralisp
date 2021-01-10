@@ -279,7 +279,7 @@
                            (:p "Ultralisp v"
                                (:span :title +cl-info+
                                       +ultralisp-version+)
-                               (" Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
+                               ("proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
