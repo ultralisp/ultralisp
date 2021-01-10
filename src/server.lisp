@@ -98,6 +98,16 @@
                 #:get-current-user)
   (:import-from #:ultralisp/widgets/maintenance
                 #:make-maintenance-widget)
+  (:import-from #:ultralisp/utils/lisp
+                #:get-compiler-policies)
+  (:import-from #:rutils
+                #:fmt)
+  (:import-from #:str
+                #:join)
+  (:import-from #:global-vars
+                #:define-global-var)
+  (:import-from #:cl-info
+                #:get-cl-info)
   
   (:shadow #:restart)
   (:export
@@ -107,6 +117,18 @@
    #:stop
    #:start-outside-docker))
 (in-package ultralisp/server)
+
+
+
+(define-global-var +cl-info+
+  (join #\Newline
+        (list
+         (rtl:fmt "~A" (get-cl-info))
+         (get-compiler-policies))))
+
+(define-global-var +ultralisp-version+
+  (asdf:component-version
+   (asdf:find-system :ultralisp)))
 
 
 (defparameter +search-help+
@@ -254,9 +276,10 @@
 
 
                   (:footer :class "page-footer"
-                           (:p ("Ultralisp ~A. Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"
-                                (asdf:component-version
-                                 (asdf:find-system :ultralisp))))))))))
+                           (:p "Ultralisp v"
+                               (:span :title +cl-info+
+                                      +ultralisp-version+)
+                               (" Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
