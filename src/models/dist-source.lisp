@@ -151,7 +151,9 @@
 (defgeneric source-distributions (source &key)
   (:method ((source ultralisp/models/source:source) &key (enabled nil enabled-given-p))
     "Returns all source distributions given source belongs to
-     except those where it was deleted."
+     except those where it was deleted.
+
+     Note, that only the latest version of each distribution is returned."
     (%remove-older-versions
      (apply #'mito:retrieve-dao
             'dist-source

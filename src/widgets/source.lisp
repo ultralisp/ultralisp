@@ -373,7 +373,8 @@
                                                    "error"))
                                              (:span "."))))
                                         (t
-                                         "Waiting in the queue. "))))
+                                         ("Waiting in the queue. Position: ~A."
+                                          (ultralisp/models/check:position-in-the-queue last-check))))))
                                (t
                                 ("No checks yet.")))
 

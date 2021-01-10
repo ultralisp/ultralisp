@@ -66,7 +66,8 @@
    #:get-last-project-checks
    #:get-last-source-check
    #:get-check2-by-id
-   #:check2))
+   #:check2
+   #:position-in-the-queue))
 (in-package ultralisp/models/check)
 
 
@@ -380,8 +381,36 @@
 
 
 (defun pending-checks ()
+  "Returns all pending checks ordered from oldest to newest.
+
+   Ordering is important, because we'll use it to calculate
+   check's posiition in the queue."
   (select-dao 'check2
-    (where (:is-null 'processed-at))))
+    (where (:is-null 'processed-at))
+    (sxql:order-by 'created-at
+                   ;; Additional ordering by id to make sort
+                   ;; stable, because multiple checks can be
+                   ;; created during single transaction and
+                   ;; they will have the same created-at.
+                   'id)))
+
+
+(defun position-in-the-queue (check)
+  (check-type check check2)
+  (let* ((query (cl-dbi:prepare mito:*connection*
+                                "
+SELECT position
+  FROM (SELECT id,
+              (ROW_NUMBER() OVER (order by created_at, id desc) - 1) as position
+          FROM check2
+         WHERE processed_at IS NULL) AS t
+ WHERE id = ?
+"))
+         (params (list (object-id check)))
+         (results (cl-dbi:execute query params))
+         (rows (cl-dbi:fetch-all results)))
+    (getf (first rows)
+          :|position|)))
 
 
 (defmethod print-object ((check check2) stream)
