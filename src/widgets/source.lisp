@@ -216,19 +216,6 @@
     main))
 
 
-(defun remove-older-versions (dist-sources)
-  (flet ((old-version-p (item)
-           (loop with dist-id = (dist-id item)
-                 with dist-version = (dist-version item)
-                 for other in dist-sources
-                 for other-id = (dist-id other)
-                 for other-version = (dist-version other)
-                   thereis (and (= dist-id other-id)
-                                (< dist-version other-version)))))
-    (remove-if #'old-version-p
-               dist-sources)))
-
-
 (defun render-distribution (dist-source)
   (check-type dist-source ultralisp/models/dist-source:dist-source)
   (let* ((dist (dist-source->dist dist-source))
@@ -285,8 +272,7 @@
          (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
          (release-info (ultralisp/models/source:source-release-info source))
-         (distributions (remove-older-versions
-                         (source-distributions source))))
+         (distributions (source-distributions source)))
     ;; Deleted sources should not be in the list
     ;; for rendering.
     (assert (not deleted))

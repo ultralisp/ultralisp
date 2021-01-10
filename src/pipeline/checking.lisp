@@ -259,8 +259,14 @@
           ;; Now we have to disable this version of the source in a new versions of the dists.
           (let ((source (check->source check)))
             (create-pending-dists-for-new-source-version
-             source ;; old-source
-             source ;; new-source is the same because we didn't change it
+             ;; old-source
+             source
+             ;; new-source is the same because we didn't change it.
+             ;; It is OK to have the same source version, connected to
+             ;; the different versions of the distribution, because
+             ;; the link is carrying information about error received
+             ;; during the check.
+             source
              :enable nil
              :disable-reason (make-disable-reason :check-error
                                                   :traceback traceback))))))))

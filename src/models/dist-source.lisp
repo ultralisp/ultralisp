@@ -94,6 +94,18 @@
   (:metaclass mito:dao-table-class))
 
 
+(defmethod print-object ((obj dist-source) stream)
+  (print-unreadable-object (obj stream :type t)
+    (with-slots (dist-id dist-version
+                 source-id source-version
+                 enabled)
+        obj
+      (format stream "dist-id=~A dist-version=~A source-id=~A source-version=~A enabled=~A"
+              dist-id dist-version
+              source-id source-version
+              enabled))))
+
+
 (defmethod include-reason ((obj ultralisp/models/dist:bound-dist))
   (ultralisp/models/dist::include-reason obj))
 
@@ -115,20 +127,42 @@
    :version (source-version dist-source)))
 
 
+(defun %remove-older-versions (dist-sources)
+  " This is normal situation when the single version of the source is
+    connected to a few versions of the same dist.
+    But source-distributions function should return only
+    the latest versions of the dists.
+
+    This function removes dist-source objectss, bound to old versions
+    of dists.
+"
+  (flet ((old-version-p (item)
+           (loop with dist-id = (dist-id item)
+                 with dist-version = (dist-version item)
+                 for other in dist-sources
+                 for other-id = (dist-id other)
+                 for other-version = (dist-version other)
+                 thereis (and (= dist-id other-id)
+                              (< dist-version other-version)))))
+    (remove-if #'old-version-p
+               dist-sources)))
+
+
 (defgeneric source-distributions (source &key)
   (:method ((source ultralisp/models/source:source) &key (enabled nil enabled-given-p))
     "Returns all source distributions given source belongs to
      except those where it was deleted."
-    (apply #'mito:retrieve-dao
-           'dist-source
-           :source-id (object-id source)
-           :source-version (object-version source)
-           :deleted "false"
-           (when enabled-given-p
-             (list :enabled
-                   (if enabled
-                       "true"
-                       "false")))))
+    (%remove-older-versions
+     (apply #'mito:retrieve-dao
+            'dist-source
+            :source-id (object-id source)
+            :source-version (object-version source)
+            :deleted "false"
+            (when enabled-given-p
+              (list :enabled
+                    (if enabled
+                        "true"
+                        "false"))))))
   (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p)
                                                    (limit most-positive-fixnum))
     "Returns all source distributions which are enabled and not
@@ -540,13 +574,20 @@
                  ((deleted-p old-dist-source)
                   (log:debug "Source was deleted from the dist, we'll ignore it and don't create a link to a pending dist."))
                  (t
-                  (let ((include-reason (include-reason old-dist-source)))
-                    (log:debug "Creating a link from source to the dist"
+                  (let ((include-reason (include-reason old-dist-source))
+                        (existing-dist-source (mito:find-dao 'dist-source
+                                                             :dist-id (object-id pending-dist)
+                                                             :dist-version (object-version pending-dist)
+                                                             :source-id (object-id new-source))))
+                    (log:error "Creating a link from source to the dist"
                                new-source
                                pending-dist
                                new-enabled
                                include-reason
-                               new-disable-reason)
+                               new-disable-reason
+                               old-dist-source
+                               existing-dist-source)
+                    ;; (break)
                     (mito:create-dao 'dist-source
                                      :dist-id (object-id pending-dist)
                                      :dist-version (object-version pending-dist)

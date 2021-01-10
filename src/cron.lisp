@@ -79,7 +79,6 @@
          (log:debug "Cron task is done" ',name)))))
 
 
-;; TODO replace with perdform-checks2
 (deftask perform-checks ()
   (perform-pending-checks))
 

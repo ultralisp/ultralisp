@@ -51,8 +51,11 @@
   (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist)
   (:import-from #:ultralisp/models/dist-source
+                #:create-pending-dists-for-new-source-version
                 #:delete-source
-                #:update-source-dists))
+                #:source-distributions
+                #:update-source-dists
+                #:dist-id))
 (in-package ultralisp-test/models/project)
 
 
@@ -300,3 +303,29 @@
 (deftest test-delete-source-from-non-pending-dist
   (run-deletion-test :pending-dists nil))
 
+
+
+(deftest test-source-distributions-returns-latest-versions-of-the-dists
+  ;; This is normal situation when the single version of the source is
+  ;; connected to a few versions of the same dist.
+  ;; But source-distributions function should return only
+  ;; the latest versions of the dists.
+  (with-test-db
+    (with-login ()
+      (testing "After the project was added it should have bound check and zero count of actions"
+        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+               (source (get-source project)))
+
+          (ultralisp/builder::prepare-pending-dists)
+          (ultralisp/builder::build-prepared-dists)
+
+          ;; Now we'll add this dist into a new dist version:
+          (create-pending-dists-for-new-source-version source source)
+
+          (let ((results (source-distributions source)))
+            (testing "Function source-distribution should return only one dist"
+              (ok (= (length results)
+                     1)))
+            (testing "And dist should have version 1, because it should be the latest (second) dist version."
+              (ok (= (dist-id (first results))
+                     1)))))))))

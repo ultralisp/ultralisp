@@ -46,7 +46,6 @@
    #:source-type
    #:source-params
    #:deleted-p
-   #:source-distributions
    #:copy-source
    #:get-source
    #:bound-source
