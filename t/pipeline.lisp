@@ -88,8 +88,6 @@
             (testing "Now we simulate a situation when project's check was successful but didn't find any changes"
               (ultralisp/models/source:enable-this-source-version source-v1)
             
-              ;; (build-dists)
-
               (let ((dist-after (find-dist "ultralisp")))
                 (testing "A new dist version should be created"
                   (ok (not
