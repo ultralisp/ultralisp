@@ -63,6 +63,7 @@
   (:import-from #:ultralisp/stats
                 #:increment-counter)
   (:import-from #:ultralisp/models/versioned
+                #:prev-version
                 #:latest-p
                 #:object-version)
   (:import-from #:ultralisp/models/source

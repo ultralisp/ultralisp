@@ -335,7 +335,7 @@
     release-info))
 
 
-(defcommand create-new-source-version (source systems params)
+(defcommand create-new-source-version (source systems params &key (enable t))
   "Creates a new source version and attached it to a new or existing pending version.
    Params are replaced but extendded"
   (log:info "Creating new source version" source systems params)
@@ -352,7 +352,7 @@
                                                 params))))
       (log:debug "Creating a new dist version")
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
-                        source new-source :enable t)
+                        source new-source :enable enable)
       (log:debug "New dist was created"))))
 
 

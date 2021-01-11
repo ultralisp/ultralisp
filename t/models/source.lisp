@@ -103,3 +103,45 @@
               
               (ok (dist-equal (ultralisp/models/source:dist prev-source)
                               ultralisp-v1)))))))))
+
+
+(deftest test-source-distributions-should-return-non-directly-bound-dist
+  ;; Here we are modeling a situation when there are two
+  ;; versions of the dist and source is bound to the first one.
+  ;; Calling `source-distributions` method on this source
+  ;; should return the first version of the dist.
+  
+  (with-test-db
+    (with-login ()
+      (flet ((new-version (dist)
+               (mito:create-dao 'ultralisp/models/dist::dist
+                                :id (object-id dist)
+                                :version (ultralisp/models/dist::get-next-dist-version dist)
+                                :name (dist-name dist)
+                                :state :ready)))
+        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+               (source (get-source project))
+               (ultralisp-v1 (find-dist "ultralisp"))
+               (ultralisp-v2 (new-version ultralisp-v1))
+               (ultralisp-v3 (new-version ultralisp-v2)))
+         
+          ;; Now we need to bind source to the latest dist version:
+          (mito:create-dao 'ultralisp/models/dist-source::dist-source
+                           :dist-id (object-id ultralisp-v3)
+                           :dist-version (object-version ultralisp-v3)
+                           :source-id (object-id source)
+                           :source-version (object-version source)
+                           :include-reason :direct)
+
+          ;; Now we need to get a bound-source object, bound to the
+          ;; latest dist version:
+          (let* ((latest-source (first
+                                 (dist->sources ultralisp-v3 :this-version t )))
+                 ;; And to get the previous one:
+                 (prev-source (prev-version latest-source)))
+          
+            (testing "Previous version should be bound to ultralisp-v1"
+              (ok (not (null prev-source)))
+              
+              (ok (dist-equal (ultralisp/models/source:dist prev-source)
+                              ultralisp-v1)))))))))

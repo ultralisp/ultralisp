@@ -99,10 +99,6 @@
   (let* ((project (ultralisp/models/project:source->project source))
          (prev-source (prev-version source)))
 
-    (when (string-equal (ultralisp/models/project:project-name project)
-                        "Shinmera/flow")
-      (break))
-
     (with-html
       (:li ("Project [~A](~A) ~A"
             (ultralisp/protocols/url:url project)

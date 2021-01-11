@@ -45,12 +45,14 @@
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/dist
+                #:disable-reason
                 #:dist-equal
                 #:dist-state
                 #:find-dist)
   (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist)
   (:import-from #:ultralisp/models/dist-source
+                #:disable-reason-type
                 #:create-pending-dists-for-new-source-version
                 #:delete-source
                 #:source-distributions
@@ -113,7 +115,7 @@
                      (object-version source)))))
 
             (testing "The dist should not be changed, because originally source was bound to a PENDING dist"
-              (testing "New dist hash the same version"
+              (testing "New dist has the same version"
                 (let ((old-dist (ultralisp/models/dist:dist dist))
                       (new-dist (ultralisp/models/dist:dist new-dist)))
                   (ok (= (object-version old-dist)
@@ -131,39 +133,84 @@
                          "abcd")))))))))
 
 
-(deftest test-source-disabling
+(defun run-test-source-disabling (&key pending-dists)
   (with-test-db
     (with-metrics
-      (testing "When project check was unsuccessful a new source version should be created and distabled"
+      (testing "When project check was unsuccessful a new source version should be created and disabled"
         (let* ((project (make-project "40ants" "defmain"))
                (source (get-source project)))
           ;; First, we need to create a version which is enabled.
-          ;; After this call source should be bound to a new PENDING version.
-          (create-new-source-version source nil nil)
+          (create-new-source-version source nil nil
+                                     ;; This argument is t by default,
+                                     ;; but here we use it to make a test explicits 
+                                     :enable t)
+
+          (unless pending-dists
+            (ultralisp/builder::prepare-pending-dists)
+            (ultralisp/builder::build-prepared-dists))
 
           ;; Retrieve new version of the source:
           (let* ((source (get-source project))
                  (dist (get-dist source))
                  (check (make-check source :via-cron)))
 
-            (ok (enabled-p dist))
-          
-            ;; Now we emulate a situation when project's check was failed   
-            (ultralisp/pipeline/checking::update-check-as-failed2 check
-                                                                  ;; traceback
-                                                                  "Some error"
-                                                                  ;; processed-in
-                                                                  0.1)
-          
-            (let* ((new-source (get-source project))
-                   (new-dist (get-dist new-source)))
-              (testing "New version of the source should not be, because it was bound to a :PENDING dist"
-                (ok (=
-                     (object-version new-source)
-                     (object-version source))))
+            (testing "At this moment project should be enabled"
+              (ok (enabled-p dist)))
+            
+            (testing "Now we emulate a situation when project's check was failed"
+              (ultralisp/pipeline/checking::update-check-as-failed2 check
+                                                                    ;; traceback
+                                                                    "Some error"
+                                                                    ;; processed-in
+                                                                    0.1)
+              (unless pending-dists
+                (ultralisp/builder::prepare-pending-dists)
+                (ultralisp/builder::build-prepared-dists))
+            
+              (let* ((new-source (get-source project))
+                     (new-dist (get-dist new-source)))
+                (testing "New version of the source should not be, because it was bound to a :PENDING dist"
+                  (ok (=
+                       (object-version new-source)
+                       (object-version source))))
 
-              (testing "New source should be disabled"
-                (ok (not (enabled-p new-dist)))))))))))
+                (testing "New source should be disabled"
+                  (ok (not (enabled-p new-dist))))
+
+
+
+                (testing "When another check fails again, a new version of the dist should not be createdd, because source already disabled"
+                  (let ((another-check (make-check new-source :via-cron)))
+                  
+                    ;; Now we emulate a situation when second check also failed   
+                    (ultralisp/pipeline/checking::update-check-as-failed2 another-check
+                                                                          ;; traceback
+                                                                          "Another error"
+                                                                          ;; processed-in
+                                                                          0.1)
+
+                    (unless pending-dists
+                      (ultralisp/builder::prepare-pending-dists)
+                      (ultralisp/builder::build-prepared-dists))
+                  
+                    (let* ((last-source-version (get-source project))
+                           (last-dist-version (get-dist last-source-version)))
+                      (testing "New version of the source should not be created because it wasn't changed"
+                        (ok (=
+                             (object-version last-source-version)
+                             (object-version new-source))))
+
+                      (testing "New dist version should not be created because source already disabled"
+                        (ok (dist-equal last-dist-version
+                                        new-dist))))))))))))))
+
+
+(deftest test-source-disabling
+  (run-test-source-disabling :pending-dists nil))
+
+
+(deftest test-source-disabling-when-dist-is-pending
+  (run-test-source-disabling :pending-dists t))
 
 
 (deftest test-source-distribution-changes

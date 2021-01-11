@@ -31,16 +31,19 @@
   (loop with key-mode = nil
         with result = nil
         for item in list
-        do (cond
-             ((string-equal (symbol-name item) "&key")
-              (setf key-mode t))
-             ((starts-with (symbol-name item) "&")
-              (error "Special symbols like \"~A\" aren't supported yet." item))
-             (key-mode (uiop:appendf result
-                                     (list (alexandria:make-keyword item)
-                                           item)))
-             (t (uiop:appendf result
-                              (list item))))
+        do (let ((item (typecase item
+                         (cons (car item))
+                         (t item))))
+             (cond
+               ((string-equal (symbol-name item) "&key")
+                (setf key-mode t))
+               ((starts-with (symbol-name item) "&")
+                (error "Special symbols like \"~A\" aren't supported yet." item))
+               (key-mode (uiop:appendf result
+                                       (list (alexandria:make-keyword item)
+                                             item)))
+               (t (uiop:appendf result
+                                (list item)))))
         finally (return result)))
 
 

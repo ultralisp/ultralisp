@@ -555,7 +555,18 @@
            with key-to-name = '(:last-seen-commit "commit")
            with key-to-length = '(:last-seen-commit 8)
            for (key new-value) on new-params by #'cddr
-           for old-value = (getf old-params key)
+           for old-value = (let ((result (getf old-params key)))
+                             (cond
+                               ;; For new sources
+                               ;; branch might be not given.
+                               ;; In this case we show it as "main"
+                               ;; TODO: We need to fill branch parameter
+                               ;; when source gets added to the database.
+                               ;; When it will be done, this hack can be removed.
+                               ((and (eql key :branch)
+                                     (null result))
+                                "main")
+                               (t result)))
            for name = (getf key-to-name key
                             (string-downcase
                              (symbol-name key)))
