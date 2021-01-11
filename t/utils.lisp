@@ -29,7 +29,8 @@
            #:get-dist
            #:get-all-dist-names
            #:get-all-dist-projects
-           #:get-projects-linked-to-the))
+           #:get-projects-linked-to-the
+           #:build-dists))
 (in-package ultralisp-test/utils)
 
 
@@ -138,3 +139,9 @@
      (get-source project))
     
     project))
+
+
+(defun build-dists ()
+  "Moves all dists from pending to ready state"
+  (ultralisp/builder::prepare-pending-dists)
+  (ultralisp/builder::build-prepared-dists))

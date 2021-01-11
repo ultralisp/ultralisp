@@ -390,11 +390,15 @@
     ;; We only want to "prepare" dist if it has
     ;; some changes. Sources added and not checked yet
     ;; aren't considered as a "change".
-    (let ((changes (loop for source in (dist->sources dist :this-version t)
-                         for disable-reason = (ultralisp/models/source:disable-reason source)
-                         for disable-reason-type = (ultralisp/models/dist-source:disable-reason-type disable-reason)
-                         unless (eql disable-reason-type :just-added)
-                         collect source)))
+    (let* ((sources (dist->sources dist :this-version t))
+           (changes (loop for source in sources
+                          for disable-reason = (ultralisp/models/source:disable-reason source)
+                          for disable-reason-type = (ultralisp/models/dist-source:disable-reason-type disable-reason)
+                          ;; We don't build release only because some source was added to.
+                          ;; This added source have to be checked first.
+                          unless (eql disable-reason-type
+                                      :just-added)
+                          collect source)))
     
       (when changes
         (let ((version-number (make-version-number)))

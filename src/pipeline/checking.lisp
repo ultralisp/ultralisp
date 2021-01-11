@@ -67,6 +67,7 @@
                 #:latest-p
                 #:object-version)
   (:import-from #:ultralisp/models/source
+                #:enable-this-source-version
                 #:create-new-source-version)
   (:import-from #:ultralisp/models/dist-source
                 #:create-pending-dists-for-new-source-version
@@ -367,9 +368,15 @@
                            ;; with release info and bind it to a pending version
                            (create-new-source-version source
                                                       systems
-                                                      (downloaded-project-params downloaded))
+                                                      (downloaded-project-params downloaded)
+                                                      :enable t)
                            
-                           (values t))))
+                           (values t)))
+                        ;; When source wasn't changed, but probably
+                        ;; was disabled in some distss:
+                        (t
+                         (enable-this-source-version source)
+                         (values t)))
                  (update-check-as-successful2 check2
                                               (float (/ (- (get-internal-real-time)
                                                             started-at)

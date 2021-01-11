@@ -37,6 +37,8 @@
                 #:upload)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -57,7 +59,8 @@
    #:find-source-version
    #:create-source
    #:params-from-github
-   #:get-current-branch))
+   #:get-current-branch
+   #:enable-this-source-version))
 (in-package ultralisp/models/source)
 
 
@@ -354,6 +357,27 @@
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source new-source :enable enable)
       (log:debug "New dist was created"))))
+
+
+(defcommand enable-this-source-version (source)
+  "Enables existing source version.lisp
+
+   This command whil be called by worker when it didn't discover any changes in the source,
+   but error dissappeared this time.
+
+   It will help to recheck sources by cron in case of some temporary issues like networking
+   problems etc."
+  
+  (with-transaction
+    (increment-counter :sources-updated)
+
+    (with-fields (:source-id (object-id source)
+                  :source-version (object-version source))
+      
+      (log:debug "Enabling the source")
+      (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
+                        source source
+                        :enable t))))
 
 
 (defun get-all-sources ()
