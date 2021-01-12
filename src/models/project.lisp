@@ -77,6 +77,8 @@
   (:import-from #:ultralisp/models/dist-source
                 #:update-source-dists
                 #:add-source-to-dist)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -118,7 +120,8 @@
    #:project-sources
    #:source->project
    #:project-url
-   #:turn-off-project2))
+   #:turn-off-project2
+   #:get-projects2-by-username))
 (in-package ultralisp/models/project)
 
 
@@ -390,6 +393,15 @@
      (where (:= :name
                 project-name))
      (limit 1))))
+
+
+(defun get-projects2-by-username (user-name)
+  "Returns all projects with names like <user-name>/any-project-name."
+  (check-type user-name string)
+  (select-dao 'project2
+    (where (:like :name
+                  (fmt "~A/%" user-name)))
+    (order-by :name)))
 
 
 ;; TODO: remove after refactoring
