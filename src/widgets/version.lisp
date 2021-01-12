@@ -24,6 +24,16 @@
   ())
 
 
+(defwidget old-version ()
+  ())
+
+
+(defmethod render ((widget old-version))
+  ;; Old version urlslike /versions/20210111123844 are not
+  ;; available anymore
+  (page-not-found))
+
+
 (defmethod render ((widget version))
   (let* ((path (weblocks/request:get-path))
          (version-number (first (all-matches-as-strings "\\d+" path)))
@@ -63,4 +73,4 @@
 
 
 (defun make-version-widget ()
-  (make-instance 'version))
+  (make-instance 'old-version))
