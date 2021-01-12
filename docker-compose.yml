@@ -34,9 +34,11 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
       POSTGRES_PASS: ultralisp
+      POSTGRES_DBNAME: ultralisp_prod
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASS: ultralisp_ro
       ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
       # These tokens are from the development app and
       # we don't need to keep them in secret
       GITHUB_CLIENT_ID: 0bc769474b14267aac28
@@ -54,8 +56,8 @@ services:
     # https://hub.docker.com/r/artefactual/gearmand/dockerfile
     # https://github.com/artefactual-labs/docker-gearmand
     image: "artefactual/gearmand:1.1.18-alpine"
-    # ports:
-    #   - "127.0.0.1:4730:4730"
+    ports:
+      - "127.0.0.1:4730:4730"
 
   worker:
     container_name: ultralisp_worker
@@ -83,6 +85,7 @@ services:
       DEBUG: 1
       MODE: worker
       ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
 
   postgres:
     container_name: ultralisp_db

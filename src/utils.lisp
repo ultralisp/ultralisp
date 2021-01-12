@@ -5,6 +5,7 @@
                 #:generate-random-string)
   (:import-from #:trivial-backtrace
                 #:print-backtrace)
+  (:import-from #:alexandria)
   (:import-from #:uiop
                 #:ensure-absolute-pathname
                 #:ensure-directory-pathname
@@ -45,7 +46,8 @@
    #:delete-file-if-exists
    #:in-repl
    #:with-trace
-   #:time-in-future))
+   #:time-in-future
+   #:make-keyword))
 (in-package ultralisp/utils)
 
 
@@ -145,14 +147,20 @@
 
 
 (defun update-plist (data update)
-  "Updates `data' plist with items from `update' plist.
+  "Updates `data` plist with items from `update` plist.
 
-   Returns a new plist."
-  (let ((result (copy-list data)))
+   Returns:
+       A new plist. And the second value will be `t` if original plist was changed.
+"
+  (let ((result (copy-list data))
+        (changed nil))
     (loop for (key value) on update by #'cddr
-          do (setf (getf result key)
-                   value))
-    result))
+          unless (equal value
+                        (getf result key))
+          do (setf (getf result key) value
+                   changed t))
+    (values result
+            changed)))
 
 
 (defun format-timestamp (timestamp)
@@ -256,3 +264,8 @@
            (log:debug "TRACE: Call to" ,code-name
                       "returned this values list:" ,result)
            (values-list ,result)))))
+
+
+(defun make-keyword (text)
+  (alexandria:make-keyword
+   (string-upcase text)))

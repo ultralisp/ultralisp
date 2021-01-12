@@ -7,8 +7,9 @@
                 #:get-disable-reason
                 #:get-all-projects)
   (:import-from #:ultralisp/models/check
-                #:get-last-project-check
-                #:make-via-cron-check)
+                #:get-last-source-check
+                #:get-last-project-checks
+                #:make-check)
   (:import-from #:ultralisp/utils
                 #:make-request-id)
   (:import-from #:log4cl-extras/error
@@ -21,8 +22,8 @@
                 #:with-lock
                 #:with-connection)
   (:import-from #:ultralisp/builder
-                #:prepare-pending-version
-                #:build-prepared-versions)
+                #:prepare-pending-dists
+                #:build-prepared-dists)
   (:import-from #:local-time
                 #:now)
   (:import-from #:mito
@@ -33,6 +34,8 @@
                 #:duration-
                 #:timestamp-difference
                 #:duration-minimum)
+  (:import-from #:ultralisp/models/source
+                #:get-all-sources)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
@@ -40,7 +43,8 @@
    #:stop
    #:start
    #:*cron-jobs-hash*
-   #:get-time-of-the-next-check))
+   #:get-time-of-the-next-check
+   #:simulate-cron))
 (in-package ultralisp/cron)
 
 
@@ -60,9 +64,10 @@
                      :check-name ,(string-downcase
                                    (symbol-name name)))
          ;; TODO: Temporary this is logged as WARN
-         ;;       we need to implement "crossfinger" logging facility
-         ;;       in the log4cl-extras and change it back to the INFO
-         (log:warn "Running cron task" ',name)
+         ;;       because only WARN and ERROR are logged on production.
+         ;;       We need to implement "crossfinger" logging facility
+         ;;       in the log4cl-extras and change it back to the INFO.
+         (log:info "Running cron task" ',name)
          (handler-bind ((error (lambda (condition)
                                  (if slynk-api:*emacs-connection*
                                      (invoke-debugger condition)
@@ -79,10 +84,10 @@
 
 
 (deftask remove-old-checks ()
-  (mito:execute-sql "DELETE FROM public.check WHERE processed_at < now() - '7 day'::interval"))
+  (mito:execute-sql "DELETE FROM public.check2 WHERE processed_at < now() - '180 day'::interval"))
 
 
-(deftask build-version (:need-connection nil)
+(deftask build-dists (:need-connection nil)
   ;; Here we get separate connections and transaction
   ;; because when we do version build, it will be
   ;; performed by a remote worker and prepared version
@@ -90,33 +95,36 @@
   
   (log:info "Building a new version if needed")
   (with-connection ()
-    (prepare-pending-version))
+    (prepare-pending-dists))
+  
   (with-connection ()
-    (build-prepared-versions))
+    (build-prepared-dists))
   (log:info "Building a new version if needed DONE"))
 
 
-(defun get-time-of-the-next-check (project)
+(defun get-time-of-the-next-check (source)
   "Время проверки должно быть не больше недели и не меньше 1 часа.
    При этом, на него должны влиять:
 
-   * Время когда последний раз обновлялся проект. Если обновлялся
+   * Время когда последний раз обновлялся source. Если обновлялся
      недавно, то скорее всего он активно развивается, но и его надо
      проверять чаще.
    * Время которое было затрачено на предыдущую проверку. Чем оно больше
      тем реже надо проверять."
-  (check-type project ultralisp/models/project:project)
+  
+  (check-type source ultralisp/models/source:source)
+  
   (let* ((year-ago (ultralisp/utils:time-in-past :day 365))
          (week (local-time-duration:duration :week 1))
          (hour (local-time-duration:duration :hour 1))
-         (last-check (get-last-project-check project))
+         (last-check (get-last-source-check source))
          (checked-at (if last-check
                          (object-updated-at last-check)
                          ;; If project never checked,
                          ;; then pretend the check was a year ago.
                          ;; We need this do do the timestamp math correct.
                          year-ago))
-         (updated-at (object-updated-at project))
+         (updated-at (object-updated-at source))
          (update-interval (duration-minimum
                            (duration-maximum
                             (timestamp-difference checked-at
@@ -124,21 +132,26 @@
                             hour)
                            week))
          (time-for-check (local-time-duration:timestamp-duration+
-                           checked-at
-                           update-interval)))
+                          checked-at
+                          update-interval)))
     (values time-for-check)))
 
 
 (deftask create-cron-checks ()
+  "TODO: Rewrite this cron task to create checks in future.
+
+   Otherwise it everytime goes through all source every 5 minutes,
+   and overtime this operation will take longer time because there
+   will be more sources.
+
+   Good place for optimization :)"
   (loop with now = (now)
-        for project in (get-all-projects)
-        for time-for-check = (get-time-of-the-next-check project)
-        when (and (local-time:timestamp< time-for-check
-                                         now)
-                  (not (eql (get-disable-reason project)
-                            :manual)))
-          do (log:info "Creating cron check for" project)
-             (make-via-cron-check project)))
+        for source in (get-all-sources)
+        for time-for-check = (get-time-of-the-next-check source)
+        when (local-time:timestamp< time-for-check
+                                    now)
+        do (log:info "Creating cron check for" source)
+           (make-check source :via-cron)))
 
 
 (deftask index-projects ()
@@ -165,6 +178,20 @@
         do (cl-cron:delete-cron-job key)))
 
 
+(defun simulate-cron (&key (index t))
+  "When cron is disabled, you can use this function in the REPL
+   to do everything for complete Ultralisp update cycle."
+
+  (remove-old-checks)
+  (create-cron-checks)
+  (perform-checks)
+  (build-dists)
+  
+  (when index
+    (index-projects))
+  
+  (values))
+
 (defun setup (&key (force nil))
   "Creates all cron jobs needed for Ultralisp. Does not start them. Call start for that."
   (log:debug "Creating cron jobs")
@@ -178,10 +205,10 @@
     (cl-cron:make-cron-job 'remove-old-checks
                            :hash-key 'remove-old-checks
                            :step-min 60)
-
+    
     ;; Run every 5 minutes
-    (cl-cron:make-cron-job 'build-version
-                           :hash-key 'build-version
+    (cl-cron:make-cron-job 'build-dists
+                           :hash-key 'build-dists
                            :step-min 5)
   
     ;; Every 15 minutes we'll create checks for project which need it

@@ -13,6 +13,7 @@
   :version (:read-file-line "ChangeLog.rst" :at search-version-in-changelog)
   :pathname "src"
   :depends-on ("cl-interpol"
+               "log4sly"
 	       ;; To not load it when worker is starting
 	       ;; This should fix issue with bordeaux-threads recompilation:
 	       ;; https://github.com/ultralisp/ultralisp/issues/84
@@ -22,12 +23,7 @@
                "weblocks-ui"
                ;; To make inplace links work in the HTML
                "ultralisp/main"
-               "ultralisp/server"
-               ;; This package depends on ultralisp/models/project and vice versa
-               ;; that is why ultralisp/models/project can't depend on moderator
-               ;; explicitly.
-               "ultralisp/models/moderator"
-               "ultralisp/widgets/landing")
+               "ultralisp/server")
   :in-order-to ((test-op (test-op ultralisp-test)))
   :perform (compile-op :before (o c)
                        #+ros.installing

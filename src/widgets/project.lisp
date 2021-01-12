@@ -1,13 +1,13 @@
 (defpackage #:ultralisp/widgets/project
   (:use #:cl)
   (:import-from #:ultralisp/models/project
-                #:get-external-url
                 #:get-description
                 #:get-versions
                 #:enable-project
                 #:disable-project
                 #:get-github-project
-                #:is-enabled-p)
+                #:is-enabled-p
+                #:get-project2)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
   (:import-from #:weblocks/widget
@@ -23,31 +23,71 @@
                 #:render-switch)
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
-  (:import-from #:ultralisp/models/moderator
-                #:is-moderator-p)
+  (:import-from #:ultralisp/protocols/moderation
+                #:is-moderator)
   (:import-from #:ultralisp/models/action
                 #:get-project-actions)
   (:import-from #:ultralisp/models/check
                 #:get-project-checks)
   (:import-from #:ultralisp/cron
                 #:get-time-of-the-next-check)
+  (:import-from #:ultralisp/protocols/external-url
+                #:external-url)
+  (:import-from #:ultralisp/widgets/source
+                #:make-add-source-widget
+                #:make-source-widget)
+  (:import-from #:fare-utils
+                #:push-last-item!)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
 
 
 (defwidget project ()
-  ())
+  ((name :initform nil
+         :reader project-name)
+   (project :initform nil
+            :reader project)
+   (source-widgets :initform nil
+                   :reader source-widgets)
+   (add-form :initform nil
+             :reader add-form))
+  (:documentation "This widget will be updated with (setf (project-name widget) \"another/name\")
+                   During update, sources list is changing."))
 
 
 (defun make-project-widget ()
   (make-instance 'project))
 
 
-(defun render-action (action)
-  (declare (ignorable action))
-  (with-html
-    (:li "FOO")))
+(defmethod (setf project-name) (new-name (widget project))
+  (unless (equal (slot-value widget 'name)
+                 new-name)
+    (let ((new-project (ultralisp/models/project:get-project2 new-name)))
+      (flet ((on-delete (source-widget)
+               (with-slots (source-widgets) widget
+                 (setf source-widgets
+                       (remove source-widget
+                               source-widgets)))
+               (weblocks/widget:update widget)))
+        (setf (slot-value widget 'name)
+              new-name
+              (slot-value widget 'project )
+              new-project
+              (slot-value widget 'source-widgets)
+              (loop for source in (ultralisp/models/project:project-sources new-project)
+                    collect (make-source-widget source
+                                                :on-delete #'on-delete))
+              (slot-value widget 'add-form)
+              (make-add-source-widget
+               new-project
+               :on-new-source
+               (lambda (source)
+                 (uiop:appendf
+                  (slot-value widget 'source-widgets)
+                  (list (make-source-widget source
+                                            :on-delete #'on-delete)))
+                 (weblocks/widget:update widget))))))))
 
 
 (defun toggle (widget project)
@@ -71,9 +111,7 @@
             (ultralisp/utils:format-timestamp (get-time obj)))))))
 
 
-(defun render-project (widget project author-name project-name)
-  (check-type project ultralisp/models/project:project)
-  
+(defun render-project (widget)
   (let* (;; (actions (get-project-actions project))
          ;; TODO: Optimize get-version
          ;; seconds  |     gc     |   consed  | calls |  sec/call  |  name
@@ -88,34 +126,35 @@
          ;; -------------------------------------------------------
          ;;      0.330 |      0.000 | 5,080,672 |     9 |            | Total
          ;; (versions (get-versions project))
-         (description (get-description project))
-         (url (get-external-url project))
-         (next-check-at (get-time-of-the-next-check project))
+         (project (project widget))
+         (project-name (project-name widget))
+         (description (ultralisp/models/project:project-description project))
+         ;; (next-check-at (get-time-of-the-next-check project))
          ;; (checks (get-project-checks project :pending t))
-         (current-user-is-moderator
-           (is-moderator-p project
-                           (get-current-user)))
-         (not-moderator
-           (not current-user-is-moderator))
-         (changelog (sort nil
-                          ;; (append actions
-                          ;;         versions
-                          ;;         checks)
-                          #'local-time:timestamp>
-                          ;; We want last actions came first
-                          :key #'mito:object-updated-at))
-         (is-enabled (is-enabled-p project))
-         (reason (unless is-enabled
-                   (ultralisp/models/project:get-disable-reason project)))
-         (reason-description
-           (when reason
-             (case reason
-               (:manual "Turned off manually")
-               (:system-conflict "System conflict")
-               (t (format nil "~A" reason))))))
+         ;; (current-user-is-moderator
+         ;;   (is-moderator project
+         ;;                 (get-current-user)))
+         ;; (not-moderator
+         ;;   (not current-user-is-moderator))
+         ;; (changelog (sort nil
+         ;;                  ;; (append actions
+         ;;                  ;;         versions
+         ;;                  ;;         checks)
+         ;;                  #'local-time:timestamp>
+         ;;                  ;; We want last actions came first
+         ;;                  :key #'mito:object-updated-at))
+         ;; (is-enabled (is-enabled-p project))
+         ;; (reason (unless is-enabled
+         ;;           (ultralisp/models/project:get-disable-reason project)))
+         ;; (reason-description
+         ;;   (when reason
+         ;;     (case reason
+         ;;       (:manual "Turned off manually")
+         ;;       (:system-conflict "System conflict")
+         ;;       (t (format nil "~A" reason)))))
+         )
     (setf (get-title)
-          (format nil "~A/~A – ~A"
-                  author-name
+          (format nil "~A – ~A"
                   project-name
                   description))
 
@@ -123,43 +162,52 @@
     (with-html
       ;; Show a list of versions where it was included
       (:h1 :class "full-name"
-           (:a :class "author-name"
-               :href (format nil "/projects/~A" author-name)
-               author-name)
-           "/"
+           ;; (:a :class "author-name"
+           ;;     :href (format nil "/projects/~A" author-name)
+           ;;     author-name)
+           ;; "/"
            (:span :class "project-name"
                   project-name)
-           (render-switch is-enabled
-                          (lambda (&rest args)
-                            (declare (ignorable args))
-                            (toggle widget project))
-                          :disabled not-moderator
-                          :title (when not-moderator
-                                   "You are not a moderator of this project"))
-           (when reason-description
-             (:span :class "disable-reason"
-                    reason-description)))
+           ;; TODO: надо сделать отображение источников project2
+           ;; (render-switch is-enabled
+           ;;                (lambda (&rest args)
+           ;;                  (declare (ignorable args))
+           ;;                  (toggle widget project))
+           ;;                :disabled not-moderator
+           ;;                :title (when not-moderator
+           ;;                         "You are not a moderator of this project"))
+           ;; (when reason-description
+           ;;   (:span :class "disable-reason"
+           ;;          reason-description))
+           )
       (:h2 :class "project-description"
            description)
-      (:p (:a :href url
-              "View project on GitHub"))
-       
-      (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
-                                                               :at next-check-at)
-                                                changelog)
-                                          :timestamps t))))
+
+      (loop for item in (source-widgets widget)
+            do (render item))
+
+      (render (add-form widget))
+      
+      ;; (ultralisp/widgets/changelog:render (cons (make-instance 'next-check
+      ;;                                                          :at next-check-at)
+      ;;                                           changelog)
+      ;;                                     :timestamps t)
+      )))
 
 
 (defmethod render ((widget project))
-  (register-groups-bind (user-or-org project-name)
-      ("^/projects/(.*)/(.*)$" (weblocks/request:get-path))
+  (register-groups-bind (project-name)
+      ("^/projects/(.*/.*)$" (weblocks/request:get-path))
+
+    (setf (project-name widget)
+          project-name)
+    
     ;; This is not an idiomatic Weblocks code because we should
     ;; make a database query only when widget gets created, not
     ;; during the render.
-    (let ((project (get-github-project user-or-org
-                                       project-name)))
+    (let ((project (project widget)))
       (cond
-        (project (render-project widget project user-or-org project-name))
+        (project (render-project widget))
         (t (page-not-found))))))
 
 
@@ -170,8 +218,8 @@
       `((:and .widget .project)
         (.full-name
          :margin-bottom 0
-         (.author-name
-          :color "black")
+         ;; (.author-name
+         ;;  :color "black")
          (.project-name :margin-right 0.5em))
         (.project-description
          :font-size 1.5em)

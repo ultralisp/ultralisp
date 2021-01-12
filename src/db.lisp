@@ -38,8 +38,8 @@
            :postgres
            :host (or host
                      (get-postgres-host))
-           :database-name (or  database-name
-                               (get-postgres-dbname))
+           :database-name (or database-name
+                              (get-postgres-dbname))
            :username (or username
                          (get-postgres-user))
            :password (or password
@@ -53,9 +53,9 @@
 (defun connect-toplevel-in-dev ()
   (setf mito:*connection*
         (cl-dbi:connect :postgres
-                        :host "postgres"
+                        :host (ultralisp/variables:get-postgres-host)
                         :port 5432
-                        :database-name "ultralisp"
+                        :database-name (ultralisp/variables:get-postgres-dbname)
                         :username "ultralisp"
                         :password "ultralisp")))
 

@@ -1,5 +1,10 @@
 (require 'sly)
 
+(let ((filename (expand-file-name ".qlot/log4sly-setup.el")))
+  (when (file-exists-p filename)
+    (load filename)
+    (global-log4sly-mode 1)))
+
 ;; (defun sly-ultralisp-init ()
 ;;   (defun sly-make-tramp-file-name (username remote-host lisp-filename)
 ;;     "Old (with multi-hops) tramp compatability function"

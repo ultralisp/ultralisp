@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:make-keyword)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:dexador)
   (:import-from #:jonathan)

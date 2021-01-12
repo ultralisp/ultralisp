@@ -1,9 +1,13 @@
 (defpackage #:ultralisp/models/check
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:project-sources
                 #:get-name
-                #:project)
+                #:project
+                #:project2)
+  (:import-from #:ultralisp/models/source)
   (:import-from #:mito
+                #:object-id
                 #:retrieve-by-sql
                 #:includes
                 #:count-dao
@@ -16,7 +20,8 @@
                 #:select
                 #:left-join
                 #:where
-                #:order-by)
+                #:order-by
+                #:limit)
   (:import-from #:ultralisp/models/version
                 #:make-version
                 #:version)
@@ -25,6 +30,10 @@
   (:import-from #:anaphora
                 #:acond
                 #:it)
+  (:import-from #:ultralisp/models/versioned
+                #:object-version)
+  (:import-from #:global-vars
+                #:define-global-var)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -47,12 +56,27 @@
    #:get-last-project-check
    #:get-pending-checks-count
    #:get-pending-checks-for-disabled-projects
-   #:get-pending-checks-for-disabled-projects-count))
+   #:get-pending-checks-for-disabled-projects-count
+   #:source-checks
+   #:make-check
+   #:pending-checks
+   #:make-checks
+   #:check->source
+   #:check->project
+   #:get-last-project-checks
+   #:get-last-source-check
+   #:get-check2-by-id
+   #:check2
+   #:position-in-the-queue))
 (in-package ultralisp/models/check)
 
 
-(defparameter *allowed-check-types*
-  '(:added-project :via-cron :via-webhook))
+(define-global-var +allowed-check-types+
+  '(:added-project
+    :changed-project
+    :via-cron
+    :via-webhook
+    :manual))
 
 
 (defclass any-check ()
@@ -121,7 +145,7 @@
          (let ((type ,check-type))
            (log:info "Triggering a check for" project type)
            
-           (unless (member type *allowed-check-types*)
+           (unless (member type +allowed-check-types+)
              (let ((*print-case* :downcase))
                (error "Unable to create check of type ~S"
                       type)))
@@ -141,10 +165,87 @@
 (defcheck via-webhook)
 (defcheck via-cron)
 
+(defclass check2 ()
+  ((type :col-type (or :text :null)
+         :initarg :type
+         :initform nil
+         :reader get-type
+         :documentation "Should be one of :added-project :via-webhook :via-cron"
+         :inflate (lambda (text)
+
+                    (make-keyword (string-upcase text)))
+         :deflate #'symbol-name)
+   (source-id :col-type :bigint
+              :initarg :source-id
+              :reader source-id)
+   (source-version :col-type :bigint
+                   :initarg :source-version
+                   :reader source-version)
+   (processed-in :col-type (or :float :null)
+                 :initarg :processed-in
+                 :initform nil
+                 :accessor get-processed-in
+                 :documentation "Number of seconds required to process this check.")
+   (processed-at :col-type (or :timestamptz :null)
+                 :initarg :processed-at
+                 :initform nil
+                 :accessor get-processed-at
+                 :documentation "Date and time a check was finished at.")
+   (error :col-type (or :text :null)
+          :initarg :error
+          :initform nil
+          :accessor get-error
+          :documentation "A error description. If processed-at is not null and error is nil,
+
+                                 then check is considered as successful."))
+  (:metaclass dao-table-class))
+
+
+
+
+;; #:make-added-project-check
+;; #:make-via-webhook-check
+;; #:make-via-cron-check
+
+(defun make-check (source check-type)
+  "Creates or gets a check for the project.
+
+   As a second value, returns `t' if check was created, or nil
+   if it already existed in the database."
+  (check-type source ultralisp/models/source:source)
+  
+  (unless (member check-type +allowed-check-types+)
+    (let ((*print-case* :downcase))
+      (error "Unable to create check of type ~S. Use one of these: ~{~A~^, ~}."
+             check-type
+             +allowed-check-types+)))
+  
+  (log:info "Triggering a check for" source check-type)
+
+  (acond
+    ((source-checks source :pending t)
+     (log:warn "Check already exists")
+     (values (first it) nil))
+    (t (values (mito:create-dao 'check2
+                                :source-id (object-id source)
+                                :source-version (object-version source)
+                                :type check-type)
+               t))))
+
+
+(defun make-checks (project check-type)
+  "Creates checks of given type for all project sources."
+  (check-type project ultralisp/models/project:project2)
+  
+  (loop for source in (project-sources project)
+        collect (make-check source check-type)))
+
 
 (defmethod get-error :around (check)
-  (unless (get-processed-at check)
-    (error "This check wasn't processed yet.")))
+  (if (get-processed-at check)
+      (call-next-method)
+      ;; Unless check was processed we can't know the result:
+      (error "This check wasn't processed yet.")))
 
 
 (defun upgrade-type (check)
@@ -163,16 +264,20 @@
   (mapcar #'upgrade-type checks))
 
 
+;; TODO: remove, replaced withh pending-checks
 (defun get-pending-checks (&key limit)
-  (upgrade-types
-   (select-dao 'base-check
-     (includes 'project)
-     (left-join 'project
-                     :on (:= 'check.project_id
-                             'project.id))
-     (where (:is-null 'processed-at))
-     (when limit
-       (sxql:limit limit)))))
+  (declare (ignore limit))
+  (error "Shold be removed")
+  ;; (upgrade-types
+  ;;  (select-dao 'base-check
+  ;;    (includes 'project)
+  ;;    (left-join 'project
+  ;;               :on (:= 'check.project_id
+  ;;                       'project.id))
+  ;;    (where (:is-null 'processed-at))
+  ;;    (when limit
+  ;;      (sxql:limit limit))))
+  )
 
 (defun cancel-pending-cron-checks ()
   (loop for check in (select-dao 'base-check
@@ -180,7 +285,8 @@
                                     (:= 'type "VIA-CRON"))))
         do (setf (get-processed-at check) (local-time:now)
                  (get-processed-in check) 0)
-           (save-dao check)))
+           (save-dao check)
+        counting 1))
 
 (defun get-pending-checks-count ()
   (let ((sql (select ((:as (:count :*)
@@ -200,8 +306,8 @@
    (select-dao 'base-check
      (includes 'project)
      (left-join 'project
-                     :on (:= 'check.project_id
-                             'project.id))
+                :on (:= 'check.project_id
+                        'project.id))
      (where (:and (:is-null 'processed-at)
                   (:not :project.enabled)))
      (when limit
@@ -237,6 +343,7 @@
                       :version version)))
 
 
+;; TODO: remove
 (defun get-project-checks (project &key pending)
   (check-type project project)
   (upgrade-types
@@ -248,12 +355,102 @@
                           :project project))))
 
 
-(defun get-last-project-check (project)
-  "Returns a last perofrmed check"
-  (check-type project project)
-  (upgrade-type
-   (first
-    (select-dao 'base-check
-      (where (:and (:not (:is-null 'processed-at))
-                   (:= 'project-id (mito:object-id project))))
-      (order-by (:desc 'processed-at))))))
+(defun source-checks (source &key pending)
+  (check-type source ultralisp/models/source:source)
+  (if pending
+      (select-dao 'check2
+        (where (:and (:is-null 'processed-at)
+                     (:= 'source-id (object-id source))
+                     (:= 'source-version (object-version source)))))
+      (mito:retrieve-dao 'check2
+                         :source-id (object-id source)
+                         :source-version (object-version source))))
+
+
+(defun check->source (check)
+  (check-type check check2)
+  (values
+   (ultralisp/models/source:get-source (source-id check)
+                                       (source-version check))))
+
+
+(defun check->project (check)
+  (check-type check check2)
+  (ultralisp/models/project:source->project
+   (check->source check)))
+
+
+(defun pending-checks ()
+  "Returns all pending checks ordered from oldest to newest.
+
+   Ordering is important, because we'll use it to calculate
+   check's posiition in the queue."
+  (select-dao 'check2
+    (where (:is-null 'processed-at))
+    (sxql:order-by 'created-at
+                   ;; Additional ordering by id to make sort
+                   ;; stable, because multiple checks can be
+                   ;; created during single transaction and
+                   ;; they will have the same created-at.
+                   'id)))
+
+
+(defun position-in-the-queue (check)
+  (check-type check check2)
+  (let* ((query (cl-dbi:prepare mito:*connection*
+                                "
+SELECT position
+  FROM (SELECT id,
+              (ROW_NUMBER() OVER (order by created_at, id desc) - 1) as position
+          FROM check2
+         WHERE processed_at IS NULL) AS t
+ WHERE id = ?
+"))
+         (params (list (object-id check)))
+         (results (cl-dbi:execute query params))
+         (rows (cl-dbi:fetch-all results)))
+    (getf (first rows)
+          :|position|)))
+
+
+(defmethod print-object ((check check2) stream)
+  (print-unreadable-object (check stream :type t)
+    (let ((source (or (ignore-errors
+                       (check->source check))
+                      "[unable to retrieve source]")))
+      (format stream "~A ~A for ~A"
+              (if (get-processed-at check)
+                  "DONE"
+                  "PENDING")
+              (get-type check)
+              source))))
+
+
+(defun get-last-source-check (source)
+  (check-type source ultralisp/models/source:source)
+  (first
+   (select-dao 'check2
+     (where (:= 'source-id (mito:object-id source)))
+     (order-by (:desc 'processed-at)
+               (:desc 'created-at))
+     (limit 1))))
+
+
+(defun get-last-project-checks (project)
+  "Returns a last performed checks for each of the project's sources.
+   Checks are sorted from most recent to older."
+  (check-type project project2)
+  (flet ((check-timestamp (check)
+           (or (get-processed-at check)
+               (mito:object-updated-at check))))
+    (loop for source in (project-sources project)
+          for check = (get-last-source-check source)
+          when check
+          collect check into results
+          finally (return (sort results #'local-time:timestamp>
+                                :key #'check-timestamp)))))
+
+
+(defun get-check2-by-id (id)
+  (mito:find-dao 'check2
+                 :id id))

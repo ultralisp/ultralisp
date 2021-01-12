@@ -31,16 +31,19 @@
   (loop with key-mode = nil
         with result = nil
         for item in list
-        do (cond
-             ((string-equal (symbol-name item) "&key")
-              (setf key-mode t))
-             ((starts-with (symbol-name item) "&")
-              (error "Special symbols like \"~A\" aren't supported yet." item))
-             (key-mode (uiop:appendf result
-                                     (list (alexandria:make-keyword item)
-                                           item)))
-             (t (uiop:appendf result
-                              (list item))))
+        do (let ((item (typecase item
+                         (cons (car item))
+                         (t item))))
+             (cond
+               ((string-equal (symbol-name item) "&key")
+                (setf key-mode t))
+               ((starts-with (symbol-name item) "&")
+                (error "Special symbols like \"~A\" aren't supported yet." item))
+               (key-mode (uiop:appendf result
+                                       (list (alexandria:make-keyword item)
+                                             item)))
+               (t (uiop:appendf result
+                                (list item)))))
         finally (return result)))
 
 
@@ -73,7 +76,7 @@
      (values)))
 
 
-(defun task-with-commands (db-host db-user db-pass name &rest args)
+(defun task-with-commands (db-host db-user db-pass db-name func-name &rest args)
   "A helper task to catch all commands executed by a worker."
   (let ((*catch-commands* t)
         (*catched* nil))
@@ -87,8 +90,9 @@
       (with-log-unhandled ()
         (with-connection (:host db-host
                           :username db-user
-                          :password db-pass)
-          (let ((result (apply name args)))
+                          :password db-pass
+                          :database-name db-name)
+          (let ((result (apply func-name args)))
             (cons result *catched*)))))))
 
 
@@ -107,7 +111,8 @@
        (loop for command in commands
              for func-name = (car command)
              for func-args = (cdr command)
-             do (apply func-name
+             do (log:debug "Executing command from worker" func-name func-args)
+                (apply func-name
                        func-args))
        result)))
 

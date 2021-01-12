@@ -6,37 +6,94 @@
                 #:contains
                 #:has-type)
   (:import-from #:ultralisp-test/utils
+                #:make-project
+                #:get-dist
+                #:build-dists
+                #:with-login
+                #:get-source
+                #:get-all-dist-projects
                 #:with-metrics
                 #:with-test-db)
-  (:import-from #:ultralisp/models/action
-                #:get-project-actions
-                #:project-added)
-  (:import-from #:ultralisp/pipeline/checking
-                #:perform)
-  (:import-from #:ultralisp/models/check
-                #:make-added-project-check)
+  (:import-from #:ultralisp/models/dist
+                #:dist-state
+                #:dist-equal
+                #:find-dist)
   (:import-from #:ultralisp/models/project
-                #:make-github-project))
+                #:add-or-turn-on-github-project)
+  (:import-from #:ultralisp/models/source
+                #:create-new-source-version)
+  (:import-from #:ultralisp/pipeline/checking
+                #:update-check-as-failed2
+                #:update-check-as-successful2)
+  (:import-from #:ultralisp/models/check
+                #:make-check))
 (in-package ultralisp-test/pipeline)
 
 
-(deftest test-create-project-added-action
+(deftest test-enable-source-if-check-was-successful
+  ;; Here we simulate a situation when there is a
+  ;; source which was disabled in the dist,
+  ;; but now cron check was successful, and
+  ;; a new dist version should be created where
+  ;; this source will be enabled.
+  (setf ultralisp/models/dist-source::*cnt* 0)
   (with-test-db
-    (with-metrics
-      (testing "When project is disabled and check of type add-project-check we need to enable project and tocreate project-added action."
-        (let* ((project (make-github-project "40ants" "defmain"))
-               (check (make-added-project-check project)))
+    (with-login ()
+      (let* ((project (make-project "40ants" "defmain"))
+             (source-v0 (get-source project)))
+        
+        ;; First, we need to create a version which is enabled.
+        (create-new-source-version source-v0 nil nil
+                                   ;; This argument is t by default,
+                                   ;; but here we use it to make a test explicits 
+                                   :enable t)
+        ;; And to switch dist into a READY state
+        (build-dists)
 
-          (ok (null (get-project-actions project))
-              "Before checking, there shouldn't be any actions bound to the project")
+        (let* ((dist-before (find-dist "ultralisp"))
+               (source-v1 (get-source project))
+               (check (make-check source-v1 :via-cron)))
+          (ok (eql (dist-state dist-before)
+                   :ready))
+        
+          ;; This is a check which will simulate an error
+          (testing "Updating the check"
+            (update-check-as-failed2 check
+                                     ;; traceback
+                                     "Some error"
+                                     ;; processed-in
+                                     0.1))
+          ;; And to switch dist into a READY state again
+          (build-dists)
 
-          (perform check)
-         
-          (let ((actions (get-project-actions project)))
-            (testing "Created action should be of `project-added' type"
-              (assert-that actions
-                           (contains
-                            (has-type 'project-added))))
+          ;; Just in case, we'll check that that a new dist was created
+          ;; for this failed check and disabled source:
+          (let ((dist-after (find-dist "ultralisp")))
+            (testing "A new dist version should be created after the check was failed"
+              (ok (not
+                   (dist-equal dist-before
+                               dist-after)))
+              (ok (eql (dist-state dist-after)
+                       :ready)))))
 
-            (testing "And project should be enabled"
-              (ok (ultralisp/models/project:is-enabled-p project)))))))))
+        (let ((dist-before (find-dist "ultralisp")))
+          (testing "At this moment dist should be disabled"
+            (ok (eql (dist-state dist-before)
+                     :ready))
+            (ok (equal (get-all-dist-projects dist-before
+                                              :enabled t)
+                       nil)))
+        
+          (let* ((source-v1 (get-source project)))
+            (testing "Now we simulate a situation when project's check was successful but didn't find any changes"
+              (ultralisp/models/source:enable-this-source-version source-v1)
+            
+              (let ((dist-after (find-dist "ultralisp")))
+                (testing "A new dist version should be created"
+                  (ok (not
+                       (dist-equal dist-before
+                                   dist-after))))
+              
+                (testing "And now dist should include enabled project"
+                  (ok (equal (get-all-dist-projects dist-after :enabled t)
+                             '("40ants/defmain"))))))))))))

@@ -4,7 +4,7 @@
   (:import-from #:woo)
   (:import-from #:weblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
-  (:import-from #:log4cl-extras/config)
+  (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/cron)
   (:import-from #:ultralisp/slynk)
   (:import-from #:mailgun)
@@ -59,7 +59,7 @@
   (:import-from #:ultralisp/uploader/s3)
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
-  (:import-from #:ultralisp/downloader/project)
+  (:import-from #:ultralisp/downloader/source)
   (:import-from #:weblocks/request)
   (:import-from #:weblocks/request-handler
                 #:handle-request)
@@ -81,13 +81,54 @@
                 #:get-all-projects)
   (:import-from #:weblocks/error-handler
                 #:on-error)
+
+  ;; Extra dependencies with implementation of important protocols:
+  (:import-from #:ultralisp/models/moderator)
+  ;; Other models, just to be sure
+  ;; that datamigration will be generated:
+  (:import-from #:ultralisp/models/dist)
+  (:import-from #:ultralisp/models/dist-moderator)
+  (:import-from #:ultralisp/models/project-moderator)
+  ;; (:import-from #:ultralisp/models/source)
+  ;; (:import-from #:ultralisp/models/dist-source)
+  (:import-from #:ultralisp/widgets/landing)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
+  (:import-from #:weblocks-auth/models
+                #:get-current-user)
+  (:import-from #:ultralisp/widgets/maintenance
+                #:make-maintenance-widget)
+  (:import-from #:ultralisp/utils/lisp
+                #:get-compiler-policies)
+  (:import-from #:rutils
+                #:fmt)
+  (:import-from #:str
+                #:join)
+  (:import-from #:global-vars
+                #:define-global-var)
+  (:import-from #:cl-info
+                #:get-cl-info)
+  
   (:shadow #:restart)
   (:export
    #:main
    #:start
    #:restart
-   #:stop))
+   #:stop
+   #:start-outside-docker))
 (in-package ultralisp/server)
+
+
+
+(define-global-var +cl-info+
+  (join #\Newline
+        (list
+         (rtl:fmt "~A" (get-cl-info))
+         (get-compiler-policies))))
+
+(define-global-var +ultralisp-version+
+  (asdf:component-version
+   (asdf:find-system :ultralisp)))
 
 
 (defparameter +search-help+
@@ -96,7 +137,8 @@
         "package:\"weblocks/actions\" to search all symbols exported from a package."))
 
 (defmethod weblocks/session:init ((app app))
-  (make-main-routes))
+  (make-maintenance-widget
+   (make-main-routes)))
 
 
 (defparameter *app-dependencies*
@@ -234,9 +276,10 @@
 
 
                   (:footer :class "page-footer"
-                           (:p ("Ultralisp ~A. Proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"
-                                (asdf:component-version
-                                 (asdf:find-system :ultralisp))))))))))
+                           (:p "Ultralisp v"
+                               (:span :title +cl-info+
+                                      +ultralisp-version+)
+                               ("proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
 
 
 (defmethod initialize-instance ((app app) &rest args)
@@ -265,7 +308,15 @@
                      (print-backtrace condition
                                       :output nil))))
     (when traceback
-      (log:error "Returning 500 error to user" traceback))
+      (with-fields (:uri (weblocks/request:get-path)
+                    :user (let ((user (get-current-user)))
+                            (cond
+                              ((null user)
+                               "unknown")
+                              ((weblocks-auth/models:anonymous-p user)
+                               "anonymous")
+                              (t (weblocks-auth/models:get-nickname user)))))
+        (log:error "Returning 500 error to user" traceback)))
 
     (let ((content
             (cond
@@ -309,15 +360,28 @@
    server with same arguments.")
 
 
-(defun start (&rest args)
+(defun start (&rest args &key (debug t)
+                              (port 8080)
+                              (interface "localhost")
+                              (server-type :woo))
   "Starts the application by calling 'weblocks/server:start' with appropriate
 arguments."
+  (declare (ignore debug port interface server-type))
+  
   (log:info "Starting ultralisp" args)
 
   (setf *previous-args* args)
   
   (setf lparallel:*kernel* (make-kernel 8
                                         :name "parallel worker"))
+
+  ;; This fixes issue with Dexador's thread-safety:
+  ;; https://github.com/fukamachi/dexador/issues/88
+  (setf cl-dbi::*threads-connection-pool*
+        (make-hash-table :test 'equal :synchronized t))
+  
+  (setf dexador.connection-cache::*threads-connection-pool*
+        (make-hash-table :test 'equal :synchronized t))
 
   (setf mailgun:*domain* (get-mailgun-domain))
   (unless mailgun:*domain*
@@ -359,11 +423,53 @@ arguments."
   (ultralisp/cron:start)
 
   (log:info "Starting server" args)
-  (apply #'weblocks/server:start :server-type :woo args)
+  (apply #'weblocks/server:start args)
 
   (log:info "DONE")
   (setf *app*
         (weblocks/app:start 'app)))
+
+
+(defun start-outside-docker ()
+  "This helper to start Ultralisp in the REPL started outside of Docker.
+
+   First, start Postgres, Gearman and Worker in the Docker Compose:
+
+       lake
+
+   Then open Emacs:
+
+       qlot exec ros emacs
+
+
+   Open SLY, load `:ultralisp/server` and call `start-outside-docker`.
+
+   This way you'll have two HTTP servers:
+
+   - One started on 8080 port and running inside Docker.
+   - Second on 8081 port and running outside."
+
+  #+darwin
+  (uiop:run-program "brew install gnu-tar"
+                    :ignore-error-status t)
+
+  ;; These vars are the same as in the 
+  (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
+                      ("GITHUB_SECRET" "3f46156c6bd57f4c233db9449ed556b6e545315a")
+                      ("BASE_URL" "http://localhost:8081/dist/")
+                      ("CRON_DISABLED" "yes"))
+        for (name value) in vars
+        do (setf (uiop/os:getenv name)
+                 value))
+
+  ;; For some reason default "TEMPORARY-FILES:TEMP-%" does not work on OSX:
+  (setf cl-fad::*default-template*
+        "/tmp/ultralisp/temp-%")
+
+  (start :port 8081)
+  
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "app"))
 
 
 (defun stop ()
@@ -388,55 +494,60 @@ arguments."
                       :flag t
                       :short nil
                       :env-var "DEBUG"))
+
   
-  (log4cl-extras/config:setup
-   `(:level ,(if debug
-                 :info
-                 :error)
-     :appenders ((daily :layout :json
-                        :name-format ,(format nil "~A/app.log"
-                                              log-dir)
-                        :backup-name-format "app-%Y%m%d.log"))))
-  
-  (let ((slynk-port 4005)
-        (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
-        (interface (getenv "INTERFACE" "0.0.0.0"))
-        (port (getenv "PORT" 80))
-        (hostname (machine-instance))
-        (debug (when (getenv "DEBUG")
-                 t)))
+  (ultralisp/logging:setup log-dir
+                           :level (if debug
+                                      :info
+                                      :error))
 
-    ;; To make it possible to connect to a remote SLYNK server where ports are closed
-    ;; with firewall.
-    (setf slynk:*use-dedicated-output-stream* nil)
-    
-    (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
-            slynk-interface
-            slynk-port
-            slynk:*use-dedicated-output-stream*)
+  (log4cl-extras/error:with-log-unhandled ()
+    (let ((slynk-port 4005)
+          (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
+          (interface (getenv "INTERFACE" "0.0.0.0"))
+          (port (getenv "PORT" 80))
+          (hostname (machine-instance))
+          (debug (when (getenv "DEBUG")
+                   t)))
 
-    (ultralisp/slynk:setup)
-    (slynk:create-server :dont-close t
-                         :port slynk-port
-                         :interface slynk-interface)
+      (log:info "Starting the server")
 
-    ;; Now we'll ensure that tables are exists in the database
-    ;; (migrate)
+      ;; To make it possible to connect to a remote SLYNK server where ports are closed
+      ;; with firewall.
+      (setf slynk:*use-dedicated-output-stream* nil)
+      
+      (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
+              slynk-interface
+              slynk-port
+              slynk:*use-dedicated-output-stream*)
 
-    (unless dont-start-server
-      (format t "Starting HTTP server on ~A:~A~%"
-              interface
-              port)
-      (start :port port
-             :interface interface
-             :debug debug))
+      (ultralisp/slynk:setup)
+      (slynk:create-server :dont-close t
+                           :port slynk-port
+                           :interface slynk-interface)
 
-    (format t "To start HTTP server:~%")
-    (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
-            slynk-port
-            hostname)
-    (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
-    (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%"))
+      ;; Now we'll ensure that tables are exists in the database
+      ;; (migrate)
+
+      ;; We need this becase Dexador's thread pool is
+      ;; not threadsafe yet. You'll find more details in this issue:
+      ;; https://github.com/fukamachi/dexador/issues/88
+      (setf dexador:*use-connection-pool* nil)
+
+      (unless dont-start-server
+        (format t "Starting HTTP server on ~A:~A~%"
+                interface
+                port)
+        (start :port port
+               :interface interface
+               :debug debug))
+
+      (format t "To start HTTP server:~%")
+      (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
+              slynk-port
+              hostname)
+      (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
+      (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%")))
 
   ;; Now we'll wait forever for connections from SLY.
   (loop

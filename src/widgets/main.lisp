@@ -25,6 +25,8 @@
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/project
                 #:make-project-widget)
+  (:import-from #:ultralisp/widgets/dist
+                #:make-dist-widget)
   (:import-from #:ultralisp/widgets/projects
                 #:make-author-projects-widget
                 #:make-my-projects-widget)
@@ -32,6 +34,8 @@
                 #:make-sponsors-widget)
   (:import-from #:ultralisp/widgets/search
                 #:make-search-page)
+  (:import-from #:ultralisp/widgets/dists
+                #:make-my-dists-widget)
   (:export #:make-main-routes))
 (in-package ultralisp/widgets/main)
 
@@ -53,10 +57,14 @@
    (make-version-widget))
   ("/projects/.*/.*"
    (make-project-widget))
+  ("/dists/.*"
+   (make-dist-widget))
   ("/projects/.*"
    (make-author-projects-widget))
   ("/my/projects"
    (make-my-projects-widget))
+  ("/my/dists"
+   (make-my-dists-widget))
   (t
    (page-not-found)))
 

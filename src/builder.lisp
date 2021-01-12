@@ -57,13 +57,25 @@
                 #:make-request-id)
   (:import-from #:alexandria
                 #:write-string-into-file)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
+  (:import-from #:ultralisp/models/dist
+                #:get-prepared-dists
+                #:dist-state
+                #:dist-built-at
+                #:get-pending-dists
+                #:dist-quicklisp-version)
+  (:import-from #:ultralisp/models/source
+                #:source-systems-info
+                #:source-release-info)
+  (:import-from #:ultralisp/models/dist-source
+                #:dist->sources)
   (:export
    #:build
    #:build-version
    #:build-prepared-versions
-   #:prepare-pending-version))
+   #:prepare-pending-version
+   #:build-pending-dists))
 (in-package ultralisp/builder)
 
 
@@ -266,11 +278,15 @@
             commands))))))
 
 
-(defun create-metadata-for (version path &key (version-number (get-number version)))
-  (log:info "Creating metadata for version" version-number)
-  (let* ((all-projects (ultralisp/models/project:get-projects version))
-         (projects (remove-if-not 'get-release-info all-projects))
-         (dist-name (get-dist-name))
+(defun create-metadata-for (dist path &key (version-number (dist-quicklisp-version dist)))
+  "This function writes a Quicklisp compatible metadata describing all
+   project sources included into the dist."
+  (log:info "Creating metadata for version" version-number "of" dist)
+  
+  (let* ((sources (dist->sources dist))
+         ;; TODO: remove, seems we don't need this anymore
+         ;; (projects (remove-if-not 'get-release-info all-projects))
+         (dist-name (ultralisp/models/dist:dist-name dist))
          (base-url (remove-last-slash (get-base-url)))
          (template-data (list :name dist-name
                               :version version-number
@@ -288,7 +304,7 @@
              (format nil "~A" obj))
            
            (write-file (filename content &key
-                                 (if-exists :supersede))
+                                         (if-exists :supersede))
              (log:info "Writing file" filename)
              (write-string-into-file content filename
                                      :if-exists if-exists
@@ -309,19 +325,19 @@
                                     (delete-file-if-exists)
                                     (write-file *systems-header-line*))
             with *print-pretty* = nil
-            for project in projects
-            for release-info = (get-release-info project)
-            for systems-info = (get-systems-info project)
+            for source in sources
+            for release-info = (source-release-info source)
+            for systems-info = (source-systems-info source)
             do (write-file release-path
                            (to-string release-info)
                            :if-exists :append)
                (dolist (system-info systems-info)
                  (write-file systems-path
                              (to-string system-info)
-                             :if-exists :append))))
-    projects))
+                             :if-exists :append))))))
 
 
+;; TODO: remove after migraion
 (defun build-version (version)
   "This function generates all necessary metadata for the version and uploads them to the server."
   (check-type version version)
@@ -338,6 +354,7 @@
       (save-dao version))))
 
 
+;; TODO: remove after migration 
 (defun prepare-pending-version ()
   (with-transaction
     (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from prepare pending version")
@@ -350,7 +367,7 @@
                 :prepared)
           (save-dao version))))))
 
-
+;; TODO: remove after migration 
 (defun build-prepared-versions ()
   "Searches and builds a pending version if any."
   (with-transaction
@@ -360,6 +377,84 @@
       
       (loop for version in (get-prepared-versions)
             do (build-version version)))))
+
+
+
+(defun prepare-dist (dist)
+  (check-type dist ultralisp/models/dist:dist)
+  
+  (when (eql (dist-state dist)
+             :pending)
+    (log:info "Preparing the" dist)
+
+    ;; We only want to "prepare" dist if it has
+    ;; some changes. Sources added and not checked yet
+    ;; aren't considered as a "change".
+    (let* ((sources (dist->sources dist :this-version t))
+           (changes (loop for source in sources
+                          for disable-reason = (ultralisp/models/source:disable-reason source)
+                          for disable-reason-type = (ultralisp/models/dist-source:disable-reason-type disable-reason)
+                          ;; We don't build release only because some source was added to.
+                          ;; This added source have to be checked first.
+                          unless (eql disable-reason-type
+                                      :just-added)
+                          collect source)))
+    
+      (when changes
+        (let ((version-number (make-version-number)))
+          (setf (dist-state dist) :prepared
+                (dist-quicklisp-version dist) version-number)
+          (save-dao dist))))))
+
+
+(defun build-dist (dist)
+  (check-type dist ultralisp/models/dist:dist)
+
+  (let ((state (dist-state dist)))
+    (unless (member state '(:prepared
+                            ;; It is OK to rebuild the dist in the
+                            ;; ready state, because it will not hurt,
+                            ;; but sometimes can be useful for debugging:
+                            :ready))
+      (error "Unable to build dist with state ~S" state)))
+  
+  (ultralisp/utils:with-tmp-directory (path)
+    (log:info "Building the" dist "in the" path)
+     
+    (setf (dist-built-at dist) (local-time:now)
+          (dist-state dist) :ready)
+
+    (create-metadata-for dist path)
+    (upload path "/")
+    ;; NOTE: in case of error in the database
+    ;; we might end with situation when the release
+    ;; was uploaded but database not updated.
+    ;; This can lead to situation when there are multiple
+    ;; distribution versions in the storage, but only one
+    ;; dist version in the database.
+    (save-dao dist)))
+
+
+(defun prepare-pending-dists ()
+  "Searches and prepares a pending versions for all distributions."
+  (with-transaction
+    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
+    (with-lock ("performing-pending-checks-or-version-build")
+      (log:info "Checking if there is a version to build")
+      
+      (mapc #'prepare-dist
+            (get-pending-dists)))))
+
+
+(defun build-prepared-dists ()
+  "Searches and builds a pending versions for all distributions."
+  (with-transaction
+    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
+    (with-lock ("performing-pending-checks-or-version-build")
+      (log:info "Checking if there is a version to build")
+      
+      (mapc #'build-dist
+            (get-prepared-dists)))))
 
 
 (defun test-build (&key

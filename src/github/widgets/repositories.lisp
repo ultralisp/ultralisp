@@ -22,14 +22,13 @@
                 #:unable-to-create-project
                 #:make-github-project-from-url
                 #:is-enabled-p
-                #:turn-off-github-project
                 #:add-or-turn-on-github-project
                 #:get-params
                 #:get-github-projects)
   (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:weblocks-auth/github
                 #:get-scopes)
@@ -47,6 +46,8 @@
                 #:render-switch)
   (:import-from #:weblocks/response
                 #:add-retpath-to)
+  (:import-from #:ultralisp/models/source
+                #:get-github-sources)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -115,9 +116,9 @@
                  (getf item :name)))))
 
 
-(defun get-ultralisp-repositories (repositories)
+(defun get-sources-for-github-repositories (repositories)
   "Receives a list of repository names which are strings like \"40ants/defmain\"
-   and returns a list of projects from the database where each project
+   and returns a list of sources from the database where each source
    is belongs to the same users as repositories listed in the names argument."
   
   (let (usernames)
@@ -125,7 +126,7 @@
           for name = (getf repo :name)
           for username = (first (cl-strings:split name "/"))
           do (pushnew username usernames :test #'string-equal)
-          finally (return (get-github-projects usernames)))))
+          finally (return (get-github-sources usernames)))))
 
 
 (defwidget repositories ()
@@ -183,15 +184,16 @@
 
   (let* ((token (get-oauth-token widget))
          (repositories (get-lisp-repositories :token token))
-         (ultralisp-projects (get-ultralisp-repositories repositories))
+         (ultralisp-sources (get-sources-for-github-repositories repositories))
          ;; A list of repository names which are in Ultralisp already.
          ;; We need it to draw a switcher in a correct state.
-         (ultralisp-names (loop for project in ultralisp-projects
-                                for params = (get-params project)
-                                when (is-enabled-p project)
-                                  collect (format nil "~A/~A"
-                                                  (getf params :user-or-org)
-                                                  (getf params :project)))))
+         (ultralisp-names (loop for source in ultralisp-sources
+                                for params = (ultralisp/models/source:source-params source)
+                                for dists = (ultralisp/models/dist-source:source->dists source :enabled t)
+                                when dists
+                                collect (format nil "~A/~A"
+                                                (getf params :user-or-org)
+                                                (getf params :project)))))
     (setf (slot-value widget 'repository-widgets)
           (loop for repo in repositories
                 for name = (getf repo :name)
@@ -207,9 +209,7 @@
           (slot-value widget 'repositories) repositories
           (slot-value widget 'state) :data-fetched)
     (log:debug "Repositories were fetched.")
-    ultralisp-names)
-
-  )
+    ultralisp-names))
 
 
 (defun set-oauth-token (widget token)
@@ -240,7 +240,7 @@
            (log:info "CATCHED ARGS" url)
            (handler-case
                (let* ((project (make-github-project-from-url url))
-                      (project-url (ultralisp/models/project:get-url project)))
+                      (project-url (ultralisp/models/project:project-url project)))
                  (weblocks/response:redirect project-url))
              (unable-to-create-project (condition)
                (let ((reason (get-reason condition)))
@@ -405,7 +405,7 @@
           (t
            (log:warn "Hmm, hook is already removed for" repository)))
 
-    (turn-off-github-project name)
+    (ultralisp/models/project:turn-off-project2 name)
     (values)))
 
 

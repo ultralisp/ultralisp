@@ -15,9 +15,11 @@
                 #:defwidget)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
-  (:import-from #:ultralisp/models/moderator)
   (:import-from #:weblocks-auth/models
                 #:get-current-user)
+  (:import-from #:ultralisp/models/moderator)
+  (:import-from #:ultralisp/models/project-moderator
+                #:user->projects)
   (:export
    #:render
    #:render-projects-list
@@ -45,9 +47,9 @@
   (with-html
     (:table :class "projects-list"
             (loop for project in projects
-                  for description = (get-description project)
-                  for url = (get-url project)
-                  for name = (get-name project)
+                  for description = (ultralisp/models/project:project-description project)
+                  for url = (ultralisp/models/project:project-url project)
+                  for name = (ultralisp/models/project:project-name project)
                   do (:tr
                       (:td :style "white-space: nowrap"
                            (:a :href url
@@ -75,15 +77,18 @@
 
 (defmethod render ((widget my-projects))
   (let* ((user (get-current-user))
-         (projects (sort (ultralisp/models/moderator:get-projects user)
+         (projects (sort (user->projects user)
                          #'string<
-                         :key #'ultralisp/models/project:get-name))
+                         :key #'ultralisp/models/project:project-name))
          (title "Moderated projects"))
-    (cond
-      (projects (with-html
-                  (:h1 :class "author-name"
-                       title)
-                  (setf (weblocks/page:get-title)
-                        title)
-                  (render-projects-list projects)))
-      (t (page-not-found)))))
+
+    (setf (weblocks/page:get-title)
+          title)
+
+    (with-html
+      (:h1 :class "author-name"
+           title)
+      (cond
+        (projects (render-projects-list projects))
+        (t (:p "You don't have any projects yet.")
+           (:p ("[Go to this page](/github) to add your first project!")))))))

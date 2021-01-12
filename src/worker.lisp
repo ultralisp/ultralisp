@@ -3,18 +3,22 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:log4cl-extras/config)
+  (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/variables
                 #:get-gearman-server)
 
   ;; These dependencies need for a worker to process version builds
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
-  (:import-from #:ultralisp/downloader/project)
+  (:import-from #:ultralisp/downloader/source)
   (:import-from #:ultralisp/pipeline/checking)
   (:import-from #:ultralisp/uploader/fake)
   (:import-from #:ultralisp/uploader/s3)
   ;; And we need this to index packages
-  (:import-from #:ultralisp/search))
+  (:import-from #:ultralisp/search)
+  (:export
+   #:process-jobs
+   #:start-outside-docker))
 (in-package ultralisp/worker)
 
 
@@ -80,3 +84,9 @@
   
   (log:info "Waiting for tasks")
   (process-jobs :one-task-only one-task-only))
+
+
+(defun start-outside-docker ()
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "worker")
+  (process-jobs))

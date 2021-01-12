@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/project
   (:use #:cl)
   (:import-from #:mito
+                #:object-id
                 #:includes
                 #:save-dao
                 #:delete-dao
@@ -13,12 +14,19 @@
                 #:read-metadata)
   (:import-from #:function-cache
                 #:defcached)
-  (:import-from #:cl-arrows
+  (:import-from #:arrows
                 #:->)
   (:import-from #:cl-strings
                 #:split)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:ultralisp/models/versioned
+                #:versioned-table-class
+                #:object-version
+                #:versioned)
+  (:import-from #:ultralisp/protocols/moderation)
+  (:import-from #:ultralisp/utils/github
+                #:extract-github-name)
   (:import-from #:sxql
                 #:order-by
                 #:limit
@@ -50,10 +58,25 @@
                 #:defcommand)
   (:import-from #:ultralisp/stats
                 #:increment-counter)
+  (:import-from #:ultralisp/models/utils
+                #:systems-info-to-json
+                #:release-info-to-json
+                #:systems-info-from-json
+                #:release-info-from-json)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
+  (:import-from #:ultralisp/protocols/external-url
+                #:external-url)
+  (:import-from #:ultralisp/protocols/url
+                #:url)
+  (:import-from #:ultralisp/models/source)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
+  (:import-from #:ultralisp/models/dist
+                #:common-dist)
+  (:import-from #:ultralisp/models/dist-source
+                #:update-source-dists
+                #:add-source-to-dist)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -62,6 +85,8 @@
    #:get-url
    #:get-name
    #:project
+   #:project2
+   #:get-project2
    #:get-source
    #:get-params
    #:get-github-project
@@ -87,68 +112,14 @@
    #:get-external-url
    #:get-github-projects
    #:get-recently-updated-projects
-   #:enabled))
+   #:enabled
+   #:project-description
+   #:project-name
+   #:project-sources
+   #:source->project
+   #:project-url
+   #:turn-off-project2))
 (in-package ultralisp/models/project)
-
-
-(defun system-info-to-json (system-info)
-  (list :path (uiop:native-namestring (get-path system-info))
-        :project-name (get-project-name system-info)
-        :filename (get-filename system-info)
-        :name (quickdist:get-name system-info)
-        :dependencies (get-dependencies system-info)))
-
-(defun systems-info-to-json (systems-info)
-  "Prepares a list of systems info objects to be serialized to json."
-  (jonathan:to-json
-     (mapcar #'system-info-to-json
-           systems-info)))
-
-
-(defun release-info-to-json (release-info)
-  (jonathan:to-json
-   (if release-info
-       (list :project-name (get-project-name release-info)
-             :project-url (get-project-url release-info)
-             :archive-path (uiop:native-namestring (get-archive-path release-info))
-             :file-size (get-file-size release-info)
-             :md5sum (get-md5sum release-info)
-             :content-sha1 (get-content-sha1 release-info)
-             :project-prefix (get-project-prefix release-info)
-             :system-files (get-system-files release-info))
-       :null)))
-
-
-(defun system-info-from-json (data)
-  "Prepares a list of systems info objects to be serialized to json."
-  (when data
-    (make-instance 'quickdist:system-info
-                   :path (getf data :path)
-                   :project-name (getf data :project-name)
-                   :filename (getf data :filename)
-                   :name (getf data :name)
-                   :dependencies (getf data :dependencies))))
-
-
-(defun release-info-from-json (json)
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
-    (when data
-      (make-instance 'quickdist:release-info
-                     :project-name (getf data :project-name)
-                     :project-url (getf data :project-url)
-                     :archive-path (getf data :archive-path)
-                     :file-size (getf data :file-size)
-                     :md5sum (getf data :md5sum)
-                     :content-sha1 (getf data :content-sha1)
-                     :project-prefix (getf data :project-prefix)
-                     :system-files (getf data :system-files)))))
-
-
-(defun systems-info-from-json (json)
-  "Prepares a list of systems info objects to be serialized to json."
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
-    (mapcar #'system-info-from-json
-            data)))
 
 
 (defclass project ()
@@ -235,6 +206,19 @@
   (:metaclass mito:dao-table-class))
 
 
+(defclass project2 (versioned)
+  ((name :col-type (:text)
+         :initarg :name
+         :accessor project-name)
+   (description :col-type :text
+                :initarg :description
+                :accessor project-description))
+  (:unique-keys name)
+  (:primary-key id version)
+  ;; (:metaclass versioned-table-class)
+  (:metaclass mito:dao-table-class))
+
+
 (defmethod print-object ((project project) stream)
   (print-unreadable-object (project stream :type t)
     (format stream
@@ -242,6 +226,14 @@
             (get-source project)
             (get-name project)
             (is-enabled-p project))))
+
+
+(defmethod print-object ((project project2) stream)
+  (print-unreadable-object (project stream :type t)
+    (format stream
+            "~A (v~A)"
+            (project-name project)
+            (object-version project ))))
 
 
 (defmethod print-object ((project project-version) stream)
@@ -252,12 +244,6 @@
             (get-number
              (get-version project))
             (get-name project))))
-
-
-(defun get-url (project)
-  (let* ((name (get-name project)))
-    (format nil "/projects/~A"
-            name)))
 
 
 (defun get-external-url (project)
@@ -310,40 +296,41 @@
            :reader get-reason)))
 
 
-(defun make-github-project (user-or-org project)
-  (let ((name (concatenate 'string
-                           user-or-org
-                           "/"
-                           project))
-        (description (or (ignore-errors
-                          ;; We ignore errors here, because
-                          ;; description is not very important
-                          ;; and can be updated later,
-                          ;; but we definitely want to log these
-                          ;; errors, to not miss some system problems.
-                          (with-log-unhandled ()
-                            (%github-get-description user-or-org
-                                                     project)))
-                         "")))
-    (create-dao 'project
-                :source :github
-                :name name
-                :description description
-                :params (list :user-or-org user-or-org
-                              :project project))))
+(defun add-source (project &key type params)
+  (check-type project project2)
+  (check-type type keyword)
+  (check-type params list)
+  (mito:create-dao 'ultralisp/models/source:source
+                   :project-id (object-id project)
+                   :project-version (object-version project)
+                   :type type
+                   :params params))
 
-(defun extract-github-name (url)
-  "It should extract \"cbaggers/livesupport\" from urls like:
 
-   http://github.com/cbaggers/livesupport
-   https://github.com/cbaggers/livesupport
-   https://github.com/cbaggers/livesupport/
-   https://github.com/cbaggers/livesupport.git
-   https://github.com/cbaggers/livesupport/issues"
-  
-  (cl-ppcre:register-groups-bind (name)
-      ("https?://github.com/(.*?/.*?)($|/|\\.git)" url)
-    name))
+(defun make-github-project (user-or-org project-name)
+  (ultralisp/db:with-transaction
+    (let* ((full-project-name (concatenate 'string
+                                           user-or-org
+                                           "/"
+                                           project-name))
+           (description (or (ignore-errors
+                             ;; We ignore errors here, because
+                             ;; description is not very important
+                             ;; and can be updated later,
+                             ;; but we definitely want to log these
+                             ;; errors, to not miss some system problems.
+                             (with-log-unhandled ()
+                               (%github-get-description user-or-org
+                                                        project-name)))
+                            ""))
+           (project (create-dao 'project2
+                                :name full-project-name
+                                :description description)))
+      (add-source project
+                  :type :github
+                  :params (list :user-or-org user-or-org
+                                :project project-name))
+      project)))
 
 
 (defun make-github-project-from-url (url &key (moderator nil moderator-given-p))
@@ -372,8 +359,7 @@
 
 (defun get-recent-projects (&key (limit 10))
   "Returns a list of recently added projects to show them on a landing page."
-  (select-dao 'project
-    (where :enabled)
+  (select-dao 'project2
     (order-by (:desc :created-at))
     (limit limit)))
 
@@ -397,7 +383,16 @@
                          :project project)))))
      (limit 1))))
 
+(defun get-project2 (project-name)
+  (check-type project-name string)
+  (first
+   (select-dao 'project2
+     (where (:= :name
+                project-name))
+     (limit 1))))
 
+
+;; TODO: remove after refactoring
 (defun get-github-projects (usernames)
   "Receives a list of usernames or orgnames and returns a list
    of GitHub projects, known to Ultralisp."
@@ -415,32 +410,48 @@
       (cl-strings:split name "/")
     (declare (ignorable rest))
     
-    (let ((project (get-github-project user-or-org project-name)))
-      
-      (unless project
-        (log:info "Adding github project to the database" project)
-        (setf project
-              (make-github-project user-or-org project-name)))
+    (ultralisp/db:with-transaction
+      (let ((project (get-project2 name)))
+       
+        (unless project
+          (log:info "Adding github project to the database" project)
+          (setf project
+                (make-github-project user-or-org project-name)))
 
-      ;; Here we only making user a moderator if
-      ;; nobody else owns a project. Otherwise, he
-      ;; need to prove his ownership.
-      (unless (uiop:symbol-call :ultralisp/models/moderator
-                                :get-moderators
-                                project)
-        (uiop:symbol-call :ultralisp/models/moderator
-                          :make-moderator
+        ;; Now we need to bind the source to the common distribution
+        ;; if it is not already bound:
+        (loop with dist = (common-dist)
+              for source in (project-sources project)
+              for source-type = (ultralisp/models/source:source-type source)
+              when (eql source-type :github)
+              do (add-source-to-dist dist source)
+                 ;; We only add to the common dist the first
+                 ;; source of type :github, because there
+                 ;; can be more than one such sources in projects
+                 ;; which already existed in the database,
+                 ;; but Ultralisp prohibits adding a project twice
+                 ;; into the same distribution.
+                 (return))
+        
+
+        ;; Here we only making user a moderator if
+        ;; nobody else owns a project. Otherwise, he
+        ;; need to prove his ownership.
+        (when (and moderator
+                   (null (ultralisp/protocols/moderation:moderators project)))
+          (ultralisp/protocols/moderation:make-moderator
+           moderator
+           project))
+       
+        ;; Also, we need to trigger a check of this project
+        ;; and to enabled it and to include into the next build
+        ;; of a new Ultralisp version.
+        (uiop:symbol-call :ultralisp/models/check
+                          :make-checks
                           project
-                          moderator))
-      
-      ;; Also, we need to trigger a check of this project
-      ;; and to enabled it and to include into the next build
-      ;; of a new Ultralisp version.
-      (uiop:symbol-call :ultralisp/models/check
-                        :make-added-project-check
-                        project)
-      
-      project)))
+                          :added-project)
+       
+        project))))
 
 
 (defun turn-off-github-project (name)
@@ -453,6 +464,14 @@
       (when project
         (disable-project project))
       project)))
+
+
+(defun turn-off-project2 (name)
+  "Creates or updates a record in database adding current user to moderators list."
+  (let ((project (get-project2 name)))
+    (when project
+      (remove-project-from-dists project))
+    project))
 
 
 (defun delete-project (project)
@@ -534,6 +553,32 @@
           nil)
 
     (save-dao project))
+  
+  (values project))
+
+
+(defun remove-project-from-dists (project) 
+  "Disables project."
+  (check-type project project2)
+  
+  ;; This will delete links of this project
+  ;; with all distributions
+  (loop for source in (project-sources project)
+        do (update-source-dists source :dists nil))
+  
+  ;; (when (is-enabled-p project)
+  ;;   (log:info "Disabling project" project)
+
+  ;;   ;; Also, we need to create a new action, related to this project
+  ;;   (uiop:symbol-call :ultralisp/models/action
+  ;;                     :make-project-removed-action
+  ;;                     project
+  ;;                     :reason reason
+  ;;                     :traceback traceback)
+  ;;   (setf (is-enabled-p project)
+  ;;         nil)
+
+  ;;   (save-dao project))
   
   (values project))
 
@@ -642,3 +687,47 @@
                         (collect project)
                         (unless dry-run
                           (disable-project project :reason :system-conflict)))))))
+
+
+(defun project-sources (project)
+  (check-type project project2)
+  (ultralisp/models/source::%project-sources
+   (object-id project)
+   (object-version project)))
+
+
+(defun source->project (source)
+  (check-type source (or ultralisp/models/source:source
+                         ultralisp/models/source:bound-source))
+  (first
+   (mito:retrieve-dao 'project2
+                      :id (ultralisp/models/source:source-project-id source)
+                      :version (ultralisp/models/source:project-version source))))
+
+
+;; TODO: remove
+(defun get-url (project)
+  (let* ((name (get-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
+(defun project-url (project)
+  (check-type project project2)
+  (let* ((name (project-name project)))
+    (format nil "/projects/~A"
+            name)))
+
+
+(defmethod external-url ((obj project2))
+  (loop for source in (project-sources obj)
+        for url = (external-url source)
+        when url
+        do (return-from external-url url)))
+
+
+(defmethod url ((obj project2))
+  (check-type obj project2)
+  (let* ((name (project-name obj)))
+    (format nil "/projects/~A"
+            name)))

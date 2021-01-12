@@ -6,8 +6,7 @@ Be the first one, [support the project](https://www.patreon.com/ultralisp) on Pa
 
 ## Grand Supporters
 
-* [Jean-Philippe Paradis](https://www.hexstreamsoft.com) (a.k.a. Hexstream)
-* [Black Brane Systems Inc.](https://blackbrane.com)
+Be the first one, [support the project](https://www.patreon.com/ultralisp) on Patreon!
 
 ## Senior Supporters
 
@@ -16,3 +15,9 @@ Be the first one, [support the project](https://www.patreon.com/ultralisp) on Pa
 ## Supporters
 
 * Eitaro Fukamachi
+
+## Junior Supporters
+
+* Levent Guel
+* Douglas Kreitzman
+
