@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.0.1 (2021-01-12)
+==================
+
+* Added a link to all user project from the page title.
+* Fixed error on the page with user's projects.
+
 1.0.0 (2021-01-10)
 ==================
 
