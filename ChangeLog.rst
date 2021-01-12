@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.0.4 (2021-01-13)
+==================
+
+* Ultralisp's version was updated to switch to a newer Weblocks where log4cl-extras is used.
+
 1.0.3 (2021-01-13)
 ==================
 
