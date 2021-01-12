@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+1.0.3 (2021-01-13)
+==================
+
+* Fixed generation of the dist metadata.
+
+  All dists, generated at 12 January
+  are broken :(
+
 1.0.2 (2021-01-12)
 ==================
 

@@ -283,7 +283,7 @@
    project sources included into the dist."
   (log:info "Creating metadata for version" version-number "of" dist)
   
-  (let* ((sources (dist->sources dist))
+  (let* ((sources (dist->sources dist :enabled t))
          ;; TODO: remove, seems we don't need this anymore
          ;; (projects (remove-if-not 'get-release-info all-projects))
          (dist-name (ultralisp/models/dist:dist-name dist))
@@ -328,6 +328,9 @@
             for source in sources
             for release-info = (source-release-info source)
             for systems-info = (source-systems-info source)
+            ;; This protect us from sources which are enabled but not having release-info for some reason
+            when (and release-info
+                      systems-info)
             do (write-file release-path
                            (to-string release-info)
                            :if-exists :append)
