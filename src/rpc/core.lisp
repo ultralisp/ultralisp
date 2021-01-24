@@ -16,8 +16,38 @@
                 #:get-postgres-host
                 #:get-postgres-dbname)
   (:export
-   #:submit-task))
+   #:submit-task
+   #:serialize
+   #:deserialize))
 (in-package ultralisp/rpc/core)
+
+
+;; We need this code to store/restore secret values,
+;; because internally secret value is stored in the
+;; closure, attached to an uninterned symbol.
+;;
+;; Without this code, we'll unable to pass secret values
+;; from the app to a worker, because the will be restored
+;; in a wrong state and we'll receive this error on revail:
+;; 
+;;     Condition: The function COMMON-LISP:NIL is undefined.
+;;
+;; NOTE: Don't use this code for a permanent store!
+;; For storing secret values in a permanent store, they
+;; should be encrypted.
+(defparameter +secret-value-code+
+  (cl-store:register-code 200
+                          'secret-values:secret-value))
+
+(cl-store:defstore-cl-store (obj secret-values:secret-value stream)
+  (cl-store:output-type-code +secret-value-code+ stream)
+  (cl-store:store-object (secret-values:reveal-value obj)
+                         stream))
+
+
+(cl-store:defrestore-cl-store (secret-values:secret-value stream)
+  (secret-values:conceal-value
+   (cl-store:restore-object stream)))
 
 
 (defun serialize (object)

@@ -15,6 +15,8 @@
                 #:get-postgres-dbname)
   (:import-from #:weblocks/response
                 #:immediate-response)
+  (:import-from #:secret-values
+                #:ensure-value-revealed)
   (:export
    #:with-transaction
    #:with-connection
@@ -42,8 +44,9 @@
                               (get-postgres-dbname))
            :username (or username
                          (get-postgres-user))
-           :password (or password
-                         (get-postgres-pass))))
+           :password (ensure-value-revealed
+                      (or password
+                          (get-postgres-pass)))))
 
 
 (defun connect-toplevel ()

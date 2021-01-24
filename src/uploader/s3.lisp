@@ -15,6 +15,9 @@
                 #:get-aws-access-key-id
                 #:get-aws-secret-access-key
                 #:get-s3-bucket)
+  (:import-from #:secret-values
+                #:secret-value
+                #:reveal-value)
   (:export
    #:prepare-for-debug))
 (in-package ultralisp/uploader/s3)
@@ -32,15 +35,17 @@
 
 
 (defun make-credentials (&key (access-key (get-aws-access-key-id))
-                           (secret-key (get-aws-secret-access-key)))
+                              (secret-key (get-aws-secret-access-key)))
   (unless access-key
     (error "Please, define AWS_ACCESS_KEY_ID environment variable."))
   (unless secret-key
     (error "Please, define AWS_SECRET_ACCESS_KEY environment variable."))
 
+  (check-type secret-key secret-value)
+
   (make-instance 's3-credentials
                  :access-key access-key
-                 :secret-key secret-key))
+                 :secret-key (reveal-value secret-key)))
 
 
 (defun prepare-for-debug (bucket access-key secret-key)

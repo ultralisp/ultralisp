@@ -16,35 +16,62 @@
   (:import-from #:ultralisp/uploader/s3)
   ;; And we need this to index packages
   (:import-from #:ultralisp/search)
+  (:import-from #:ultralisp/rpc/command
+                #:task-with-commands)
+  (:import-from #:ultralisp/rpc/core
+                #:serialize
+                #:deserialize)
+  (:import-from #:log4cl-extras/error
+                #:make-placeholder
+                #:make-args-filter)
+  (:import-from #:log4cl-extras/secrets
+                #:make-secrets-replacer)
   (:export
    #:process-jobs
    #:start-outside-docker))
 (in-package ultralisp/worker)
 
 
-(defun serialize (object)
-  (base64:usb8-array-to-base64-string
-   (flex:with-output-to-sequence (stream)
-     (cl-store:store object stream))))
+(defparameter +hidden-arg+
+  (make-placeholder "hidden arg"))
 
-(defun deserialize (base64-string)
-  (flex:with-input-from-sequence
-      (stream (base64:base64-string-to-usb8-array base64-string))
-    (cl-store:restore stream)))
+
+(defun hide-job-args (func-name args)
+  (flet ((replace-job-arg (arg)
+           (if (typep arg 'cl-gearman::job)
+               +hidden-arg+
+               arg)))
+    (cond
+      ((and (consp func-name)
+            (eql (first func-name)
+                 'lambda)
+            (eql (fourth func-name)
+                 'process-jobs))
+       (values func-name
+               (mapcar (constantly +hidden-arg+)
+                       args)))
+      (t (values func-name
+                 (mapcar #'replace-job-arg
+                         args))))))
 
 
 (defun process-jobs (&key one-task-only)
+
+  (setf log4cl-extras/error:*args-filters*
+        (list 'hide-job-args
+              (make-secrets-replacer)))
+  
   ;; May be we need to process a CL-GEARMAN::GEARMAN-CONNECTION-ERROR
   ;; here. This condition will be thrown in case, if gearman server is
   ;; unavailable.
   (cl-gearman:with-worker (worker (get-gearman-server)) 
     (cl-gearman:add-ability worker "task-with-commands"
                             (lambda (arg job)
-                              (declare (ignorable job))
+                              (declare (ignore job))
                               (let ((args (deserialize arg)))
                                 (log:info "Processing task" args)
                                 (serialize
-                                 (apply #'ultralisp/rpc/command:task-with-commands
+                                 (apply #'task-with-commands
                                         args)))))
     
     (cond

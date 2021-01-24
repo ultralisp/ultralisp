@@ -3,8 +3,6 @@
   (:import-from #:cl-fad
                 #:generate-random-pathname
                 #:generate-random-string)
-  (:import-from #:trivial-backtrace
-                #:print-backtrace)
   (:import-from #:alexandria)
   (:import-from #:uiop
                 #:ensure-absolute-pathname
@@ -26,6 +24,8 @@
                 #:timestamp-duration+
                 #:duration
                 #:timestamp-duration-)
+  (:import-from #:log4cl-extras/error
+                #:print-backtrace)
   (:export
    #:time-in-past
    #:getenv
@@ -190,22 +190,15 @@
              :nsec nsec)))
 
 
-(defun get-traceback (condition)
-  "Returns a traceback as a string, supressing conditions during printing backtrace itself."
-  (handler-bind
-      ((error (lambda (condition)
-                (declare (ignorable condition))
-                #+sbcl
-                (let ((skip (find-restart 'sb-debug::skip-printing-frame)))
-                  (when skip
-                    (invoke-restart skip))))))
-    (print-backtrace condition
-                     :output nil)))
-
-
 (defun starts-with-slash-p (s)
   (check-type s string)
   (starts-with s "/"))
+
+
+(defun get-traceback (condition)
+  "Returns a traceback as a string, supressing conditions during printing backtrace itself."
+  (print-backtrace :condition condition
+                   :stream nil))
 
 
 (defun first-letter-of (s)

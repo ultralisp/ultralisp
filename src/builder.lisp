@@ -35,8 +35,6 @@
                 #:get-dist-name
                 #:get-projects-dir)
   
-  (:import-from #:trivial-backtrace
-                #:print-backtrace)
   (:import-from #:ultralisp/models/project
                 #:get-systems-info
                 #:get-release-info
@@ -48,6 +46,7 @@
   (:import-from #:uiop
                 #:truename*)
   (:import-from #:log4cl-extras/error
+                #:print-backtrace
                 #:with-log-unhandled)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
@@ -239,8 +238,8 @@
                                            (log:info "Sending back command which will disable project" project)
                                            (push (make-disable-project-command project
                                                                                :build-error
-                                                                               (print-backtrace condition
-                                                                                                :output nil))
+                                                                               (print-backtrace :condition condition
+                                                                                                :stream nil))
                                                  commands))
                                          (invoke-restart restart))
                                         (t (error "No skip-project restart found!")))))))
