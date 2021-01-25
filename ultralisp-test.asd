@@ -5,8 +5,8 @@
                ;; These two systems here only to
                ;; check if they are able to compile
                ;; without errors:
-               "ultralisp/server"
                "ultralisp/worker"
+               "ultralisp/server"
                ;; Test suites:
                "ultralisp-test/models/dist"
                "ultralisp-test/models/project"
