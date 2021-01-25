@@ -1,7 +1,8 @@
 (defpackage #:ultralisp/utils/time
   (:use #:cl)
   (:import-from #:local-time
-                #:timestamp-to-universal-duration)
+                #:timestamp-to-universal)
+  (:import-from #:local-time-duration)
   (:import-from #:metatilities
                 #:format-date)
   (:export
@@ -36,7 +37,16 @@
                                            :nsec 15))
    \"2 hours 43 seconds\"
    ```
-"
+
+   Also, you can pass a `:format-part` argument.
+   It should be a function of three arguments:
+   `(stream part-type part)` where `part-type` is a keyword
+   from this list:
+
+   ```lisp
+   (list :weeks :days :hours :minutes :secs :nsecs)
+   ```"
+  (check-type duration local-time-duration:duration)
   (check-type n-parts (integer 1 6))
   
   (multiple-value-bind (nsecs secs minutes hours days weeks)
