@@ -1,8 +1,12 @@
 (defpackage #:ultralisp/utils/time
   (:use #:cl)
-  (:import-from #:local-time-duration)
+  (:import-from #:local-time
+                #:timestamp-to-universal-duration)
+  (:import-from #:metatilities
+                #:format-date)
   (:export
-   #:humanize-duration))
+   #:humanize-duration
+   #:humanize-timestamp))
 (in-package ultralisp/utils/time)
 
 
@@ -56,3 +60,9 @@
                      (incf n-printed)
                   when (>= n-printed n-parts)
                   do (return)))))))
+
+
+(defun humanize-timestamp (timestamp)
+  (check-type timestamp local-time:timestamp)
+  (format-date "%Y-%m-%d %H:%M:%S UTC"
+               (timestamp-to-universal timestamp)))

@@ -27,6 +27,7 @@
   (:import-from #:metatilities
                 #:format-date)
   (:import-from #:local-time
+                #:now
                 #:timestamp-to-universal)
   (:import-from #:ultralisp/models/check
                 #:get-pending-checks-for-disabled-projects-count
@@ -52,6 +53,11 @@
                 #:render-installation-instructions)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
+  (:import-from #:local-time-duration
+                #:timestamp-difference)
+  (:import-from #:ultralisp/utils/time
+                #:humanize-duration
+                #:humanize-timestamp)
   (:export
    #:make-landing-widget))
 (in-package ultralisp/widgets/landing)
@@ -180,8 +186,11 @@
               (t (:span "No version yet"))))
        (:td :class "timestamp-cell"
             (if built-at
-                (format-date "%Y-%m-%d %H:%M:%S UTC"
-                             (timestamp-to-universal built-at))
+                (:span :title (humanize-timestamp built-at)
+                       ("~A ago"
+                        (humanize-duration
+                         (timestamp-difference (now)
+                                               built-at))))
                 (symbol-name state)
 
                 ;; "Pending"
