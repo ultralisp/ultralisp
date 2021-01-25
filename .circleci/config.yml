@@ -23,10 +23,16 @@ jobs:
       - run:
           name: Check environment
           command: |
+            set -x
+            echo '================================================'
             env | grep -v -i token | sort
-            echo 'Current dir:'
+            echo '================================================'
             pwd
+            echo '================================================'
             ls -lh
+            echo '================================================'
+            ros config
+            echo '================================================'
       - run:
           name: Run linter
           command: qlot exec sblint ultralisp.asd ultralisp-test.asd

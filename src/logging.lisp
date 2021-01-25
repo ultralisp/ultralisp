@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/logging
   (:use #:cl)
   (:import-from #:log4cl-extras/config)
-  (:import-from #:log4cl-extras/error)
+  ;; (:import-from #:log4cl-extras/error)
   (:export
    #:setup-for-repl
    #:setup))
