@@ -6,6 +6,9 @@
                ;; check if they are able to compile
                ;; without errors:
                "ultralisp/worker"
+               ;; Server must go after the worker
+               ;; to catch most not imported
+               ;; packages:
                "ultralisp/server"
                ;; Test suites:
                "ultralisp-test/models/dist"
