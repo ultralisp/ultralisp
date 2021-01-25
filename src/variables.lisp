@@ -1,7 +1,9 @@
 (defpackage #:ultralisp/variables
   (:use #:cl)
   (:import-from #:function-cache
-                #:defcached))
+                #:defcached)
+  (:import-from #:secret-values
+                #:conceal-value))
 (in-package ultralisp/variables)
 
 
@@ -11,6 +13,15 @@
        "If `value' is not given, then tries to extract it from env variables or fall back to default."
        (or (uiop:getenv ,var-name)
            ,default))
+     (export ',getter)))
+
+(defmacro def-secret-env-var (getter var-name &optional default)
+  `(progn
+     (defcached ,getter ()
+       "If `value' is not given, then tries to extract it from env variables or fall back to default."
+       (conceal-value
+        (or (uiop:getenv ,var-name)
+            ,default)))
      (export ',getter)))
 
 (def-env-var get-projects-dir
@@ -51,11 +62,11 @@
   "POSTGRES_RO_USER"
   "ultralisp_ro")
 
-(def-env-var get-postgres-pass
+(def-secret-env-var get-postgres-pass
   "POSTGRES_PASS"
   "ultralisp")
 
-(def-env-var get-postgres-ro-pass
+(def-secret-env-var get-postgres-ro-pass
   "POSTGRES_RO_PASS"
   "ultralisp_ro")
 
@@ -66,13 +77,13 @@
 (def-env-var get-github-client-id
   "GITHUB_CLIENT_ID")
 
-(def-env-var get-github-secret
+(def-secret-env-var get-github-secret
   "GITHUB_SECRET")
 
 (def-env-var get-aws-access-key-id
   "AWS_ACCESS_KEY_ID")
 
-(def-env-var get-aws-secret-access-key
+(def-secret-env-var get-aws-secret-access-key
   "AWS_SECRET_ACCESS_KEY")
 
 (def-env-var get-s3-bucket
@@ -85,7 +96,7 @@
 (def-env-var get-mailgun-domain
   "MAILGUN_DOMAIN")
 
-(def-env-var get-mailgun-api-key
+(def-secret-env-var get-mailgun-api-key
   "MAILGUN_API_KEY")
 
 (def-env-var get-user-agent

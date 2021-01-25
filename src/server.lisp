@@ -27,8 +27,6 @@
                 #:with-html-string)
   (:import-from #:weblocks/response
                 #:immediate-response)
-  (:import-from #:trivial-backtrace
-                #:print-backtrace)
   (:import-from #:ultralisp/widgets/main
                 #:make-main-routes)
   (:import-from #:ultralisp/utils
@@ -108,6 +106,16 @@
                 #:define-global-var)
   (:import-from #:cl-info
                 #:get-cl-info)
+  (:import-from #:log4cl-extras/error
+                #:print-backtrace
+                #:make-placeholder
+                #:make-args-filter
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/secrets
+                #:make-secrets-replacer)
+  (:import-from #:ultralisp/rpc/core
+                #:serialize
+                #:deserialize)
   
   (:shadow #:restart)
   (:export
@@ -305,8 +313,7 @@
         "Some shit happened with ultralisp.org")
 
   (let ((traceback (when condition
-                     (print-backtrace condition
-                                      :output nil))))
+                     (print-backtrace :stream nil))))
     (when traceback
       (with-fields (:uri (weblocks/request:get-path)
                     :user (let ((user (get-current-user)))
@@ -360,16 +367,27 @@
    server with same arguments.")
 
 
+(defun lack-env-p (arg)
+  (and (listp arg)
+       (member :request-method arg)
+       (member :request-uri arg)))
+
+
 (defun start (&rest args &key (debug t)
                               (port 8080)
                               (interface "localhost")
                               (server-type :woo))
-  "Starts the application by calling 'weblocks/server:start' with appropriate
-arguments."
+  "Starts the application by calling 'weblocks/server:start' with appropriate arguments."
   (declare (ignore debug port interface server-type))
   
   (log:info "Starting ultralisp" args)
 
+  ;; This way we'll make backtrace nice and safe
+  (setf log4cl-extras/error:*args-filters*
+        (list (make-args-filter 'lack-env-p
+                                (make-placeholder "lack env"))
+              (make-secrets-replacer)))
+  
   (setf *previous-args* args)
   
   (setf lparallel:*kernel* (make-kernel 8
@@ -501,7 +519,7 @@ arguments."
                                       :info
                                       :error))
 
-  (log4cl-extras/error:with-log-unhandled ()
+  (with-log-unhandled ()
     (let ((slynk-port 4005)
           (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
           (interface (getenv "INTERFACE" "0.0.0.0"))
@@ -552,17 +570,6 @@ arguments."
   ;; Now we'll wait forever for connections from SLY.
   (loop
     do (sleep 60)))
-
-
-(defun serialize (object)
-  (base64:usb8-array-to-base64-string
-   (flex:with-output-to-sequence (stream)
-     (cl-store:store object stream))))
-
-(defun deserialize (base64-string)
-  (flex:with-input-from-sequence
-      (stream (base64:base64-string-to-usb8-array base64-string))
-    (cl-store:restore stream)))
 
 
 (defun test-gearman (arg)

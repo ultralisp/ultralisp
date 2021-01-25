@@ -10,7 +10,6 @@
                 #:with-connection)
   (:export
    #:defcommand
-   #:submit-task-with-commands
    #:with-commands-processor
    #:task-with-commands))
 (in-package ultralisp/rpc/command)
