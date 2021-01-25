@@ -17,6 +17,11 @@
                 #:version)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:ultralisp/utils/db
+                #:deflate-json
+                #:inflate-json
+                #:deflate-keyword
+                #:inflate-keyword)
   (:export #:get-project-actions
            #:get-version-actions
            #:get-all-actions
@@ -52,19 +57,14 @@
                 :initarg :type
                 :reader get-type
                 :documentation "Should be one of :project-added :project-disabled :project-enabled"
-                :inflate (lambda (text)
-                           (make-keyword (string-upcase text)))
-                :deflate #'symbol-name)
+                :inflate #'inflate-keyword
+                :deflate #'deflate-keyword)
           (params :col-type (:jsonb)
                   :initarg :params
                   :initform nil
                   :accessor get-params
-                  :deflate #'jonathan:to-json
-                  :inflate (lambda (text)
-                             (jonathan:parse
-                              ;; Jonathan for some reason is unable to work with
-                              ;; `base-string' type, returned by database
-                              (coerce text 'simple-base-string)))))
+                  :deflate #'deflate-json
+                  :inflate #'inflate-json))
          (:table-name "action")
          (:metaclass mito:dao-table-class))
 

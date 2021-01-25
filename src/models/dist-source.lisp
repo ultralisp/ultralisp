@@ -25,6 +25,11 @@
   (:import-from #:rutils
                 #:fmt
                 #:ensure-keyword)
+  (:import-from #:ultralisp/utils/db
+                #:inflate-keyword
+                #:deflate-keyword
+                #:inflate-json
+                #:deflate-json)
   (:export
    #:dist-source
    #:dist-id
@@ -46,6 +51,7 @@
    #:add-source-to-dist))
 (in-package ultralisp/models/dist-source)
 
+(defparameter *deb* nil)
 
 (defclass dist-source ()
   ((dist-id :col-type :bigint
@@ -66,9 +72,8 @@
                    ;; - :direct
                    :initarg :include-reason
                    :reader include-reason
-                   :deflate #'symbol-name
-                   :inflate (lambda (text)
-                              (make-keyword (string-upcase text))))
+                   :deflate #'deflate-keyword
+                   :inflate #'inflate-keyword)
    (enabled :col-type :boolean
             :initarg :enabled
             :initform t
@@ -78,12 +83,8 @@
                    :initarg :disable-reason
                    :initform nil
                    :accessor disable-reason
-                   :deflate #'jonathan:to-json
-                   :inflate (lambda (text)
-                              (jonathan:parse
-                               ;; Jonathan for some reason is unable to work with
-                               ;; `base-string' type, returned by database
-                               (coerce text 'simple-base-string)))
+                   :deflate #'deflate-json
+                   :inflate #'inflate-json
                    :documentation "A plist with like this: '(:type :manual :comment \"Renamed the project.\")
                                    This field can be changed only on dist-source linked to the :pending dist.")
    (deleted :col-type :boolean

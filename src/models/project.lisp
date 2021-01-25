@@ -79,6 +79,11 @@
                 #:add-source-to-dist)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:ultralisp/utils/db
+                #:deflate-json
+                #:inflate-json
+                #:deflate-keyword
+                #:inflate-keyword)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -129,9 +134,8 @@
   ((source :col-type (:text)
            :initarg :source
            :reader get-source
-           :inflate (lambda (text)
-                      (make-keyword (string-upcase text)))
-           :deflate #'symbol-name)
+           :inflate #'inflate-keyword
+           :deflate #'deflate-keyword)
    (name :col-type (:text)
          :initarg :name
          :accessor get-name)
@@ -141,12 +145,8 @@
    (params :col-type (:jsonb)
            :initarg :params
            :accessor get-params
-           :deflate #'jonathan:to-json
-           :inflate (lambda (text)
-                      (jonathan:parse
-                       ;; Jonathan for some reason is unable to work with
-                       ;; `base-string' type, returned by database
-                       (coerce text 'simple-base-string))))
+           :deflate #'deflate-json
+           :inflate #'inflate-json)
    (enabled :col-type :boolean
             :documentation "If True, then this project will be included into the next distribution version.
 
@@ -174,9 +174,8 @@
    (source :col-type (:text)
            :initarg :source
            :reader get-source
-           :inflate (lambda (text)
-                      (make-keyword (string-upcase text)))
-           :deflate #'symbol-name)
+           :inflate #'inflate-keyword
+           :deflate #'deflate-keyword)
    (name :col-type (:text)
          :initarg :name
          :accessor get-name)
@@ -186,12 +185,8 @@
    (params :col-type (:jsonb)
            :initarg :params
            :accessor get-params
-           :deflate #'jonathan:to-json
-           :inflate (lambda (text)
-                      (jonathan:parse
-                       ;; Jonathan for some reason is unable to work with
-                       ;; `base-string' type, returned by database
-                       (coerce text 'simple-base-string))))
+           :deflate #'deflate-json
+           :inflate #'inflate-json)
    (systems-info :col-type (or :jsonb :null)
                  :documentation "Contains a list of lists describing systems same way as quickdist returns."
                  :initform nil
