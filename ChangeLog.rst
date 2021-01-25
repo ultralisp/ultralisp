@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.2.0 (2021-01-25)
+==================
+
+* Now build dates are humanized and show relatively to the current moment
+
+  However, If you will point to the date and wait a few seconds, a tooltip with an absolute date will be rendered.
+
 1.1.0 (2021-01-25)
 ==================
 
