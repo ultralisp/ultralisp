@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.1.0 (2021-01-25)
+==================
+
+* Now sensitive values should not be logged in tracebacks.
+
 1.0.4 (2021-01-13)
 ==================
 
