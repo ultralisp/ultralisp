@@ -39,6 +39,11 @@
                 #:enabled-p)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
+  (:import-from #:ultralisp/utils/db
+                #:deflate-json
+                #:inflate-json
+                #:deflate-keyword
+                #:inflate-keyword)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -93,19 +98,14 @@
    (type :col-type (:text)
          :initarg :type
          :reader source-type
-         :inflate (lambda (text)
-                    (make-keyword (string-upcase text)))
-         :deflate #'symbol-name)
+         :inflate #'inflate-keyword
+         :deflate #'deflate-keyword)
    (params :col-type (:jsonb)
            :initarg :params
            :initform nil
            :reader source-params
-           :deflate #'jonathan:to-json
-           :inflate (lambda (text)
-                      (jonathan:parse
-                       ;; Jonathan for some reason is unable to work with
-                       ;; `base-string' type, returned by database
-                       (coerce text 'simple-base-string))))
+           :deflate #'deflate-json
+           :inflate #'inflate-json)
    (systems-info :col-type (or :jsonb :null)
                  :documentation "Contains a list of lists describing systems same way as quickdist returns."
                  :initform nil

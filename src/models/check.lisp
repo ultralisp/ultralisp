@@ -34,6 +34,9 @@
                 #:object-version)
   (:import-from #:global-vars
                 #:define-global-var)
+  (:import-from #:ultralisp/utils/db
+                #:inflate-keyword
+                #:deflate-keyword)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -101,9 +104,8 @@
                 :initform nil
                 :reader get-type
                 :documentation "Should be one of :added-project :via-webhook :via-cron"
-                :inflate (lambda (text)
-                           (make-keyword (string-upcase text)))
-                :deflate #'symbol-name)
+                :inflate #'inflate-keyword
+                :deflate #'deflate-keyword)
           (project :col-type project
                    :initarg :project
                    :documentation "A link to a project to be checked."
@@ -171,10 +173,8 @@
          :initform nil
          :reader get-type
          :documentation "Should be one of :added-project :via-webhook :via-cron"
-         :inflate (lambda (text)
-
-                    (make-keyword (string-upcase text)))
-         :deflate #'symbol-name)
+         :inflate #'inflate-keyword
+         :deflate #'deflate-keyword)
    (source-id :col-type :bigint
               :initarg :source-id
               :reader source-id)

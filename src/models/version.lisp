@@ -6,6 +6,9 @@
                 #:create-dao)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:ultralisp/utils/db
+                #:deflate-keyword
+                #:inflate-keyword)
   (:export
    #:get-or-create-pending-version
    #:make-version
@@ -31,9 +34,8 @@
          :initarg :type
          :accessor get-type
          :documentation "Should be one of :pending :prepared :ready"
-         :inflate (lambda (text)
-                    (make-keyword (string-upcase text)))
-         :deflate #'symbol-name)
+         :inflate #'inflate-keyword
+         :deflate #'deflate-keyword)
    (built-at :col-type (or :timestamptz
                            :null)
              :initform nil

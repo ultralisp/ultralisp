@@ -116,6 +116,12 @@
   (:import-from #:ultralisp/rpc/core
                 #:serialize
                 #:deserialize)
+  (:import-from #:ultralisp/utils/time
+                #:humanize-duration)
+  (:import-from #:local-time
+                #:now)
+  (:import-from #:local-time-duration
+                #:timestamp-difference)
   
   (:shadow #:restart)
   (:export
@@ -135,8 +141,10 @@
          (get-compiler-policies))))
 
 (define-global-var +ultralisp-version+
-  (asdf:component-version
-   (asdf:find-system :ultralisp)))
+    (asdf:component-version
+     (asdf:find-system :ultralisp)))
+
+(define-global-var *started-at* nil)
 
 
 (defparameter +search-help+
@@ -245,6 +253,15 @@
   (length (get-all-projects :only-enabled t)))
 
 
+(defun make-version-info ()
+  (format nil "~A~@[~2%Uptime: ~A~]"
+          +cl-info+
+          (when *started-at*
+            (humanize-duration
+             (timestamp-difference (now)
+                                   *started-at*)))))
+
+
 (defmethod weblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
   (let ((spinneret::*pre* t)
@@ -285,10 +302,9 @@
 
                   (:footer :class "page-footer"
                            (:p "Ultralisp v"
-                               (:span :title +cl-info+
+                               (:span :title (make-version-info)
                                       +ultralisp-version+)
                                ("proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
-
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
@@ -445,7 +461,9 @@
 
   (log:info "DONE")
   (setf *app*
-        (weblocks/app:start 'app)))
+        (weblocks/app:start 'app))
+  (setf *started-at*
+        (local-time:now)))
 
 
 (defun start-outside-docker ()

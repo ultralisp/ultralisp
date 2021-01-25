@@ -12,6 +12,9 @@
                 #:object-id)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
+  (:import-from #:ultralisp/utils/db
+                #:deflate-keyword
+                #:inflate-keyword)
   (:export
    #:dist
    #:dist-name
@@ -62,10 +65,8 @@
                  ;; slot gets filled: 
                  :ready)
           :accessor dist-state
-          :inflate (lambda (text)
-                     (make-keyword (string-upcase text)))
-          :deflate (lambda (symbol)
-                     (string-downcase (symbol-name symbol)))))
+          :inflate #'inflate-keyword
+          :deflate #'deflate-keyword))
   (:unique-keys name)
   ;; It is important to use symbols from versioned package
   ;; because otherwise mito is not able to find slots in the object
