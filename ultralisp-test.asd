@@ -2,7 +2,15 @@
   :class :package-inferred-system
   :pathname "t"
   :depends-on ("hamcrest"
-               "ultralisp"
+               ;; These two systems here only to
+               ;; check if they are able to compile
+               ;; without errors:
+               "ultralisp/worker"
+               ;; Server must go after the worker
+               ;; to catch most not imported
+               ;; packages:
+               "ultralisp/server"
+               ;; Test suites:
                "ultralisp-test/models/dist"
                "ultralisp-test/models/project"
                "ultralisp-test/models/source"
