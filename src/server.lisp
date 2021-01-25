@@ -119,7 +119,8 @@
   (:import-from #:ultralisp/utils/time
                 #:humanize-duration)
   (:import-from #:local-time
-                #:now-duration
+                #:now)
+  (:import-from #:local-time-duration
                 #:timestamp-difference)
   
   (:shadow #:restart)
