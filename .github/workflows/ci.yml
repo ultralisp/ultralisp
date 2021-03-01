@@ -76,6 +76,73 @@
           "shell": "bash"
         }
       ]
+    },
+    "run-tests": {
+      "runs-on": "ubuntu-latest",
+      "container": "40ants/base-lisp-image:0.12.0-sbcl-bin",
+      "services": {
+        "postgres": {
+          "image": "postgres:10",
+          "env": {
+            "POSTGRES_USER": "ultralisp",
+            "POSTGRES_PASSWORD": "ultralisp"
+          },
+          "options": "--health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5"
+        }
+      },
+      "env": {
+        "OS": "ubuntu-latest",
+        "QUICKLISP_DIST": "quicklisp",
+        "LISP": "sbcl-bin"
+      },
+      "steps": [
+        {
+          "name": "Checkout Code",
+          "uses": "actions/checkout@v1"
+        },
+        {
+          "name": "Grant All Perms to Make Cache Restoring Possible",
+          "run": "sudo mkdir -p /usr/local/etc/roswell\n                 sudo chown \"${USER}\" /usr/local/etc/roswell\n                 # Here the ros binary will be restored:\n                 sudo chown \"${USER}\" /usr/local/bin",
+          "shell": "bash"
+        },
+        {
+          "name": "Get Current Month",
+          "id": "current-month",
+          "run": "echo \"::set-output name=value::$(date -u \"+%Y-%m\")\"",
+          "shell": "bash"
+        },
+        {
+          "name": "Cache Roswell Setup",
+          "id": "cache",
+          "uses": "actions/cache@v2",
+          "with": {
+            "path": "qlfile\n                           qlfile.lock\n                           /usr/local/bin/ros\n                           ~/.cache/common-lisp/\n                           ~/.roswell\n                           /usr/local/etc/roswell\n                           .qlot",
+            "key": "${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin-${{ hashFiles('qlfile.lock') }}"
+          }
+        },
+        {
+          "name": "Restore Path To Cached Files",
+          "run": "echo $HOME/.roswell/bin >> $GITHUB_PATH\n                 echo .qlot/bin >> $GITHUB_PATH",
+          "shell": "bash",
+          "if": "steps.cache.outputs.cache-hit == 'true'"
+        },
+        {
+          "name": "Setup Common Lisp Environment",
+          "uses": "40ants/setup-lisp@v1",
+          "with": {
+            "asdf-system": "ultralisp"
+          },
+          "if": "steps.cache.outputs.cache-hit != 'true'"
+        },
+        {
+          "name": "Run Tests",
+          "uses": "40ants/run-tests@v2",
+          "with": {
+            "asdf-system": "ultralisp",
+            "coveralls-token": "${{ secrets.github_token }}"
+          }
+        }
+      ]
     }
   }
 }

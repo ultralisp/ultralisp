@@ -25,6 +25,5 @@
   :on-pull-request t
   :cache t
   :jobs ((linter)
-         ;; (run-tests
-         ;;  :coverage t)
-         ))
+         (run-tests
+          :coverage t)))
