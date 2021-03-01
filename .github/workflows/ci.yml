@@ -107,7 +107,7 @@
         },
         {
           "name": "Install sudo",
-          "run": "apt-get update && apt-get install sudo curl",
+          "run": "apt-get update && apt-get install -y sudo curl",
           "shell": "bash"
         },
         {
