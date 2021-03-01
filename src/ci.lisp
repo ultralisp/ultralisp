@@ -1,12 +1,22 @@
 (defpackage #:ultralisp/ci
   (:use #:cl)
-  (:import-from #:40ants-ci/jobs/linter
-                #:linter)
+  (:import-from #:40ants-ci/jobs/linter)
   (:import-from #:40ants-ci/workflow
                 #:defworkflow)
   (:import-from #:40ants-ci/jobs/run-tests
                 #:run-tests))
 (in-package ultralisp/ci)
+
+
+(defclass linter (40ants-ci/jobs/linter:linter)
+  ())
+
+
+(defmethod 40ants-ci/jobs/job:steps :around ((job linter))
+  (list*
+   (40ants-ci/steps/sh:sh "Install libev"
+                          "apt-get install libev")
+   (call-next-method )))
 
 
 (defworkflow ci

@@ -23,6 +23,11 @@
       },
       "steps": [
         {
+          "name": "Install libev",
+          "run": "apt-get install libev",
+          "shell": "bash"
+        },
+        {
           "name": "Checkout Code",
           "uses": "actions/checkout@v1"
         },
