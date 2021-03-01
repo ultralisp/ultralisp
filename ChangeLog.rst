@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.2.1 (2021-03-01)
+==================
+
+* Updated dependencies and installed newer SLYNK.
+
 1.2.0 (2021-01-25)
 ==================
 
