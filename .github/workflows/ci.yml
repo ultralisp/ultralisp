@@ -107,7 +107,7 @@
         },
         {
           "name": "Install sudo",
-          "run": "apt-get install sudo",
+          "run": "apt-get update && apt-get install sudo",
           "shell": "bash"
         },
         {
