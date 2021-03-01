@@ -24,7 +24,7 @@
       "steps": [
         {
           "name": "Install libev",
-          "run": "sudo apt-get install libev",
+          "run": "sudo apt-get install libev4",
           "shell": "bash"
         },
         {

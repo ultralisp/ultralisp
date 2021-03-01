@@ -15,7 +15,7 @@
 (defmethod 40ants-ci/jobs/job:steps :around ((job linter))
   (list*
    (40ants-ci/steps/sh:sh "Install libev"
-                          "sudo apt-get install libev")
+                          "sudo apt-get install libev4")
    (call-next-method )))
 
 
