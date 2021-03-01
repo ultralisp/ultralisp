@@ -102,7 +102,7 @@
         },
         {
           "name": "Grant All Perms to Make Cache Restoring Possible",
-          "run": "sudo mkdir -p /usr/local/etc/roswell\n                 sudo chown \"${USER}\" /usr/local/etc/roswell\n                 # Here the ros binary will be restored:\n                 sudo chown \"${USER}\" /usr/local/bin",
+          "run": "mkdir -p /usr/local/etc/roswell\n                 chown \"${USER}\" /usr/local/etc/roswell\n                 # Here the ros binary will be restored:\n                 chown \"${USER}\" /usr/local/bin",
           "shell": "bash"
         },
         {
