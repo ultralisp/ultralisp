@@ -411,7 +411,7 @@
 
   ;; This fixes issue with Dexador's thread-safety:
   ;; https://github.com/fukamachi/dexador/issues/88
-  (setf cl-dbi::*threads-connection-pool*
+  (setf (dbi.cache.thread::cache-pool-hash cl-dbi::*threads-connection-pool*)
         (make-hash-table :test 'equal :synchronized t))
   
   (setf dexador.connection-cache::*threads-connection-pool*
