@@ -89,6 +89,17 @@
   (let ((*ssh-host* "sailfish"))
     (ssh "docker exec -ti ultralisp_db psql 'user=ultralisp'")))
 
+(task "dump-prod-db" ()
+  (let ((*ssh-host* "sailfish"))
+    (ssh "docker exec -ti ultralisp_db pg_dump 'user=ultralisp' | bzip2 > db-$(date '+%Y%m%d').sql.bz2 && ln -f -s db-$(date '+%Y%m%d').sql.bz2 db-latest.sql.bz2")))
+
+(task "pull-db-from-prod" ()
+  ;; (sh "scp sailfish:db-$(date '+%Y%m%d').sql.bz2 db/dumps/prod/")
+  (ignore-errors
+   (sh "psql postgresql://ultralisp:ultralisp@localhost -c 'DROP DATABASE ultralisp_prod'"))
+  (sh "psql postgresql://ultralisp:ultralisp@localhost -c 'CREATE DATABASE ultralisp_prod'")
+  (sh "pv db/dumps/prod/db-$(date '+%Y%m%d').sql.bz2 | bzcat | psql postgresql://ultralisp:ultralisp@localhost/ultralisp_prod"))
+
 (task "build-packages-extractor" ()
       (sh "qlot exec ros run --eval '(asdf:make :packages-extractor)'"))
 
