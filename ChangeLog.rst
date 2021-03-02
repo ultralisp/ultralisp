@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.2.3 (2021-03-03)
+==================
+
+* Moving to a fresher Ultralisp dist version, where
+  ``log4cl-extras`` fixed for case when there is ``(setf some-func)``
+  in a backtrace.
+
 1.2.2 (2021-03-02)
 ==================
 

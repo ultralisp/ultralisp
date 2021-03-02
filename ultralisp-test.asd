@@ -18,8 +18,9 @@
                "ultralisp-test/github/webhook"
                "ultralisp-test/pipeline"
                "ultralisp-test/db")
-  :perform (test-op :after (op c)
+  :perform (test-op (op c)
                     (symbol-call :log :config
                                  :sane2 :warn)
-                    (unless (symbol-call :rove :run c)
-                      (error "Tests failed"))))
+                    (if (symbol-call :rove :run c)
+                        (format t "Tests are OK~%")
+                        (error "Tests failed"))))

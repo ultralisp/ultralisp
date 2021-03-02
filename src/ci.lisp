@@ -44,7 +44,8 @@
   :by-cron "0 10 * * 1"
   :on-pull-request t
   :cache t
-  :jobs ((linter)
+  :jobs ((linter
+          :lisp "sbcl-bin/1.5.6")
          (run-tests
           :lisp "sbcl-bin/1.5.6"
           :coverage t)))
