@@ -26,6 +26,19 @@
   ())
 
 
+(defmethod 40ants-ci/github:prepare-data :around ((job run-tests))
+  (list*
+   '("services"
+     . (("postgres"
+         . (("image" . "postgres:10")
+            ("env" . (("POSTGRES_USER" . "ultralisp")
+                      ("POSTGRES_PASSWORD" . "ultralisp")))
+            ("options"
+             . "--health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5")
+            ("ports" . ("5432:5432"))))))
+   (call-next-method)))
+
+
 (defworkflow ci
   :on-push-to "master"
   :by-cron "0 10 * * 1"
@@ -33,4 +46,5 @@
   :cache t
   :jobs ((linter)
          (run-tests
+          :lisp "sbcl-bin/1.5.6"
           :coverage t)))
