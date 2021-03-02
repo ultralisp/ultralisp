@@ -109,7 +109,8 @@ CREATE TABLE "project2" (
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY ("id", "version")
 );
-CREATE UNIQUE INDEX "unique_project2_name" ON "project2" ("name");
+CREATE UNIQUE INDEX "unique_project2_name" ON project2 (lower(name));
+
 
 
 CREATE TABLE "source" (
