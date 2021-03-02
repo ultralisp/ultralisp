@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.2.1 (2021-03-01)
+==================
+
+* Updated dependencies, installed newer SLYNK
+  and moved pull checks from CircleCI to GitHub Actions.
+
 1.2.0 (2021-01-25)
 ==================
 

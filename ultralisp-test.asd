@@ -21,4 +21,5 @@
   :perform (test-op :after (op c)
                     (symbol-call :log :config
                                  :sane2 :warn)
-                    (symbol-call :rove :run c)))
+                    (unless (symbol-call :rove :run c)
+                      (error "Tests failed"))))
