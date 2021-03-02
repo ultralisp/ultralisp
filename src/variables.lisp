@@ -3,7 +3,9 @@
   (:import-from #:function-cache
                 #:defcached)
   (:import-from #:secret-values
-                #:conceal-value))
+                #:conceal-value)
+  (:export
+   #:to-prod-db))
 (in-package ultralisp/variables)
 
 
@@ -107,3 +109,8 @@
 (def-env-var get-elastic-host
   "ELASTIC_SEARCH_HOST"
   "elastic")
+
+
+(defun to-prod-db ()
+  (setf (uiop:getenv "POSTGRES_DBNAME") "ultralisp_prod")
+  (function-cache:clear-cache *get-postgres-dbname-cache*))

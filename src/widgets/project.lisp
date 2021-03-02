@@ -74,12 +74,14 @@
                (weblocks/widget:update widget)))
         (setf (slot-value widget 'name)
               new-name
-              (slot-value widget 'project )
+              (slot-value widget 'project)
               new-project
               (slot-value widget 'source-widgets)
-              (loop for source in (ultralisp/models/project:project-sources new-project)
-                    collect (make-source-widget source
-                                                :on-delete #'on-delete))
+              (when new-project
+                (loop for source in (ultralisp/models/project:project-sources
+                                     new-project)
+                      collect (make-source-widget source
+                                                  :on-delete #'on-delete)))
               (slot-value widget 'add-form)
               (make-add-source-widget
                new-project

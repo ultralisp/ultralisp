@@ -383,11 +383,19 @@
 
 (defun get-project2 (project-name)
   (check-type project-name string)
-  (first
-   (select-dao 'project2
-     (where (:= :name
-                project-name))
-     (limit 1))))
+  (multiple-value-bind (response query)
+      (select-dao 'project2
+        ;; We need this use of lower,
+        ;; to make sure the search of the project
+        ;; is case insensitive.
+        ;; Database should have an special lowercased
+        ;; index,
+        (where (:= (:raw "lower(name)")
+                   (string-downcase project-name)
+                   ))
+        (limit 1))
+    (values (first response)
+            query)))
 
 
 (defun get-projects2-by-username (user-name)

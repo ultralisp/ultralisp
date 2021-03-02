@@ -2,6 +2,16 @@
  ChangeLog
 ===========
 
+1.2.2 (2021-03-02)
+==================
+
+* Fixed the way how we are making cl-dbi's thread pool thread safe.
+* Added a function ``to-prod-db``.
+* Fixed an "Unhandled error" on a project's page when
+  project was not found. Relates to:
+  https://github.com/ultralisp/ultralisp/issues/105.
+* Project search on ``/projects/user/name`` pages was made case insensitive.
+
 1.2.1 (2021-03-01)
 ==================
 
