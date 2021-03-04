@@ -1,6 +1,6 @@
 dist ultralisp http://dist.ultralisp.org/
 
-github quickdist ultralisp/quickdist :tag v0.16.0
+github quickdist ultralisp/quickdist :tag v0.16.1
 
 # github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables

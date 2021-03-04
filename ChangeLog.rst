@@ -2,6 +2,15 @@
  ChangeLog
 ===========
 
+1.2.4 (2021-03-04)
+==================
+
+* Move to Quickdist 0.16.1 where fixed processing of systems with
+  ``(:require :implementation-specific-module)``.
+
+  This should fix build of systems like Serapeum:
+  https://github.com/ultralisp/ultralisp/issues/101
+
 1.2.3 (2021-03-03)
 ==================
 
