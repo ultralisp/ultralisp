@@ -51,6 +51,9 @@
                 #:is-moderator)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
+  (:import-from #:ultralisp/utils/time
+                #:humanize-timestamp
+                #:humanize-duration)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -355,12 +358,14 @@
                                                       last-check)))
                                   (cond (processed-at
                                          (let ((duration
-                                                 (local-time-duration:human-readable-duration
+                                                 (humanize-duration
                                                   (local-time-duration:timestamp-difference
                                                    (local-time:now)
                                                    processed-at)))
-                                               (error (ultralisp/models/check:get-error last-check)))
-                                           (:span (fmt "Finished ~A. " duration))
+                                               (error (ultralisp/models/check:get-error last-check))
+                                               (next-check-at (ultralisp/cron:get-time-of-the-next-check
+                                                               source)))
+                                           (:span (fmt "Finished ~A ago. " duration))
                                             
                                            (when error
                                              (:span "There was an")
@@ -372,7 +377,10 @@
                                                      (:pre error))
                                                (:a :data-open popup-id
                                                    "error"))
-                                             (:span "."))))
+                                             (:span "."))
+                                           (:span
+                                            ("Next check will be made at ~A."
+                                             (humanize-timestamp next-check-at)))))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
                                           (ultralisp/models/check:position-in-the-queue last-check))))))

@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.3.0 (2021-03-05)
+==================
+
+* Project's page now shows the date of the next check for each source.
+* Also, date of the previous check is rendered more concise.
+
 1.2.4 (2021-03-04)
 ==================
 
