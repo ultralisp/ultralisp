@@ -94,7 +94,7 @@ IF id IN (SELECT project2.id FROM project2)
 THEN RETURN true;
 ELSE RETURN false;
 END IF;
-END;
+END
 $$ LANGUAGE PLpgSQL;
 
 create table "project_index" (

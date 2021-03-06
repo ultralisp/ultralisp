@@ -10,7 +10,7 @@ IF id IN (SELECT project2.id FROM project2)
 THEN RETURN true;
 ELSE RETURN false;
 END IF;
-END;
+END
 $$ LANGUAGE PLpgSQL;
 
 ALTER TABLE "project_index" DROP CONSTRAINT "project_index_project_id_fkey";
