@@ -33,13 +33,15 @@
   (setf log4cl-extras/error:*max-traceback-depth*
         *max-depth*)
   
-  (log4cl-extras/config:setup
-    `(:level ,level
-      :appenders ((this-console :layout :plain)
-                  (daily :layout :json
-                         :name-format ,(format nil "~A/~A.log"
-                                               (or *log-dir*
-                                                   "/tmp")
-                                               app)
-                         :backup-name-format ,(format nil "~A-%Y%m%d.log"
-                                                      app))))))
+  (let ((filename (format nil "~A/~A.log"
+                          (or *log-dir*
+                              "/tmp")
+                          app))
+        (backup-filename (format nil "~A-%Y%m%d.log"
+                                 app)))
+    (log4cl-extras/config:setup
+     `(:level ,level
+       :appenders ((this-console :layout :plain)
+                   (daily :layout :json
+                          :name-format ,filename
+                          :backup-name-format ,backup-filename))))))
