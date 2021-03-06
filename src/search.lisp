@@ -128,7 +128,7 @@
                                         (search-objects term
                                                         :from (+ from (length results))))))))
     (dexador.error:http-request-not-found ()
-      nil)
+      (values nil 0 nil))
     (dexador.error:http-request-bad-request (condition)
       (error 'bad-query :original-error condition))))
 
