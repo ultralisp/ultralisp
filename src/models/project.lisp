@@ -126,7 +126,8 @@
    #:source->project
    #:project-url
    #:turn-off-project2
-   #:get-projects2-by-username))
+   #:get-projects2-by-username
+   #:get-projects-with-sources))
 (in-package ultralisp/models/project)
 
 
@@ -353,6 +354,21 @@
       (select-dao 'project
         (where :enabled))
       (select-dao 'project)))
+
+(defun get-projects-with-sources ()
+  "Returns projects with not deleted sources."
+  (mito.dao:select-by-sql 'project2
+                          "
+    WITH projects_with_sources AS (
+      SELECT distinct source.project_id
+        FROM source
+       WHERE latest = true
+         AND deleted = false
+    )
+    SELECT *
+      FROM project2
+     WHERE id IN (SELECT * FROM projects_with_sources)
+       AND latest = true"))
 
 
 (defun get-recent-projects (&key (limit 10))

@@ -116,4 +116,11 @@
 (defun start-outside-docker ()
   (ultralisp/logging:setup-for-repl :level "error"
                                     :app "worker")
+  (loop with vars = '(("ELASTIC_SEARCH_HOST" "localhost"))
+        for (name value) in vars
+        do (setf (uiop/os:getenv name)
+                 value))
+
+  (function-cache:clear-cache-all-function-caches)
+  
   (process-jobs))

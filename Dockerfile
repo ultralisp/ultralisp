@@ -38,9 +38,6 @@ RUN qlot exec ros build \
 RUN qlot exec ros build \
     /app/roswell/ultralisp-server.ros && \
     mv /app/roswell/ultralisp-server /app/ultralisp-server
-RUN qlot exec ros run \
-    --eval '(asdf:make :packages-extractor)' && \
-    mv /app/src/packages-extractor /app/packages-extractor
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/app/docker/entrypoint.sh"]
