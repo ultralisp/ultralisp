@@ -76,6 +76,16 @@
      (dex:delete url :headers '(("Content-Type" . "application/json"))))))
 
 
+(defun delete-from-index (doc-id)
+  (with-fields (:document-id doc-id)
+    (let ((url (fmt "http://~A:9200/symbols/_doc/~A"
+                    (get-elastic-host)
+                    (quri:url-encode doc-id))))
+      (log:info "Deleting document from index")
+      (jonathan:parse
+       (dex:delete url :headers '(("Content-Type" . "application/json")))))))
+
+
 (define-condition bad-query (error)
   ((original-error :initarg :original-error
                    :reader get-original-error)))
@@ -106,6 +116,7 @@
             for hit in (getf (getf response
                                    :|hits|)
                              :|hits|)
+            for id = (getf hit :|_id|)
             for source = (getf hit :|_source|)
             for doc = (getf source :|documentation|)
             for type = (getf source :|type|)
@@ -113,6 +124,7 @@
             for system = (getf source :|system|)
             for system-path = (getf source :|system-path|)
             for project = (getf source :|project|)
+            for project-source = (getf source :|source|)
             ;; This is a symbol's package:
             for package = (getf source :|package|)
             ;; And this is a package where symbol
@@ -121,8 +133,10 @@
             collect (list (make-keyword type)
                           symbol
                           doc
+                          :id id
                           :arguments (getf source :|arguments|)
                           :project project
+                          :source project-source
                           :package package
                           :original-package original-package
                           :system-path system-path
@@ -388,7 +402,7 @@ default values from the arglist."
   "
   Returns number of indexed symbols or 0.
   "
-  ;; TODO: remove current-system-path
+  ;; TODO: remove current-system-path (don't remember why :()
   (let* ((*current-system-path* (ql:where-is-system *current-system-name*))
          (current-package (etypecase package
                             (string (find-package (string-upcase package)))
@@ -544,9 +558,10 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                               do (when (safe-quickload *current-system-name*)
                                    (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
                                      (loop for package in packages
+                                           for num-symbols-in-package = (index-symbols package)
                                            do (log:info "Indexing package" package)
                                               (incf indexed-symbols
-                                                    (index-symbols package))))))))))
+                                                    num-symbols-in-package)))))))))
       ;; Here we need to make a clean up to not clutter the file system
       (when clear-dir
         (log:info "Deleting checked out" path)
@@ -555,13 +570,29 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
 
     (values indexed-symbols)))
 
+
+(defun ensure-project (project)
+  (etypecase project
+    (project2 project)
+    (string
+     (let* ((project-name project)
+            (project (get-project2 project-name)))
+       (unless project
+         (error "Unable to find ~A"
+                project-name))
+       project))))
+
+
 (defun index-project (project &key (clear-dir t))
   "
   This function should be called inside the worker.
 
   Returns a number of indexed symbols.
   "
-  (check-type project project2)
+  (setf project
+        (ensure-project project))
+
+  (delete-project-documents project)
   
   (loop for source in (project-sources project)
         summing (index-source project source
@@ -594,7 +625,21 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                                          :ok
                                          :total-time (get-total-time))))
                  (error ()
+                   ;; TODO: we also set status to failed
+                   ;; when there wasn't any symbols found in the project.
+                   ;; This can be done using ultralisp/rpc/command:defcommand
                    (set-index-status project
                                      :failed
                                      :total-time (get-total-time))))))
     (log:info "DONE")))
+
+
+(defun delete-project-documents (project)
+  (setf project
+        (ensure-project project))
+  (let ((project-name (project-name project)))
+    (loop for document in (search-objects (fmt "project:\"~A\""
+                                               project-name))
+          for doc-plist = (cdddr document)
+          for doc-id = (getf doc-plist :id)
+          do (delete-from-index doc-id))))
