@@ -65,7 +65,8 @@
    #:create-source
    #:params-from-github
    #:get-current-branch
-   #:enable-this-source-version))
+   #:enable-this-source-version
+   #:params-to-string))
 (in-package ultralisp/models/source)
 
 
@@ -184,7 +185,7 @@
   (deleted-p (source obj)))
 
 
-(defun params-to-string (source)
+(defun params-to-string (source &key (last-seen t))
   (let ((type (source-type source)))
     (if (eql type :github)
         (let ((params (source-params source)))
@@ -192,7 +193,10 @@
                   (string-downcase type)
                   (getf params :user-or-org)
                   (getf params :project)
-                  (getf params :last-seen-commit)))
+                  (if last-seen
+                      (getf params :last-seen-commit)
+                      (or (getf params :branch)
+                          "master"))))
         (format nil "~A://unsupported-source-type"
                 (string-downcase type)))))
 

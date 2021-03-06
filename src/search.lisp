@@ -15,6 +15,11 @@
                 #:downloaded-project-path
                 #:download)
   (:import-from #:ultralisp/models/project
+                #:project-name
+                #:get-projects-with-sources
+                #:get-project2
+                #:project-sources
+                #:project2
                 #:get-recently-updated-projects
                 #:get-all-projects
                 #:get-github-project)
@@ -34,6 +39,8 @@
   (:import-from #:local-time
                 #:timestamp-difference
                 #:now)
+  (:import-from #:ultralisp/models/source
+                #:source-systems-info)
   (:export
    #:search-objects
    #:bad-query
@@ -44,6 +51,7 @@
 (defvar *current-system-name* nil)
 (defvar *current-package-name* nil)
 (defvar *current-project-name* nil)
+(defvar *current-source-uri* nil)
 (defvar *current-system-path* nil)
 
 
@@ -68,6 +76,16 @@
      (dex:delete url :headers '(("Content-Type" . "application/json"))))))
 
 
+(defun delete-from-index (doc-id)
+  (with-fields (:document-id doc-id)
+    (let ((url (fmt "http://~A:9200/symbols/_doc/~A"
+                    (get-elastic-host)
+                    (quri:url-encode doc-id))))
+      (log:info "Deleting document from index")
+      (jonathan:parse
+       (dex:delete url :headers '(("Content-Type" . "application/json")))))))
+
+
 (define-condition bad-query (error)
   ((original-error :initarg :original-error
                    :reader get-original-error)))
@@ -76,7 +94,6 @@
 (defun search-objects (term &key (from 0))
   ;; TODO: научиться обрабатывать 400 ответы от Elastic
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
-  (log:info "Searching by" term)
   (handler-case
       (loop with url = (fmt "http://~A:9200/symbols/_search"
                             (get-elastic-host))
@@ -88,10 +105,10 @@
                                           :|query| term))
                           :|from| from)
             with content = (jonathan:to-json query)
-            with response = (jonathan:parse
-                             (dex:post url
-                                       :content content
-                                       :headers '(("Content-Type" . "application/json"))))
+            with body = (dex:post url
+                                  :content content
+                                  :headers '(("Content-Type" . "application/json")))
+            with response = (jonathan:parse body)
             with total = (getf (getf (getf response
                                            :|hits|)
                                      :|total|)
@@ -99,6 +116,7 @@
             for hit in (getf (getf response
                                    :|hits|)
                              :|hits|)
+            for id = (getf hit :|_id|)
             for source = (getf hit :|_source|)
             for doc = (getf source :|documentation|)
             for type = (getf source :|type|)
@@ -106,6 +124,7 @@
             for system = (getf source :|system|)
             for system-path = (getf source :|system-path|)
             for project = (getf source :|project|)
+            for project-source = (getf source :|source|)
             ;; This is a symbol's package:
             for package = (getf source :|package|)
             ;; And this is a package where symbol
@@ -114,8 +133,10 @@
             collect (list (make-keyword type)
                           symbol
                           doc
+                          :id id
                           :arguments (getf source :|arguments|)
                           :project project
+                          :source project-source
                           :package package
                           :original-package original-package
                           :system-path system-path
@@ -124,11 +145,12 @@
                                     total
                                     (when (< (+ from (length results))
                                              total)
-                                      (lambda ()
-                                        (search-objects term
-                                                        :from (+ from (length results))))))))
+                                      (let ((new-from (+ from (length results))))
+                                        (lambda ()
+                                          (search-objects term
+                                                          :from new-from)))))))
     (dexador.error:http-request-not-found ()
-      nil)
+      (values nil 0 nil))
     (dexador.error:http-request-bad-request (condition)
       (error 'bad-query :original-error condition))))
 
@@ -239,6 +261,9 @@ default values from the arglist."
    
    (when *current-project-name*
      (list :|project| (string-downcase *current-project-name*)))
+
+   (when *current-source-uri*
+     (list :|source| (string-downcase *current-source-uri*)))
    
    (when *current-package-name*
      (list :|package| (string-downcase *current-package-name*)))
@@ -374,39 +399,55 @@ default values from the arglist."
 
 
 (defun index-symbols (package)
-  ;; TODO: remove current-system-path
+  "
+  Returns number of indexed symbols or 0.
+  "
+  ;; TODO: remove current-system-path (don't remember why :()
   (let* ((*current-system-path* (ql:where-is-system *current-system-name*))
          (current-package (etypecase package
                             (string (find-package (string-upcase package)))
                             (keyword (find-package package))
                             (package package)))
          (*current-package-name* (when current-package
-                                   (package-name current-package))))
+                                   (package-name current-package)))
+         (indexed-symbols 0))
     (cond
       (current-package
        (do-external-symbols (symbol current-package)
          (let ((external (is-external symbol current-package)))
            (when external
              (let* ((full-symbol-name (encode-symbol symbol))
-                    (object-id (if *current-project-name*
-                                   (fmt "~A:~A" *current-project-name* full-symbol-name)
-                                   full-symbol-name)))
+                    (object-id (cond (*current-source-uri*
+                                      (fmt "src:~A:~A" *current-source-uri* full-symbol-name))
+                                     (*current-project-name*
+                                      (fmt "prj:~A:~A" *current-project-name* full-symbol-name))
+                                     (t
+                                      full-symbol-name)))
+                    (indexed nil))
                (when (symbol-function-type symbol)
                  (index "symbols"
                         object-id
                         (get-function-documentation symbol
-                                                    (symbol-function-type symbol))))
+                                                    (symbol-function-type symbol)))
+                 (setf indexed t))
              
                (when (class-p symbol)
                  (index "symbols"
                         object-id
-                        (get-value-documentation symbol 'type)))
+                        (get-value-documentation symbol 'type))
+                 (setf indexed t))
              
                (when (variable-p symbol)
                  (index "symbols"
                         object-id
-                        (get-value-documentation symbol 'variable))))))))
-      (t (log:error "Unable to find package" package)))))
+                        (get-value-documentation symbol 'variable))
+                 (setf indexed t))
+
+               (when indexed
+                 (incf indexed-symbols)))))))
+      (t (log:error "Unable to find package" package)))
+
+    (values indexed-symbols)))
 
 
 (defun index-all-packages ()
@@ -455,85 +496,151 @@ default values from the arglist."
          (ql:quickload system))))))
 
 
-(defun index-project (project)
-  "This function should be called inside the worker."
-  (declare (ignore project))
-  ;; TODO: reimplement for project2
-  ;; (let* ((path (downloaded-project-path
-  ;;               (download project "/tmp/indexer" :latest t))))
+(defun index-source (project source &key (clear-dir t))
+  "
+  This function should be called inside the worker.
 
-  ;;   (unwind-protect
-  ;;        (uiop:with-current-directory (path)
-  ;;          (log:info "Working in" path)
-  ;;          ;; Prepare qlfile and install the dependencies
-  ;;          (alexandria:with-output-to-file (s (merge-pathnames #P"qlfile"
-  ;;                                                              path)
-  ;;                                             :if-exists :supersede)
-  ;;            (format s "dist ultralisp http://dist.ultralisp.org/~%")
-  ;;            (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
-  ;;                                                          path))))
-  ;;              (when lock-file
-  ;;                (delete-file lock-file)))
-  ;;            (qlot/install:install-project path :install-deps nil))
+  Returns a number of indexed symbols.
+  "
+  (check-type project project2)
+  (check-type source ultralisp/models/source:source)
+  
+  (let* ((path (downloaded-project-path
+                (download source "/tmp/indexer" :latest t)))
+         (qlfile-path (merge-pathnames #P"qlfile"
+                                       path))
+         (indexed-symbols 0))
 
-  ;;          (log:info "Entering local quicklisp")
-  ;;          (qlot:with-local-quicklisp (path)
-  ;;            (loop with systems = (ultralisp/models/project:get-systems-info project)
-  ;;                  with *current-project-name* = (ultralisp/models/project:get-name project)
-  ;;                  with asdf:*central-registry* = (cons path asdf:*central-registry*)
-  ;;                  for system in systems
-  ;;                  do (log:info "Checking system" system)
-  ;;                     (let ((data (get-packages (quickdist:get-name system)
-  ;;                                               :work-dir path)))
-  ;;                       (log:info "Indexing system" system data)
-  ;;                       (loop for item in data
-  ;;                             for *current-system-name* = (getf item :system)
-  ;;                             for packages = (getf item :packages)
-  ;;                             do (when (safe-quickload *current-system-name*)
-  ;;                                  (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
-  ;;                                    (loop for package in packages
-  ;;                                          do (log:info "Indexing package" package)
-  ;;                                             (index-symbols package)))))))))
-  ;;     ;; Here we need to make a clean up to not clutter the file system
-  ;;     (log:info "Deleting checked out" path)
-  ;;     (uiop:delete-directory-tree path
-  ;;                                 :validate t)))
-  )
+    (unwind-protect
+         (uiop:with-current-directory (path)
+           (log:info "Working in" path)
+           ;; Prepare qlfile and install the dependencies
+           (cond
+             ;; If qlfile already exists, we'll use it
+             ((probe-file qlfile-path)
+              nil)
+             ;; Otherwise we'll create a new one
+             (t
+              (alexandria:with-output-to-file (s qlfile-path
+                                                 :if-exists :supersede)
+                (log:info "Creating a new qlfile")
+                (format s "dist ultralisp http://dist.ultralisp.org/
+github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
+
+              ;; Just in case, we'll remove lock file:
+              (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
+                                                            path))))
+                (log:info "Deleting old qlfile.lock")
+                (when lock-file
+                  (delete-file lock-file)))))
+
+           ;; This will create .qlot/ folder out of qlfile
+           (qlot/install:install-project path :install-deps nil)
+
+           (log:info "Entering local quicklisp")
+           (qlot:with-local-quicklisp (path)
+             (loop with systems = (source-systems-info source)
+                   with *current-project-name* = (ultralisp/models/project:project-name project)
+                   with *current-source-uri* = (ultralisp/models/source::params-to-string
+                                                source
+                                                ;; We'll use this string as a document ID and
+                                                ;; don't want it to change on every commit.
+                                                :last-seen nil)
+                   with asdf:*central-registry* = (cons path asdf:*central-registry*)
+                   for system in systems
+                   do (log:info "Checking system" system)
+                      (let ((data (get-packages (quickdist:get-name system)
+                                                :work-dir path)))
+                        (log:info "Indexing system" system data)
+                        (loop for item in data
+                              for *current-system-name* = (getf item :system)
+                              for packages = (getf item :packages)
+                              do (when (safe-quickload *current-system-name*)
+                                   (let ((*current-system-path* (ql:where-is-system *current-system-name*)))
+                                     (loop for package in packages
+                                           for num-symbols-in-package = (index-symbols package)
+                                           do (log:info "Indexing package" package)
+                                              (incf indexed-symbols
+                                                    num-symbols-in-package)))))))))
+      ;; Here we need to make a clean up to not clutter the file system
+      (when clear-dir
+        (log:info "Deleting checked out" path)
+        (uiop:delete-directory-tree path
+                                    :validate t)))
+
+    (values indexed-symbols)))
+
+
+(defun ensure-project (project)
+  (etypecase project
+    (project2 project)
+    (string
+     (let* ((project-name project)
+            (project (get-project2 project-name)))
+       (unless project
+         (error "Unable to find ~A"
+                project-name))
+       project))))
+
+
+(defun index-project (project &key (clear-dir t))
+  "
+  This function should be called inside the worker.
+
+  Returns a number of indexed symbols.
+  "
+  (setf project
+        (ensure-project project))
+
+  (delete-project-documents project)
+  
+  (loop for source in (project-sources project)
+        summing (index-source project source
+                              :clear-dir clear-dir)))
 
 
 (defun index-projects (&key names force (limit 10))
-  (declare (ignore names force limit))
-  ;; TODO: reimplement for project2
-  ;; (let ((projects (cond
-  ;;                   (names
-  ;;                    (loop for name in names
-  ;;                          for splitted = (cl-strings:split name #\/)
-  ;;                          collect (get-github-project (first splitted)
-  ;;                                                      (second splitted))))
-  ;;                   ;; Reindexing all projects
-  ;;                   (force (get-all-projects :only-enabled t))
-  ;;                   ;; 
-  ;;                   (t (get-projects-to-index :limit limit)))))
-  ;;   (loop for project in projects
-  ;;         for started-at = (now)
-  ;;         do (log:info "Indexing project" project)
-  ;;            (flet ((get-total-time ()
-  ;;                     (floor (timestamp-difference
-  ;;                             (now)
-  ;;                             started-at))))
-  ;;              (handler-case
-  ;;                  (with-fields
-  ;;                      (:project-name (ultralisp/models/project:get-name project))
-  ;;                    (with-log-unhandled ()
-  ;;                      (with-transaction
-  ;;                        (submit-task
-  ;;                         'index-project project))
-  ;;                      (set-index-status project
-  ;;                                        :ok
-  ;;                                        :total-time (get-total-time))))
-  ;;                (error ()
-  ;;                  (set-index-status project
-  ;;                                    :failed
-  ;;                                    :total-time (get-total-time))))))
-  ;;   (log:info "DONE"))
-  )
+  (let ((projects (cond
+                    (names
+                     (mapcar #'get-project2 names))
+                    ;; Reindexing all projects
+                    (force (get-projects-with-sources))
+                    ;; 
+                    (t (get-projects-to-index :limit limit)))))
+    (loop for project in projects
+          for started-at = (now)
+          for project-name = (project-name project)
+          do (with-fields (:project-name project-name)
+               (log:info "Indexing project")
+               
+               (flet ((get-total-time ()
+                        (floor (timestamp-difference
+                                (now)
+                                started-at))))
+                 (handler-case
+                     (with-log-unhandled ()
+                       (with-transaction
+                         (submit-task
+                          'index-project project))
+                       (set-index-status project
+                                         :ok
+                                         :total-time (get-total-time)))
+                   (error ()
+                     ;; TODO: we also set status to failed
+                     ;; when there wasn't any symbols found in the project.
+                     ;; This can be done using ultralisp/rpc/command:defcommand
+                     (set-index-status project
+                                       :failed
+                                       :total-time (get-total-time)))))))
+    (log:info "DONE")))
+
+
+(defun delete-project-documents (project)
+  (setf project
+        (ensure-project project))
+  (let ((project-name (project-name project)))
+    (loop for document in (search-objects (fmt "project:\"~A\""
+                                               project-name))
+          for doc-plist = (cdddr document)
+          for doc-id = (getf doc-plist :id)
+          do (delete-from-index doc-id))))

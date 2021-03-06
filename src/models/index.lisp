@@ -1,7 +1,8 @@
 (defpackage #:ultralisp/models/index
   (:use #:cl)
   (:import-from #:ultralisp/models/project
-                #:project)
+                #:project
+                #:project2)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:sxql
@@ -33,7 +34,7 @@
 
 
 (defun get-index-status (project)
-  (check-type project project)
+  (check-type project project2)
   (status-from-postgres
    (second
     (assoc :status
@@ -45,7 +46,7 @@
                          &key
                            (next-update-at (time-in-future :day 7))
                            (total-time 0))
-  (check-type project project)
+  (check-type project project2)
   (check-type status (member :ok :failed))
   (setf next-update-at
         (format-rfc3339-timestring nil
@@ -75,11 +76,21 @@
 
 (defun get-projects-to-index (&key (limit 10))
   "Returns a list of projects to update a search index."
-  (mito:select-dao 'project
-    (left-join :project_index :on (:= :project_index.project_id :project.id))
-    (where (:and :project.enabled
-                 (:or (:< :project_index.next_update_at
-                          (now))
-                      (:is-null :project_index.id))))
-    (order-by :project_index.next_update_at)
-    (limit limit)))
+  (mito.dao:select-by-sql 'project2
+                          "
+WITH projects_with_sources AS (
+  SELECT distinct source.project_id
+    FROM source
+   WHERE latest = true
+     AND deleted = false
+)
+SELECT *
+  FROM project2
+  LEFT JOIN project_index ON (project_index.project_id = project2.id)
+ WHERE project2.id IN (SELECT * FROM projects_with_sources)
+   AND (project_index.next_update_at < NOW() OR
+        project_index.id IS NULL)
+ ORDER BY project_index.next_update_at
+ LIMIT ?
+"
+                          :binds (list limit)))

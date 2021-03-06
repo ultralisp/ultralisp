@@ -6,7 +6,7 @@
                           :directory))
 (in-package :lake.user)
 
-(use-syntax :interpol)
+(named-readtables:in-readtable :interpol-syntax)
 
 
 (defun search-version-in-changelog (lines)
@@ -107,7 +107,14 @@
       (sh "qlot exec sblint ultralisp.asd ultralisp-test.asd"))
 
 (task "stop" ()
-      (sh "docker stop ultralisp_app ultralisp_worker ultralisp_empty_db ultralisp_elastic ultralisp_db"))
+  (loop for container in '("ultralisp_app"
+                           "ultralisp_worker"
+                           "ultralisp_empty_db"
+                           "ultralisp_elastic"
+                           "ultralisp_db"
+                           "ultralisp_gearman")
+            do (ignore-errors
+                (sh #?"docker stop ${container}"))))
 
 (task "default" ("devserver")
       ())
