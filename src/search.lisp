@@ -609,28 +609,29 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                     (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
           for started-at = (now)
-          do (log:info "Indexing project" project)
-             (flet ((get-total-time ()
-                      (floor (timestamp-difference
-                              (now)
-                              started-at))))
-               (handler-case
-                   (with-fields
-                       (:project-name (project-name project))
+          for project-name = (project-name project)
+          do (with-fields (:project-name project-name)
+               (log:info "Indexing project")
+               
+               (flet ((get-total-time ()
+                        (floor (timestamp-difference
+                                (now)
+                                started-at))))
+                 (handler-case
                      (with-log-unhandled ()
                        (with-transaction
                          (submit-task
                           'index-project project))
                        (set-index-status project
                                          :ok
-                                         :total-time (get-total-time))))
-                 (error ()
-                   ;; TODO: we also set status to failed
-                   ;; when there wasn't any symbols found in the project.
-                   ;; This can be done using ultralisp/rpc/command:defcommand
-                   (set-index-status project
-                                     :failed
-                                     :total-time (get-total-time))))))
+                                         :total-time (get-total-time)))
+                   (error ()
+                     ;; TODO: we also set status to failed
+                     ;; when there wasn't any symbols found in the project.
+                     ;; This can be done using ultralisp/rpc/command:defcommand
+                     (set-index-status project
+                                       :failed
+                                       :total-time (get-total-time)))))))
     (log:info "DONE")))
 
 
