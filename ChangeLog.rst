@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+Unreleased (2021-03-06)
+=======================
+
+* Fixed repeating of search results after a click to the "Load more" link.
+  This closed issue https://github.com/ultralisp/ultralisp/issues/88
+
 1.3.0 (2021-03-05)
 ==================
 

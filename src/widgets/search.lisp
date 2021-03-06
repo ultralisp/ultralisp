@@ -54,7 +54,7 @@
       (log:info "Fetching next batch of results")
       (handler-case
           (multiple-value-bind (results total next-closure)
-              (search-objects (get-query widget))
+              (funcall getter)
             (setf (get-results widget)
                   (append (get-results widget)
                           results)
