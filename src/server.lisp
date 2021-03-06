@@ -493,10 +493,13 @@
   (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
                       ("GITHUB_SECRET" "3f46156c6bd57f4c233db9449ed556b6e545315a")
                       ("BASE_URL" "http://localhost:8081/dist/")
-                      ("CRON_DISABLED" "yes"))
+                      ("CRON_DISABLED" "yes")
+                      ("ELASTIC_SEARCH_HOST" "localhost"))
         for (name value) in vars
         do (setf (uiop/os:getenv name)
                  value))
+
+  (function-cache:clear-cache-all-function-caches)
 
   ;; For some reason default "TEMPORARY-FILES:TEMP-%" does not work on OSX:
   (setf cl-fad::*default-template*
