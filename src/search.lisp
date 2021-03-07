@@ -49,7 +49,8 @@
    #:search-objects
    #:bad-query
    #:index-projects
-   #:delete-project-documents))
+   #:delete-project-documents
+   #:delete-documents-which-should-not-be-in-the-index))
 (in-package ultralisp/search)
 
 
@@ -650,17 +651,39 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
     (log:info "DONE")))
 
 
+(defmacro do-all-docs ((doc-symbol query) &body body)
+  `(loop for (documents total get-next) = (multiple-value-list
+                                           (search-objects ,query))
+           then (multiple-value-list
+                 (funcall get-next))
+         do (dolist (,doc-symbol documents)
+              ,@body)
+         while get-next))
+
+
 (defun delete-project-documents (project)
   (let* ((project (ensure-project project))
          (project-name (project-name project)))
-    (flet ((get-doc-id (document)
-             (let ((doc-plist (cdddr document)))
-               (getf doc-plist :id))))
-      (loop for (documents total get-next) = (multiple-value-list
-                                              (search-objects (fmt "project:\"~A\""
-                                                                   project-name)))
-              then (multiple-value-list
-                    (funcall get-next))
-            for doc-ids = (mapcar #'get-doc-id documents)
-            do (mapc #'delete-from-index doc-ids)
-            while get-next))))
+    (do-all-docs (document (fmt "project:\"~A\""
+                                project-name))
+      (let* ((doc-plist (cdddr document))
+             (doc-id (getf doc-plist :id)))
+        (delete-from-index doc-id)))))
+
+
+(defun delete-documents-which-should-not-be-in-the-index ()
+  (let* ((projects-to-index (get-projects-with-sources))
+         (project-names-to-index (mapcar #'project-name
+                                         projects-to-index)))
+    (do-all-docs (document "*")
+      (let* ((doc-plist (cdddr document))
+             (doc-id (getf doc-plist :id))
+             (project-name (getf doc-plist :project)))
+        (assert project-name)
+        (unless (member project-name
+                        project-names-to-index
+                        :test #'string-equal)
+          (with-fields (:project project-name
+                        :doc-id doc-id)
+            (log:info "Deleting document from index")
+            (delete-from-index doc-id)))))))
