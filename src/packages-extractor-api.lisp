@@ -8,8 +8,11 @@
                 #:with-fields)
   (:import-from #:function-cache
                 #:defcached)
+  (:import-from #:rutils
+                #:fmt)
   (:export
-   #:get-packages))
+   #:get-packages
+   #:with-saved-ultralisp-root))
 (in-package ultralisp/packages-extractor-api)
 
 
@@ -33,6 +36,33 @@
                           :packages packages))))
 
 
+(defvar *ultralisp-root*)
+
+
+(defmacro with-saved-ultralisp-root (&body body)
+  "
+  This macro needed to save path to Ultralisp root before
+  we'll enter into a local Qlot environment.
+
+  This path will be used to call Ultralisp functions in a
+  separate process.
+  "
+  `(let ((*ultralisp-root* (uiop:merge-pathnames*
+                            "../"
+                            (asdf:component-pathname
+                             (asdf:find-system :ultralisp)))))
+     ,@body))
+
+
+(defun make-command-to-run (func-as-string)
+  (unless (boundp '*ultralisp-root*)
+    (error "Variable *ULTRALISP-ROOT* is unbound. Wrap code using WITH-SAVED-ULTRALISP-ROOT."))
+  
+  (fmt "qlot exec ros run --eval '(push \"~A\" asdf:*central-registry*)' --system ultralisp/packages-extractor --eval '~A' --quit"
+       *ultralisp-root*
+       func-as-string))
+
+
 (defcached (get-packages :timeout 30) (system-names &key
                                                     (work-dir "/app"))
   "
@@ -50,16 +80,12 @@
   "
   (log:info "Getting packages for" system-names)
   (let* ((system-names (uiop:ensure-list system-names))
-         (ultralisp-path (uiop:merge-pathnames*
-                          "../"
-                          (asdf:component-pathname
-                           (asdf:find-system :ultralisp))))
-         (command (format nil "qlot exec ros run --eval '(push \"~A\" asdf:*central-registry*)' --system ultralisp/packages-extractor --eval '(ultralisp/packages-extractor::inner-main~{ ~A~})' --quit"
-                          ultralisp-path
-                          (loop for name in system-names
-                                collect (format nil
-                                                "\"~A\""
-                                                (string-downcase name)))))
+         (command (make-command-to-run
+                   (rutils:fmt "(ultralisp/packages-extractor::inner-main~{ ~A~})"
+                               (loop for name in system-names
+                                     collect (format nil
+                                                     "\"~A\""
+                                                     (string-downcase name))))))
          (result nil))
     (with-fields (:command command)
       (uiop:with-current-directory (work-dir)

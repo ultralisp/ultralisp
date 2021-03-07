@@ -158,9 +158,7 @@
   (log:info "Trying to index projects")
   (with-lock ("indexing-projects")
     (log:info "Log aquired")
-    (unwind-protect
-         (ultralisp/search:index-projects :limit 1)
-      (log:info "Unwinding after the indexing projects"))
+    (ultralisp/search:index-projects :limit 1)
     (log:info "Task is done")))
 
 
