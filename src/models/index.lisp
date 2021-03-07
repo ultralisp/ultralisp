@@ -44,13 +44,20 @@
 
 (defun set-index-status (project status
                          &key
-                           (next-update-at (time-in-future :day 7))
+                           next-update-at
                            (total-time 0))
   (check-type project project2)
   (check-type status (member :ok :failed))
   (setf next-update-at
-        (format-rfc3339-timestring nil
-                                   next-update-at))
+        (format-rfc3339-timestring
+         nil
+         (if next-update-at
+             next-update-at
+             (ecase status
+               (:ok (time-in-future :day 7))
+               ;; TODO: We'll need to use exponential
+               ;;       here.
+               (:failed (time-in-future :day 1))))))
   (if (get-index-status project)
       (mito:execute-sql "UPDATE project_index SET status = ?,
                                 last_update_at = NOW(),

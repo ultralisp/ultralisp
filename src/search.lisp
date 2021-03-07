@@ -41,6 +41,8 @@
                 #:now)
   (:import-from #:ultralisp/models/source
                 #:source-systems-info)
+  (:import-from #:ultralisp/rpc/command
+                #:defcommand)
   (:export
    #:search-objects
    #:bad-query
@@ -583,20 +585,48 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
        project))))
 
 
-(defun index-project (project &key (clear-dir t))
+(defcommand update-index-status (project status processed-in)
+  (with-fields (:project (typecase project
+                           (string project)
+                           (t
+                            (project-name project)))
+                :status status
+                :processed-in processed-in)
+    (log:info "Updating project index status")
+
+    (set-index-status project
+                      status
+                      :total-time processed-in)))
+
+
+(defun index-project (project &key (clear-dir t)
+                      &aux (started-at (now)))
   "
   This function should be called inside the worker.
 
   Returns a number of indexed symbols.
   "
-  (setf project
-        (ensure-project project))
+  (flet ((get-total-time ()
+           (floor (timestamp-difference
+                   (now)
+                   started-at))))
+    (handler-case
+        (with-log-unhandled ()
+          (with-transaction
+            (let ((project (ensure-project project)))
 
-  (delete-project-documents project)
-  
-  (loop for source in (project-sources project)
-        summing (index-source project source
-                              :clear-dir clear-dir)))
+              (delete-project-documents project)
+             
+              (loop for source in (project-sources project)
+                    summing (index-source project source
+                                          :clear-dir clear-dir)))))
+      (error ()
+        ;; TODO: we also set status to failed
+        ;; when there wasn't any symbols found in the project.
+        ;; This can be done using ultralisp/rpc/command:defcommand
+        (update-index-status project
+                             :failed
+                             (get-total-time))))))
 
 
 (defun index-projects (&key names force (limit 10))
@@ -608,30 +638,12 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                     ;; 
                     (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
-          for started-at = (now)
           for project-name = (project-name project)
           do (with-fields (:project-name project-name)
-               (log:info "Indexing project")
+               (log:info "Sending task to index project")
                
-               (flet ((get-total-time ()
-                        (floor (timestamp-difference
-                                (now)
-                                started-at))))
-                 (handler-case
-                     (with-log-unhandled ()
-                       (with-transaction
-                         (submit-task
-                          'index-project project))
-                       (set-index-status project
-                                         :ok
-                                         :total-time (get-total-time)))
-                   (error ()
-                     ;; TODO: we also set status to failed
-                     ;; when there wasn't any symbols found in the project.
-                     ;; This can be done using ultralisp/rpc/command:defcommand
-                     (set-index-status project
-                                       :failed
-                                       :total-time (get-total-time)))))))
+               (submit-task
+                'index-project project)))
     (log:info "DONE")))
 
 
