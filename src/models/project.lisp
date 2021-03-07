@@ -127,7 +127,8 @@
    #:project-url
    #:turn-off-project2
    #:get-projects2-by-username
-   #:get-projects-with-sources))
+   #:get-projects-with-sources
+   #:ensure-project))
 (in-package ultralisp/models/project)
 
 
@@ -762,3 +763,15 @@
   (let* ((name (project-name obj)))
     (format nil "/projects/~A"
             name)))
+
+
+(defun ensure-project (project)
+  (etypecase project
+    (project2 project)
+    (string
+     (let* ((project-name project)
+            (project (get-project2 project-name)))
+       (unless project
+         (error "Unable to find ~A"
+                project-name))
+       project))))

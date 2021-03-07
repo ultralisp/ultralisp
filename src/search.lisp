@@ -15,6 +15,7 @@
                 #:downloaded-project-path
                 #:download)
   (:import-from #:ultralisp/models/project
+                #:ensure-project
                 #:project-name
                 #:get-projects-with-sources
                 #:get-project2
@@ -24,6 +25,7 @@
                 #:get-all-projects
                 #:get-github-project)
   (:import-from #:ultralisp/packages-extractor-api
+                #:with-saved-ultralisp-root
                 #:get-packages)
   (:import-from #:ultralisp/rpc/core
                 #:submit-task)
@@ -41,10 +43,14 @@
                 #:now)
   (:import-from #:ultralisp/models/source
                 #:source-systems-info)
+  (:import-from #:ultralisp/rpc/command
+                #:defcommand)
   (:export
    #:search-objects
    #:bad-query
-   #:index-projects))
+   #:index-projects
+   #:delete-project-documents
+   #:delete-documents-which-should-not-be-in-the-index))
 (in-package ultralisp/search)
 
 
@@ -571,32 +577,60 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
     (values indexed-symbols)))
 
 
-(defun ensure-project (project)
-  (etypecase project
-    (project2 project)
-    (string
-     (let* ((project-name project)
-            (project (get-project2 project-name)))
-       (unless project
-         (error "Unable to find ~A"
-                project-name))
-       project))))
+(defcommand update-index-status (project status processed-in)
+  (with-fields (:project (typecase project
+                           (string project)
+                           (t
+                            (project-name project)))
+                :status status
+                :processed-in processed-in)
+    (log:info "Updating project index status")
+    (set-index-status (ensure-project project)
+                      status
+                      :total-time processed-in)))
 
 
-(defun index-project (project &key (clear-dir t))
+(defun index-project (project &key
+                                (clear-dir t)
+                                (debug nil)
+                      &aux (started-at (now)))
   "
   This function should be called inside the worker.
 
   Returns a number of indexed symbols.
   "
-  (setf project
-        (ensure-project project))
+  (flet ((get-total-time ()
+           (floor (timestamp-difference
+                   (now)
+                   started-at))))
+    (handler-case
+        (handler-bind ((error (lambda (c)
+                                (when debug
+                                  (invoke-debugger c)))))
+            (with-log-unhandled ()
+              (with-transaction
+                (with-saved-ultralisp-root
+                  (let ((project (ensure-project project)))
 
-  (delete-project-documents project)
-  
-  (loop for source in (project-sources project)
-        summing (index-source project source
-                              :clear-dir clear-dir)))
+                    (delete-project-documents project)
+
+                    (log:info "Indexing sources")
+                    (loop for source in (project-sources project)
+                          summing (index-source project source
+                                                :clear-dir clear-dir))
+
+                    (update-index-status project
+                                         :ok
+                                         (get-total-time))
+                    
+                    (log:info "Indexing sources DONE"))))))
+      (error ()
+        ;; TODO: we also set status to failed
+        ;; when there wasn't any symbols found in the project.
+        ;; This can be done using ultralisp/rpc/command:defcommand
+        (update-index-status project
+                             :failed
+                             (get-total-time))))))
 
 
 (defun index-projects (&key names force (limit 10))
@@ -608,39 +642,48 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                     ;; 
                     (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
-          for started-at = (now)
           for project-name = (project-name project)
           do (with-fields (:project-name project-name)
-               (log:info "Indexing project")
+               (log:info "Sending task to index project")
                
-               (flet ((get-total-time ()
-                        (floor (timestamp-difference
-                                (now)
-                                started-at))))
-                 (handler-case
-                     (with-log-unhandled ()
-                       (with-transaction
-                         (submit-task
-                          'index-project project))
-                       (set-index-status project
-                                         :ok
-                                         :total-time (get-total-time)))
-                   (error ()
-                     ;; TODO: we also set status to failed
-                     ;; when there wasn't any symbols found in the project.
-                     ;; This can be done using ultralisp/rpc/command:defcommand
-                     (set-index-status project
-                                       :failed
-                                       :total-time (get-total-time)))))))
+               (submit-task
+                'index-project project)))
     (log:info "DONE")))
 
 
+(defmacro do-all-docs ((doc-symbol query) &body body)
+  `(loop for (documents total get-next) = (multiple-value-list
+                                           (search-objects ,query))
+           then (multiple-value-list
+                 (funcall get-next))
+         do (dolist (,doc-symbol documents)
+              ,@body)
+         while get-next))
+
+
 (defun delete-project-documents (project)
-  (setf project
-        (ensure-project project))
-  (let ((project-name (project-name project)))
-    (loop for document in (search-objects (fmt "project:\"~A\""
-                                               project-name))
-          for doc-plist = (cdddr document)
-          for doc-id = (getf doc-plist :id)
-          do (delete-from-index doc-id))))
+  (let* ((project (ensure-project project))
+         (project-name (project-name project)))
+    (do-all-docs (document (fmt "project:\"~A\""
+                                project-name))
+      (let* ((doc-plist (cdddr document))
+             (doc-id (getf doc-plist :id)))
+        (delete-from-index doc-id)))))
+
+
+(defun delete-documents-which-should-not-be-in-the-index ()
+  (let* ((projects-to-index (get-projects-with-sources))
+         (project-names-to-index (mapcar #'project-name
+                                         projects-to-index)))
+    (do-all-docs (document "*")
+      (let* ((doc-plist (cdddr document))
+             (doc-id (getf doc-plist :id))
+             (project-name (getf doc-plist :project)))
+        (assert project-name)
+        (unless (member project-name
+                        project-names-to-index
+                        :test #'string-equal)
+          (with-fields (:project project-name
+                        :doc-id doc-id)
+            (log:info "Deleting document from index")
+            (delete-from-index doc-id)))))))

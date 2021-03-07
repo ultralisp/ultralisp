@@ -357,16 +357,20 @@
                                 (let* ((processed-at (ultralisp/models/check:get-processed-at
                                                       last-check)))
                                   (cond (processed-at
-                                         (let ((duration
-                                                 (humanize-duration
-                                                  (local-time-duration:timestamp-difference
-                                                   (local-time:now)
-                                                   processed-at)))
-                                               (error (ultralisp/models/check:get-error last-check))
-                                               (next-check-at (ultralisp/cron:get-time-of-the-next-check
-                                                               source)))
+                                         (let* ((now (local-time:now))
+                                                (duration
+                                                  (humanize-duration
+                                                   (local-time-duration:timestamp-difference
+                                                    now
+                                                    processed-at)))
+                                                (error (ultralisp/models/check:get-error last-check))
+                                                (next-check-at (humanize-duration
+                                                                (local-time-duration:timestamp-difference
+                                                                 (ultralisp/cron:get-time-of-the-next-check
+                                                                  source)
+                                                                 now))))
                                            (:span (fmt "Finished ~A ago. " duration))
-                                            
+                                           
                                            (when error
                                              (:span "There was an")
                                              (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
@@ -379,8 +383,8 @@
                                                    "error"))
                                              (:span "."))
                                            (:span
-                                            ("Next check will be made at ~A."
-                                             (humanize-timestamp next-check-at)))))
+                                            ("Next check will be made in ~A."
+                                             next-check-at))))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
                                           (ultralisp/models/check:position-in-the-queue last-check))))))

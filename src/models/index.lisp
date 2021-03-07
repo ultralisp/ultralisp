@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/index
   (:use #:cl)
   (:import-from #:ultralisp/models/project
+                #:ensure-project
                 #:project
                 #:project2)
   (:import-from #:alexandria
@@ -15,6 +16,9 @@
                 #:format-rfc3339-timestring)
   (:import-from #:ultralisp/utils
                 #:time-in-future)
+  (:import-from #:rutils
+                #:it
+                #:awhen)
   (:export
    #:get-index-status
    #:set-index-status
@@ -34,23 +38,37 @@
 
 
 (defun get-index-status (project)
-  (check-type project project2)
-  (status-from-postgres
-   (second
-    (assoc :status
-           (mito:retrieve-by-sql "SELECT status FROM project_index WHERE project_id = ?"
-                                 :binds (list (mito:object-id project)))))))
+  (let* ((project (ensure-project project))
+         (rows (mito:retrieve-by-sql "SELECT status, last_update_at, next_update_at, total_time FROM project_index WHERE project_id = ?"
+                                     :binds (list (mito:object-id project))))
+         (row (first rows)))
+    (values (status-from-postgres
+             (getf row :status))
+            (awhen (getf row :last-update-at)
+              (local-time:universal-to-timestamp
+               it))
+            (awhen (getf row :next-update-at)
+              (local-time:universal-to-timestamp
+               it))
+            (getf row :total-time))))
 
 
 (defun set-index-status (project status
                          &key
-                           (next-update-at (time-in-future :day 7))
+                           next-update-at
                            (total-time 0))
   (check-type project project2)
   (check-type status (member :ok :failed))
   (setf next-update-at
-        (format-rfc3339-timestring nil
-                                   next-update-at))
+        (format-rfc3339-timestring
+         nil
+         (if next-update-at
+             next-update-at
+             (ecase status
+               (:ok (time-in-future :day 7))
+               ;; TODO: We'll need to use exponential
+               ;;       here.
+               (:failed (time-in-future :day 1))))))
   (if (get-index-status project)
       (mito:execute-sql "UPDATE project_index SET status = ?,
                                 last_update_at = NOW(),

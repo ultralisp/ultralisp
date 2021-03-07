@@ -158,9 +158,15 @@
   (log:info "Trying to index projects")
   (with-lock ("indexing-projects")
     (log:info "Log aquired")
-    (unwind-protect
-         (ultralisp/search:index-projects :limit 1)
-      (log:info "Unwinding after the indexing projects"))
+    (ultralisp/search:index-projects :limit 1)
+    (log:info "Task is done")))
+
+
+(deftask delete-old-docs-from-index ()
+  (log:info "Cleaning elastic search index")
+  (with-lock ("indexing-projects")
+    (log:info "Log aquired")
+    (ultralisp/search:delete-documents-which-should-not-be-in-the-index)
     (log:info "Task is done")))
 
 
@@ -188,7 +194,8 @@
   (build-dists)
   
   (when index
-    (index-projects))
+    (index-projects)
+    (delete-old-docs-from-index))
   
   (values))
 
@@ -219,7 +226,12 @@
     ;; Every five minutes we'll index projects to make them searchable
     (cl-cron:make-cron-job 'index-projects
                            :hash-key 'index-projects
-                           :step-min 1))
+                           :step-min 1)
+
+    ;; Cleaning elastic search once a day
+    (cl-cron:make-cron-job 'delete-old-docs-from-index
+                           :hash-key 'delete-old-docs-from-index
+                           :step-hour 24))
   (values))
 
 
