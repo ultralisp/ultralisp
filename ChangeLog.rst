@@ -2,8 +2,16 @@
  ChangeLog
 ===========
 
+1.4.1 (2021-03-07)
+==================
+
+* Indexer fixed. Now errors are processed correctly.
+* Added a cron task to clear old documents from Elastic Search.
+* Now date of the next source's check rendered relative
+  to the current moment.
+
 1.4.0 (2021-03-06)
-=======================
+==================
 
 * Fixed Lisp symbol indexer.
 * Fixed repeating of search results after a click to the "Load more" link.
