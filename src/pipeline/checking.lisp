@@ -83,18 +83,23 @@
   "This function can be called manually to debug source checking."
   (let ((perform-params (when force-p
                           (list :force force))))
-    (with-log-unhandled ()
-      ;; Here we need to establish a connection
-      ;; to process each check in a separate transaction.
-      ;; This way, errors during some checks will not affect
-      ;; others:
-      (with-connection (:cached nil)
-        (with-fields (:check-id (mito:object-id check))
-          (log:info "Submitting check to remote worker")
-          (apply 'submit-task
-                 'perform2
-                 check
-                 perform-params))))))
+    (with-fields (:check-id (mito:object-id check))
+      (with-log-unhandled ()
+        ;; Here we need to establish a connection
+        ;; to process each check in a separate transaction.
+        ;; This way, errors during some checks will not affect
+        ;; others:
+        (with-connection (:cached nil)
+          ;; This lock protects us from checking a version and binding
+          ;; it to the pending dist which is currently preparing to build
+          (with-lock ("prepare-pending-dists")
+            (with-fields (:source (ultralisp/models/source:params-to-string
+                                   (ultralisp/models/check:check->source check)))
+              (log:info "Submitting check to remote worker")
+              (apply 'submit-task
+                     'perform2
+                     check
+                     perform-params))))))))
 
 
 (defun perform-pending-checks (&key force)

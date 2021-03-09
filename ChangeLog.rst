@@ -2,6 +2,20 @@
  ChangeLog
 ===========
 
+1.4.2 (2021-03-09)
+==================
+
+* Fixed a way how project checking and dist building processes were synchronized.
+
+  Previously, a single lock was used and it was aquired by process checking the
+  sources during a long period of time. Sometimes this leads to a long periods
+  of time when the server wasn't able to build a new dist version because of
+  large amount of checks in the queue.
+
+  Now, the lock is taken only during a single check and dist builder
+  waits it for 4 minutes to have a chance to build the dist.
+* Don't showing empty ``PENDING`` dist versions on the landing page.
+
 1.4.1 (2021-03-07)
 ==================
 
