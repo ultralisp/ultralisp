@@ -14,6 +14,7 @@
 
   Now, the lock is taken only during a single check and dist builder
   waits it for 4 minutes to have a chance to build the dist.
+* Don't showing empty ``PENDING`` dist versions on the landing page.
 
 1.4.1 (2021-03-07)
 ==================

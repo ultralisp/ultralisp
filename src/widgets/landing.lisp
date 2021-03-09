@@ -171,38 +171,39 @@
          ;;              ;; (format nil "/versions/~A" number)
          ;;              )
          )
-    (with-html
-      (:tr
-       (:td :class "name-cell"
-            (:a :href dist-url
-                dist-name))
-       (:td :class "version-cell"
-            (case state
-              (:ready
-               number
-               ;; (:a :href version-uri
-               ;;     number)
-               )
-              (t (:span "No version yet"))))
-       (:td :class "timestamp-cell"
-            (if built-at
-                (:span :title (humanize-timestamp built-at)
-                       ("~A ago"
-                        (humanize-duration
-                         (timestamp-difference (now)
-                                               built-at))))
-                (symbol-name state)
+    (when bound-sources
+      (with-html
+        (:tr
+         (:td :class "name-cell"
+              (:a :href dist-url
+                  dist-name))
+         (:td :class "version-cell"
+              (case state
+                (:ready
+                 number
+                 ;; (:a :href version-uri
+                 ;;     number)
+                 )
+                (t (:span "No version yet"))))
+         (:td :class "timestamp-cell"
+              (if built-at
+                  (:span :title (humanize-timestamp built-at)
+                         ("~A ago"
+                          (humanize-duration
+                           (timestamp-difference (now)
+                                                 built-at))))
+                  (symbol-name state)
 
-                ;; "Pending"
-                )))
-      (:tr 
-       (:td :class "changelog-cell"
-            :colspan 3
-            (:ul :class "changelog"
-                 (mapc #'render-bound-source
-                       bound-sources))
-            (when has-more
-              (:p "And more...")))))))
+                  ;; "Pending"
+                  )))
+        (:tr 
+         (:td :class "changelog-cell"
+              :colspan 3
+              (:ul :class "changelog"
+                   (mapc #'render-bound-source
+                         bound-sources))
+              (when has-more
+                (:p "And more..."))))))))
 
 
 (defmethod render ((widget landing-widget))
