@@ -441,7 +441,7 @@
   "Searches and prepares a pending versions for all distributions."
   (with-transaction
     (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
-    (with-lock ("performing-pending-checks-or-version-build")
+    (with-lock ("prepare-pending-dists" :timeout (* 4 60 1000))
       (log:info "Checking if there is a version to build")
       
       (mapc #'prepare-dist
@@ -452,7 +452,7 @@
   "Searches and builds a pending versions for all distributions."
   (with-transaction
     (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
-    (with-lock ("performing-pending-checks-or-version-build")
+    (with-lock ("build-prepared-dists")
       (log:info "Checking if there is a version to build")
       
       (mapc #'build-dist
