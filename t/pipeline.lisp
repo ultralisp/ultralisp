@@ -36,7 +36,6 @@
   ;; but now cron check was successful, and
   ;; a new dist version should be created where
   ;; this source will be enabled.
-  (setf ultralisp/models/dist-source::*cnt* 0)
   (with-test-db
     (with-login ()
       (let* ((project (make-project "40ants" "defmain"))

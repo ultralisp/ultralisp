@@ -26,6 +26,8 @@
                 #:timestamp-duration-)
   (:import-from #:log4cl-extras/error
                 #:print-backtrace)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:time-in-past
    #:getenv
@@ -213,10 +215,10 @@
 
 
 (defun get-tmp-directory-name ()
-  (cl-fad:pathname-as-directory
-   (translate-logical-pathname
-    (generate-random-pathname cl-fad::*default-template*
-                              'generate-random-string))))
+  (uiop:ensure-absolute-pathname
+   (fmt "temp-~A/"
+        (generate-random-string))
+   (uiop:temporary-directory)))
 
 
 (defmacro with-tmp-directory ((path) &body body)
