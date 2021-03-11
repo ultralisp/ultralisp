@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.5.0 (2021-03-11)
+==================
+
+* Moved to a newer base docker image, based on Ubuntu Focal and SBCL 2.1.2.
+
 1.4.2 (2021-03-09)
 ==================
 

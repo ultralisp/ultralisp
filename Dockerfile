@@ -1,4 +1,4 @@
-FROM 40ants/base-lisp-image:0.12.0-sbcl-bin as base
+FROM 40ants/base-lisp-image:0.13.0-sbcl-bin as base
 
 EXPOSE 80
 EXPOSE 4005
@@ -7,11 +7,11 @@ EXPOSE 4005
 # file search from remote Emacs.
 RUN apt-get update && \
     apt-get install -y \
-            python-pip \
+            python3-pip \
             silversearcher-ag \
             lsof \
             postgresql-client && \
-    pip install jsail dumb-init
+    pip3 install jsail dumb-init
 
 RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
     git clone https://github.com/skarnet/skalibs && cd skalibs && \
