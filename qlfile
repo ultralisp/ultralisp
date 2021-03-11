@@ -1,6 +1,9 @@
 dist ultralisp http://dist.ultralisp.org/
 
-github quickdist ultralisp/quickdist :tag v0.16.1
+github quickdist ultralisp/quickdist :tag v0.16.2
+
+# Until https://github.com/ultralisp/ultralisp/issues/117 will be resolved
+ql ironclad :latest
 
 # github slynk joaotavora/sly
 github slynk-named-readtables joaotavora/sly-named-readtables

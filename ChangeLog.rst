@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.5.1 (2021-03-12)
+==================
+
+* Fixed building of Ultralisp. Ironclad from Ultralisp does
+  not work with SBCL 2.1.2 :(
+
 1.5.0 (2021-03-11)
 ==================
 
