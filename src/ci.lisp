@@ -45,7 +45,7 @@
   :on-pull-request t
   :cache t
   :jobs ((linter
-          :lisp "sbcl-bin/1.5.6")
+          :lisp "sbcl-bin/2.1.2")
          (run-tests
-          :lisp "sbcl-bin/1.5.6"
+          :lisp "sbcl-bin/2.1.2"
           :coverage t)))
