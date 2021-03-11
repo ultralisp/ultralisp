@@ -6,6 +6,8 @@
 ==================
 
 * Moved to a newer base docker image, based on Ubuntu Focal and SBCL 2.1.2.
+* Fixed the problem which checking projects having something like
+  ``(REQUIRE :sb-some-standard-module)`` in their ``:depends-on`` asdf definition.
 
 1.4.2 (2021-03-09)
 ==================

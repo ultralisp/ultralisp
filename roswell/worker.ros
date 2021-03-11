@@ -21,4 +21,17 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
                 #:main))
 (in-package :ultralisp.worker)
 
+
+(defvar *home*
+  (sb-int:sbcl-homedir-pathname))
+
+(defun restore-home ()
+  (setf sb-sys::*sbcl-homedir-pathname*
+        *home*))
+
+;; We need this code, to make (REQUIRE :SB-INTROSPECT) works
+;; after the image dump:
+;; https://stackoverflow.com/questions/39133421/how-to-properly-save-common-lisp-image-using-sbcl
 ;;; vim: set ft=lisp lisp:
+
+(pushnew 'restore-home sb-ext:*init-hooks*)
