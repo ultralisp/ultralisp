@@ -2,6 +2,21 @@
  ChangeLog
 ===========
 
+1.6.0 (2021-03-13)
+==================
+
+* New feature! Now it is possible to specify
+  a black list for the source. All ``*.asd`` files
+  in the listed directories will be ignored.
+
+  Also, this way you can ignore individual ``*.asd`` files.
+
+  This feature allows to fix issues like:
+  `this one <https://github.com/ultralisp/ultralisp/issues/117>`_.
+  
+* Now we show a list of systems, included into the latest
+  source release.
+
 1.5.2 (2021-03-12)
 ==================
 

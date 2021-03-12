@@ -44,6 +44,13 @@
 (file ".qlot/log4sly-setup.el" ("qlfile.lock")
       (sh "qlot exec ros run -e '(ql:quickload :log4sly)' -e '(log4sly:install)' -e '(uiop:quit)'"))
 
+(task "log4sly" (".qlot/log4sly-setup.el")
+      )
+
+(defun build-deps-file ()
+  (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
+  (sh "qlot exec gen-deps-system --except ultralisp,sb-concurrency,sb-bsd-sockets,sb-cltl2,sb-introspect,sb-posix,sb-rotate-byte,asdf app"))
+
 (task "deps" ("qlfile.lock")
       ;; Here you need to install gen-deps-system using this command
       ;; ros install 40ants/gen-deps-system
@@ -54,8 +61,11 @@
                                                     :ignore-error-status t)))
         (sh "ros install 40ants/gen-deps-system"))
       
-      (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
-      (sh "qlot exec gen-deps-system --except ultralisp,sb-concurrency,sb-bsd-sockets,sb-cltl2,sb-introspect,sb-posix,sb-rotate-byte,asdf app"))
+      (build-deps-file))
+
+(task "deps-only" ()
+      "This command does not updates qlfile.lock and runs faster than just \"lake deps\"."
+      (build-deps-file))
 
 (task ("devserver" build) ()
       (when build
