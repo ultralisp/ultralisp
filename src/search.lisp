@@ -638,7 +638,11 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                     (names
                      (mapcar #'get-project2 names))
                     ;; Reindexing all projects
-                    (force (get-projects-with-sources))
+                    (force (let ((all (get-projects-with-sources)))
+                             (if limit
+                                 (rutils:take limit
+                                              all)
+                                 all)))
                     ;; 
                     (t (get-projects-to-index :limit limit)))))
     (loop for project in projects
