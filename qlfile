@@ -2,6 +2,13 @@ dist ultralisp http://dist.ultralisp.org/
 
 github quickdist ultralisp/quickdist :tag v0.16.2
 
+# Until this issue will be resolved:
+# https://github.com/ultralisp/ultralisp/issues/73
+# Either https://ultralisp.org/projects/thodg/str or
+# https://ultralisp.org/projects/vindarel/cl-str should be disabled
+# automatically:
+ql cl-str :latest
+
 # Until https://github.com/ultralisp/ultralisp/issues/117 will be resolved
 ql ironclad :latest
 
