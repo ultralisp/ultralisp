@@ -7,6 +7,10 @@
 
 * Removed code ``(setf dexador:*use-connection-pool* nil)``
   which caused descriptor leaks.
+* Moved to newer Ultralisp dist where this warning was fixed::
+
+      Please, switch to the ui-widget class, because widget was renamed to
+      ui-widget and will be removed after 2020-06-01.
 
 1.5.1 (2021-03-12)
 ==================
