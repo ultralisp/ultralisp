@@ -59,6 +59,8 @@
   (:import-from #:ultralisp/utils/source
                 #:format-ignore-list
                 #:parse-ignore-list)
+  (:import-from #:group-by
+                #:group-by)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -370,10 +372,10 @@
                           (:td :class "field-column"
                                (:dl
                                 (loop with grouped = (sort
-                                                      (group-by:group-by systems
-                                                                         :key #'quickdist:get-filename
-                                                                         :value #'quickdist:get-name
-                                                                         :test #'string=)
+                                                      (group-by systems
+                                                                :key #'quickdist:get-filename
+                                                                :value #'quickdist:get-name
+                                                                :test #'string=)
                                                       #'string<
                                                       :key #'car)
                                       for (filename . systems) in grouped
