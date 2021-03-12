@@ -19,6 +19,8 @@
                 #:external-url)
   (:import-from #:ultralisp/protocols/url)
   (:import-from #:rutils
+                #:awhen
+                #:it
                 #:fmt)
   (:import-from #:weblocks/html
                 #:with-html)
@@ -54,6 +56,9 @@
   (:import-from #:ultralisp/utils/time
                 #:humanize-timestamp
                 #:humanize-duration)
+  (:import-from #:ultralisp/utils/source
+                #:format-ignore-list
+                #:parse-ignore-list)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -178,6 +183,8 @@
   (let* ((parent (parent widget)))
     (loop with url = (getf args :url)
           with branch = (getf args :branch)
+          with ignore-dirs = (awhen (getf args :ignore-dirs)
+                               (parse-ignore-list it))
           for (name value) on args by #'cddr
           when (member name '(:distributions :distributions[]))
             collect value into new-dist-names
@@ -189,16 +196,20 @@
                
                ;; TODO: we need to refactor this part because for other
                ;; types of sources we'll need to process params differently:
-               (multiple-value-bind (new-source was-cloned-p)
-                   (update-source-dists (source parent)
-                                        :dists new-dist-names
-                                        :params (list :user-or-org user-name
-                                                      :project project-name
-                                                      :branch branch))
-                 (when was-cloned-p
-                   (log:info "A new source version was created: " new-source)
-                   (setf (source parent)
-                         new-source)))))
+               (let ((params-update
+                       (list :user-or-org user-name
+                             :project project-name
+                             :branch branch
+                             :ignore-dirs ignore-dirs)))
+                 (with-fields (:params params-update)
+                   (multiple-value-bind (new-source was-cloned-p)
+                       (update-source-dists (source parent)
+                                            :dists new-dist-names
+                                            :params params-update)
+                     (when was-cloned-p
+                       (log:error "A new source version was created: " new-source)
+                       (setf (source parent)
+                             new-source)))))))
     (switch-to-readonly widget)))
 
 
@@ -274,8 +285,10 @@
          (deleted (ultralisp/models/source:deleted-p source))
          (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
+         (ignore-dirs (getf params :ignore-dirs))
          (release-info (ultralisp/models/source:source-release-info source))
          (distributions (source-distributions source))
+         (systems (ultralisp/models/source:source-systems-info source))
          (user-is-moderator (is-moderator
                              (get-current-user)
                              (source->project source))))
@@ -331,6 +344,14 @@
                              "Branch or tag")
                         (:td :class "field-column"
                              (ultralisp/models/source:get-current-branch source)))
+                   (when ignore-dirs
+                     (:tr (:td :class "label-column"
+                               "Ignore systems in these dirs and ASD files")
+                          (:td :class "field-column"
+                               (:pre
+                                (:code
+                                 (format-ignore-list
+                                  ignore-dirs))))))
                    (when last-seen-commit
                      (:tr (:td :class "label-column"
                                "Last seen commit")
@@ -343,6 +364,23 @@
                           (:td :class "field-column"
                                (:a :href (quickdist:get-project-url release-info)
                                    (quickdist:get-project-url release-info)))))
+                   (when systems
+                     (:tr (:td :class "label-column"
+                               "Systems")
+                          (:td :class "field-column"
+                               (:dl
+                                (loop with grouped = (sort
+                                                      (group-by:group-by systems
+                                                                         :key #'quickdist:get-filename
+                                                                         :value #'quickdist:get-name
+                                                                         :test #'string=)
+                                                      #'string<
+                                                      :key #'car)
+                                      for (filename . systems) in grouped
+                                      do (:dt filename)
+                                         (:dd :style "padding-left: 2em"
+                                              (str:join ", " (sort systems
+                                                                   #'string<))))))))
                    (:tr (:td :class "label-column"
                              "Distributions")
                         (:td :class "field-column"
@@ -422,6 +460,7 @@
          (deleted (ultralisp/models/source:deleted-p source))
          (url (github-url params))
          (last-seen-commit (getf params :last-seen-commit))
+         (ignore-dirs (getf params :ignore-dirs))
          ;; (distributions (source-distributions source))
          (user (weblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
@@ -487,6 +526,13 @@
                       "Branch or tag")
                  (:td :class "field-column"
                       (render (branches widget))))
+            (:tr (:td :class "label-column"
+                      "Ignore systems in these dirs and ASD files")
+                 (:td :class "field-column"
+                      (:textarea :name "ignore-dirs"
+                                 :placeholder "vendor/, my-system-test.asd"
+                                 (format-ignore-list
+                                  ignore-dirs))))
             (when last-seen-commit
               (:tr (:td :class "label-column"
                         "Last seen commit")
@@ -547,7 +593,8 @@
         :border-top "2px solid #cc4b37"
         (input :margin 0)
         (.dist :margin-right 1em)
-        (.label-column :white-space "nowrap")
+        (.label-column :white-space "nowrap"
+                       :vertical-align "top")
         (.field-column :width "100%")
         ((:and .dist .disabled) :color "gray")
 

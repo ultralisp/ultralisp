@@ -44,6 +44,8 @@
                 #:inflate-json
                 #:deflate-keyword
                 #:inflate-keyword)
+  (:import-from #:rutils
+                #:awhen)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -66,7 +68,8 @@
    #:params-from-github
    #:get-current-branch
    #:enable-this-source-version
-   #:params-to-string))
+   #:params-to-string
+   #:ignore-dirs))
 (in-package ultralisp/models/source)
 
 
@@ -426,3 +429,6 @@
         :branch))
 
 
+(defun ignore-dirs (source)
+  (getf (source-params source)
+        :ignore-dirs))

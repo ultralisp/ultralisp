@@ -72,6 +72,8 @@
   (:import-from #:ultralisp/models/dist-source
                 #:create-pending-dists-for-new-source-version
                 #:make-disable-reason)
+  (:import-from #:ultralisp/utils/source
+                #:make-file-ignorer)
   (:export
    #:perform-pending-checks
    #:perform
@@ -158,12 +160,9 @@
   (save-dao project))
 
 
-(defun collect-systems (path)
+(defun collect-systems (path &key (ignore-filename-p (constantly nil)))
   (quickdist:make-systems-info path
-                               ;; This way we'll not ignore nested asd files.
-                               ;; We need this because of issue:
-                               ;; https://github.com/ultralisp/ultralisp/issues/55
-                               :ignore-filename-p (constantly nil)))
+                               :ignore-filename-p ignore-filename-p))
 
 
 ;; TODO: remove
@@ -364,7 +363,10 @@
                          ;; process which will be killed after the finishing the task.
                          ;; That is why it is OK to change a *central-registry* here:
                          (pushnew path asdf:*central-registry*)
-                         (let* ((systems (collect-systems path)))
+                         (let* ((systems (collect-systems path
+                                                          :ignore-filename-p
+                                                          (make-file-ignorer
+                                                           (ultralisp/models/source:ignore-dirs source)))))
                            
                            (unless systems
                              (error "No asd files were found!"))
