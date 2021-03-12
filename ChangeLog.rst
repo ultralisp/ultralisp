@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.5.2 (2021-03-12)
+==================
+
+* Removed code ``(setf dexador:*use-connection-pool* nil)``
+  which caused descriptor leaks.
+
 1.5.1 (2021-03-12)
 ==================
 

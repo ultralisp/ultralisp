@@ -413,7 +413,10 @@
   ;; https://github.com/fukamachi/dexador/issues/88
   (setf (dbi.cache.thread::cache-pool-hash cl-dbi::*threads-connection-pool*)
         (make-hash-table :test 'equal :synchronized t))
-  
+
+  ;; We need this becase Dexador's thread pool is
+  ;; not threadsafe yet. You'll find more details in this issue:
+  ;; https://github.com/fukamachi/dexador/issues/88
   (setf dexador.connection-cache::*threads-connection-pool*
         (make-hash-table :test 'equal :synchronized t))
 
@@ -567,12 +570,7 @@
 
       ;; Now we'll ensure that tables are exists in the database
       ;; (migrate)
-
-      ;; We need this becase Dexador's thread pool is
-      ;; not threadsafe yet. You'll find more details in this issue:
-      ;; https://github.com/fukamachi/dexador/issues/88
-      (setf dexador:*use-connection-pool* nil)
-
+      
       (unless dont-start-server
         (format t "Starting HTTP server on ~A:~A~%"
                 interface
