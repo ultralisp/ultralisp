@@ -10,6 +10,8 @@
                 #:is-moderator
                 #:make-moderator
                 #:moderators)
+  (:import-from #:ultralisp/models/super-moderator
+                #:is-super-moderator-p)
   (:export #:project-moderator
            #:project-id
            #:user-id
@@ -40,6 +42,10 @@
 
 
 (defun user->projects (user)
+  "Returns only projects which are bound to the user.
+
+   We'll not return all existing projects to super-moderators.
+   to not overhelm them."
   (check-type user user)
   (mito.dao:select-by-sql
    'project2
@@ -66,9 +72,10 @@
 
 
 (defmethod is-moderator ((user user) (project project2))
-  (mito:find-dao 'project-moderator
-                 :project-id (mito:object-id project)
-                 :user-id (mito:object-id user)))
+  (or (is-super-moderator-p user)
+      (mito:find-dao 'project-moderator
+                     :project-id (mito:object-id project)
+                     :user-id (mito:object-id user))))
 
 
 (defmethod moderators ((project project2))

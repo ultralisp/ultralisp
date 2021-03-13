@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.7.0 (2021-03-13)
+==================
+
+* Added support for super-moderators. These people can edit
+  any source or dist and tune ignore lists and other options.
+
 1.6.0 (2021-03-13)
 ==================
 

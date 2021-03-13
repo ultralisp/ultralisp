@@ -9,6 +9,8 @@
                 #:with-transaction)
   (:import-from #:ultralisp/protocols/moderation
                 #:is-moderator)
+  (:import-from #:ultralisp/models/super-moderator
+                #:is-super-moderator-p)
   (:export
    #:dist-moderator
    #:dist-id
@@ -32,6 +34,10 @@
 
 
 (defun moderated-dists (user)
+  "Returns only dists which are bound to the user.
+
+   We'll not return all existing dists to super-moderators.
+   to not overhelm them."
   (check-type user weblocks-auth/models:user)
   (mito.dao:select-by-sql
    'dist
@@ -68,6 +74,7 @@
 
 
 (defmethod is-moderator ((user user) (dist dist))
-  (mito:find-dao 'dist-moderator
-                 :dist-id (mito:object-id dist)
-                 :user-id (mito:object-id user)))
+  (or (is-super-moderator-p user)
+      (mito:find-dao 'dist-moderator
+                     :dist-id (mito:object-id dist)
+                     :user-id (mito:object-id user))))
