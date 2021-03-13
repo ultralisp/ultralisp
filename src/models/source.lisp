@@ -123,7 +123,8 @@
                  :deflate #'release-info-to-json
                  :inflate #'release-info-from-json))
   
-  (:primary-key id version)
+  (:primary-key ultralisp/models/versioned:id
+                ultralisp/models/versioned:version)
   (:metaclass mito:dao-table-class))
 
 
@@ -432,3 +433,38 @@
 (defun ignore-dirs (source)
   (getf (source-params source)
         :ignore-dirs))
+
+
+(defun set-default-branch (source)
+  (multiple-value-bind (branches default-branch)
+      (ultralisp/utils/github:get-branches
+       (external-url source))
+    (declare (ignore branches))
+    (when default-branch
+      (let ((new-params (update-plist (source-params source)
+                                      (list :branch default-branch))))
+        (setf (slot-value source 'params)
+              new-params)
+        (mito:save-dao source)))))
+
+
+(defun get-sources-without-branches ()
+  (remove-if #'get-current-branch
+             (get-all-sources)))
+
+
+(defun fill-default-branches ()
+  (let ((retry (dexador:retry-request 1000 :interval 10))
+        (sources (get-sources-without-branches)))
+    (format t "We have ~A sources to process...~%"
+            (length sources))
+    
+    (flet ((log-n-retry (c)
+             (log:error "Retrying ~A~%" c)
+             (funcall retry c)))
+      (handler-bind ((dexador:http-request-forbidden
+                       #'log-n-retry))
+        (loop for source in sources
+              do (set-default-branch source))))
+
+    (format t "Done.~%")))

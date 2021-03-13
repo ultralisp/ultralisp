@@ -7,8 +7,13 @@
                 #:get-json)
   (:export
    #:get-branches
-   #:extract-github-name))
+   #:extract-github-name
+   #:*token*))
 (in-package ultralisp/utils/github)
+
+
+(defvar *token* nil
+  "If given, will be used to make authenticated requests.")
 
 
 (defun extract-github-name (url)
@@ -30,13 +35,18 @@
 
    If repository not found, returns NIL."
   (handler-case
-      (let ((name (extract-github-name url)))
+      (let ((name (extract-github-name url))
+            (headers (when *token*
+                       (list (cons "Authorization"
+                                   (fmt "token ~A" *token*))))))
         (when name
           (values
-           (loop for item in (get-json (fmt "https://api.github.com/repos/~A/branches" name))
+           (loop for item in (get-json (fmt "https://api.github.com/repos/~A/branches" name)
+                                       :headers headers)
                  collect (getf item :|name|) into results
                  finally (return (sort results #'string<)))
-           (getf (get-json (fmt "https://api.github.com/repos/~A" name))
+           (getf (get-json (fmt "https://api.github.com/repos/~A" name)
+                           :headers headers)
                  :|default_branch|))))
     (dexador:http-request-not-found ()
       nil)))

@@ -5,6 +5,8 @@
   (:import-from #:rutils
                 #:fmt)
   (:export
+   #:id
+   #:version
    #:object-id
    #:object-version
    #:latest-p
