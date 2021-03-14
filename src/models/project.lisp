@@ -672,55 +672,6 @@
                  :name (get-name project-version)))
 
 
-(defun find-projects-with-conflicting-systems ()
-  "Returns alist where keys are system names and values
-   lists of projects sorted by creation date."
-  
-  (loop with projects = (get-all-projects :only-enabled t)
-        with system->projects = (make-hash-table :test 'equal)
-        for project in projects
-        for systems = (get-systems-info project)
-        do (loop for system-info in systems
-                 for system-name = (quickdist:get-name system-info)
-                 do (push project
-                          (gethash system-name system->projects)))
-        finally (return
-                  (loop for system-name being the hash-keys of system->projects
-                          using (hash-value projects)
-                        when (> (length projects)
-                                1)
-                          collect (cons system-name
-                                        (sort projects #'local-time:timestamp<
-                                              :key #'mito:object-created-at))))))
-
-
-(defun disable-conflicting-projects (&key dry-run)
-  "This function will find and disable the project which has system name's conflict.
-   The elder project will survive.
-
-   For example, if project \"foo/string-utils\" was added at 2020-01-01 and has a system
-   named \"string-utils\" and then at 2020-01-05 a project \"bar/another\" will be added
-   and it also has a system named \"string-utils\", then \"bar/another\" will be disabled.
-
-   Probably if we let the building a custom distributions, we can solve such conflicting
-   situations, allowing a user to select libraries he want in his distribution.
-
-   If `dry-run' is `t', then no projects will be disabled.
-
-   This function returns a list of disabled projects."
-
-  (uiop:while-collecting (collect)
-    (loop for (system . projects) in (find-projects-with-conflicting-systems) by #'cddr
-          for to-disable = (cdr projects)
-          do (loop for project in to-disable
-                   do (with-fields (:project-name (get-name project)
-                                    :conflicting-system system)
-                        (log:warn "Disabling project because of systems conflict")
-                        (collect project)
-                        (unless dry-run
-                          (disable-project project :reason :system-conflict)))))))
-
-
 (defun project-sources (project)
   (check-type project project2)
   (ultralisp/models/source::%project-sources

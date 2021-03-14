@@ -61,6 +61,8 @@
                 #:parse-ignore-list)
   (:import-from #:group-by
                 #:group-by)
+  (:import-from #:ultralisp/models/asdf-system
+                #:asdf-systems-conflict)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -126,7 +128,9 @@
            :type source-widget
            :reader parent)
    (branches :initarg :branches
-             :reader branches)))
+             :reader branches)
+   (dist-conflicts :initform nil
+                   :accessor dist-conflicts)))
 
 
 (defwidget add-source-widget ()
@@ -485,7 +489,12 @@
         (weblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
                      (declare (ignorable args))
-                     (save widget args)))
+                     (handler-case (save widget args)
+                       (asdf-systems-conflict (c)
+                         (let ((message (fmt "~A" c)))
+                           (setf (dist-conflicts widget)
+                                 message)
+                           (weblocks/widget:update widget))))))
           (:table :class "unstriped"
            (:thead
             (:tr (:th :class "label-column"
@@ -555,7 +564,10 @@
                                         :name "distributions"
                                         :value name
                                         :checked (is-enabled dist)
-                                        (:label name))))))))))))
+                                        (:label name)))
+                      (when (dist-conflicts widget)
+                        (:pre :class "error"
+                              (dist-conflicts widget))))))))))))
 
 
 (defmethod weblocks/widget:render ((widget branch-select-widget))
@@ -602,7 +614,8 @@
 
         ((.source-controls > (:or form input))
          :display "inline-block"
-         :margin-left 1em))))
+         :margin-left 1em)
+        (.error :color "red"))))
    (call-next-method)))
 
 

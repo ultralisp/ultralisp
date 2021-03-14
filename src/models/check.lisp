@@ -70,7 +70,8 @@
    #:get-last-source-check
    #:get-check2-by-id
    #:check2
-   #:position-in-the-queue))
+   #:position-in-the-queue
+   #:get-latest-source-checks))
 (in-package ultralisp/models/check)
 
 
@@ -426,14 +427,19 @@ SELECT position
               source))))
 
 
+(defun get-latest-source-checks (source &key (limit 10))
+  (check-type source ultralisp/models/source:source)
+  (select-dao 'check2
+    (where (:= 'source-id (mito:object-id source)))
+    (order-by (:desc 'processed-at)
+              (:desc 'created-at))
+    (limit limit)))
+
+
 (defun get-last-source-check (source)
   (check-type source ultralisp/models/source:source)
   (first
-   (select-dao 'check2
-     (where (:= 'source-id (mito:object-id source)))
-     (order-by (:desc 'processed-at)
-               (:desc 'created-at))
-     (limit 1))))
+   (get-latest-source-checks source :limit 1)))
 
 
 (defun get-last-project-checks (project)

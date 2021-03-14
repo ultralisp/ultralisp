@@ -77,6 +77,7 @@
                 #:defcached)
   (:import-from #:ultralisp/models/project
                 #:get-all-projects)
+  (:import-from #:ultralisp/models/asdf-system)
   (:import-from #:weblocks/error-handler
                 #:on-error)
 

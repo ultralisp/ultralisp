@@ -10,6 +10,7 @@
                 #:dist-equal
                 #:ensure-dist)
   (:import-from #:ultralisp/models/source
+                #:source-systems-info
                 #:copy-source)
   (:import-from #:mito
                 #:object-id)
@@ -402,7 +403,7 @@ SELECT *
                         ;; we can just mark existing dist-source as enabled.
                         (unless (eql (dist-state new-version)
                                      :pending)
-                          (error "We can remove a new source version only to a pending dist version."))
+                          (error "We can add a new source version only to a pending dist version."))
                         ;; First, we need to change source version in the link
                         (setf (source-version old-dist-source)
                               (object-version new-source))
@@ -418,7 +419,13 @@ SELECT *
                                          :dist-version (object-version new-version)
                                          :source-id (object-id new-source)
                                          :source-version (object-version new-source)
-                                         :include-reason include-reason)))))
+                                         :include-reason include-reason)))
+
+                     ;; Now we need to update asdf systems in the database:
+                     (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                       "ADD-SOURCE-SYSTEMS"
+                                       new-version
+                                       new-source)))
 
           (when dists-to-remove
             (ensure-there-is-a-clone)
@@ -463,7 +470,13 @@ SELECT *
                                          ;; Important to set this flag:
                                          :deleted t
                                          :enabled nil
-                                         :disable-reason disable-reason)))))
+                                         :disable-reason disable-reason)))
+
+                     ;; Now we need to remove asdf systems from the database:
+                     (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                       "REMOVE-SOURCE-SYSTEMS"
+                                       new-version
+                                       new-source)))
           
           (when new-source
             ;; We need to execute this section in any case if params were updated
@@ -532,7 +545,8 @@ SELECT *
                            ;; However, if it has some release-info,
                            ;; it is added as "enabled".
                            :just-added
-                           :manual))
+                           :manual
+                           :system-conflict))
   (append (list :type type)
           (when comment
             (list :comment comment))
@@ -561,19 +575,45 @@ SELECT *
 
   (with-transaction
     (let ((old-dist-sources (source-distributions old-source)))
-      (loop for old-dist-source in old-dist-sources
+      (loop with conflicts = (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                               "GET-CONFLICTING-SYSTEMS"
+                                               new-source)
+            for old-dist-source in old-dist-sources
             for old-dist = (dist-source->dist old-dist-source)
             for pending-dist = (get-or-create-pending-version old-dist)
             for old-disable-reason = (disable-reason old-dist-source)
             for old-disable-reason-type = (disable-reason-type old-disable-reason)
             for old-enabled = (enabled-p old-dist-source)
-            for new-enabled = (cond 
+            for has-conflict-with-other-system-in-this-dist = (remove-if-not
+                                                               (lambda (asdf-system)
+                                                                 (= (object-id pending-dist)
+                                                                    (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                                                                      "DIST-ID"
+                                                                                      asdf-system)))
+                                                               conflicts)
+            for new-enabled = (cond
+                                (has-conflict-with-other-system-in-this-dist
+                                 ;; Disable source for this dist!
+                                 nil)
                                 ((eql :manual old-disable-reason-type) old-enabled)
                                 (enable-p enable)
                                 (t old-enabled))
             for new-disable-reason = (unless new-enabled
-                                       (or disable-reason
-                                           old-disable-reason))
+                                       (if has-conflict-with-other-system-in-this-dist
+                                           (let* ((projects (loop for s in has-conflict-with-other-system-in-this-dist
+                                                                  collect (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                                                                            "ASDF-SYSTEM-PROJECT"
+                                                                                            s)))
+                                                  (project-names (loop for p in projects
+                                                                       collect (uiop:symbol-call "ULTRALISP/MODELS/PROJECT"
+                                                                                                 "PROJECT-NAME"
+                                                                                                 p)))
+                                                  (comment (fmt "ASDF system conflicts with ~{~S~^, ~}"
+                                                                project-names)))
+                                             (make-disable-reason :system-conflict
+                                                                  :comment comment))
+                                           (or disable-reason
+                                               old-disable-reason)))
             ;; We only need to create a new dist version
             ;; if source was enabled/disabled,
             ;; or if a new source version was created
@@ -633,7 +673,17 @@ SELECT *
                                          :include-reason include-reason
                                          :enabled new-enabled
                                          :disable-reason new-disable-reason
-                                         :deleted nil))))))))))
+                                         :deleted nil))))
+
+                   (if new-enabled
+                       (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                         "ADD-SOURCE-SYSTEMS"
+                                         pending-dist
+                                         new-source)
+                       (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                         "REMOVE-SOURCE-SYSTEMS"
+                                         pending-dist
+                                         new-source))))))))
 
 
 (defun add-source-to-dist (dist source &key (include-reason :direct))
@@ -660,6 +710,11 @@ SELECT *
                                ;; need to check it to build the distribution.
                                (make-disable-reason :just-added
                                                     :comment "This source waits for the check."))))
+        (when enabled
+          (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                            "ADD-SOURCE-SYSTEMS"
+                            pending-dist
+                            source))
         (mito:create-dao 'dist-source
                          :dist-id (object-id pending-dist)
                          :dist-version (object-version pending-dist)
@@ -680,3 +735,4 @@ SELECT *
       (update-source-dists source
                            :new-source new-source
                            :dists nil))))
+

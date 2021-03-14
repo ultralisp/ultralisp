@@ -2,6 +2,17 @@
  ChangeLog
 ===========
 
+1.8.0 (2021-03-14)
+=================
+
+* Now distribution can include only one ASDF system with given name.
+
+  Sources with conflicting ASDF systems will be disabled automatically
+  and it will be impossible add duplicating systems again.
+
+  However, you can include systems with the same name into different
+  distributions.
+
 1.7.0 (2021-03-13)
 ==================
 

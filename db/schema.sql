@@ -225,6 +225,17 @@ CREATE TABLE "check2" (
     REFERENCES "source" ("id", "version")  ON DELETE CASCADE
 );
 
+
+CREATE TABLE "asdf_system" (
+    "dist_id" BIGINT NOT NULL,
+    "name" TEXT NOT NULL,
+    "source_id" BIGINT NOT NULL,
+    "dependencies" JSONB NOT NULL,
+    "created_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ,
+    PRIMARY KEY ("dist_id", "name")
+);
+
 -- how to reset project2 tables
 -- delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
 
