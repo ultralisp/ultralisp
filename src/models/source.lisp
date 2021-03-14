@@ -69,7 +69,8 @@
    #:get-current-branch
    #:enable-this-source-version
    #:params-to-string
-   #:ignore-dirs))
+   #:ignore-dirs
+   #:get-latest-version-by-id))
 (in-package ultralisp/models/source)
 
 
@@ -468,3 +469,10 @@
               do (set-default-branch source))))
 
     (format t "Done.~%")))
+
+
+(defun get-latest-version-by-id (source-id)
+  (assert source-id)
+  (mito:find-dao 'source
+                 :id source-id
+                 :latest "true"))
