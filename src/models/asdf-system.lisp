@@ -6,8 +6,8 @@
   (:import-from #:ultralisp/utils/db
                 #:inflate-json
                 #:deflate-json)
-  (:import-from #:ultralisp/models/dist
-                #:dist-name-source
+  (:import-from #:ultralisp/models/dist-source
+                #:dist-name
                 #:source->dists)
   (:import-from #:ultralisp/models/source
                 #:get-all-sources
