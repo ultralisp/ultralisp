@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.8.1 (2021-03-17)
+==================
+
+* Now "Check" button forces the project's check even if it's
+  sources were not changed.
+
 1.8.0 (2021-03-14)
 =================
 

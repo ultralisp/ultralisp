@@ -326,8 +326,8 @@
                                    :validate t)))))))
 
 
-(defun perform2 (check2 &key (force (eql (ultralisp/models/check:get-type check2)
-                                         :added-project)))
+(defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)
+                                            '(:added-project :manual))))
   "Returns True if new changes were discovered during the check."
   (check-type check2 check2)
   
