@@ -55,7 +55,7 @@ services:
     container_name: ultralisp_gearman
     # https://hub.docker.com/r/artefactual/gearmand/dockerfile
     # https://github.com/artefactual-labs/docker-gearmand
-    image: "artefactual/gearmand:1.1.18-alpine"
+    image: "artefactual/gearmand:1.1.19.1-alpine"
     ports:
       - "127.0.0.1:4730:4730"
 

@@ -359,11 +359,11 @@
 ;; TODO: remove after migration 
 (defun prepare-pending-version ()
   (with-transaction
-    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from prepare pending version")
+    (log:warn "TRACE: Trying to acquire a lock performing-pending-checks-or-version-build from prepare pending version to prepare pending version 1")
     (with-lock ("performing-pending-checks-or-version-build")
       (let ((version (get-pending-version)))
         (when version
-          (log:info "Preparing version for build" version)
+          (log:warn "TRACE: Preparing version for build" version)
           (create-projects-snapshots-for version)
           (setf (get-type version)
                 :prepared)
@@ -373,9 +373,9 @@
 (defun build-prepared-versions ()
   "Searches and builds a pending version if any."
   (with-transaction
-    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
+    (log:warn "TRACE: Trying to acquire a lock performing-pending-checks-or-version-build to build prepare version 1")
     (with-lock ("performing-pending-checks-or-version-build")
-      (log:info "Checking if there is a version to build")
+      (log:warn "TRACE: Checking if there is a version to build")
       
       (loop for version in (get-prepared-versions)
             do (build-version version)))))
@@ -440,7 +440,7 @@
 (defun prepare-pending-dists ()
   "Searches and prepares a pending versions for all distributions."
   (with-transaction
-    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
+    (log:info "Trying to acquire a lock performing-pending-checks")
     (with-lock ("prepare-pending-dists" :timeout (* 4 60 1000))
       (log:info "Checking if there is a version to build")
       
@@ -451,7 +451,7 @@
 (defun build-prepared-dists ()
   "Searches and builds a pending versions for all distributions."
   (with-transaction
-    (log:info "Trying to acquire a lock performing-pending-checks-or-version-build")
+    (log:info "Trying to acquire a lock performing-pending-checks")
     (with-lock ("build-prepared-dists")
       (log:info "Checking if there is a version to build")
       

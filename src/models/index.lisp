@@ -27,7 +27,7 @@
 
 
 (defun status-to-postgres (symbol)
-  (check-type symbol (member :ok :failed))
+  (check-type symbol (member :ok :failed :timeout))
   (string-downcase symbol))
 
 
@@ -39,8 +39,10 @@
 
 (defun get-index-status (project)
   (let* ((project (ensure-project project))
-         (rows (mito:retrieve-by-sql "SELECT status, last_update_at, next_update_at, total_time FROM project_index WHERE project_id = ?"
-                                     :binds (list (mito:object-id project))))
+         (rows (mito:retrieve-by-sql
+                "SELECT status, last_update_at, next_update_at, total_time, num_tries
+                   FROM project_index WHERE project_id = ?"
+                :binds (list (mito:object-id project))))
          (row (first rows)))
     (values (status-from-postgres
              (getf row :status))
@@ -50,46 +52,64 @@
             (awhen (getf row :next-update-at)
               (local-time:universal-to-timestamp
                it))
-            (getf row :total-time))))
+            (getf row :total-time)
+            (getf row :num-tries))))
 
 
 (defun set-index-status (project status
                          &key
                            next-update-at
                            (total-time 0))
-  (check-type project project2)
-  (check-type status (member :ok :failed))
-  (setf next-update-at
-        (format-rfc3339-timestring
-         nil
-         (if next-update-at
-             next-update-at
-             (ecase status
-               (:ok (time-in-future :day 7))
-               ;; TODO: We'll need to use exponential
-               ;;       here.
-               (:failed (time-in-future :day 1))))))
-  (if (get-index-status project)
-      (mito:execute-sql "UPDATE project_index SET status = ?,
-                                last_update_at = NOW(),
-                                next_update_at = ?,
-                                total_time = ?
+  (check-type status (member :ok :failed :timeout))
+  (setf project
+        (ensure-project project))
+  (multiple-value-bind (prev-status
+                        prev-last-update-at
+                        prev-next-update-at
+                        prev-total-time
+                        prev-num-tries)
+      (get-index-status project)
+    (declare (ignore prev-last-update-at prev-next-update-at prev-total-time))
+
+    (setf next-update-at
+          (format-rfc3339-timestring
+           nil
+           (if next-update-at
+               next-update-at
+               (time-in-future :day
+                               (min
+                                ;; Exponencial delay
+                                (* (1+ prev-num-tries)
+                                   1)
+                                ;; Up to two weeks:
+                                14)))))
+    
+    
+    (if prev-status
+        (mito:execute-sql "UPDATE project_index SET status = ?,
+                                  last_update_at = NOW(),
+                                  next_update_at = ?,
+                                  total_time = ?,
+                                  num_tries = ?
                           WHERE project_id = ?"
-                        (list (status-to-postgres status)
-                              next-update-at
-                              total-time
-                              (mito:object-id project)))
-      (mito:execute-sql "INSERT INTO project_index (
+                          (list (status-to-postgres status)
+                                next-update-at
+                                total-time
+                                (case status
+                                  (:ok 0)
+                                  (otherwise (1+ prev-num-tries)))
+                                (mito:object-id project)))
+        (mito:execute-sql "INSERT INTO project_index (
                                    project_id,
                                    last_update_at,
                                    next_update_at,
                                    total_time,
                                    status)
                                 VALUES (?, NOW(), ?, ?, ?)"
-                        (list (mito:object-id project)
-                              next-update-at
-                              total-time
-                              (status-to-postgres status)))))
+                          (list (mito:object-id project)
+                                next-update-at
+                                total-time
+                                (status-to-postgres status))))))
 
 
 (defun get-projects-to-index (&key (limit 10))
