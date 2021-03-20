@@ -15,7 +15,7 @@
 (in-package ultralisp/rpc/command)
 
 
-(defparameter *catch-commands* nil)
+(defvar *catch-commands* nil)
 
 
 (serapeum:defvar-unbound *catched*

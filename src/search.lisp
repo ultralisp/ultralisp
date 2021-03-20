@@ -34,6 +34,7 @@
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/models/index
+                #:get-index-status
                 #:set-index-status
                 #:get-projects-to-index)
   (:import-from #:ultralisp/variables
@@ -45,6 +46,11 @@
                 #:source-systems-info)
   (:import-from #:ultralisp/rpc/command
                 #:defcommand)
+  (:import-from #:trivial-timeout
+                #:timeout-error
+                #:with-timeout)
+  (:import-from #:global-vars
+                #:define-global-parameter)
   (:export
    #:search-objects
    #:bad-query
@@ -59,6 +65,8 @@
 (defvar *current-project-name* nil)
 (defvar *current-source-uri* nil)
 (defvar *current-system-path* nil)
+
+(define-global-parameter *indexing-timeout* (* 5 60))
 
 
 (defun index (collection id data)
@@ -584,7 +592,7 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                             (project-name project)))
                 :status status
                 :processed-in processed-in)
-    (log:info "Updating project index status")
+    (log:warn "TRACE: Updating project index status")
     (set-index-status (ensure-project project)
                       status
                       :total-time processed-in)))
@@ -624,13 +632,21 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                                          (get-total-time))
                     
                     (log:info "Indexing sources DONE"))))))
-      (error ()
-        ;; TODO: we also set status to failed
-        ;; when there wasn't any symbols found in the project.
-        ;; This can be done using ultralisp/rpc/command:defcommand
+      (error (condition)
+        (log:error "Project was not indexed because of" condition)
         (update-index-status project
                              :failed
                              (get-total-time))))))
+
+
+(defun sources-changed-since-last-index-p (project)
+  (let* ((index-updated-at (nth-value 1
+                                      (get-index-status project)))
+         (sources (project-sources project)))
+    (loop for source in sources
+          for source-updated-at = (mito:object-updated-at source)
+            thereis (local-time:timestamp> source-updated-at
+                                           index-updated-at))))
 
 
 (defun index-projects (&key names force (limit 10))
@@ -648,11 +664,24 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
     (loop for project in projects
           for project-name = (project-name project)
           do (with-fields (:project-name project-name)
-               (log:info "Sending task to index project")
-               
-               (submit-task
-                'index-project project)))
-    (log:info "DONE")))
+               (with-log-unhandled ()
+                 (handler-case
+                     (cond
+                       ((sources-changed-since-last-index-p project)
+                        (log:warn "TRACE: SEARCH Sending task to index project ~A" project-name)
+                        (with-timeout (*indexing-timeout*)
+                          (submit-task
+                           'index-project project)))
+                       (t
+                        (log:warn "TRACE: SEARCH we don't need to reindex this project because shources not changed")))
+                   (timeout-error ()
+                     (log:error "Project was not indexed because of timeout")
+                     (update-index-status project
+                                          :timeout
+                                          *indexing-timeout*))))
+               (log:warn "TRACE: SEARCH DONE with indexing ~A"
+                         project-name)))
+    (log:warn "TRACE: SEARCH DONE")))
 
 
 (defmacro do-all-docs ((doc-symbol query) &body body)

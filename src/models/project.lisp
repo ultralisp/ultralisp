@@ -548,8 +548,6 @@
               force)
       (log:info "Updating the project and creating actions" project data force)
 
-      (increment-counter :projects-updated)
-      
       (cond
         ((is-enabled-p project)
          (uiop:symbol-call :ultralisp/models/action

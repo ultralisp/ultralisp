@@ -158,7 +158,8 @@
   (log:info "Trying to index projects")
   (with-lock ("indexing-projects")
     (log:info "Log aquired")
-    (ultralisp/search:index-projects :limit 1)
+    ;; TODO: Remove ultralisp from the list
+    (ultralisp/search:index-projects :limit 1 :names '("ultralisp/ultralisp"))
     (log:info "Task is done")))
 
 

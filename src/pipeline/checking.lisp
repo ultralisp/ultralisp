@@ -97,24 +97,29 @@
           (with-lock ("prepare-pending-dists")
             (with-fields (:source (ultralisp/models/source:params-to-string
                                    (ultralisp/models/check:check->source check)))
-              (log:info "Submitting check to remote worker")
+              (log:warn "TRACE: Submitting check to remote worker")
               (apply 'submit-task
                      'perform2
                      check
-                     perform-params))))))))
+                     perform-params)
+              (log:warn "TRACE: Worker returned from perform2")))))
+      (values))))
 
 
 (defun perform-pending-checks (&key force)
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
-  (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks")
+  (log:warn "TRACE: Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
   
   (with-lock ("performing-pending-checks-or-version-build")
+    (log:warn "TRACE: Lock acquired")
     (let ((checks (pending-checks))
           ;; we need this to not pass :force argument
           ;; if it is default, because 'peform function
           ;; chooses default value depending on check's type
           )
+      (log:warn "TRACE: I have this ~A checks"
+                (length checks))
       (flet ((perform (check)
                (perform-remotely check :force force)))
         (loop for check in checks
@@ -124,6 +129,7 @@
                      ;; to let other checks be processed:
                      (ignore-errors
                       (perform check)))))
+      (log:warn "TRACE: I'm done with checks")
       (length checks))))
 
 
@@ -363,10 +369,14 @@
                          ;; process which will be killed after the finishing the task.
                          ;; That is why it is OK to change a *central-registry* here:
                          (pushnew path asdf:*central-registry*)
-                         (let* ((systems (collect-systems path
-                                                          :ignore-filename-p
-                                                          (make-file-ignorer
-                                                           (ultralisp/models/source:ignore-dirs source)))))
+                         (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
+                                (systems (progn
+                                           (log:warn "TRACE: Collecting systems from ~A ignoring dirs ~A"
+                                                     path
+                                                     ignore-dirs)
+                                           (collect-systems path
+                                                            :ignore-filename-p
+                                                            (make-file-ignorer ignore-dirs)))))
                            
                            (unless systems
                              (error "No asd files were found!"))

@@ -84,7 +84,7 @@ CREATE TABLE "social_profile" (
 );
 CREATE UNIQUE INDEX "unique_social_profile_user_id_service_service_user_id" ON "social_profile" ("user_id", "service", "service_user_id");
 
-create type index_status as enum ('ok', 'failed');
+create type index_status as enum ('ok', 'failed', 'timeout');
 
 CREATE OR REPLACE FUNCTION project_exists(id BIGINT)
 RETURNS BOOLEAN AS
@@ -103,6 +103,7 @@ create table "project_index" (
        "total_time" bigint not null default 0,
        "last_update_at" timestamptz,
        "next_update_at" timestamptz,
+       "num_tries" integer default 0,
        "status" index_status
 );
 

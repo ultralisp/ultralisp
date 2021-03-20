@@ -2,6 +2,17 @@
  ChangeLog
 ===========
 
+1.8.2 (2021-03-20)
+==================
+
+* Fixed the case when worker wasn't able to finish project
+  indexer because it was each time killed by OOM killer.
+  
+  Now the indexer will wait for 5 minutes and remove the job
+  from the Gearman server.
+* Also, Prometheus metrics were added to show number
+  of indexed projects and a number of fails.
+
 1.8.1 (2021-03-17)
 ==================
 
