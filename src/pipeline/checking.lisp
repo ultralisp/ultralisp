@@ -106,7 +106,7 @@
       (values))))
 
 
-(defun perform-pending-checks (&key force)
+(defun perform-pending-checks (&key (force nil force-given-p))
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
@@ -117,7 +117,10 @@
       (log:info "I have ~A checks to process"
                 (length checks))
       (flet ((perform (check)
-               (perform-remotely check :force force)))
+               (apply #'perform-remotely
+                      check
+                      (when force-given-p
+                        (list :force force)))))
         (loop for check in checks
               do (if slynk-api:*emacs-connection*
                      (perform check)
@@ -329,7 +332,8 @@
 
 
 (defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)
-                                            '(:added-project :manual))))
+                                            '(:added-project :manual))
+                                    force-give-p))
   "Returns True if new changes were discovered during the check."
   (check-type check2 check2)
   
@@ -353,6 +357,10 @@
                       :source-id (object-id source)
                       :source-version (object-version source)
                       :project (ultralisp/models/project:project-name project))
+          (log:info "Running perform2 check-type: ~S, force: ~S, force-given-p: ~S"
+                    (ultralisp/models/check:get-type check2)
+                    force
+                    force-give-p)
           (unwind-protect
                (prog1 (cond
                         ((not (latest-p source)) ;; we only want to process checks for latest sources
