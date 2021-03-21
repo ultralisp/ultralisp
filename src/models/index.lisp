@@ -22,7 +22,8 @@
   (:export
    #:get-index-status
    #:set-index-status
-   #:get-projects-to-index))
+   #:get-projects-to-index
+   #:reschedule-indexing))
 (in-package ultralisp/models/index)
 
 
@@ -46,13 +47,17 @@
          (row (first rows)))
     (values (status-from-postgres
              (getf row :status))
+            
             (awhen (getf row :last-update-at)
               (local-time:universal-to-timestamp
                it))
+            
             (awhen (getf row :next-update-at)
               (local-time:universal-to-timestamp
                it))
+            
             (getf row :total-time)
+            
             (getf row :num-tries))))
 
 
@@ -79,7 +84,8 @@
                (time-in-future :day
                                (min
                                 ;; Exponencial delay
-                                (* (1+ prev-num-tries)
+                                (* (1+ (or prev-num-tries
+                                           0))
                                    1)
                                 ;; Up to two weeks:
                                 14)))))
@@ -110,6 +116,37 @@
                                 next-update-at
                                 total-time
                                 (status-to-postgres status))))))
+
+
+(defun reschedule-indexing (project)
+  (setf project
+        (ensure-project project))
+  (multiple-value-bind (prev-status
+                        prev-last-update-at
+                        prev-next-update-at
+                        prev-total-time
+                        prev-num-tries)
+      (get-index-status project)
+    (declare (ignore prev-last-update-at prev-next-update-at prev-total-time))
+
+    (when prev-status
+      (let ((next-update-at
+              (format-rfc3339-timestring
+               nil
+               (time-in-future :day
+                               (min
+                                ;; Exponencial delay
+                                (* (1+ prev-num-tries)
+                                   1)
+                                ;; Up to two weeks:
+                                14)))))
+        (mito:execute-sql "UPDATE project_index
+                            SET next_update_at = ?,
+                                num_tries = ?
+                          WHERE project_id = ?"
+                          (list next-update-at
+                                (1+ prev-num-tries)
+                                (mito:object-id project)))))))
 
 
 (defun get-projects-to-index (&key (limit 10))

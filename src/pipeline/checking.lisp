@@ -97,28 +97,24 @@
           (with-lock ("prepare-pending-dists")
             (with-fields (:source (ultralisp/models/source:params-to-string
                                    (ultralisp/models/check:check->source check)))
-              (log:warn "TRACE: Submitting check to remote worker")
+              (log:info "Submitting check to remote worker")
               (apply 'submit-task
                      'perform2
                      check
                      perform-params)
-              (log:warn "TRACE: Worker returned from perform2")))))
+              (log:info "Worker returned from perform2")))))
       (values))))
 
 
 (defun perform-pending-checks (&key force)
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
-  (log:warn "TRACE: Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
+  (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
   
   (with-lock ("performing-pending-checks-or-version-build")
-    (log:warn "TRACE: Lock acquired")
-    (let ((checks (pending-checks))
-          ;; we need this to not pass :force argument
-          ;; if it is default, because 'peform function
-          ;; chooses default value depending on check's type
-          )
-      (log:warn "TRACE: I have this ~A checks"
+    (log:info "Lock acquired")
+    (let ((checks (pending-checks)))
+      (log:info "I have ~A checks to process"
                 (length checks))
       (flet ((perform (check)
                (perform-remotely check :force force)))
@@ -129,7 +125,7 @@
                      ;; to let other checks be processed:
                      (ignore-errors
                       (perform check)))))
-      (log:warn "TRACE: I'm done with checks")
+      (log:info "I'm done with checks")
       (length checks))))
 
 
@@ -371,7 +367,7 @@
                          (pushnew path asdf:*central-registry*)
                          (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
                                 (systems (progn
-                                           (log:warn "TRACE: Collecting systems from ~A ignoring dirs ~A"
+                                           (log:info "Collecting systems from ~A ignoring dirs ~A"
                                                      path
                                                      ignore-dirs)
                                            (collect-systems path
