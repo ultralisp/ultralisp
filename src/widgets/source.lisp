@@ -342,6 +342,11 @@
                                                :value "Edit")))))))
                   (:tbody
                    (:tr (:td :class "label-column"
+                             "Created at")
+                        (:td :class "field-column"
+                             (humanize-timestamp
+                              (mito:object-created-at source))))
+                   (:tr (:td :class "label-column"
                              "Source")
                         (:td :class "field-column"
                              (:a :href url

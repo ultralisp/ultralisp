@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.8.3 (2021-03-21)
+==================
+
+* Now indexing task is rescheduled in case if there was
+  no changes to any source.
+
 1.8.2 (2021-03-20)
 ==================
 

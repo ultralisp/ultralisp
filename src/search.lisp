@@ -36,7 +36,8 @@
   (:import-from #:ultralisp/models/index
                 #:get-index-status
                 #:set-index-status
-                #:get-projects-to-index)
+                #:get-projects-to-index
+                #:reschedule-indexing)
   (:import-from #:ultralisp/variables
                 #:get-elastic-host)
   (:import-from #:local-time
@@ -592,7 +593,7 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                             (project-name project)))
                 :status status
                 :processed-in processed-in)
-    (log:warn "TRACE: Updating project index status")
+    (log:info "Updating project index status")
     (set-index-status (ensure-project project)
                       status
                       :total-time processed-in)))
@@ -640,13 +641,20 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
 
 
 (defun sources-changed-since-last-index-p (project)
-  (let* ((index-updated-at (nth-value 1
-                                      (get-index-status project)))
-         (sources (project-sources project)))
-    (loop for source in sources
-          for source-updated-at = (mito:object-updated-at source)
-            thereis (local-time:timestamp> source-updated-at
-                                           index-updated-at))))
+  (multiple-value-bind (status index-updated-at)
+      (get-index-status project)
+    (case status
+      (:ok
+       (let* ((sources (project-sources project)))
+         (loop for source in sources
+               for source-updated-at = (mito:object-updated-at source)
+                 thereis (local-time:timestamp> source-updated-at
+                                                index-updated-at))))
+      (otherwise
+       ;; For all other statuses we want to retry indexing again and again.
+       ;; Probably at some moment the problem will be noticed by
+       ;; Ultralisp maintainer and fixed.
+       t))))
 
 
 (defun index-projects (&key names force (limit 10))
@@ -668,20 +676,21 @@ github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
                  (handler-case
                      (cond
                        ((sources-changed-since-last-index-p project)
-                        (log:warn "TRACE: SEARCH Sending task to index project ~A" project-name)
+                        (log:info "Sending task to index project ~A" project-name)
                         (with-timeout (*indexing-timeout*)
                           (submit-task
                            'index-project project)))
                        (t
-                        (log:warn "TRACE: SEARCH we don't need to reindex this project because shources not changed")))
+                        (log:info "We don't need to reindex this project because shources not changed")
+                        (reschedule-indexing project)))
                    (timeout-error ()
                      (log:error "Project was not indexed because of timeout")
                      (update-index-status project
                                           :timeout
                                           *indexing-timeout*))))
-               (log:warn "TRACE: SEARCH DONE with indexing ~A"
+               (log:info "Done with indexing ~A"
                          project-name)))
-    (log:warn "TRACE: SEARCH DONE")))
+    (log:info "All projects were indexed")))
 
 
 (defmacro do-all-docs ((doc-symbol query) &body body)
