@@ -539,8 +539,7 @@ default values from the arglist."
               (alexandria:with-output-to-file (s qlfile-path
                                                  :if-exists :supersede)
                 (log:info "Creating a new qlfile")
-                (format s "dist ultralisp http://dist.ultralisp.org/
-github mgl-pax svetlyak40wt/mgl-pax :branch mgl-pax-minimal"))
+                (format s "dist ultralisp http://dist.ultralisp.org/"))
 
               ;; Just in case, we'll remove lock file:
               (let ((lock-file (probe-file (merge-pathnames #P"qlfile.lock"
