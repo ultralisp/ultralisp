@@ -509,10 +509,11 @@
   (setf cl-fad::*default-template*
         "/tmp/ultralisp/temp-%")
 
-  (start :port 8081)
-  
-  (ultralisp/logging:setup-for-repl :level "error"
-                                    :app "app"))
+  (let ((ultralisp/logging::*log-dir* "logs"))
+    (start :port 8081)
+    
+    (ultralisp/logging:setup-for-repl :level "error"
+                                      :app "app")))
 
 
 (defun stop ()
@@ -529,14 +530,14 @@
 (defvar slynk:*use-dedicated-output-stream*)
 
 
-(defmain main ((dont-start-server "Don't start HTTP server."
-                                  :flag t)
-               (log-dir "A directory to store app.log."
-                        :default "/app/logs")
-               (debug "If true, then log will be include DEBUG and INFO nessages"
-                      :flag t
-                      :short nil
-                      :env-var "DEBUG"))
+(defmain (main) ((dont-start-server "Don't start HTTP server."
+                                    :flag t)
+                 (log-dir "A directory to store app.log."
+                          :default "/app/logs")
+                 (debug "If true, then log will be include DEBUG and INFO nessages"
+                        :flag t
+                        :short nil
+                        :env-var "DEBUG"))
 
   
   (ultralisp/logging:setup log-dir

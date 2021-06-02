@@ -413,11 +413,17 @@
                                                     now
                                                     processed-at)))
                                                 (error (ultralisp/models/check:get-error last-check))
-                                                (next-check-at (humanize-duration
-                                                                (local-time-duration:timestamp-difference
+                                                (time-to-next-check
+                                                  (local-time-duration:timestamp-difference
                                                                  (ultralisp/cron:get-time-of-the-next-check
                                                                   source)
-                                                                 now))))
+                                                                 now))
+                                                (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
+                                                                      0)
+                                                                   (fmt " Next check will be made in ~A."
+                                                                        (humanize-duration
+                                                                         time-to-next-check))
+                                                                   " Next check will be made very soon.")))
                                            (:span (fmt "Finished ~A ago. " duration))
                                            
                                            (when error
@@ -431,9 +437,7 @@
                                                (:a :data-open popup-id
                                                    "error"))
                                              (:span "."))
-                                           (:span
-                                            ("Next check will be made in ~A."
-                                             next-check-at))))
+                                           (:span next-check-at)))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
                                           (ultralisp/models/check:position-in-the-queue last-check))))))
@@ -475,11 +479,12 @@
          ;; (distributions (source-distributions source))
          (user (weblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
-         (all-dists (cons (ultralisp/models/dist:common-dist)
+         (all-dists (append (ultralisp/models/dist:public-dists)
                           user-dists))
-         (current-dists (remove-if-not
-                         #'enabled-p
-                         (source->dists source)))
+         ;; Previously we gathered only enabled dists, but this lead
+         ;; to a bug when you can't remove a source from the dist where
+         ;; it was disabled or where it is not checked yet.
+         (current-dists (source->dists source))
          (release-info (ultralisp/models/source:source-release-info source)))
     ;; Deleted sources should not be in the list
     ;; for rendering.

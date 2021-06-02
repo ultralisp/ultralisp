@@ -26,6 +26,8 @@
                 #:make-args-filter)
   (:import-from #:log4cl-extras/secrets
                 #:make-secrets-replacer)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:process-jobs
    #:start-outside-docker))
@@ -65,7 +67,10 @@
   ;; here. This condition will be thrown in case, if gearman server is
   ;; unavailable.
   (cl-gearman:with-worker (worker (get-gearman-server)) 
-    (cl-gearman:add-ability worker "task-with-commands"
+    (cl-gearman:add-ability worker
+                            (fmt "~A-task-with-commands"
+                                 (string-downcase
+                                  (lisp-implementation-type)))
                             (lambda (arg job)
                               (declare (ignore job))
                               (let ((args (deserialize arg)))
@@ -80,17 +85,17 @@
       (t (loop (cl-gearman:work worker))))))
 
 
-(defmain main ((slynk-port "A port to listen for connection from SLY."
-                           :default 10200
-                           :short nil)
-               (slynk-interface "An interface to listen on for connection from SLY."
-                                :default "localhost"
-                                :short nil)
-               (one-task-only "If true, then worker will quit after the task processing."
-                              :flag t)
-               (debug "If true, then output will be verbose"
-                      :flag t
-                      :env-var "DEBUG"))
+(defmain (main) ((slynk-port "A port to listen for connection from SLY."
+                             :default 10200
+                             :short nil)
+                 (slynk-interface "An interface to listen on for connection from SLY."
+                                  :default "localhost"
+                                  :short nil)
+                 (one-task-only "If true, then worker will quit after the task processing."
+                                :flag t)
+                 (debug "If true, then output will be verbose"
+                        :flag t
+                        :env-var "DEBUG"))
   
   (log4cl-extras/config:setup
    `(:level ,(if debug
@@ -114,8 +119,9 @@
 
 
 (defun start-outside-docker ()
-  (ultralisp/logging:setup-for-repl :level "error"
+  (ultralisp/logging:setup-for-repl :level :debug 
                                     :app "worker")
+  
   (loop with vars = '(("ELASTIC_SEARCH_HOST" "localhost"))
         for (name value) in vars
         do (setf (uiop/os:getenv name)

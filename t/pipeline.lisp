@@ -40,7 +40,6 @@
     (with-login ()
       (let* ((project (make-project "40ants" "defmain"))
              (source-v0 (get-source project)))
-        
         ;; First, we need to create a version which is enabled.
         (create-new-source-version source-v0 nil nil
                                    ;; This argument is t by default,
@@ -52,6 +51,11 @@
         (let* ((dist-before (find-dist "ultralisp"))
                (source-v1 (get-source project))
                (check (make-check source-v1 :via-cron)))
+          ;; check's implementation should match the dist ones
+          (ok (eql (ultralisp/models/check:lisp-implementation check)
+                   :sbcl))
+          (ok (eql (ultralisp/models/check:lisp-implementation check)
+                   (ultralisp/models/dist:lisp-implementation dist-before)))
           (ok (eql (dist-state dist-before)
                    :ready))
         

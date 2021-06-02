@@ -56,7 +56,7 @@ ENTRYPOINT ["/app/docker/dev-entrypoint.sh"]
 
 # To run Mito commands
 FROM dev as mito
-RUN ros install svetlyak40wt/mito/add-host-argument
+RUN ros install fukamachi/mito
 
 # https://medium.com/the-code-review/how-to-use-entrypoint-with-docker-and-docker-compose-1c2062aa17a2
 ENTRYPOINT ["/app/docker/mito.sh"]

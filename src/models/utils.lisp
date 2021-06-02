@@ -49,7 +49,7 @@
 
 
 (defun %system-info-from-json (data)
-  "Prepares a list of systems info objects to be serialized to json."
+  "Prepares a list of systems info objects to be deserialized from json."
   (when data
     (make-instance 'quickdist:system-info
                    :path (getf data :path)

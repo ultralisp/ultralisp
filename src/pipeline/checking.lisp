@@ -84,8 +84,10 @@
 (defun perform-remotely (check &key (force nil force-p))
   "This function can be called manually to debug source checking."
   (let ((perform-params (when force-p
-                          (list :force force))))
-    (with-fields (:check-id (mito:object-id check))
+                          (list :force force)))
+        (lisp-implementation (ultralisp/models/check:lisp-implementation check)))
+    (with-fields (:check-id (mito:object-id check)
+                  :lisp-implementation lisp-implementation)
       (with-log-unhandled ()
         ;; Here we need to establish a connection
         ;; to process each check in a separate transaction.
@@ -97,23 +99,26 @@
           (with-lock ("prepare-pending-dists")
             (with-fields (:source (ultralisp/models/source:params-to-string
                                    (ultralisp/models/check:check->source check)))
-              (log:info "Submitting check to remote worker")
-              (apply 'submit-task
-                     'perform2
-                     check
-                     perform-params)
+              (log:info "Submitting check to remote ~S worker"
+                        lisp-implementation)
+              (funcall 'submit-task
+                       'perform2
+                       :lisp-implementation lisp-implementation
+                       :args (list* check
+                                    perform-params))
               (log:info "Worker returned from perform2")))))
       (values))))
 
 
-(defun perform-pending-checks (&key (force nil force-given-p))
+(defun perform-pending-checks (&key (force nil force-given-p)
+                                    (lisp-implementation :sbcl))
   "Performs all pending checks and creates a new Ultralisp version
    if some projects were updated."
   (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
   
   (with-lock ("performing-pending-checks-or-version-build")
     (log:info "Lock acquired")
-    (let ((checks (pending-checks)))
+    (let ((checks (pending-checks :lisp-implementation lisp-implementation)))
       (log:info "I have ~A checks to process"
                 (length checks))
       (flet ((perform (check)

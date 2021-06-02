@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/models/check
+(uiop:define-package #:ultralisp/models/check
   (:use #:cl)
   (:import-from #:ultralisp/models/project
                 #:project-sources
@@ -71,7 +71,8 @@
    #:get-check2-by-id
    #:check2
    #:position-in-the-queue
-   #:get-latest-source-checks))
+   #:get-latest-source-checks
+   #:lisp-implementation))
 (in-package ultralisp/models/check)
 
 
@@ -198,7 +199,15 @@
           :accessor get-error
           :documentation "A error description. If processed-at is not null and error is nil,
 
-                                 then check is considered as successful."))
+                                 then check is considered as successful.")
+   (lisp-implementation :col-type (:text)
+                        :initarg :lisp-implementation
+                        :initform :sbcl
+                        :reader lisp-implementation
+                        :inflate #'inflate-keyword
+                        :deflate #'deflate-keyword
+                        :documentation "A keyword like :SBCL or :LISPWORKS, denoting the lisp implementation
+                                        under which this check should be performed."))
   (:metaclass dao-table-class))
 
 
@@ -230,7 +239,8 @@
     (t (values (mito:create-dao 'check2
                                 :source-id (object-id source)
                                 :source-version (object-version source)
-                                :type check-type)
+                                :type check-type
+                                :lisp-implementation (ultralisp/models/dist-source:lisp-implementation source))
                t))))
 
 
@@ -281,9 +291,9 @@
   )
 
 (defun cancel-pending-cron-checks ()
-  (loop for check in (select-dao 'base-check
+  (loop for check in (select-dao 'check2
                        (where (:and (:is-null 'processed-at)
-                                    (:= 'type "VIA-CRON"))))
+                                    (:= 'type "via-cron"))))
         do (setf (get-processed-at check) (local-time:now)
                  (get-processed-in check) 0)
            (save-dao check)
@@ -381,13 +391,17 @@
    (check->source check)))
 
 
-(defun pending-checks ()
+(defun pending-checks (&key (lisp-implementation :sbcl))
   "Returns all pending checks ordered from oldest to newest.
 
    Ordering is important, because we'll use it to calculate
    check's posiition in the queue."
   (select-dao 'check2
-    (where (:is-null 'processed-at))
+    (where (:and (:is-null 'processed-at)
+                 (:= 'lisp-implementation
+                     (string-downcase
+                      (symbol-name
+                       lisp-implementation)))))
     (sxql:order-by 'created-at
                    ;; Additional ordering by id to make sort
                    ;; stable, because multiple checks can be

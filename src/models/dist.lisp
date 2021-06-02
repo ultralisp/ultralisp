@@ -31,7 +31,9 @@
    #:get-prepared-dists
    #:latest-dists
    #:dist-quicklisp-version
-   #:find-dist-version))
+   #:find-dist-version
+   #:lisp-implementation
+   #:public-dists))
 (in-package ultralisp/models/dist)
 
 
@@ -66,7 +68,15 @@
                  :ready)
           :accessor dist-state
           :inflate #'inflate-keyword
-          :deflate #'deflate-keyword))
+          :deflate #'deflate-keyword)
+   (lisp-implementation :col-type (:text)
+                        :initarg :lisp-implementation
+                        :initform :sbcl
+                        :reader lisp-implementation
+                        :inflate #'inflate-keyword
+                        :deflate #'deflate-keyword
+                        :documentation "A keyword like :SBCL or :LISPWORKS, denoting the lisp implementation
+                                        under which this sources include into this dist should be checked."))
   (:unique-keys name)
   ;; It is important to use symbols from versioned package
   ;; because otherwise mito is not able to find slots in the object
@@ -104,6 +114,12 @@
   (find-dist "ultralisp"))
 
 
+(defun public-dists ()
+  (remove-if #'null
+             (list (common-dist)
+                   (find-dist "lispworks" :raise-error nil))))
+
+
 (defclass bound-dist ()
   ((dist :initarg :dist
          :reader dist)
@@ -127,6 +143,9 @@
 
 (defmethod object-version ((obj bound-dist))
   (object-version (dist obj)))
+
+(defmethod lisp-implementation ((obj bound-dist))
+  (lisp-implementation (dist obj)))
 
 
 (defmethod print-object ((obj bound-dist) stream)
@@ -171,7 +190,8 @@
                            :id id
                            :version (get-next-dist-version dist)
                            :name (dist-name dist)
-                           :state :pending)))))
+                           :state :pending
+                           :lisp-implementation (lisp-implementation dist))))))
 
 
 (defun get-pending-dists ()

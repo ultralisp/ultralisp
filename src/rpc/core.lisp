@@ -15,10 +15,13 @@
                 #:get-postgres-ro-user
                 #:get-postgres-host
                 #:get-postgres-dbname)
+  (:import-from #:rutils
+                #:fmt)
   (:export
    #:submit-task
    #:serialize
-   #:deserialize))
+   #:deserialize
+   #:submit-task-to-lispworks))
 (in-package ultralisp/rpc/core)
 
 
@@ -77,16 +80,20 @@
     returned-value))
 
 
-(defun submit-task (func &rest args)
+(defun submit-task (func &key (lisp-implementation :sbcl)
+                              args)
   "Submits a task to one of remote workers and waits for the result."
   (check-type func symbol)
   
   (with-commands-processor 
     (apply #'gearman-call
-           "task-with-commands"
+           (fmt "~A-task-with-commands"
+                (string-downcase
+                 (symbol-name lisp-implementation)))
            (get-postgres-host)
            (get-postgres-ro-user)
            (get-postgres-ro-pass)
            (get-postgres-dbname)
            func args)))
+
 

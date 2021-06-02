@@ -49,7 +49,8 @@
    #:disable-reason-type
    #:dist-source->source
    #:dist->sources
-   #:add-source-to-dist))
+   #:add-source-to-dist
+   #:lisp-implementation))
 (in-package ultralisp/models/dist-source)
 
 (defparameter *deb* nil)
@@ -342,7 +343,7 @@ SELECT *
      If boolean is `t` then source was cloned and updated.
 "
   (check-type source ultralisp/models/source:source)
-
+  
   (with-transaction
     (multiple-value-bind (new-params params-changed-p)
         (update-plist (ultralisp/models/source:source-params source)
@@ -355,9 +356,11 @@ SELECT *
         (when params-changed-p
           (ensure-there-is-a-clone))
 
-        (let* ((current-dists (remove-if-not
-                               #'enabled-p
-                               (source->dists source)))
+        (let* ((current-dists
+                 ;; Previously we've collected only enabled dists into this
+                 ;; variable. But this lead to the situation when
+                 ;; it was impossible to remove disabled source from the dist.
+                 (source->dists source))
                (new-dists (if dists-p
                               (mapcar #'ensure-dist dists)
                               ;; If dists list was not given, then
@@ -387,45 +390,58 @@ SELECT *
             ;; If source should be added to the dist,
             ;; we have to get/create a pending dist
             ;; and to link this source to it:
-            (loop for dist in dists-to-add
-                  for new-version = (get-or-create-pending-version dist)
-                  for old-dist-source = (mito:find-dao 'dist-source
-                                                       :dist-id (object-id dist)
-                                                       :dist-version (object-version dist)
-                                                       :source-id (object-id source))
-                  do (cond
-                       ;; We only need to create a new link if a new pending
-                       ;; version was created and the source previously
-                       ;; was linked to it (and probably removed).
-                       ((and (dist-equal dist new-version)
-                             old-dist-source)
-                        ;; When dist version is the same and it is still pending,
-                        ;; we can just mark existing dist-source as enabled.
-                        (unless (eql (dist-state new-version)
-                                     :pending)
-                          (error "We can add a new source version only to a pending dist version."))
-                        ;; First, we need to change source version in the link
-                        (setf (source-version old-dist-source)
-                              (object-version new-source))
-                        ;; Second, to set flags, showing that the source is enabled and not deleted
-                        ;; from the dist:
-                        (setf (deleted-p old-dist-source) nil
-                              (enabled-p old-dist-source) t
-                              (disable-reason old-dist-source) nil)
-                        (mito:update-dao old-dist-source))
-                       (t
-                        (mito:create-dao 'dist-source
-                                         :dist-id (object-id new-version)
-                                         :dist-version (object-version new-version)
-                                         :source-id (object-id new-source)
-                                         :source-version (object-version new-source)
-                                         :include-reason include-reason)))
+            (let* ((has-release-info (ultralisp/models/source:source-release-info source))
+                   (enabled (when has-release-info
+                              t))
+                   (disable-reason (unless has-release-info
+                                     ;; When source gets added to the distribution,
+                                     ;; it has this disable reason.
+                                     ;; However, if it has some release-info,
+                                     ;; it is added as "enabled", because we don't
+                                     ;; need to check it to build the distribution.
+                                     (make-disable-reason :just-added
+                                                          :comment "This source waits for the check."))))
+              (loop for dist in dists-to-add
+                    for new-version = (get-or-create-pending-version dist)
+                    for old-dist-source = (mito:find-dao 'dist-source
+                                                         :dist-id (object-id dist)
+                                                         :dist-version (object-version dist)
+                                                         :source-id (object-id source))
+                    do (cond
+                         ;; We only need to create a new link if a new pending
+                         ;; version was created and the source previously
+                         ;; was linked to it (and probably removed).
+                         ((and (dist-equal dist new-version)
+                               old-dist-source)
+                          ;; When dist version is the same and it is still pending,
+                          ;; we can just mark existing dist-source as enabled.
+                          (unless (eql (dist-state new-version)
+                                       :pending)
+                            (error "We can add a new source version only to a pending dist version."))
+                          ;; First, we need to change source version in the link
+                          (setf (source-version old-dist-source)
+                                (object-version new-source))
+                          ;; Second, to set flags, showing that the source is enabled and not deleted
+                          ;; from the dist:
+                          (setf (deleted-p old-dist-source) nil
+                                (enabled-p old-dist-source) enabled
+                                (disable-reason old-dist-source) disable-reason)
+                          (mito:update-dao old-dist-source))
+                         (t
+                          (mito:create-dao 'dist-source
+                                           :dist-id (object-id new-version)
+                                           :dist-version (object-version new-version)
+                                           :source-id (object-id new-source)
+                                           :source-version (object-version new-source)
+                                           :include-reason include-reason
+                                           :enabled enabled
+                                           :disable-reason disable-reason)))
 
-                     ;; Now we need to update asdf systems in the database:
-                     (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
-                                       "ADD-SOURCE-SYSTEMS"
-                                       new-version
-                                       new-source)))
+                       ;; Now we need to update asdf systems in the database:
+                       (uiop:symbol-call "ULTRALISP/MODELS/ASDF-SYSTEM"
+                                         "ADD-SOURCE-SYSTEMS"
+                                         new-version
+                                         new-source))))
 
           (when dists-to-remove
             (ensure-there-is-a-clone)
@@ -736,3 +752,27 @@ SELECT *
                            :new-source new-source
                            :dists nil))))
 
+
+(defun lisp-implementation (source)
+  "Returns a lisp implementation to use for checking the source.
+
+   If source is bound to a few dists, then tries to choose implementation
+   different from SBCL.
+
+   Probably we should prohibit inclusion of the sources into the dists
+   with different lisp implementation."
+  
+  (check-type source ultralisp/models/source:source)
+  (loop with implementations = nil
+        for dist in (source->dists source)
+        for impl = (ultralisp/models/dist:lisp-implementation dist)
+        do (pushnew impl implementations)
+        finally (return (cond
+                          ((= (length implementations) 1)
+                           (first implementations))
+                          (t (let ((implementations
+                                     (remove :sbcl implementations)))
+                               (when (> (length implementations) 1)
+                                 (log:error "Source ~S included into a few dists with different Lisp implementations: ~S"
+                                            source implementations))
+                               (first implementations)))))))

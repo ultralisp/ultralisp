@@ -159,6 +159,7 @@ CREATE TABLE "dist" (
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
     "built_at" TIMESTAMPTZ,
+    "lisp_implementation" TEXT,
     PRIMARY KEY (id, version)
 );
 
@@ -222,6 +223,7 @@ CREATE TABLE "check2" (
     "error" TEXT,
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
+    "lisp_implementation" TEXT,
     FOREIGN KEY ("source_id", "source_version")
     REFERENCES "source" ("id", "version")  ON DELETE CASCADE
 );
@@ -240,8 +242,27 @@ CREATE TABLE "asdf_system" (
 -- how to reset project2 tables
 -- delete from project2; delete from source; delete from dist; delete from dist_source; delete from dist_moderator; delete from project_moderator; delete from check2;
 
-INSERT INTO "dist" (version, latest, deleted, name, state, created_at, updated_at, quicklisp_version)
-     VALUES (0, True, False, 'ultralisp', 'ready', now(), now(), 'initial');
+INSERT INTO "dist" (
+    version,
+    latest,
+    deleted,
+    name,
+    state,
+    created_at,
+    updated_at,
+    lisp_implementation,
+    quicklisp_version)
+VALUES (
+    0,
+    True,
+    False,
+    'ultralisp',
+    'ready',
+    now(),
+    now(),
+    'SBCL',
+    'initial'
+);
 
 
 CREATE TABLE IF NOT EXISTS "schema_migrations" (
