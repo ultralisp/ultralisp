@@ -65,6 +65,7 @@
   (:import-from #:ultralisp/models/asdf-system
                 #:asdf-systems-conflict)
   (:import-from #:weblocks-ui/form
+                #:form-error-placeholder
                 #:field-error
                 #:error-placeholder)
   (:export
@@ -524,6 +525,7 @@
                                  message)
                            (weblocks/widget:update widget)))))
              :widget widget)
+          (form-error-placeholder)
           (:table :class "unstriped"
            (:thead
             (:tr (:th :class "label-column"

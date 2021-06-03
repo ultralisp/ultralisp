@@ -1,11 +1,11 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2021-04-11"))
+  :version "2021-05-31"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20210529124000"))
+  :version "20210603132500"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.2")
@@ -13,11 +13,11 @@
 ("cl-str" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
-  :version "ql-2021-04-11"))
+  :version "ql-2021-05-31"))
 ("ironclad" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
-  :version "ql-2021-04-11"))
+  :version "ql-2021-05-31"))
 ("slynk-named-readtables" .
  (:class qlot/source/github:source-github
   :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
