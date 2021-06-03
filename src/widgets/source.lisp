@@ -8,7 +8,8 @@
                 #:render)
   (:import-from #:weblocks-lass)
   (:import-from #:weblocks/dependencies)
-  (:import-from #:ultralisp/models/dist-source
+  (:import-from #:ultralisp/models/dist
+                #:find-dist-source
                 #:dist-version
                 #:dist-id
                 #:delete-source
@@ -63,6 +64,9 @@
                 #:group-by)
   (:import-from #:ultralisp/models/asdf-system
                 #:asdf-systems-conflict)
+  (:import-from #:weblocks-ui/form
+                #:field-error
+                #:error-placeholder)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -183,6 +187,20 @@
 ;; When results are saved, there is a common part of
 ;; distribution update and a custom part of fields update.
 
+
+(defun ensure-all-dists-have-same-lisp-implementation (dist-names)
+  (loop with implementations = nil
+        for name in dist-names
+        for dist = (find-dist name :raise-error nil)
+        when dist
+        do (pushnew (ultralisp/models/dist:lisp-implementation dist)
+                    implementations
+                    :test #'equal)
+        finally (when (> (length implementations) 1)
+                  (field-error "distributions"
+                               "Unable to add source to distributions with different lisp implementations"))))
+
+
 (defun save (widget args)
   (check-type widget edit-source-widget)
 
@@ -193,12 +211,13 @@
                                (parse-ignore-list it))
           for (name value) on args by #'cddr
           when (member name '(:distributions :distributions[]))
-            collect value into new-dist-names
+          collect value into new-dist-names
           finally
              (multiple-value-bind (user-name project-name)
                  (params-from-github url)
 
                (log:info "Saving" new-dist-names url branch)
+               (ensure-all-dists-have-same-lisp-implementation new-dist-names)
                
                ;; TODO: we need to refactor this part because for other
                ;; types of sources we'll need to process params differently:
@@ -498,13 +517,13 @@
       (with-html
         (weblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
-                     (declare (ignorable args))
                      (handler-case (save widget args)
                        (asdf-systems-conflict (c)
                          (let ((message (fmt "~A" c)))
                            (setf (dist-conflicts widget)
                                  message)
-                           (weblocks/widget:update widget))))))
+                           (weblocks/widget:update widget)))))
+             :widget widget)
           (:table :class "unstriped"
            (:thead
             (:tr (:th :class "label-column"
@@ -577,7 +596,8 @@
                                         (:label name)))
                       (when (dist-conflicts widget)
                         (:pre :class "error"
-                              (dist-conflicts widget))))))))))))
+                              (dist-conflicts widget)))
+                      (error-placeholder "distributions"))))))))))
 
 
 (defmethod weblocks/widget:render ((widget branch-select-widget))

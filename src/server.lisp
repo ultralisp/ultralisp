@@ -509,11 +509,10 @@
   (setf cl-fad::*default-template*
         "/tmp/ultralisp/temp-%")
 
-  (let ((ultralisp/logging::*log-dir* "logs"))
-    (start :port 8081)
-    
-    (ultralisp/logging:setup-for-repl :level "error"
-                                      :app "app")))
+  (start :port 8081)
+  
+  (ultralisp/logging:setup-for-repl :level "error"
+                                    :app "app"))
 
 
 (defun stop ()
