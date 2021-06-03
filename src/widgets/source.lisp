@@ -8,8 +8,7 @@
                 #:render)
   (:import-from #:weblocks-lass)
   (:import-from #:weblocks/dependencies)
-  (:import-from #:ultralisp/models/dist
-                #:find-dist-source
+  (:import-from #:ultralisp/models/dist-source
                 #:dist-version
                 #:dist-id
                 #:delete-source
@@ -26,7 +25,8 @@
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/dist
-                #:dist-name)
+                #:dist-name
+                #:find-dist)
   (:import-from #:ultralisp/models/dist-source
                 #:source->dists
                 #:dist-source->dist)
