@@ -196,6 +196,7 @@
   (remove-old-checks)
   (create-cron-checks)
   (perform-checks)
+  (perform-lispworks-checks)
   (build-dists)
   
   (when index
@@ -212,8 +213,13 @@
     ;; Run every minute
     (cl-cron:make-cron-job 'perform-checks
                            :hash-key 'perform-checks)
+    ;; LispWorks checks will run less frequently, because
+    ;; their worker is not in production yet
+    (cl-cron:make-cron-job 'perform-lispworks-checks
+                           :hash-key 'perform-lispworks-checks
+                           :step-min 15)
 
-    ;; Evey hour remove old checks
+    ;; Every hour remove old checks
     (cl-cron:make-cron-job 'remove-old-checks
                            :hash-key 'remove-old-checks
                            :step-min 60)

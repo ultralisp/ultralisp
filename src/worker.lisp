@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/worker
+(uiop:define-package #:ultralisp/worker
   (:use #:cl)
   (:import-from #:defmain
                 #:defmain)
@@ -30,7 +30,8 @@
                 #:fmt)
   (:export
    #:process-jobs
-   #:start-outside-docker))
+   #:start-outside-docker
+   #:start-lispworks-worker))
 (in-package ultralisp/worker)
 
 
@@ -57,7 +58,7 @@
                          args))))))
 
 
-(defun process-jobs (&key one-task-only)
+(defun process-jobs (&key one-task-only gearman-server)
 
   (setf log4cl-extras/error:*args-filters*
         (list 'hide-job-args
@@ -66,7 +67,8 @@
   ;; May be we need to process a CL-GEARMAN::GEARMAN-CONNECTION-ERROR
   ;; here. This condition will be thrown in case, if gearman server is
   ;; unavailable.
-  (cl-gearman:with-worker (worker (get-gearman-server)) 
+  (cl-gearman:with-worker (worker (or gearman-server
+                                      (get-gearman-server))) 
     (cl-gearman:add-ability worker
                             (fmt "~A-task-with-commands"
                                  (string-downcase
@@ -81,7 +83,8 @@
     
     (cond
       (one-task-only (cl-gearman:work worker)
-                     (log:info "One job was processed, exiting."))
+                     (log:info "One job was processed, exiting.")
+                     (uiop:quit))
       (t (loop (cl-gearman:work worker))))))
 
 
@@ -93,17 +96,24 @@
                                   :short nil)
                  (one-task-only "If true, then worker will quit after the task processing."
                                 :flag t)
+                 (log-file "Path to a log file"
+                           :default "/app/logs/worker.log")
                  (debug "If true, then output will be verbose"
                         :flag t
-                        :env-var "DEBUG"))
+                        :env-var "DEBUG")
+                 (help "Show help and exit"
+                       :flag t))
+  (when help
+    (defmain:print-help)
+    (uiop:quit 0))
   
   (log4cl-extras/config:setup
-   `(:level ,(if debug
-                 :info
-                 :error)
-     :appenders ((daily :layout :json
-                        :name-format "/app/logs/worker.log"
-                        :backup-name-format "worker-%Y%m%d.log"))))
+    `(:level ,(if debug
+                  :info
+                  :error)
+      :appenders ((daily :layout :json
+                         :name-format ,log-file
+                         :backup-name-format "worker-%Y%m%d.log"))))
 
   ;; To make it possible to connect to a remote SLYNK server where ports are closed
   ;; with firewall.
@@ -114,7 +124,13 @@
                        :port slynk-port
                        :interface slynk-interface)
   
-  (log:info "Waiting for tasks")
+  (log:info "Waiting for tasks" one-task-only)
+  #+lispworks
+  (let ((ultralisp/rpc/command::*db-host-override* "localhost")
+        (ultralisp/rpc/command::*db-port-override* 25432))
+    (process-jobs :gearman-server "localhost:24730"
+                  :one-task-only one-task-only))
+  #-lispworks
   (process-jobs :one-task-only one-task-only))
 
 
@@ -130,3 +146,12 @@
   (function-cache:clear-cache-all-function-caches)
   
   (process-jobs))
+
+
+(defun start-lispworks-worker ()
+  (ultralisp/logging:setup-for-repl :level :debug 
+                                    :app "worker")
+  
+  (let ((ultralisp/rpc/command::*db-host-override* "localhost")
+        (ultralisp/rpc/command::*db-port-override* 25432))
+    (process-jobs :gearman-server "localhost:24730")))
