@@ -2,23 +2,54 @@
 (deny default)
 
 (allow process-exec (literal "/Users/art/projects/lisp/ultralisp/test-worker"))
+(allow process-exec (literal "/Users/art/projects/lisp/ultralisp/lw-worker"))
+(allow process-exec* (literal "/usr/bin/env"))
+(allow process-exec* (literal "/usr/bin/git"))
+(allow process-exec* (literal "/bin/rm"))
+(allow process-exec* (literal "/Library/Developer/CommandLineTools/usr/bin/git"))
+(allow process-exec* (literal "/Library/Developer/CommandLineTools/usr/libexec/git-core/git-remote-http"))
 
 (allow sysctl-read)
 (allow mach-lookup)
+(allow system-socket)
 (allow ipc-posix-shm-read-data)
 
+(allow network*)
+
+(allow process-fork)
+
+
+;; This file is used to provider user-defined probes to dtrace
+;; https://apple.stackexchange.com/questions/384593/apple-dtracehelper-file
+(allow file-write*
+       (literal "/dev/dtracehelper"))
+(allow file-ioctl
+       (literal "/dev/dtracehelper"))
+
+
+(allow file-ioctl
+       (literal "/dev/null"))
+
+;; Needed for git
+(allow file-ioctl
+       (literal "/dev/ttys010"))
 
 (allow file-write*
        (regex #"^/private/tmp/lwtemp_.*.dylib")
        (subpath "/Users/art/.cache/common-lisp/lw-7.1.2-macosx-x64")
        (subpath "/Users/art/Library/Logs/LispWorks")
-       (subpath "/private/tmp/foo.txt"))
+       (subpath "/private/tmp/foo.txt")
+       (subpath "/private/tmp/checker")
+       (subpath "/Users/art/projects/lisp/ultralisp/logs")
+       ;; Needed for git
+       (literal "/dev/null"))
 
 (allow file-read-data
        (regex #"^.*GlobalPreferences\.plist")
        (regex #"^.*GlobalPreferences\..*\.plist"))
 
 (allow file-read*
+       (subpath "/private/tmp/checker")
        (literal "/Applications")
        (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist")
        (literal "/System/Library/CoreServices/SystemAppearance.bundle")
@@ -54,10 +85,28 @@
        (subpath "/Users/art/quicklisp")
        (subpath "/private/tmp/foo.txt")
        (subpath "/private/var/db/timezone")
-       (subpath "/usr/lib"))
+       (subpath "/usr/lib")
+       (subpath "/usr/local")
+       ;; Needed for git
+       (subpath "/Library/Developer/CommandLineTools")
+       (subpath "/private/var/folders")
+       (literal "/System/Library/CoreServices/SystemVersion.plist")
+       (literal "/Users/art/.gitconfig")
+       (literal "/Users/art/.dotfiles/git/.gitconfig")
+       (literal "/Users/art/.gitconfig-local")
+       (literal "/private/etc/ssl/openssl.cnf")
+       (literal "/Users/art/.netrc")
+       (literal "/private/etc/ssl/cert.pem"))
 
 (allow file-read-metadata
        (literal "/")
+       (literal "/usr")
+       (literal "/usr/bin/env")
+       (literal "/usr/bin/git")
+       (literal "/bin/rm")
+       ;; needed for git
+       (literal "/private/var/db/xcode_select_link")
+       
        (literal "/System")
        (literal "/System/Library")
        (literal "/System/Volumes")
@@ -66,6 +115,7 @@
        (literal "/System/Volumes/Data/home")
        (literal "/Users")
        (literal "/Users/art")
+       (subpath "/Users/art/.config")
        (literal "/Users/art/.cache")
        (literal "/Users/art/.cache/common-lisp")
        (literal "/Users/art/.lispworks")
