@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.9.1 (2021-06-05)
+==================
+
+* A few fixes to run LispWorks worker on schedule.
+
 1.9.0 (2021-06-03)
 ==================
 
