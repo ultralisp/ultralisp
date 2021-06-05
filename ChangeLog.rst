@@ -2,6 +2,17 @@
  ChangeLog
 ===========
 
+1.9.1 (2021-06-05)
+==================
+
+* A few fixes to run LispWorks worker on schedule.
+
+1.9.0 (2021-06-03)
+==================
+
+* Added a way to create a Lispworks quicklisp distributions.
+  However checks are runned manually for now.
+
 1.8.4 (2021-03-21)
 ==================
 

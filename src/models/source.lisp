@@ -70,7 +70,8 @@
    #:enable-this-source-version
    #:params-to-string
    #:ignore-dirs
-   #:get-latest-version-by-id))
+   #:get-latest-version-by-id
+   #:get-latest-source))
 (in-package ultralisp/models/source)
 
 
@@ -312,6 +313,13 @@
                       :version version)))
 
 
+(defun get-latest-source (id)
+  (first
+   (mito:retrieve-dao 'source
+                      :id id
+                      :latest 1)))
+
+
 (defun make-release (source systems)
   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
   (let (release-info)
@@ -421,6 +429,7 @@
 
 
 (defun find-source-version (id version)
+  ;; TODO: replace with find-source
   (mito:find-dao 'source
                  :id id
                  :version version))

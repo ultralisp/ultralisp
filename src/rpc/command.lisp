@@ -75,6 +75,13 @@
      (values)))
 
 
+;; These two vars are used to run a Lispworks
+;; worker on a local machine and connecting to
+;; a prod database via ssh tunnels.
+(defvar *db-host-override* nil)
+(defvar *db-port-override* nil)
+
+
 (defun task-with-commands (db-host db-user db-pass db-name func-name &rest args)
   "A helper task to catch all commands executed by a worker."
   (let ((*catch-commands* t)
@@ -87,9 +94,12 @@
                             (when ultralisp/slynk:*connections*
                               (invoke-debugger condition)))))
       (with-log-unhandled ()
-        (with-connection (:host db-host
+        (with-connection (:host (or *db-host-override*
+                                    db-host)
                           :username db-user
                           :password db-pass
+                          :port (or *db-port-override*
+                                    5432)
                           :database-name db-name)
           (let ((result (apply func-name args)))
             (cons result *catched*)))))))

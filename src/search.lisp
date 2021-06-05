@@ -678,7 +678,8 @@ default values from the arglist."
                         (log:info "Sending task to index project ~A" project-name)
                         (with-timeout (*indexing-timeout*)
                           (submit-task
-                           'index-project project)))
+                           'index-project
+                           :args (list project))))
                        (t
                         (log:info "We don't need to reindex this project because shources not changed")
                         (reschedule-indexing project)))

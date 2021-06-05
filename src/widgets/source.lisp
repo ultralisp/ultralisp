@@ -25,7 +25,8 @@
   (:import-from #:weblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/dist
-                #:dist-name)
+                #:dist-name
+                #:find-dist)
   (:import-from #:ultralisp/models/dist-source
                 #:source->dists
                 #:dist-source->dist)
@@ -63,6 +64,10 @@
                 #:group-by)
   (:import-from #:ultralisp/models/asdf-system
                 #:asdf-systems-conflict)
+  (:import-from #:weblocks-ui/form
+                #:form-error-placeholder
+                #:field-error
+                #:error-placeholder)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -183,6 +188,20 @@
 ;; When results are saved, there is a common part of
 ;; distribution update and a custom part of fields update.
 
+
+(defun ensure-all-dists-have-same-lisp-implementation (dist-names)
+  (loop with implementations = nil
+        for name in dist-names
+        for dist = (find-dist name :raise-error nil)
+        when dist
+        do (pushnew (ultralisp/models/dist:lisp-implementation dist)
+                    implementations
+                    :test #'equal)
+        finally (when (> (length implementations) 1)
+                  (field-error "distributions"
+                               "Unable to add source to distributions with different lisp implementations"))))
+
+
 (defun save (widget args)
   (check-type widget edit-source-widget)
 
@@ -193,12 +212,13 @@
                                (parse-ignore-list it))
           for (name value) on args by #'cddr
           when (member name '(:distributions :distributions[]))
-            collect value into new-dist-names
+          collect value into new-dist-names
           finally
              (multiple-value-bind (user-name project-name)
                  (params-from-github url)
 
                (log:info "Saving" new-dist-names url branch)
+               (ensure-all-dists-have-same-lisp-implementation new-dist-names)
                
                ;; TODO: we need to refactor this part because for other
                ;; types of sources we'll need to process params differently:
@@ -413,11 +433,17 @@
                                                     now
                                                     processed-at)))
                                                 (error (ultralisp/models/check:get-error last-check))
-                                                (next-check-at (humanize-duration
-                                                                (local-time-duration:timestamp-difference
+                                                (time-to-next-check
+                                                  (local-time-duration:timestamp-difference
                                                                  (ultralisp/cron:get-time-of-the-next-check
                                                                   source)
-                                                                 now))))
+                                                                 now))
+                                                (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
+                                                                      0)
+                                                                   (fmt " Next check will be made in ~A."
+                                                                        (humanize-duration
+                                                                         time-to-next-check))
+                                                                   " Next check will be made very soon.")))
                                            (:span (fmt "Finished ~A ago. " duration))
                                            
                                            (when error
@@ -431,9 +457,7 @@
                                                (:a :data-open popup-id
                                                    "error"))
                                              (:span "."))
-                                           (:span
-                                            ("Next check will be made in ~A."
-                                             next-check-at))))
+                                           (:span next-check-at)))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
                                           (ultralisp/models/check:position-in-the-queue last-check))))))
@@ -475,11 +499,12 @@
          ;; (distributions (source-distributions source))
          (user (weblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
-         (all-dists (cons (ultralisp/models/dist:common-dist)
+         (all-dists (append (ultralisp/models/dist:public-dists)
                           user-dists))
-         (current-dists (remove-if-not
-                         #'enabled-p
-                         (source->dists source)))
+         ;; Previously we gathered only enabled dists, but this lead
+         ;; to a bug when you can't remove a source from the dist where
+         ;; it was disabled or where it is not checked yet.
+         (current-dists (source->dists source))
          (release-info (ultralisp/models/source:source-release-info source)))
     ;; Deleted sources should not be in the list
     ;; for rendering.
@@ -493,13 +518,14 @@
       (with-html
         (weblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
-                     (declare (ignorable args))
                      (handler-case (save widget args)
                        (asdf-systems-conflict (c)
                          (let ((message (fmt "~A" c)))
                            (setf (dist-conflicts widget)
                                  message)
-                           (weblocks/widget:update widget))))))
+                           (weblocks/widget:update widget)))))
+             :widget widget)
+          (form-error-placeholder)
           (:table :class "unstriped"
            (:thead
             (:tr (:th :class "label-column"
@@ -572,7 +598,8 @@
                                         (:label name)))
                       (when (dist-conflicts widget)
                         (:pre :class "error"
-                              (dist-conflicts widget))))))))))))
+                              (dist-conflicts widget)))
+                      (error-placeholder "distributions"))))))))))
 
 
 (defmethod weblocks/widget:render ((widget branch-select-widget))

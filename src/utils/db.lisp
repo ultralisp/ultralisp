@@ -37,10 +37,17 @@
    ;; `(VECTOR CHARACTER *)' type, returned by database.
    ;; here we'll convert them into `(SIMPLE-ARRAY CHARACTER (*))`
    ;; as https://sabracrolleton.github.io/json-review advices.
+   ;; 
    ;; Previously we've used (COERCE 'simple-base-string) here
    ;; but it fails to convert strings containing #\HORIZONTAL_ELLIPSIS
    ;; and probably some other symbols.
+   ;;
+   ;; Also, previously I tried to use (format nil "~A" text) here,
+   ;; but sometimes it produced a broken JSON :(
+   ;; Probably, because format produces:  (SIMPLE-BASE-STRING 22524)
+   ;; byt with-output-to-string produces: (SIMPLE-ARRAY CHARACTER (22524))
    ;; 
-   ;; Probabably we should switch from JONATHAN to JSOWN. I've checkedd
+   ;; Probabably we should switch from JONATHAN to JSOWN. I've checked
    ;; and it works without coercion.
-   (format nil "~A" text)))
+   (with-output-to-string (s)
+     (write-string text s))))

@@ -83,6 +83,10 @@
   (perform-pending-checks))
 
 
+(deftask perform-lispworks-checks ()
+  (perform-pending-checks :lisp-implementation :lispworks))
+
+
 (deftask remove-old-checks ()
   (mito:execute-sql "DELETE FROM public.check2 WHERE processed_at < now() - '180 day'::interval"))
 
@@ -146,12 +150,13 @@
 
    Good place for optimization :)"
   (loop with now = (now)
-        for source in (get-all-sources)
+        with all-sources = (get-all-sources)
+        for source in all-sources
         for time-for-check = (get-time-of-the-next-check source)
         when (local-time:timestamp< time-for-check
                                     now)
-        do (log:info "Creating cron check for" source)
-           (make-check source :via-cron)))
+          do (log:info "Creating cron check for" source)
+             (make-check source :via-cron)))
 
 
 (deftask index-projects ()
@@ -191,6 +196,7 @@
   (remove-old-checks)
   (create-cron-checks)
   (perform-checks)
+  (perform-lispworks-checks)
   (build-dists)
   
   (when index
@@ -207,8 +213,13 @@
     ;; Run every minute
     (cl-cron:make-cron-job 'perform-checks
                            :hash-key 'perform-checks)
+    ;; LispWorks checks will run less frequently, because
+    ;; their worker is not in production yet
+    (cl-cron:make-cron-job 'perform-lispworks-checks
+                           :hash-key 'perform-lispworks-checks
+                           :step-min 15)
 
-    ;; Evey hour remove old checks
+    ;; Every hour remove old checks
     (cl-cron:make-cron-job 'remove-old-checks
                            :hash-key 'remove-old-checks
                            :step-min 60)

@@ -529,14 +529,14 @@
 (defvar slynk:*use-dedicated-output-stream*)
 
 
-(defmain main ((dont-start-server "Don't start HTTP server."
-                                  :flag t)
-               (log-dir "A directory to store app.log."
-                        :default "/app/logs")
-               (debug "If true, then log will be include DEBUG and INFO nessages"
-                      :flag t
-                      :short nil
-                      :env-var "DEBUG"))
+(defmain (main) ((dont-start-server "Don't start HTTP server."
+                                    :flag t)
+                 (log-dir "A directory to store app.log."
+                          :default "/app/logs")
+                 (debug "If true, then log will be include DEBUG and INFO nessages"
+                        :flag t
+                        :short nil
+                        :env-var "DEBUG"))
 
   
   (ultralisp/logging:setup log-dir

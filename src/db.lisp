@@ -33,6 +33,7 @@
 
 
 (defun connect (&key host database-name username password
+                     (port 5432)
                      (cached t))
   (funcall (if cached
                'cl-dbi:connect-cached
@@ -40,6 +41,7 @@
            :postgres
            :host (or host
                      (get-postgres-host))
+           :port port
            :database-name (or database-name
                               (get-postgres-dbname))
            :username (or username

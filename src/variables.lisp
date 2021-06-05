@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/variables
+(uiop:define-package #:ultralisp/variables
   (:use #:cl)
   (:import-from #:function-cache
                 #:defcached)

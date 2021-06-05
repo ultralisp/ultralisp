@@ -33,20 +33,21 @@
 
 
 (defun setup-for-repl (&key
-                         (level :debug)
-                         (app "app"))
+                       (level :debug)
+                       (app "app")
+                       (log-dir "logs"))
   (setf log4cl-extras/error:*max-traceback-depth*
         *max-depth*)
+  (setf *log-dir* log-dir)
   
   (let ((filename (format nil "~A/~A.log"
-                          (or *log-dir*
-                              "/app/logs")
+                          log-dir
                           app))
         (backup-filename (format nil "~A-%Y%m%d.log"
                                  app)))
     (log4cl-extras/config:setup
-     `(:level ,level
-       :appenders ((this-console :layout :plain)
-                   (daily :layout :json
-                          :name-format ,filename
-                          :backup-name-format ,backup-filename))))))
+      `(:level ,level
+        :appenders ((this-console :layout :plain)
+                    (daily :layout :json
+                           :name-format ,filename
+                           :backup-name-format ,backup-filename))))))

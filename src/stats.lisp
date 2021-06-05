@@ -10,6 +10,7 @@
                 #:make-registry)
   (:import-from #:prometheus.formats.text
                 #:marshal)
+  #+sbcl
   (:import-from #:prometheus.sbcl
                 #:make-memory-collector
                 #:make-threads-collector)
