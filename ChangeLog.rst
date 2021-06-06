@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.9.2 (2021-06-06)
+==================
+
+* Fixed showing of ``on/off`` switches on the ``/github`` page.
+
 1.9.1 (2021-06-05)
 ==================
 
