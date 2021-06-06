@@ -423,7 +423,7 @@
                    (:= 'deleted
                        "false")
                    (:= 'type
-                       "GITHUB")
+                       "github")
                    (:in (:raw "params->>'USER-OR-ORG'")
                         usernames))))))
 

@@ -61,7 +61,8 @@
           "name": "Setup Common Lisp Environment",
           "uses": "40ants/setup-lisp@v1",
           "with": {
-            "asdf-system": "ultralisp"
+            "asdf-system": "ultralisp",
+            "asdf-version": "3.3.4.18"
           },
           "if": "steps.cache.outputs.cache-hit != 'true'"
         },
@@ -137,7 +138,8 @@
           "name": "Setup Common Lisp Environment",
           "uses": "40ants/setup-lisp@v1",
           "with": {
-            "asdf-system": "ultralisp"
+            "asdf-system": "ultralisp",
+            "asdf-version": "3.3.4.18"
           },
           "if": "steps.cache.outputs.cache-hit != 'true'"
         },

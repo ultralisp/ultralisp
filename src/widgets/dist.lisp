@@ -48,13 +48,19 @@
 (defun render-installation-instructions (dist)
   (let ((url (ultralisp/protocols/external-url:external-url dist)))
     (weblocks/html:with-html
-      (:h3 "How to use it?")
+      (when (string-equal (ultralisp/models/dist:dist-name dist)
+                          "lispworks")
+        (:p "This distribution contains extensions and libraries for LispWorks.")
+        (:p "These libraries are checked in LispWorks and may not work in other LISP implementations.")
+        (:p "WARNING! This distribution is experimental and may be updated with delays because of LW licensing issues."))
       
+      (:h3 "How to use it?")
       (:p "Open your Lisp REPL and eval:")
       (:pre (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)"
                     url))
       (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put this line into the beginning of your **qlfile**:"))
+
       (:pre (format nil "dist ultralisp ~A"
                     url)))))
 

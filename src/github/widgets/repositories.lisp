@@ -176,6 +176,16 @@
   (make-instance 'repositories))
 
 
+(defun get-ultralisp-names (repositories)
+  (loop for source in (get-sources-for-github-repositories repositories)
+        for params = (ultralisp/models/source:source-params source)
+        for dists = (ultralisp/models/dist-source:source->dists source :enabled t)
+        when dists
+        collect (format nil "~A/~A"
+                        (getf params :user-or-org)
+                        (getf params :project))))
+
+
 (defun create-repository-widgets (widget webhook-url)
   "Fetches all Common Lisp repositories from the github
    and creates a `repository' widget for each of them."
@@ -184,16 +194,10 @@
 
   (let* ((token (get-oauth-token widget))
          (repositories (get-lisp-repositories :token token))
-         (ultralisp-sources (get-sources-for-github-repositories repositories))
          ;; A list of repository names which are in Ultralisp already.
          ;; We need it to draw a switcher in a correct state.
-         (ultralisp-names (loop for source in ultralisp-sources
-                                for params = (ultralisp/models/source:source-params source)
-                                for dists = (ultralisp/models/dist-source:source->dists source :enabled t)
-                                when dists
-                                collect (format nil "~A/~A"
-                                                (getf params :user-or-org)
-                                                (getf params :project)))))
+         (ultralisp-names (get-ultralisp-names repositories)))
+
     (setf (slot-value widget 'repository-widgets)
           (loop for repo in repositories
                 for name = (getf repo :name)
