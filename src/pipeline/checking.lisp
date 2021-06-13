@@ -5,6 +5,8 @@
                 #:submit-task)
   (:import-from #:ultralisp/rpc/command
                 #:defcommand)
+  (:import-from #:rutils
+                #:fmt)
   (:import-from #:ultralisp/models/project
                 #:project-name
                 #:update-and-enable-project
@@ -83,9 +85,11 @@
 
 (defun perform-remotely (check &key (force nil force-p))
   "This function can be called manually to debug source checking."
-  (let ((perform-params (when force-p
-                          (list :force force)))
-        (lisp-implementation (ultralisp/models/check:lisp-implementation check)))
+  (let* ((perform-params (when force-p
+                           (list :force force)))
+         (lisp-implementation (ultralisp/models/check:lisp-implementation check))
+         (lock-name (fmt "prepare-pending-dists-~A"
+                         (string-downcase lisp-implementation))))
     (with-fields (:check-id (mito:object-id check)
                   :lisp-implementation lisp-implementation)
       (with-log-unhandled ()
@@ -96,7 +100,7 @@
         (with-connection (:cached nil)
           ;; This lock protects us from checking a version and binding
           ;; it to the pending dist which is currently preparing to build
-          (with-lock ("prepare-pending-dists")
+          (with-lock (lock-name)
             (with-fields (:source (ultralisp/models/source:params-to-string
                                    (ultralisp/models/check:check->source check)))
               (log:info "Submitting check to remote ~S worker"
@@ -116,25 +120,27 @@
    if some projects were updated."
   (log:info "Trying to acquire a lock performing-pending-checks-or-version-build from perform-pending-checks to run checks")
   
-  (with-lock ("performing-pending-checks-or-version-build")
-    (log:info "Lock acquired")
-    (let ((checks (pending-checks :lisp-implementation lisp-implementation)))
-      (log:info "I have ~A checks to process"
-                (length checks))
-      (flet ((perform (check)
-               (apply #'perform-remotely
-                      check
-                      (when force-given-p
-                        (list :force force)))))
-        (loop for check in checks
-              do (if slynk-api:*emacs-connection*
-                     (perform check)
-                     ;; For production we want ignore error in a check
-                     ;; to let other checks be processed:
-                     (ignore-errors
-                      (perform check)))))
-      (log:info "I'm done with checks")
-      (length checks))))
+  (let ((lock-name (fmt "performing-pending-checks-or-version-build-~A"
+                        (string-downcase lisp-implementation))))
+    (with-lock (lock-name)
+      (log:info "Lock acquired")
+      (let ((checks (pending-checks :lisp-implementation lisp-implementation)))
+        (log:info "I have ~A checks to process"
+                  (length checks))
+        (flet ((perform (check)
+                 (apply #'perform-remotely
+                        check
+                        (when force-given-p
+                          (list :force force)))))
+          (loop for check in checks
+                do (if slynk-api:*emacs-connection*
+                       (perform check)
+                       ;; For production we want ignore error in a check
+                       ;; to let other checks be processed:
+                       (ignore-errors
+                        (perform check)))))
+        (log:info "I'm done with checks")
+        (length checks)))))
 
 
 ;; TODO: remove
