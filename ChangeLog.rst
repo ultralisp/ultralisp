@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.9.3 (2021-06-13)
+==================
+
+* Fixed lock between SBCL and LispWorks workers.
+
 1.9.2 (2021-06-06)
 ==================
 
