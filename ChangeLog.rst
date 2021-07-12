@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.9.4 (2021-07-12)
+==================
+
+* Fixed the way how worker's fatal errors are handled.
+  Now if heap or memory was exhausted and worker crashed,
+  it will retry the check 3 times and then mark it as failed.
+
 1.9.3 (2021-06-13)
 ==================
 

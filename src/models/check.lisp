@@ -56,7 +56,6 @@
    #:get-check-by-id
    #:any-check
    #:get-processed-in
-   #:get-last-project-check
    #:get-pending-checks-count
    #:get-pending-checks-for-disabled-projects
    #:get-pending-checks-for-disabled-projects-count

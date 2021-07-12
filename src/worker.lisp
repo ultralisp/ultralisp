@@ -57,6 +57,21 @@
                  (mapcar #'replace-job-arg
                          args))))))
 
+(defun process-task-with-commands (arg job)
+  (declare (ignore job))
+  
+  (handler-bind ((error (lambda (c)
+                          (declare (ignore c))
+                          (let ((abort-job (find-restart 'cl-gearman:abort-job)))
+                            (when abort-job
+                              (invoke-restart abort-job))))))
+    (log4cl-extras/error:with-log-unhandled ()
+      (let ((args (deserialize arg)))
+        (log:info "Processing task" args)
+        (serialize
+         (apply #'task-with-commands
+                args))))))
+
 
 (defun process-jobs (&key one-task-only gearman-server)
 
@@ -73,13 +88,7 @@
                             (fmt "~A-task-with-commands"
                                  (string-downcase
                                   (lisp-implementation-type)))
-                            (lambda (arg job)
-                              (declare (ignore job))
-                              (let ((args (deserialize arg)))
-                                (log:info "Processing task" args)
-                                (serialize
-                                 (apply #'task-with-commands
-                                        args)))))
+                            'process-task-with-commands)
     
     (cond
       (one-task-only (cl-gearman:work worker)
