@@ -88,9 +88,17 @@
   "Establish a new connection and start transaction"
   (let ((is-cached (getf connect-options :cached t)))
     `(let* ((was-cached *was-cached*)
-            (mito:*connection* (funcall #'connect
-                                        ,@connect-options))
-            (*was-cached* ,is-cached))
+            (*was-cached* ,is-cached)
+            (mito:*connection*
+              ;; In cached mode we will reuse current connect.
+              ;; This way, nested WITH-CONNECTION calls will
+              ;; reuse the same connection and postgres savepoints.
+              (cond ((and *was-cached*
+                          mito:*connection*)
+                     mito:*connection*)
+                    (t
+                     (funcall #'connect
+                              ,@connect-options)))))
        (unwind-protect
             (with-transaction
               ,@body)
