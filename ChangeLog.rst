@@ -9,6 +9,11 @@
   Now if heap or memory was exhausted and worker crashed,
   it will retry the check 3 times and then mark it as failed.
 
+* Switched to the newer dependencies and Quickdist 0.16.4
+  where processing infinite reqursion and stack overflow
+  were fixed for
+  `lispbuilder-opengl-1-2 did <https://github.com/lispbuilder/lispbuilder/blob/b7df0f2f9bd46da5ff322427d4bc6e6eefbfa722/lispbuilder-opengl/lispbuilder-opengl-1-2.asd>`_ system.
+
 1.9.3 (2021-06-13)
 ==================
 

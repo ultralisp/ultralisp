@@ -1,6 +1,6 @@
 dist ultralisp http://dist.ultralisp.org/
 
-github quickdist ultralisp/quickdist :tag v0.16.2
+github quickdist ultralisp/quickdist :tag v0.16.4
 
 # Until this issue will be resolved:
 # https://github.com/ultralisp/ultralisp/issues/73
