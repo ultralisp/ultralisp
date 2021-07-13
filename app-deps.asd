@@ -133,7 +133,6 @@
   "named-readtables"
   "net.didierverna.clon.core"
   "net.didierverna.clon.setup"
-  "optima"
   "parenscript"
   "parse-declarations-1.0"
   "parse-number"

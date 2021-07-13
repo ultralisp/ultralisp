@@ -358,7 +358,7 @@
 
 (defun get-projects-with-sources ()
   "Returns projects with not deleted sources."
-  (mito.dao:select-by-sql 'project2
+  (mito.dao:select-by-sql (find-class 'project2)
                           "
     WITH projects_with_sources AS (
       SELECT distinct source.project_id

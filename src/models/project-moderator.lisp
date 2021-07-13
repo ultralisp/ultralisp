@@ -48,7 +48,7 @@
    to not overhelm them."
   (check-type user user)
   (mito.dao:select-by-sql
-   'project2
+   (find-class 'project2)
    "SELECT project2.* FROM project2
       JOIN project_moderator ON project2.id = project_moderator.project_id
      WHERE project_moderator.user_id = ?
@@ -80,7 +80,7 @@
 
 (defmethod moderators ((project project2))
   (mito.dao:select-by-sql
-   'user
+   (find-class 'user)
    "SELECT \"user\".* FROM \"user\"
       JOIN project_moderator ON \"user\".id = project_moderator.user_id
      WHERE project_moderator.project_id = ?

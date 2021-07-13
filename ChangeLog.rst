@@ -2,6 +2,25 @@
  ChangeLog
 ===========
 
+1.9.4 (2021-07-12)
+==================
+
+* Fixed the way how worker's fatal errors are handled.
+  Now if heap or memory was exhausted and worker crashed,
+  it will retry the check 3 times and then mark it as failed.
+
+* Switched to the newer dependencies and Quickdist 0.16.4
+  where processing infinite reqursion and stack overflow
+  were fixed for
+  `lispbuilder-opengl-1-2 did <https://github.com/lispbuilder/lispbuilder/blob/b7df0f2f9bd46da5ff322427d4bc6e6eefbfa722/lispbuilder-opengl/lispbuilder-opengl-1-2.asd>`_ system.
+
+* Fixed ``SELECT-BY-SQL`` calls, to work with latest (and broken Mito).
+  Here is the `pull-request <https://github.com/fukamachi/mito/pull/101>`_ where Mito was fixed.
+  After it will be merged, we can remove ``FIND-CLASS`` calls.
+
+* Now ``WITH-CONNECTION`` macro reuses existing connection for nested calls in cached mode.
+  This fixes tests broken after the Mito and other dependencies upgrade.
+
 1.9.3 (2021-06-13)
 ==================
 

@@ -166,7 +166,7 @@ SELECT *
                            (if enabled
                                "   AND enabled = true"
                                "   AND enabled = false"))))
-      (mito.dao:select-by-sql 'dist-source
+      (mito.dao:select-by-sql (find-class 'dist-source)
                               sql
                               :binds params)))
   
@@ -206,7 +206,7 @@ SELECT *
                    " LIMIT ?"))
         (setf params (append params
                              (list limit))))
-      (mito.dao:select-by-sql 'dist-source
+      (mito.dao:select-by-sql (find-class 'dist-source)
                               sql
                               :binds params))))
 

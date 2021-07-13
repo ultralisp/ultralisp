@@ -76,6 +76,8 @@
                 #:make-disable-reason)
   (:import-from #:ultralisp/utils/source
                 #:make-file-ignorer)
+  (:import-from #:ultralisp/utils/retries
+                #:with-tries)
   (:export
    #:perform-pending-checks
    #:perform
@@ -88,6 +90,7 @@
   (let* ((perform-params (when force-p
                            (list :force force)))
          (lisp-implementation (ultralisp/models/check:lisp-implementation check))
+         (started-at (get-internal-real-time))
          (lock-name (fmt "prepare-pending-dists-~A"
                          (string-downcase lisp-implementation))))
     (with-fields (:check-id (mito:object-id check)
@@ -105,11 +108,38 @@
                                    (ultralisp/models/check:check->source check)))
               (log:info "Submitting check to remote ~S worker"
                         lisp-implementation)
-              (funcall 'submit-task
-                       'perform2
-                       :lisp-implementation lisp-implementation
-                       :args (list* check
-                                    perform-params))
+              (restart-case
+                  (handler-bind
+                      ;; Usual errors will be processed inside the PERFORM2 function,
+                      ;; however, sometimes worker can crash hardly, and after 3
+                      ;; crashes it will raise error and propagate it to the Gearman
+                      ;; client. And here we'll catch it and mark check as failed.
+                      ;; Here we are using a separate DB connection because the current
+                      ;; one might be already closed.
+                      ((error (lambda (condition)
+                                (log:error "Marking check as failed because worker crashed hard" condition)
+                                (with-connection (:cached nil)
+                                  (update-check-as-failed2 check
+                                                           (get-traceback condition)
+                                                           (float (/ (- (get-internal-real-time)
+                                                                         started-at)
+                                                                     internal-time-units-per-second))))
+                                (unless (in-repl)
+                                  (return-from perform-remotely)))))
+                    (funcall 'submit-task
+                             'perform2
+                             :lisp-implementation lisp-implementation
+                             :args (list* check
+                                          perform-params)))
+                (mark-check-as-failed ()
+                  :report "Mark check as failed"
+                  (log:error "Marking check as failed because worker crashed hard and user selected restart \"Mark check as failed\"")
+                  (with-connection (:cached nil)
+                    (update-check-as-failed2 check
+                                             "Check marked as failed because user has selected the \"Mark check as failed\" restart."
+                                             (float (/ (- (get-internal-real-time)
+                                                           started-at)
+                                                       internal-time-units-per-second))))))
               (log:info "Worker returned from perform2")))))
       (values))))
 
@@ -348,73 +378,75 @@
   "Returns True if new changes were discovered during the check."
   (check-type check2 check2)
   
-  (let ((started-at (get-internal-real-time)))
-    (handler-bind ((error (lambda (condition)
-                            (update-check-as-failed2 check2
-                                                     (get-traceback condition)
-                                                     (float (/ (- (get-internal-real-time)
-                                                                   started-at)
-                                                               internal-time-units-per-second)))
-                            (if (in-repl)
-                                (invoke-debugger condition)
-                                (return-from perform2)))))
-      (let* ((tmp-dir "/tmp/checker")
-             (source (ultralisp/models/check:check->source check2))
-             (project (ultralisp/models/project:source->project source))
-             (downloaded (download source tmp-dir :latest t))
-             (path (downloaded-project-path downloaded)))
-       
-        (with-fields (:check-id (object-id check2)
-                      :source-id (object-id source)
-                      :source-version (object-version source)
-                      :project (ultralisp/models/project:project-name project))
-          (log:info "Running perform2 check-type: ~S, force: ~S, force-given-p: ~S"
-                    (ultralisp/models/check:get-type check2)
-                    force
-                    force-give-p)
-          (unwind-protect
-               (prog1 (cond
-                        ((not (latest-p source)) ;; we only want to process checks for latest sources
-                         (log:warn "Ignoring the check because it is attached to an old version of the source")
-                         (values nil))
-                        
-                        ((or (check-if-source-was-changed source downloaded)
-                             force)
-                         ;; We should run this perform function inside a worker
-                         ;; process which will be killed after the finishing the task.
-                         ;; That is why it is OK to change a *central-registry* here:
-                         (pushnew path asdf:*central-registry*)
-                         (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
-                                (systems (progn
-                                           (log:info "Collecting systems from ~A ignoring dirs ~A"
-                                                     path
-                                                     ignore-dirs)
-                                           (collect-systems path
-                                                            :ignore-filename-p
-                                                            (make-file-ignorer ignore-dirs)))))
+  (let ((check-id (object-id check2)))
+    (with-tries (check-id)
+      (let ((started-at (get-internal-real-time)))
+        (handler-bind ((error (lambda (condition)
+                                (update-check-as-failed2 check2
+                                                         (get-traceback condition)
+                                                         (float (/ (- (get-internal-real-time)
+                                                                       started-at)
+                                                                   internal-time-units-per-second)))
+                                (if (in-repl)
+                                    (invoke-debugger condition)
+                                    (return-from perform2)))))
+          (let* ((tmp-dir "/tmp/checker")
+                 (source (ultralisp/models/check:check->source check2))
+                 (project (ultralisp/models/project:source->project source))
+                 (downloaded (download source tmp-dir :latest t))
+                 (path (downloaded-project-path downloaded)))
+           
+            (with-fields (:check-id check-id
+                          :source-id (object-id source)
+                          :source-version (object-version source)
+                          :project (ultralisp/models/project:project-name project))
+              (log:info "Running perform2 check-type: ~S, force: ~S, force-given-p: ~S"
+                        (ultralisp/models/check:get-type check2)
+                        force
+                        force-give-p)
+              (unwind-protect
+                   (prog1 (cond
+                            ((not (latest-p source)) ;; we only want to process checks for latest sources
+                             (log:warn "Ignoring the check because it is attached to an old version of the source")
+                             (values nil))
                            
-                           (unless systems
-                             (error "No asd files were found!"))
-                           
-                           ;; Now we need to create another version of the source
-                           ;; with release info and bind it to a pending version
-                           (create-new-source-version source
-                                                      systems
-                                                      (downloaded-project-params downloaded)
-                                                      :enable t)
-                           
-                           (values t)))
-                        ;; When source wasn't changed, but probably
-                        ;; was disabled in some distss:
-                        (t
-                         (enable-this-source-version source)
-                         (values t)))
-                 (update-check-as-successful2 check2
-                                              (float (/ (- (get-internal-real-time)
-                                                            started-at)
-                                                        internal-time-units-per-second))))
-            ;; Here we need to make a clean up to not clutter the file system
-            (log:info "Deleting checked out" path)
-            (delete-directory-tree path
-                                   :validate t)))))))
+                            ((or (check-if-source-was-changed source downloaded)
+                                 force)
+                             ;; We should run this perform function inside a worker
+                             ;; process which will be killed after the finishing the task.
+                             ;; That is why it is OK to change a *central-registry* here:
+                             (pushnew path asdf:*central-registry*)
+                             (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
+                                    (systems (progn
+                                               (log:info "Collecting systems from ~A ignoring dirs ~A"
+                                                         path
+                                                         ignore-dirs)
+                                               (collect-systems path
+                                                                :ignore-filename-p
+                                                                (make-file-ignorer ignore-dirs)))))
+                              
+                               (unless systems
+                                 (error "No asd files were found!"))
+                              
+                               ;; Now we need to create another version of the source
+                               ;; with release info and bind it to a pending version
+                               (create-new-source-version source
+                                                          systems
+                                                          (downloaded-project-params downloaded)
+                                                          :enable t)
+                              
+                               (values t)))
+                            ;; When source wasn't changed, but probably
+                            ;; was disabled in some distss:
+                            (t
+                             (enable-this-source-version source)
+                             (values t)))
+                     (update-check-as-successful2 check2
+                                                  (float (/ (- (get-internal-real-time)
+                                                                started-at)
+                                                            internal-time-units-per-second))))
+                ;; Here we need to make a clean up to not clutter the file system
+                (log:info "Deleting checked out" path)
+                (delete-directory-tree path
+                                       :validate t)))))))))
 
