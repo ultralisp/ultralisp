@@ -151,7 +151,7 @@
 
 (defun get-projects-to-index (&key (limit 10))
   "Returns a list of projects to update a search index."
-  (mito.dao:select-by-sql 'project2
+  (mito.dao:select-by-sql (find-class 'project2)
                           "
 WITH projects_with_sources AS (
   SELECT distinct source.project_id

@@ -40,7 +40,7 @@
    to not overhelm them."
   (check-type user weblocks-auth/models:user)
   (mito.dao:select-by-sql
-   'dist
+   (find-class 'dist)
    "SELECT dist.* FROM dist
       JOIN dist_moderator ON dist.id = dist_moderator.dist_id
      WHERE dist_moderator.user_id = ?
