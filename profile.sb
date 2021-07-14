@@ -96,7 +96,8 @@
        (literal "/Users/art/.gitconfig-local")
        (literal "/private/etc/ssl/openssl.cnf")
        (literal "/Users/art/.netrc")
-       (literal "/private/etc/ssl/cert.pem"))
+       (literal "/private/etc/ssl/cert.pem")
+       (subpath "/Users/art/projects/lisp/ultralisp/logs"))
 
 (allow file-read-metadata
        (literal "/")
