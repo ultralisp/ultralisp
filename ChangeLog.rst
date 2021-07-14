@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.9.5 (2021-07-14)
+==================
+
+* Fixed the issue when we logged PG password in case of any error during connection.
+
 1.9.4 (2021-07-12)
 ==================
 

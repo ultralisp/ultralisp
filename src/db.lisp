@@ -32,23 +32,38 @@
 (in-package ultralisp/db)
 
 
-(defun connect (&key host database-name username password
-                     (port 5432)
-                     (cached t))
+(declaim (notinline inner-connect))
+
+(defun inner-connect (&key host database-name username password
+                           (port 5432)
+                           (cached t))
+  "This function is used to leave a trace in the backtrace and let
+   logger know which arguments are secret."
+  
   (funcall (if cached
                'cl-dbi:connect-cached
                'cl-dbi:connect)
            :postgres
-           :host (or host
-                     (get-postgres-host))
+           :host host
            :port port
-           :database-name (or database-name
-                              (get-postgres-dbname))
-           :username (or username
-                         (get-postgres-user))
-           :password (ensure-value-revealed
-                      (or password
-                          (get-postgres-pass)))))
+           :database-name database-name
+           :username username
+           :password (ensure-value-revealed password)))
+
+
+(defun connect (&key host database-name username password
+                     (port 5432)
+                     (cached t))
+  (inner-connect :host (or host
+                           (get-postgres-host))
+                 :port port
+                 :database-name (or database-name
+                                    (get-postgres-dbname))
+                 :username (or username
+                               (get-postgres-user))
+                 :password (or password
+                               (get-postgres-pass))
+                 :cached cached))
 
 
 (defun connect-toplevel ()
