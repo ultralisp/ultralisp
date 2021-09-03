@@ -23,7 +23,8 @@
   
   (log:info "Downloading" source)
   
-  (let ((downloader (make-downloader (source-type source))))
+  (let ((dir (uiop:ensure-directory-pathname dir))
+        (downloader (make-downloader (source-type source))))
     (multiple-value-bind (path params)
         (apply downloader
                dir

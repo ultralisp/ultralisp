@@ -233,7 +233,7 @@
                                             :dists new-dist-names
                                             :params params-update)
                      (when was-cloned-p
-                       (log:error "A new source version was created: " new-source)
+                       (log:info "A new source version was created: " new-source)
                        (setf (source parent)
                              new-source)))))))
     (switch-to-readonly widget)))

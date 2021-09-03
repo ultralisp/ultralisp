@@ -159,6 +159,57 @@
              (make-check source :via-cron)))
 
 
+(defun get-check-times (&optional (filename "/tmp/timestamps"))
+  (with-connection ()
+    (alexandria:with-output-to-file (s filename)
+      (loop with now = (now)
+            with all-sources = (get-all-sources)
+            for source in all-sources
+            for time-for-check = (get-time-of-the-next-check source)
+            when (local-time:timestamp> time-for-check
+                                        now)
+            do (format s "~A~%" time-for-check)))))
+
+
+(defun save-updated (obj)
+  (let ((primary-key (mito.class:table-primary-key (class-of obj))))
+    (unless primary-key
+      (error 'no-primary-keys :table (mito.class:table-name (class-of obj))))
+
+    (mito:execute-sql
+     (sxql:update (sxql:make-sql-symbol (mito.class:table-name (class-of obj)))
+       (mito.dao::make-set-clause obj)
+       (sxql:where
+        `(:and ,@(mapcar (lambda (key)
+                           `(:= ,(mito.util:unlispify key) ,(slot-value obj key)))
+                         primary-key)))))))
+
+(defun normalize-check-times ()
+  "Resets checked-at fields for all sources, to make them evenly distributed along the week.
+
+   This should make project checking less stressful for Ultralisp."
+  (with-connection ()
+    (loop with now = (now)
+          with start-from = (ultralisp/utils:time-in-past :day 7)
+          with current-ts = start-from
+          with all-sources = (get-all-sources)
+          with step = (let ((d (local-time-duration:duration/
+                                (local-time-duration:timestamp-difference now start-from)
+                                (length all-sources))))
+                        (local-time-duration:duration
+                         :sec (local-time-duration:duration-as d :sec)))
+          for source in all-sources
+          for last-check = (get-last-source-check source)
+          when last-check
+          do (break)
+             (setf (object-updated-at last-check)
+                   current-ts)
+             (setf current-ts
+                   (local-time-duration:timestamp-duration+ current-ts
+                                                            step))
+             (save-updated last-check))))
+
+
 (deftask index-projects ()
   (log:info "Trying to index projects")
   (with-lock ("indexing-projects")
@@ -189,14 +240,18 @@
         do (cl-cron:delete-cron-job key)))
 
 
-(defun simulate-cron (&key (index t))
+(defun simulate-cron (&key (index t)
+                           (create-checks t)
+                           (lispworks t))
   "When cron is disabled, you can use this function in the REPL
    to do everything for complete Ultralisp update cycle."
 
   (remove-old-checks)
-  (create-cron-checks)
+  (when create-checks
+    (create-cron-checks))
   (perform-checks)
-  (perform-lispworks-checks)
+  (when lispworks
+    (perform-lispworks-checks))
   (build-dists)
   
   (when index

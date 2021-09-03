@@ -212,51 +212,51 @@
 
 
 ;; TODO: remove
-(defcommand make-release (project systems)
-  "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
-  (ultralisp/utils:with-tmp-directory (path)
-    (unwind-protect
-         (let* ((system-files (get-system-files systems))
-                (downloaded (download project path :latest t))
-                (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
-                                                   :ensure-directories-exist t))
-                (_ (remove-vcs-files downloaded))
-                (project-name (get-name project))
-                (dist-name (get-dist-name))
-                (archive-url (format nil "~A/~A/archive/~A"
-                                     (remove-last-slash (get-base-url))
-                                     dist-name
-                                     (first-letter-of project-name)))
-                (release-info (quickdist:make-archive (downloaded-project-path downloaded)
-                                                      (cl-strings:replace-all project-name
-                                                                              "/"
-                                                                              "-")
-                                                      system-files
-                                                      archive-dir
-                                                      archive-url))
-                (archive-path (get-archive-path release-info))
-                (archive-destination (format nil "/~A/archive/~A/"
-                                             dist-name
-                                             (first-letter-of project-name))))
-           (declare (ignorable _))
+;; (defcommand make-release (project systems)
+;;   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
+;;   (ultralisp/utils:with-tmp-directory (path)
+;;     (unwind-protect
+;;          (let* ((system-files (get-system-files systems))
+;;                 (downloaded (download project path :latest t))
+;;                 (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
+;;                                                    :ensure-directories-exist t))
+;;                 (_ (remove-vcs-files downloaded))
+;;                 (project-name (get-name project))
+;;                 (dist-name (get-dist-name))
+;;                 (archive-url (format nil "~A/~A/archive/~A"
+;;                                      (remove-last-slash (get-base-url))
+;;                                      dist-name
+;;                                      (first-letter-of project-name)))
+;;                 (release-info (quickdist:make-archive (downloaded-project-path downloaded)
+;;                                                       (cl-strings:replace-all project-name
+;;                                                                               "/"
+;;                                                                               "-")
+;;                                                       system-files
+;;                                                       archive-dir
+;;                                                       archive-url))
+;;                 (archive-path (get-archive-path release-info))
+;;                 (archive-destination (format nil "/~A/archive/~A/"
+;;                                              dist-name
+;;                                              (first-letter-of project-name))))
+;;            (declare (ignorable _))
 
-           (upload archive-path
-                   archive-destination)
-           (save-release-info project release-info)
-           path)
-      (delete-directory-tree path
-                             :validate t))))
+;;            (upload archive-path
+;;                    archive-destination)
+;;            (save-release-info project release-info)
+;;            path)
+;;       (delete-directory-tree path
+;;                              :validate t))))
 
 ;; TODO: remove
-(defcommand update-check-as-successful (check processed-in)
-  (log:info "Updating check as successful" check)
+;; (defcommand update-check-as-successful (check processed-in)
+;;   (log:info "Updating check as successful" check)
 
-  (increment-counter :checks-processed)
+;;   (increment-counter :checks-processed)
 
-  (setf (get-error check) nil
-        (get-processed-at check) (local-time:now)
-        (get-processed-in check) processed-in)
-  (save-dao check))
+;;   (setf (get-error check) nil
+;;         (get-processed-at check) (local-time:now)
+;;         (get-processed-in check) processed-in)
+;;   (save-dao check))
 
 
 (defcommand update-check-as-successful2 (check processed-in)
@@ -325,51 +325,51 @@
 
 
 ;; TODO: remove
-(defun perform (check &key (force (eql (ultralisp/models/check:get-type check)
-                                       :added-project)))
-  (let ((started-at (get-internal-real-time)))
-    (handler-bind ((error (lambda (condition)
-                            (update-check-as-failed check
-                                                    (get-traceback condition)
-                                                    (float (/ (- (get-internal-real-time)
-                                                                  started-at)
-                                                              internal-time-units-per-second)))
-                            (if (in-repl)
-                                (invoke-debugger condition)
-                                (return-from perform)))))
-      (let* ((tmp-dir "/tmp/checker")
-             (project (get-project check))
-             (downloaded (download project tmp-dir :latest t))
-             (path (downloaded-project-path downloaded)))
+;; (defun perform (check &key (force (eql (ultralisp/models/check:get-type check)
+;;                                        :added-project)))
+;;   (let ((started-at (get-internal-real-time)))
+;;     (handler-bind ((error (lambda (condition)
+;;                             (update-check-as-failed check
+;;                                                     (get-traceback condition)
+;;                                                     (float (/ (- (get-internal-real-time)
+;;                                                                   started-at)
+;;                                                               internal-time-units-per-second)))
+;;                             (if (in-repl)
+;;                                 (invoke-debugger condition)
+;;                                 (return-from perform)))))
+;;       (let* ((tmp-dir "/tmp/checker")
+;;              (project (get-project check))
+;;              (downloaded (download project tmp-dir :latest t))
+;;              (path (downloaded-project-path downloaded)))
        
-        (with-fields (:check-id (mito:object-id check)
-                      :project (ultralisp/models/project:get-name project))
-          (unwind-protect
-               (prog1 (when (or (check-if-project-was-changed project downloaded)
-                                force)
-                        ;; We should run this perform function inside a worker
-                        ;; process which will be killed after the finishing the task.
-                        ;; That is why it is OK to change a *central-registry* here:
-                        (pushnew path asdf:*central-registry*)
-                        (let* ((systems (collect-systems path)))
+;;         (with-fields (:check-id (mito:object-id check)
+;;                       :project (ultralisp/models/project:get-name project))
+;;           (unwind-protect
+;;                (prog1 (when (or (check-if-project-was-changed project downloaded)
+;;                                 force)
+;;                         ;; We should run this perform function inside a worker
+;;                         ;; process which will be killed after the finishing the task.
+;;                         ;; That is why it is OK to change a *central-registry* here:
+;;                         (pushnew path asdf:*central-registry*)
+;;                         (let* ((systems (collect-systems path)))
 
-                          (unless systems
-                            (error "No asd files were found!"))
+;;                           (unless systems
+;;                             (error "No asd files were found!"))
 
-                          (save-project-systems project systems)
-                          (make-release project systems)
-                          (update-and-enable-project project
-                                                     (downloaded-project-params downloaded)
-                                                     :force force)
-                          (values t)))
-                 (update-check-as-successful check
-                                             (float (/ (- (get-internal-real-time)
-                                                           started-at)
-                                                       internal-time-units-per-second))))
-            ;; Here we need to make a clean up to not clutter the file system
-            (log:info "Deleting checked out" path)
-            (delete-directory-tree path
-                                   :validate t)))))))
+;;                           (save-project-systems project systems)
+;;                           (make-release project systems)
+;;                           (update-and-enable-project project
+;;                                                      (downloaded-project-params downloaded)
+;;                                                      :force force)
+;;                           (values t)))
+;;                  (update-check-as-successful check
+;;                                              (float (/ (- (get-internal-real-time)
+;;                                                            started-at)
+;;                                                        internal-time-units-per-second))))
+;;             ;; Here we need to make a clean up to not clutter the file system
+;;             (log:info "Deleting checked out" path)
+;;             (delete-directory-tree path
+;;                                    :validate t)))))))
 
 
 (defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)
@@ -390,10 +390,21 @@
                                 (if (in-repl)
                                     (invoke-debugger condition)
                                     (return-from perform2)))))
-          (let* ((tmp-dir "/tmp/checker")
+          (let* ((tmp-dir #P"/tmp/checker/")
                  (source (ultralisp/models/check:check->source check2))
                  (project (ultralisp/models/project:source->project source))
-                 (downloaded (download source tmp-dir :latest t))
+                 ;; We need to download source into the folder
+                 ;; having the same name as a project, because
+                 ;; it will be the same in the releases metadata of the dist.
+                 ;; Otherwise issues like https://github.com/ultralisp/ultralisp/issues/140
+                 ;; might occure after the project move from one GitHub user to another.
+                 (subdir (str:replace-all "/" "-"
+                                          (project-name project)))
+                 (downloaded (download source
+                                       (uiop:merge-pathnames*
+                                        subdir
+                                        tmp-dir)
+                                       :latest t))
                  (path (downloaded-project-path downloaded)))
            
             (with-fields (:check-id check-id

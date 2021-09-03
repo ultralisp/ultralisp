@@ -19,8 +19,13 @@
                "ultralisp-test/pipeline"
                "ultralisp-test/db")
   :perform (test-op (op c)
-                    (symbol-call :log :config
-                                 :sane2 :warn)
+                    ;; This code changes log level when
+                    ;; Ultralisp checks it's own code
+                    ;; we need to learn how to make these changes
+                    ;; and redo them on exit from the rove:run
+                    ;; 
+                    ;; (symbol-call :log :config
+                    ;;              :sane2 :warn)
                     (if (symbol-call :rove :run c)
                         (format t "Tests are OK~%")
                         (error "Tests failed"))))
