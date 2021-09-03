@@ -240,14 +240,18 @@
         do (cl-cron:delete-cron-job key)))
 
 
-(defun simulate-cron (&key (index t))
+(defun simulate-cron (&key (index t)
+                           (create-checks t)
+                           (lispworks t))
   "When cron is disabled, you can use this function in the REPL
    to do everything for complete Ultralisp update cycle."
 
   (remove-old-checks)
-  (create-cron-checks)
+  (when create-checks
+    (create-cron-checks))
   (perform-checks)
-  (perform-lispworks-checks)
+  (when lispworks
+    (perform-lispworks-checks))
   (build-dists)
   
   (when index

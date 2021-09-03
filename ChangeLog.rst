@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+1.9.6 (2021-09-03)
+==================
+
+Fixed a bug which lead to a broken dist version if
+some project's source has moved from one GitHub user to another.
+
+This closes issue https://github.com/ultralisp/ultralisp/issues/140
+
 1.9.5 (2021-07-14)
 ==================
 

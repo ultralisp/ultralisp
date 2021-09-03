@@ -53,7 +53,7 @@
 
 
 (defmethod make-downloader ((source (eql :github)))
-  (lambda (base-dir &key user-or-org project last-seen-commit latest branch &allow-other-keys)
+  (lambda (dir &key user-or-org project last-seen-commit latest branch &allow-other-keys)
     (with-fields (:user user-or-org
                   :project project
                   :branch branch
@@ -64,10 +64,6 @@
       (let* ((url (format nil "https://github.com/~A/~A.git"
                           user-or-org
                           project))
-             (dir (ensure-directory-pathname
-                   (merge-pathnames (format nil "~A-~A" user-or-org
-                                            project)
-                                    (ensure-directory-pathname base-dir))))
              (repo (git-clone-or-update url
                                         dir
                                         :branch branch
