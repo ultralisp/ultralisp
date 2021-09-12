@@ -20,8 +20,8 @@
   :version "ql-2021-08-07"))
 ("slynk-named-readtables" .
  (:class qlot/source/github:source-github
-  :initargs (:repos "joaotavora/sly-named-readtables" :ref nil :branch nil :tag nil)
-  :version "github-ab9cff202f4c659d9f26560718b776cb"))
+  :initargs (:repos "joaotavora/sly-named-readtables" :ref "a5a42674ccffa97ccd5e4e9742beaf3ea719931f" :branch nil :tag nil)
+  :version "github-7a9a9020f0d22c360805266c9e879cb0"))
 ("slynk" .
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/sly" :ref nil :branch "patches" :tag nil)
