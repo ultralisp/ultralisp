@@ -15,7 +15,6 @@ ql cl-str :latest
 # This branch is what I use in my Emacs.
 github slynk svetlyak40wt/sly :branch patches
 
-
 # Here I've fixed error and timeout processing:
 github cl-gearman svetlyak40wt/cl-gearman :branch patches
 
