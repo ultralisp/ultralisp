@@ -495,9 +495,9 @@ default values from the arglist."
        (handler-bind ((simple-error
                         (lambda (c)
                           (let ((message (simple-condition-format-control c)))
-                            (when (cl-strings:starts-with
-                                   message
-                                   "Dependency looping")
+                            (when (str:starts-with-p
+                                   "Dependency looping"
+                                   message)
                               (abort-if-possible c))
                             (when (search "overwriting old FUN-INFO" message)
                               (continue-if-possible c)))))

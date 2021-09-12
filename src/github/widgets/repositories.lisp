@@ -48,6 +48,7 @@
                 #:add-retpath-to)
   (:import-from #:ultralisp/models/source
                 #:get-github-sources)
+  (:import-from #:str)
   (:export
    #:make-repositories-widget
    #:repositories))
@@ -71,7 +72,7 @@
   (unless token
     (error "I need a token to access github API. Seems somewhere is a logical error."))
   
-  (let* ((url (if (cl-strings:starts-with url "https://")
+  (let* ((url (if (str:starts-with-p "https://" url)
                   url
                   (format nil "https://api.github.com~A" url)))
          (headers `(("Authorization" . ,#?"token ${token}")))
@@ -124,7 +125,7 @@
   (let (usernames)
     (loop for repo in repositories
           for name = (getf repo :name)
-          for username = (first (cl-strings:split name "/"))
+          for username = (first (str:split "/" name))
           do (pushnew username usernames :test #'string-equal)
           finally (return (get-github-sources usernames)))))
 

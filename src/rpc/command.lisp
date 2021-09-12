@@ -2,8 +2,7 @@
   (:use #:cl)
   (:import-from #:serapeum)
   (:import-from #:ultralisp/slynk)
-  (:import-from #:cl-strings
-                #:starts-with)
+  (:import-from #:str)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
@@ -36,7 +35,7 @@
              (cond
                ((string-equal (symbol-name item) "&key")
                 (setf key-mode t))
-               ((starts-with (symbol-name item) "&")
+               ((str:starts-with-p "&" (symbol-name item))
                 (error "Special symbols like \"~A\" aren't supported yet." item))
                (key-mode (uiop:appendf result
                                        (list (alexandria:make-keyword item)

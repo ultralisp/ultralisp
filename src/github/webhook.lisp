@@ -17,8 +17,7 @@
   (:import-from #:ultralisp/metadata
                 #:get-urn
                 #:read-metadata)
-  (:import-from #:cl-strings
-                #:split)
+  (:import-from #:str)
   (:import-from #:ultralisp/models/project
                 #:get-project2
                 #:get-github-project
@@ -79,7 +78,7 @@
   (let ((ref (-> github-payload
                  (assoc-value "ref" :test 'string-equal))))
     (when ref
-      (last-elt (split ref "/")))))
+      (last-elt (str:split "/" ref)))))
 
 
 (defun find-project-related-to (payload)

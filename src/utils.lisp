@@ -10,9 +10,7 @@
                 #:ensure-pathname)
   (:import-from #:uuid
                 #:make-v4-uuid)
-  (:import-from #:cl-strings
-                #:starts-with
-                #:split)
+  (:import-from #:str)
   (:import-from #:local-time
                 #:timestamp-to-universal)
   (:import-from #:metatilities
@@ -194,7 +192,7 @@
 
 (defun starts-with-slash-p (s)
   (check-type s string)
-  (starts-with s "/"))
+  (str:starts-with-p "/" s))
 
 
 (defun get-traceback (condition)

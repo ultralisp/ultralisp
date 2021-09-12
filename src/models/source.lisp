@@ -46,6 +46,7 @@
                 #:inflate-keyword)
   (:import-from #:rutils
                 #:awhen)
+  (:import-from #:str)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -323,15 +324,18 @@
 (defun make-release (source systems)
   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
   (let (release-info)
-    (ultralisp/utils:with-tmp-directory (path)
+    (ultralisp/utils:with-tmp-directory (tmp-dir)
       (unwind-protect
            (let* ((system-files (get-system-files systems))
-                  (downloaded (download source path :latest t))
-                  (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" path)
-                                                     :ensure-directories-exist t))
-                  (_ (remove-vcs-files downloaded))
                   (project (uiop:symbol-call :ultralisp/models/project :source->project source))
                   (project-name (uiop:symbol-call :ultralisp/models/project :project-name project))
+                  (full-project-name (str:replace-all "/" "-"
+                                                      project-name))
+                  (target-path (uiop:merge-pathnames* full-project-name tmp-dir))
+                  (downloaded (download source target-path :latest t))
+                  (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" tmp-dir)
+                                                     :ensure-directories-exist t))
+                  (_ (remove-vcs-files downloaded))
                   (source-id (mito:object-id source))
                   (archive-url (format nil "~A/archive/~A"
                                        (remove-last-slash (ultralisp/variables:get-base-url))
@@ -341,16 +345,14 @@
              (declare (ignorable _))
              (setf release-info
                    (quickdist:make-archive (downloaded-project-path downloaded)
-                                           (cl-strings:replace-all project-name
-                                                                   "/"
-                                                                   "-")
+                                           full-project-name
                                            system-files
                                            archive-dir
                                            archive-url))
              (let ((archive-path (get-archive-path release-info)))
                (upload archive-path
                        archive-destination)))
-        (uiop:delete-directory-tree path
+        (uiop:delete-directory-tree tmp-dir
                                     :validate t)))
     release-info))
 

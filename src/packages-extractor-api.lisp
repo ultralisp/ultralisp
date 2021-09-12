@@ -1,7 +1,6 @@
 (defpackage #:ultralisp/packages-extractor-api
   (:use #:cl)
-  (:import-from #:cl-strings
-                #:split)
+  (:import-from #:str)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:log4cl-extras/context
@@ -28,7 +27,7 @@
   (with-input-from-string (s text)
     (loop for line = (read-line s nil nil)
           while line
-          for parsed = (split line)
+          for parsed = (str:split " " line)
           for system-name = (first parsed)
           for packages = (rest parsed)
           unless (string= system-name "")

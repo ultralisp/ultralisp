@@ -16,8 +16,7 @@
                 #:defcached)
   (:import-from #:arrows
                 #:->)
-  (:import-from #:cl-strings
-                #:split)
+  (:import-from #:str)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:ultralisp/models/versioned
@@ -439,7 +438,7 @@
 (defun add-or-turn-on-github-project (name &key (moderator (get-current-user)))
   "Creates or updates a record in database adding current user to moderators list."
   (destructuring-bind (user-or-org project-name . rest)
-      (cl-strings:split name "/")
+      (str:split "/" name)
     (declare (ignorable rest))
     
     (ultralisp/db:with-transaction
@@ -489,7 +488,7 @@
 (defun turn-off-github-project (name)
   "Creates or updates a record in database adding current user to moderators list."
   (destructuring-bind (user-or-org project . rest)
-      (cl-strings:split name "/")
+      (str:split "/" name)
     (declare (ignorable rest))
     
     (let ((project (get-github-project user-or-org project)))
@@ -516,7 +515,7 @@
     (with-transaction
       (loop for item in metadata
             for urn = (ultralisp/metadata:get-urn item)
-            for splitted = (split urn "/")
+            for splitted = (str:split "/" urn)
             for user = (first splitted)
             for project = (second splitted)
             do (make-github-project user project)))))
