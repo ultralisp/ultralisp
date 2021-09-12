@@ -50,10 +50,7 @@
                 #:download
                 #:downloaded-project-params
                 #:downloaded-project)
-  (:import-from #:quickdist
-                #:get-project-name
-                #:get-archive-path
-                #:get-system-files)
+  (:import-from #:quickdist)
   (:import-from #:ultralisp/uploader/base
                 #:upload)
   (:import-from #:uiop
@@ -182,13 +179,6 @@
                       downloaded-params)))
 
 
-(defcommand save-release-info (project release-info)
-  (log:info "Saving release info for" project)
-  (setf (get-release-info project)
-        release-info)
-  (save-dao project))
-
-
 (defun collect-systems (path &key (ignore-filename-p (constantly nil)))
   (quickdist:make-systems-info path
                                :ignore-filename-p ignore-filename-p))
@@ -268,10 +258,7 @@
                  ;; might occure after the project move from one GitHub user to another.
                  (subdir (str:replace-all "/" "-"
                                           (project-name project)))
-                 ;; Here we are making nested dirs with the same name <subdir>/<subdir>
-                 ;; to make the final tar.gz archive have <subdir> in it's name
-                 (target-path (uiop:merge-pathnames* subdir
-                                                     (uiop:merge-pathnames* subdir tmp-dir)))
+                 (target-path (uiop:merge-pathnames* subdir tmp-dir))
                  (downloaded (download source
                                        target-path
                                        :latest t))
