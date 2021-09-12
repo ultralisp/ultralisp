@@ -46,6 +46,7 @@
                 #:inflate-keyword)
   (:import-from #:rutils
                 #:awhen)
+  (:import-from #:str)
   (:export
    #:source-systems-info
    #:source-release-info
