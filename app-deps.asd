@@ -50,7 +50,6 @@
   "cl-ppcre-unicode"
   "cl-reexport"
   "cl-store"
-  "cl-strings"
   "cl-syntax"
   "cl-syntax-annot"
   "cl-unicode"

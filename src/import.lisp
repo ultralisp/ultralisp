@@ -9,6 +9,7 @@
                 #:make-github-project-from-url)
   (:import-from #:weblocks-auth/models
                 #:get-user-by-email)
+  (:import-from #:str)
   (:export
    #:main
    #:import-quicklisp))
@@ -20,7 +21,7 @@
 
 
 (defun parse-line (s)
-  (let ((splitted (cl-strings:split s #\Space)))
+  (let ((splitted (str:split " " s)))
     (list :source (alexandria:make-keyword (string-upcase (first splitted)))
           :url (second splitted))))
 
@@ -42,7 +43,7 @@
 
 (defun parse (filename)
   (let* ((content (alexandria:read-file-into-string filename))
-         (lines (cl-strings:split content #\Newline))
+         (lines (str:split " " content))
          (lines (remove-if #'empty-string-p lines)))
     ;; (when (> (length lines)
     ;;          1)
