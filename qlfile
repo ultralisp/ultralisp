@@ -9,18 +9,11 @@ github quickdist ultralisp/quickdist :tag v0.16.4
 # automatically:
 ql cl-str :latest
 
-# Until https://github.com/ultralisp/ultralisp/issues/117 will be resolved
-ql ironclad :latest
-
-# github slynk joaotavora/sly
-github slynk-named-readtables joaotavora/sly-named-readtables
-
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
 
 # This branch is what I use in my Emacs.
 github slynk svetlyak40wt/sly :branch patches
-
 
 # Here I've fixed error and timeout processing:
 github cl-gearman svetlyak40wt/cl-gearman :branch patches
