@@ -268,10 +268,12 @@
                  ;; might occure after the project move from one GitHub user to another.
                  (subdir (str:replace-all "/" "-"
                                           (project-name project)))
+                 ;; Here we are making nested dirs with the same name <subdir>/<subdir>
+                 ;; to make the final tar.gz archive have <subdir> in it's name
+                 (target-path (uiop:merge-pathnames* subdir
+                                                     (uiop:merge-pathnames* subdir tmp-dir)))
                  (downloaded (download source
-                                       (uiop:merge-pathnames*
-                                        subdir
-                                        tmp-dir)
+                                       target-path
                                        :latest t))
                  (path (downloaded-project-path downloaded)))
            

@@ -2,6 +2,16 @@
  ChangeLog
 ===========
 
+1.9.7 (2021-09-12)
+==================
+
+Fixed temporary names in archive names. This bug was introduced in
+the 1.9.6 release and release URLs were made indistinguishable:
+
+.. code::
+   
+   Downloading http://dist.ultralisp.org/archive/1645/temp-CD1HFW64-20210908211649.tgz
+
 1.9.6 (2021-09-03)
 ==================
 
