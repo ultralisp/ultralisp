@@ -326,16 +326,15 @@
     (ultralisp/utils:with-tmp-directory (tmp-dir)
       (unwind-protect
            (let* ((system-files (get-system-files systems))
-                  (project (ultralisp/models/project:source->project source))
-                  (subdir (str:replace-all "/" "-"
-                                           (ultralisp/models/project:project-name project)))
-                  (target-path (uiop:merge-pathnames* subdir tmp-dir))
+                  (project (uiop:symbol-call :ultralisp/models/project :source->project source))
+                  (project-name (uiop:symbol-call :ultralisp/models/project :project-name project))
+                  (full-project-name (str:replace-all "/" "-"
+                                                      project-name))
+                  (target-path (uiop:merge-pathnames* full-project-name tmp-dir))
                   (downloaded (download source target-path :latest t))
                   (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" tmp-dir)
                                                      :ensure-directories-exist t))
                   (_ (remove-vcs-files downloaded))
-                  (project (uiop:symbol-call :ultralisp/models/project :source->project source))
-                  (project-name (uiop:symbol-call :ultralisp/models/project :project-name project))
                   (source-id (mito:object-id source))
                   (archive-url (format nil "~A/archive/~A"
                                        (remove-last-slash (ultralisp/variables:get-base-url))
@@ -345,9 +344,7 @@
              (declare (ignorable _))
              (setf release-info
                    (quickdist:make-archive (downloaded-project-path downloaded)
-                                           (cl-strings:replace-all project-name
-                                                                   "/"
-                                                                   "-")
+                                           full-project-name
                                            system-files
                                            archive-dir
                                            archive-url))
