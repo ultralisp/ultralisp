@@ -9,12 +9,6 @@ github quickdist ultralisp/quickdist :tag v0.16.4
 # automatically:
 ql cl-str :latest
 
-# Until https://github.com/ultralisp/ultralisp/issues/117 will be resolved
-ql ironclad :latest
-
-# github slynk joaotavora/sly
-github slynk-named-readtables joaotavora/sly-named-readtables :ref a5a42674ccffa97ccd5e4e9742beaf3ea719931f
-
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
 
