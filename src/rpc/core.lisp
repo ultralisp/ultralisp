@@ -97,3 +97,5 @@
            func args)))
 
 
+(defun test-func (&rest args)
+  (list :func-args args))
