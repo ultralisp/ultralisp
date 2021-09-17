@@ -34,7 +34,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
       POSTGRES_PASS: ultralisp
-      POSTGRES_DBNAME: ultralisp_prod
+      POSTGRES_DBNAME: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASS: ultralisp_ro
       ELASTIC_HOST: elastic

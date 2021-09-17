@@ -44,7 +44,10 @@ Checkout the repository::
 
 And run::
 
+  docker-compose run --rm mito migrate
   docker-compose up app
+
+**Note, you have at least 4G of RAM on your machine, to run all services, needed for Ultralisp!**
 
 
 Harder way
@@ -71,6 +74,8 @@ Hacking around
 During development, it is better to start docker compose with the following
 arguments::
 
+  docker-compose run --rm mito migrate
+  
   docker-compose up --build --abort-on-container-exit app
 
 Most such commands are defined in the ``Lakefile``. Use `lake`_ to run
