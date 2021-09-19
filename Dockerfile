@@ -1,4 +1,4 @@
-FROM 40ants/base-lisp-image:0.13.0-sbcl-bin as base
+FROM 40ants/base-lisp-image:0.15.0-sbcl-bin as base
 
 EXPOSE 80
 EXPOSE 4005
@@ -24,6 +24,8 @@ RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
     git checkout v2.10.0.2 && \
     ./configure --with-lib=/usr/lib/execline && make install && \
     cd / && rm -fr /tmp/s6
+
+# RUN ros install fukamachi/qlot/0.11.5
 
 ENV CC=gcc
 COPY qlfile qlfile.lock app-deps.asd /app/
