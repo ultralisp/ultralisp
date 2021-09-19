@@ -8,7 +8,7 @@
   :version "20210917005500"))
 ("quickdist" .
  (:class qlot/source/github:source-github
-  :initargs (:repos "ultralisp/quickdist" :ref nil :branch nil :tag "v0.16.4")
+  :initargs (:repos "ultralisp/quickdist" :ref "30665961c1e2557ee2bc31e7389478d90ccf3807" :branch nil :tag nil)
   :version "github-30665961c1e2557ee2bc31e7389478d90ccf3807"))
 ("cl-str" .
  (:class qlot/source/ql:source-ql
