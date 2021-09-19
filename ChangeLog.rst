@@ -5,7 +5,7 @@
 1.9.11 (2021-09-19)
 ===================
 
-Added more logging.
+Added more logging to worker.
 
 1.9.10 (2021-09-19)
 ===================
