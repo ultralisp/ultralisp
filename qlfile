@@ -1,6 +1,6 @@
 dist ultralisp http://dist.ultralisp.org/
 
-github quickdist ultralisp/quickdist :ref 30665961c1e2557ee2bc31e7389478d90ccf3807
+github quickdist ultralisp/quickdist :ref 3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f
 
 # Until this issue will be resolved:
 # https://github.com/ultralisp/ultralisp/issues/73
