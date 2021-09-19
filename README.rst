@@ -34,9 +34,6 @@ GitHub, to increase priority for this feature.
 How to host Ultralisp on my own server
 ======================================
 
-Easy way
---------
-
 The easiest way to start a local Ultralisp server is to use
 ``docker-compose``.
 
@@ -47,16 +44,16 @@ Checkout the repository::
 
 And run::
 
+  docker-compose run --rm mito migrate
   docker-compose up app
+
+**Note, you have at least 4G of RAM on your machine, to run all services, needed for Ultralisp!**
 
 
 Harder way
 ----------
 
-Use a docker image. You may build it youself by runing ``make all`` or
-use an image from Docker Hub.
-
-Then start a container like this::
+You may also build docker images out of Dockerfile and run them manually like this::
 
   docker run --rm \
              --name ultralisp \
@@ -77,6 +74,8 @@ Hacking around
 During development, it is better to start docker compose with the following
 arguments::
 
+  docker-compose run --rm mito migrate
+  
   docker-compose up --build --abort-on-container-exit app
 
 Most such commands are defined in the ``Lakefile``. Use `lake`_ to run

@@ -20,7 +20,7 @@ RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
     git clone https://github.com/skarnet/execline && cd execline && \
     git checkout v2.8.0.0 && \
     ./configure && make install && cd /tmp/s6 && \
-    git clone https://github.com/skarnet/s6 && cd s6 \
+    git clone https://github.com/skarnet/s6 && cd s6 && \
     git checkout v2.10.0.2 && \
     ./configure --with-lib=/usr/lib/execline && make install && \
     cd / && rm -fr /tmp/s6
