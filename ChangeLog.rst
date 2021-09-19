@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.9.10 (2021-09-19)
+===================
+
+Move to a newer cl-gearman where job retrying is available.
+
+Also, ``number-or-disabled-sources`` metric was fixed.
+
 1.9.9 (2021-09-14)
 ==================
 

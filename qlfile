@@ -15,6 +15,10 @@ ql cl-str :latest
 # This branch is what I use in my Emacs.
 github slynk svetlyak40wt/sly :branch patches
 
+# Until this pull will be merged:
+# https://github.com/ciel-lang/cl-cron/pull/2
+github cl-cron svetlyak40wt/cl-cron :branch name-all-branches
+
 # Here I've fixed error and timeout processing:
 github cl-gearman svetlyak40wt/cl-gearman :branch patches
 
