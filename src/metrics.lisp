@@ -39,6 +39,7 @@
                    FROM source
                    JOIN dist_source
                      ON source.id = dist_source.source_id
+                    AND source.version = dist_source.source_version
                   WHERE source.latest = 'true'
                     AND source.deleted = 'false'
                     AND dist_source.enabled = 'false'"))

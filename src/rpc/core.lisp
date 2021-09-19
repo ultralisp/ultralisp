@@ -4,6 +4,11 @@
   (:import-from #:slynk)
   (:import-from #:cl-store)
   (:import-from #:cl-gearman)
+
+  (:import-from #:log4cl-extras/error
+                #:with-log-unhandled)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
   
   (:import-from #:ultralisp/slynk)
   (:import-from #:ultralisp/rpc/command
@@ -70,13 +75,20 @@
     ;; here. This condition will be thrown in case, if gearman server is
     ;; unavailable.
     (cl-gearman:with-client (client (get-gearman-server))
-      (log:info "Submitting job")
-      (let* ((raw-result (cl-gearman:submit-job client
-                                                function-name
-                                                :arg (serialize args)))
-             (result (deserialize raw-result)))
-        (log:info "Result received" result)
-        (setf returned-value result)))
+      (with-fields (:job function-name :args args)
+        (log:info "Submitting job")
+        (let* ((raw-result (handler-bind ((cl-gearman:job-failed (lambda (error)
+                                                                   (sleep 10)
+                                                                   (log:error "Retrying job because of" error)
+                                                                   (invoke-restart
+                                                                    (find-restart 'cl-gearman:retry-job)))))
+                             (with-log-unhandled ()
+                               (cl-gearman:submit-job client
+                                                      function-name
+                                                      :arg (serialize args)))))
+               (result (deserialize raw-result)))
+          (log:info "Result received" result)
+          (setf returned-value result))))
     returned-value))
 
 
@@ -97,3 +109,5 @@
            func args)))
 
 
+(defun test-func (&rest args)
+  (list :func-args args))
