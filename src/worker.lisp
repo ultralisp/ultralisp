@@ -8,6 +8,7 @@
                 #:get-gearman-server)
 
   ;; These dependencies need for a worker to process version builds
+  (:import-from #:ultralisp/package-variance-fix)
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/source)
