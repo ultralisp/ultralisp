@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.9.12 (2021-09-21)
+===================
+
+Added a hack to ignore ASDF's compile errors caused bu
+SBCL's package varience warnings.
+
 1.9.11 (2021-09-19)
 ===================
 
