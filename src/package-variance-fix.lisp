@@ -1,6 +1,6 @@
 (defpackage #:ultralisp/package-variance-fix
   (:use #:cl)
-  (:import-from #:log4cl)
+  (:import-from #:log4cl))
 (in-package ultralisp/package-variance-fix)
 
 
