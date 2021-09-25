@@ -75,7 +75,7 @@
     ;; here. This condition will be thrown in case, if gearman server is
     ;; unavailable.
     (cl-gearman:with-client (client (get-gearman-server))
-      (with-fields (:job function-name :args args)
+      (with-fields (:job function-name :args (mapcar #'write-to-string args))
         (log:info "Submitting job")
         (let* ((raw-result (handler-bind ((cl-gearman:job-failed (lambda (error)
                                                                    (sleep 10)

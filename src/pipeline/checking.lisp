@@ -157,7 +157,9 @@
         (flet ((perform (check)
                  (apply #'perform-remotely
                         check
-                        (when force-given-p
+                        (when (or force-given-p
+                                  (eql (ultralisp/models/check:get-type check)
+                                       :manual))
                           (list :force force)))))
           (loop for check in checks
                 do (if slynk-api:*emacs-connection*

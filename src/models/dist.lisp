@@ -138,6 +138,9 @@
 (defmethod dist-state ((obj bound-dist))
   (dist-state (dist obj)))
 
+(defmethod dist-quicklisp-version ((obj bound-dist))
+  (dist-quicklisp-version (dist obj)))
+
 (defmethod object-id ((obj bound-dist))
   (object-id (dist obj)))
 
