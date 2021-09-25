@@ -314,6 +314,8 @@
   
   (ultralisp/file-server:make-route (get-dist-dir)
                                     "/dist/")
+  (ultralisp/file-server:make-route #"clpi/"
+                                    "/clpi/")
   (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"
                                                                    "images/")
                                     "/images/")
