@@ -88,13 +88,14 @@
                  for system-name = (quickdist:get-name system)
                  for primary-project-path = (merge-pathnames (format nil "~A/primary-project" system-name)
                                                              systems-dir)
-
-                 do (ensure-directories-exist primary-project-path)
-                    (with-open-file (stream primary-project-path :direction :output
-                                                                 :if-exists :supersede)
-                      (write project-name
-                             :stream stream)
-                      (terpri stream))))
+                 when (string-equal system-name
+                                    (asdf:primary-system-name system-name))
+                   do (ensure-directories-exist primary-project-path)
+                      (with-open-file (stream primary-project-path :direction :output
+                                                                   :if-exists :supersede)
+                        (write project-name
+                               :stream stream)
+                        (terpri stream))))
   (values))
 
 
