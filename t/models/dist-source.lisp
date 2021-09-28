@@ -8,7 +8,6 @@
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
                 #:get-projects-linked-to-the
-                #:get-all-dist-projects
                 #:get-all-dist-names
                 #:get-dist
                 #:get-source
