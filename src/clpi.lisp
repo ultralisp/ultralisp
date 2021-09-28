@@ -212,4 +212,4 @@
 
 
 (defun write-index-for-dist (dist)
-  (write-index (ultralisp/models/dist-source:get-all-dist-projects dist)))
+  (write-index (ultralisp/models/project:get-all-dist-projects dist)))

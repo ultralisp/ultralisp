@@ -8,14 +8,14 @@
                 #:project-name
                 #:source->project
                 #:make-github-project
+                #:get-all-dist-projects
                 #:project-sources)
   (:import-from #:ultralisp/models/dist
                 #:dist-name)
   (:import-from #:ultralisp/models/dist-source
                 #:dist->sources
                 #:source->dists
-                #:add-source-to-dist
-                #:get-all-dist-projects)
+                #:add-source-to-dist)
   (:import-from #:ultralisp/models/dist
                 #:common-dist)
   (:import-from #:ultralisp/models/source

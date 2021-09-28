@@ -50,8 +50,7 @@
    #:dist-source->source
    #:dist->sources
    #:add-source-to-dist
-   #:lisp-implementation
-   #:get-all-dist-projects))
+   #:lisp-implementation))
 (in-package ultralisp/models/dist-source)
 
 (defparameter *deb* nil)
@@ -778,12 +777,3 @@ SELECT *
                                             source implementations))
                                (first implementations)))))))
 
-
-(defun get-all-dist-projects (dist &key (enabled nil enabled-given-p))
-  "Returns sorted list of project names, included into the dist."
-  (let* ((sources
-           (apply #'dist->sources
-                  dist
-                  (when enabled-given-p
-                    (list :enabled enabled)))))
-    (mapcar #'ultralisp/models/project:source->project sources)))
