@@ -56,7 +56,7 @@
                             order by dist.created_at
                      )
                      select info->>'NAME' as system,
-                            jsonb_agg(jsonb_build_array(project, version)) as project_versions
+                            jsonb_agg(jsonb_build_array(jsonb_build_array(project, version))) as project_versions
                        from rows
                       group by system"
                      :binds (list (mito:object-id project)))
@@ -64,14 +64,14 @@
         for system = (getf row :system)
         for project-data = (getf row :project-versions)
         for project-versions = (jsown:parse project-data)
-        collect (list system
-                      project-versions)))
+        collect (list* system
+                       project-versions)))
 
 
 (defun write-project-systems (project stream)
-  (write (get-project-systems-info project)
-         :stream stream)
-  (terpri stream)
+  (loop for system in (get-project-systems-info project)
+        do (write system :stream stream)
+           (terpri stream))
   (values))
 
 
@@ -118,7 +118,7 @@
     preprocessed as (
        select version,
               release_info->>'PROJECT-URL' as url,
-              release_info->'FILE-SIZE' as size,
+              (release_info->>'FILE-SIZE')::bigint as size,
               release_info->>'MD5SUM' as md5,
               info->'FILENAME' as filename,
               info->'NAME' as system,
@@ -146,7 +146,9 @@
 
 
 (defun write-project-releases (project stream)
-  (write (get-project-releases project) :stream stream))
+  (loop for release in (get-project-releases project)
+        do (write release :stream stream)
+           (terpri stream)))
 
 
 (defun write-systems-info (systems-dir project)
