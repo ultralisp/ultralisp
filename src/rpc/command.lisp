@@ -91,6 +91,7 @@
                             ;; the process from SLY
                             ;; (invoke-debugger condition)
                             (when ultralisp/slynk:*connections*
+                              (log:error "Invoking interactive debugger because ultralisp/slynk:*connections* is not nil")
                               (invoke-debugger condition)))))
       (with-log-unhandled ()
         (with-connection (:host (or *db-host-override*

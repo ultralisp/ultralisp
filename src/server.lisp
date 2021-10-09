@@ -436,7 +436,7 @@
       (log:info "Setting uploader type to" uploader-type)
       
       (let ((uploader-type (make-keyword (string-upcase uploader-type))))
-        (unless (compute-applicable-methods #'make-uploader (list uploader-type))
+        (unless (compute-applicable-methods #'make-uploader (list uploader-type :quicklisp))
           (error "Uploader of type ~S is not supported."
                  uploader-type))
         (setf *uploader-type*

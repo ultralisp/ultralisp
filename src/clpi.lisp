@@ -1,11 +1,16 @@
-(defpackage #:ultralisp/clpi
+ (defpackage #:ultralisp/clpi
   (:use #:cl)
-  (:import-from #:ultralisp/models/project)
+  (:import-from #:ultralisp/models/project
+                #:get-all-dist-projects)
   (:import-from #:ultralisp/models/source
                 #:source-systems-info)
   (:import-from #:jsown)
   (:import-from #:alexandria
-                #:assoc-value))
+                #:assoc-value)
+  (:import-from #:ultralisp/models/dist
+                #:dist-name)
+  (:import-from #:ultralisp/utils
+                #:with-tmp-directory))
 (in-package ultralisp/clpi)
 
 
@@ -189,9 +194,34 @@
   (values))
 
 
-(defun write-index (dist projects &key (base-dir #P"clpi/clpi/v0.4/"))
+(defun write-repo-info (dist project repo-path)
+  (let ((source (first
+                 (remove-if-not
+                  (lambda (source)
+                    (member (mito:object-id dist)
+                            (mapcar #'mito:object-id
+                                    (ultralisp/models/dist-source:source->dists source))))
+                  (ultralisp/models/project:project-sources project)))))
+    (when source
+      (let ((type (ultralisp/models/source:source-type source)))
+        (when (eql type :github)
+          (let* ((params (ultralisp/models/source:source-params source))
+                 (user (getf params :user-or-org))
+                 (project (getf params :project)))
+            (when (and user project)
+              (with-open-file (stream repo-path :direction :output
+                                                :if-exists :supersede)
+                (write (list :github
+                             :path (format nil "~A/~A"
+                                           user
+                                           project))
+                       :stream stream)
+                (terpri stream)))))))))
+
+(defun write-index (dist projects &key (base-dir #P"clpi/"))
   (ultralisp/db:with-connection ()
-    (let* ((clpi-version-file (merge-pathnames #P"clpi-version" base-dir))
+    (let* ((base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
+           (clpi-version-file (merge-pathnames #P"clpi-version" base-dir))
            (projects-index-file (merge-pathnames #P"project-index" base-dir))
            (systems-index-file (merge-pathnames #P"system-index" base-dir))
            (projects-dir (merge-pathnames #P"projects/" base-dir))
@@ -213,6 +243,8 @@
                                                      projects-dir)
                 for version-scheme-path = (merge-pathnames (format nil "~A/version-scheme" project-name)
                                                            projects-dir)
+                for repo-path = (merge-pathnames (format nil "~A/repo" project-name)
+                                                 projects-dir)
                 do (write-project dist project projects-stream)
                    (write-project-systems dist project systems-stream)
                   
@@ -226,10 +258,18 @@
                    (with-open-file (stream version-scheme-path :direction :output
                                                                :if-exists :supersede)
                      (write :date :stream stream))
+
+                   (write-repo-info dist project repo-path)
                    (write-systems-info dist systems-dir project))))))
   (values))
 
 
 (defun write-index-for-dist (dist)
-  (write-index dist
-               (ultralisp/models/project:get-all-dist-projects dist)))
+  (with-tmp-directory (temp-path)
+    (write-index dist
+                 (get-all-dist-projects dist)
+                 :base-dir temp-path)
+
+    (ultralisp/uploader/base:upload temp-path
+                                    :clpi
+                                    (format nil "/~A/" (dist-name dist)))))

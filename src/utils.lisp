@@ -47,7 +47,8 @@
    #:in-repl
    #:with-trace
    #:time-in-future
-   #:make-keyword))
+   #:make-keyword
+   #:ends-with-slash-p))
 (in-package ultralisp/utils)
 
 
@@ -193,6 +194,10 @@
 (defun starts-with-slash-p (s)
   (check-type s string)
   (str:starts-with-p "/" s))
+
+(defun ends-with-slash-p (s)
+  (check-type s string)
+  (str:ends-with-p "/" s))
 
 
 (defun get-traceback (condition)

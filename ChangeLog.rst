@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.11.0 (2021-10-10)
+===================
+
+Uploading a new version to S3 each time when
+any dist got updated.
+
 1.10.1 (2021-10-04)
 ===================
 

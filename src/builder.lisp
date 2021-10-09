@@ -1,8 +1,10 @@
 (defpackage #:ultralisp/builder
   (:use #:cl)
+  (:import-from #:ultralisp/clpi)
   (:import-from #:local-time
                 #:now
                 #:format-timestring)
+  (:import-from #:ultralisp/clpi)
   (:import-from #:quickdist
                 #:render-template
                 #:quickdist)
@@ -419,7 +421,12 @@
                             ;; but sometimes can be useful for debugging:
                             :ready))
       (error "Unable to build dist with state ~S" state)))
-  
+
+  ;; First, we'll update CLPI metadata
+  (log:info "Updating CLPI index for" dist)
+  (ultralisp/clpi::write-index-for-dist dist)
+
+  ;; And then generate metadata in the Quicklisp format
   (ultralisp/utils:with-tmp-directory (path)
     (log:info "Building the" dist "in the" path)
      
@@ -427,7 +434,7 @@
           (dist-state dist) :ready)
 
     (create-metadata-for dist path)
-    (upload path "/")
+    (upload path :quicklisp "/")
     ;; NOTE: in case of error in the database
     ;; we might end with situation when the release
     ;; was uploaded but database not updated.
