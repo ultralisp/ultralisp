@@ -296,6 +296,20 @@
         collect (subseq line 3)))
 
 
+(defun ensure-user-in-git-config (repo)
+  (let* ((filename (merge-pathnames ".git/config"
+                                    (legit:location repo)))
+         (content (alexandria:read-file-into-string filename)))
+    (unless (str:containsp "[user]" content)
+      (with-open-file (s filename
+                         :direction :output
+                         :if-exists :append)
+        (format s "~2&[user]
+    name = bot
+    email = bot@ultralisp.org~%")))
+    (values)))
+
+
 (defun write-index-for-dist (dist)
   (let* ((base-dir (uiop:ensure-directory-pathname
                     (merge-pathnames (dist-name dist)
@@ -306,6 +320,8 @@
          ;; This way we'll be able to learn what files were changed.
          (repo (legit:init base-dir
                            :if-does-not-exist :create)))
+
+    (ensure-user-in-git-config repo)
 
     (when (changed-files repo)
       (log:debug "Commiting all files before update")
