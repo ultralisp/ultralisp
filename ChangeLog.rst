@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.11.1 (2021-10-14)
+===================
+
+Now Ultralisp uploads to S3 only changed part of the CLPI,
+which makes updates much faster. Previously it took about 40 minutes
+to upload the whole index.
+
 1.11.0 (2021-10-10)
 ===================
 
