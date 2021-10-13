@@ -27,19 +27,24 @@
                    to the distribution on the local disk."))
 
 
-(defun upload (dir-or-file repo-type destination)
+(defun upload (dir-or-file repo-type destination &key only-files)
   "Uploads given archive file to the storage (S3 or a static directory on local computer).
 
    Destination should be a string starting from /. If you'll specify just \"/\",
    and dir-or-file will be a \"foo.txt\", then this file will be accessable
    as http://dist.ultralisp.org/foo.txt or from other host, depending on the
-   $BASE_URL environment variable."
+   $BASE_URL environment variable.
+
+   If ONLY-FILES is given, then it should contain a list of strings
+   with relative filenames."
   (check-type destination (and (satisfies starts-with-slash-p)
                                (satisfies ends-with-slash-p)))
   (check-type dir-or-file (or pathname string))
   (check-type repo-type keyword)
+
   (unless (member repo-type '(:quicklisp :clpi))
     (error "REPO-TYPE argument should be one of :QUICKLISP or :CLPI"))
   (funcall (make-uploader *uploader-type* repo-type)
            dir-or-file
-           destination))
+           destination
+           :only-files only-files))

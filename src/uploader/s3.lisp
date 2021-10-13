@@ -4,7 +4,8 @@
   (:import-from #:cl-fad
                 #:walk-directory)
   (:import-from #:zs3
-                #:put-object)
+                #:put-object
+                #:get-object)
   
   (:import-from #:ultralisp/utils
                 #:walk-dir
@@ -58,23 +59,25 @@
 
 
 (defmethod make-uploader ((type (eql :s3)) repo-type)
-  (lambda (dir-or-file destination-path)
+  (lambda (dir-or-file destination-path &key only-files)
     (let* ((zs3:*credentials* (or zs3:*credentials*
                                   (make-credentials)))
            (bucket (or *bucket*
                        (ecase repo-type
                          (:quicklisp (get-s3-bucket))
                          (:clpi (get-s3-clpi-bucket))))))
-     
+
       (walk-dir (dir-or-file absolute relative)
-        (let* ((key (string-left-trim '(#\/)
-                                      (concatenate 'string
-                                                   destination-path
-                                                   relative))))
-          (log:info "Uploading" absolute "to" key)
-          (put-object absolute
-                      bucket
-                      key))))))
+        (when (or (null only-files)
+                  (member relative only-files :test #'string-equal))
+          (let* ((key (string-left-trim '(#\/)
+                                        (concatenate 'string
+                                                     destination-path
+                                                     relative))))
+            (log:debug "Uploading" absolute "to" key)
+            (put-object absolute
+                        bucket
+                        key)))))))
 
 
 ;; (defmethod make-uploader ((type (eql :s3)))

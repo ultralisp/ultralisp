@@ -50,6 +50,7 @@
    #:dist-source->source
    #:dist->sources
    #:add-source-to-dist
+   #:get-link
    #:lisp-implementation))
 (in-package ultralisp/models/dist-source)
 
@@ -777,3 +778,18 @@ SELECT *
                                             source implementations))
                                (first implementations)))))))
 
+
+
+(defun get-link (dist source)
+  "Returns a DIST-SOURCE object representing a link between given version of SOURCE and a DIST.
+
+   DIST's version is not take into account, because this function is used when we are having
+   a concrete source version and want to understand wether it was enable in the given dist or not
+   and dist object can be the latest version not the on SOURCE is bound to."
+  (check-type dist ultralisp/models/dist:dist)
+  (check-type source ultralisp/models/source:source)
+
+  (mito:find-dao 'dist-source
+                 :dist-id (object-id dist)
+                 :source-id (object-id source)
+                 :source-version (object-version source)))

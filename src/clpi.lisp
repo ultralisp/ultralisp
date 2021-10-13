@@ -10,7 +10,13 @@
   (:import-from #:ultralisp/models/dist
                 #:dist-name)
   (:import-from #:ultralisp/utils
-                #:with-tmp-directory))
+                #:with-tmp-directory)
+  (:import-from #:ultralisp/models/versioned
+                #:latest-p)
+  (:import-from #:ultralisp/protocols/enabled
+                #:enabled-p)
+  (:import-from #:local-time)
+  (:import-from #:legit))
 (in-package ultralisp/clpi)
 
 
@@ -94,12 +100,25 @@
         for dependencies = (assoc-value data "dependencies" :test 'string=)
         do (push (list name
                        :description description
-                       :dependencies dependencies)
+                       ;; It is important to sort dependencies because
+                       ;; otherwise they will appear in diff and we'll
+                       ;; have to upload system info even if this system
+                       ;; wasn't released recently:
+                       :dependencies (sort (copy-list dependencies)
+                                           #'string<))
                  (gethash filename
                           result))
-        finally (return (loop for filename being the hash-key of result
-                                using (hash-value systems)
-                              collect (cons filename systems)))))
+           ;; For stable output we have to sort content by filenames
+           ;; and system names inside each file. Otherwise git diff
+           ;; will be bigger than it have to.
+        finally (return (sort (loop for filename being the hash-key of result
+                                      using (hash-value systems)
+                                    collect (cons filename
+                                                  (sort systems
+                                                        #'string<
+                                                        :key #'car)))
+                              #'string<
+                              :key #'car))))
 
 
 (defun get-project-releases (dist project)
@@ -124,8 +143,7 @@
         where project2.id = ?
           and dist.id = ?
           and dist.state = 'ready'
-          and dist_source.enabled = true
-        order by dist.created_at),
+          and dist_source.enabled = true),
 
     preprocessed as (
        select version,
@@ -147,7 +165,8 @@
                                            'dependencies', deps,
                                            'filename', filename)) as systems
         from preprocessed
-       group by version, url, size, md5"
+       group by version, url, size, md5
+       order by version"
                      :binds (list (mito:object-id project)
                                   (mito:object-id dist)))
         for row in rows
@@ -169,15 +188,15 @@
 
 
 (defun write-systems-info (dist systems-dir project)
+  "Writes systems/<system-name>/primary-project files."
   (loop for source in (ultralisp/models/project:project-sources project)
-        for systems = (let* ((source-dists (ultralisp/models/dist-source:source-distributions source))
-                             (source-dist-ids (mapcar #'ultralisp/models/dist-source:dist-id
-                                                      source-dists)))
-                        ;; Were are only interested in the sources bound to the current dist
-                        (when (member (mito:object-id dist)
-                                      source-dist-ids)
-                          (ultralisp/models/source:source-systems-info
-                           source)))
+        for source-dist = (ultralisp/models/dist-source:get-link dist source)
+        for source-enabled = (when source-dist
+                               (enabled-p source-dist))
+        ;; Were are only interested in the sources bound to the current dist
+        ;; and enabled there.
+        for systems = (when source-enabled
+                        (ultralisp/models/source:source-systems-info source))
         for project-name = (ultralisp/models/project:project-name project)
         do (loop for system in systems
                  for system-name = (quickdist:get-name system)
@@ -237,7 +256,12 @@
                                                            :if-exists :supersede)
         (with-open-file (systems-stream systems-index-file :direction :output
                                                            :if-exists :supersede)
-          (loop for project in projects
+          (loop for project in (sort
+                                ;; We need to sort projects by name to make project-index file
+                                ;; stable and to minimize git diff
+                                (copy-list projects)
+                                #'string<
+                                :key #'ultralisp/models/project:project-name)
                 for project-name = (ultralisp/models/project:project-name project)
                 for releases-path = (merge-pathnames (format nil "~A/releases" project-name)
                                                      projects-dir)
@@ -264,12 +288,45 @@
   (values))
 
 
+(defun changed-files (repo)
+  (loop with git-output = (with-output-to-string (legit:*git-output*)
+                            (legit:with-chdir (repo)
+                              (legit:git-status "." :porcelain t)))
+        for line in (str:split #\Newline git-output :omit-nulls t)
+        collect (subseq line 3)))
+
+
 (defun write-index-for-dist (dist)
-  (with-tmp-directory (temp-path)
+  (let* ((base-dir (uiop:ensure-directory-pathname
+                    (merge-pathnames (dist-name dist)
+                                     #P"build/clpi/")))
+         ;; We keep all CLPI for all dists in git repositories.
+         ;; They are written to /app/clpi folder which is mounted
+         ;; into the docker container to make files survive deployments.
+         ;; This way we'll be able to learn what files were changed.
+         (repo (legit:init base-dir
+                           :if-does-not-exist :create)))
+
+    (when (changed-files repo)
+      (log:debug "Commiting all files before update")
+      (legit:add repo ".")
+      (legit:commit repo (format nil "Update from ~A"
+                                 (local-time:now))))
+    
+    (log:debug "Writing CLPI to the disk")
     (write-index dist
                  (get-all-dist-projects dist)
-                 :base-dir temp-path)
+                 :base-dir base-dir)
 
-    (ultralisp/uploader/base:upload temp-path
-                                    :clpi
-                                    (format nil "/~A/" (dist-name dist)))))
+    (let ((files (changed-files repo)))
+      (cond
+        (files
+         (log:debug "Uploading CLPI to the hosting")
+         (ultralisp/uploader/base:upload base-dir
+                                         :clpi
+                                         (format nil "/~A/" (dist-name dist))
+                                         :only-files files)
+         (log:debug "Done"))
+        (t
+         (log:warn "There is no new files in CLPI index for \"~A\" dist"
+                   (dist-name dist)))))))

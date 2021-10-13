@@ -12,13 +12,15 @@
 
 
 (defmethod make-uploader ((type (eql :fake)) repo-type)
-  (lambda (dir-or-file destination-path)
+  (lambda (dir-or-file destination-path &key only-files)
     (let* ((destination-path (relative-pathname (ecase repo-type
                                                   (:quicklisp (get-dist-dir))
                                                   (:clpi (get-clpi-dist-dir)))
                                                 destination-path)))
       (ultralisp/utils:walk-dir (dir-or-file absolute relative)
-        (let ((destination (merge-pathnames relative destination-path)))
-          (log:info "Copying" absolute "to" destination)
-          (ensure-directories-exist destination)
-          (uiop:copy-file absolute destination))))))
+        (when (or (null only-files)
+                  (member relative only-files :test #'string-equal))
+          (let ((destination (merge-pathnames relative destination-path)))
+            (log:info "Copying" absolute "to" destination)
+            (ensure-directories-exist destination)
+            (uiop:copy-file absolute destination)))))))
