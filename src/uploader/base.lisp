@@ -6,7 +6,8 @@
   (:export
    #:make-uploader
    #:*uploader-type*
-   #:upload))
+   #:upload
+   #:make-files-inclusion-checker))
 (in-package ultralisp/uploader/base)
 
 
@@ -48,3 +49,21 @@
            dir-or-file
            destination
            :only-files only-files))
+
+
+(defun make-files-inclusion-checker (only-files)
+  "Returns a function which accepts a relative filename
+   and returns true if this file should be uploaded to the storage.
+
+   If ONLY-FILES argument is NIL, then all files will be uploaded."
+  (cond
+    (only-files
+     (let ((prefixes (remove-if-not #'ends-with-slash-p only-files))
+           (full-names (remove-if #'ends-with-slash-p only-files)))
+       (lambda (relative)
+         (or (member relative full-names :test #'string=)
+             (loop for prefix in prefixes
+                     thereis (str:starts-with-p prefix relative))))))
+    (t
+     ;; if no pattern given, then we should upload all files
+     (constantly t))))

@@ -42,6 +42,10 @@
   "BASE_URL"
   "http://dist.ultralisp.org/")
 
+(def-env-var get-clpi-base-url
+  "CLPI_BASE_URL"
+  "https://clpi.ultralisp.org/")
+
 (def-env-var get-dist-name
   "DIST_NAME"
   "ultralisp")

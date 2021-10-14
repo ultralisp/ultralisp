@@ -11,7 +11,8 @@
                 #:walk-dir
                 #:path-to-string)
   (:import-from #:ultralisp/uploader/base
-                #:make-uploader)
+                #:make-uploader
+                #:make-files-inclusion-checker)
   (:import-from #:ultralisp/variables
                 #:get-aws-access-key-id
                 #:get-aws-secret-access-key
@@ -65,11 +66,12 @@
            (bucket (or *bucket*
                        (ecase repo-type
                          (:quicklisp (get-s3-bucket))
-                         (:clpi (get-s3-clpi-bucket))))))
+                         (:clpi (get-s3-clpi-bucket)))))
+           (need-to-upload-p
+             (make-files-inclusion-checker only-files)))
 
       (walk-dir (dir-or-file absolute relative)
-        (when (or (null only-files)
-                  (member relative only-files :test #'string-equal))
+        (when (funcall need-to-upload-p relative)
           (let* ((key (string-left-trim '(#\/)
                                         (concatenate 'string
                                                      destination-path

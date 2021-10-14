@@ -2,7 +2,8 @@
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:ultralisp/uploader/base
-                #:make-uploader)
+                #:make-uploader
+                #:make-files-inclusion-checker)
   (:import-from #:ultralisp/variables
                 #:get-dist-dir
                 #:get-clpi-dist-dir)
@@ -16,10 +17,11 @@
     (let* ((destination-path (relative-pathname (ecase repo-type
                                                   (:quicklisp (get-dist-dir))
                                                   (:clpi (get-clpi-dist-dir)))
-                                                destination-path)))
+                                                destination-path))
+           (need-to-upload-p
+             (make-files-inclusion-checker only-files)))
       (ultralisp/utils:walk-dir (dir-or-file absolute relative)
-        (when (or (null only-files)
-                  (member relative only-files :test #'string-equal))
+        (when (funcall need-to-upload-p relative)
           (let ((destination (merge-pathnames relative destination-path)))
             (log:info "Copying" absolute "to" destination)
             (ensure-directories-exist destination)

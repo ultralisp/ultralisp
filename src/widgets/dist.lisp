@@ -11,7 +11,8 @@
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
   (:import-from #:ultralisp/variables
-                #:get-base-url)
+                #:get-base-url
+                #:get-clpi-base-url)
   (:import-from #:ultralisp/protocols/moderation
                 #:is-moderator)
   (:import-from #:weblocks/page
@@ -52,17 +53,31 @@
                           "lispworks")
         (:p "This distribution contains extensions and libraries for LispWorks.")
         (:p "These libraries are checked in LispWorks and may not work in other LISP implementations.")
-        (:p "WARNING! This distribution is experimental and may be updated with delays because of LW licensing issues."))
-      
+        (:p ("**WARNING!** This distribution is experimental and may be updated with delays because of LW licensing issues.")))
+
       (:h3 "How to use it?")
+      
+      (when (str:containsp "/" (ultralisp/models/dist:dist-name dist))
+        (:p ("**WARNING!** Distributions with `/` in their names aren't supported by Quicklisp, because my commit was [reverted](https://github.com/quicklisp/quicklisp-client/commit/4727689c6fcde89149a8a6c5496662cde939a727). File the issue at the quicklisp-client's repo or switch to the CLPM which works with custom Ultralisp distributions.")))
+
+
       (:p "Open your Lisp REPL and eval:")
-      (:pre (format nil "(ql-dist:install-dist \"~A\"
+      (:pre :style "margin-bottom: 1em"
+            (format nil "(ql-dist:install-dist \"~A\"
                       :prompt nil)"
                     url))
       (:p ("Or if you are using [Qlot](https://github.com/fukamachi/qlot), put this line into the beginning of your **qlfile**:"))
-
-      (:pre (format nil "dist ultralisp ~A"
-                    url)))))
+      (:pre :style "margin-bottom: 1em"
+            (format nil "dist ultralisp ~A"
+                    url))
+      
+      (:p ("Or if you are using [CLPM](https://www.clpm.dev/), put these lines into your **clpmfile**:"))
+      (:pre :style "margin-bottom: 1em"
+            (format nil "(:source \"~A\"
+ :url \"~A\"
+ :type :clpi)"
+                    (ultralisp/models/dist:dist-name dist)
+                    (clpi-url dist))))))
 
 
 (defun render-dist (dist-widget)
@@ -150,6 +165,24 @@
                                 base-url
                                 dist-name
                                 ".txt")))
+    (cond ((search "localhost" base-url)
+           full-url)
+          ((string-equal dist-name "ultralisp")
+           base-url)
+          (t
+           full-url))))
+
+
+(defmethod clpi-url (dist)
+  (check-type dist ultralisp/models/dist:dist)
+  
+  (let* ((base-url (get-clpi-base-url))
+         (dist-name (ultralisp/models/dist:dist-name dist))
+         (full-url (concatenate 'string
+                                (ultralisp/utils:remove-last-slash base-url)
+                                "/"
+                                dist-name
+                                "/")))
     (cond ((search "localhost" base-url)
            full-url)
           ((string-equal dist-name "ultralisp")
