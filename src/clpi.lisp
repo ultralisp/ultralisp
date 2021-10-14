@@ -21,6 +21,10 @@
 
 
 (defun project-versions (dist project)
+  ;; Here we get data for 'ready' and 'prepared' dists,
+  ;; because when we are building CLPI for a new dist version,
+  ;; it will be in 'prepared' state first and will be transferred
+  ;; to 'ready' only after Quicklisp and CLPI dists are updated.
   (mapcar #'second
           (mito:retrieve-by-sql 
            "select dist.quicklisp_version
@@ -32,7 +36,7 @@
                and dist.version = dist_source.dist_version
              where project2.id = ?
                and dist.id = ?
-               and dist.state = 'ready'
+               and (dist.state = 'ready' or dist.state = 'prepared')
                and dist_source.enabled = true
           order by dist.created_at"
            :binds (list (mito:object-id project)
@@ -64,7 +68,7 @@
                               and dist.version = dist_source.dist_version
                             where project2.id = ?
                               and dist.id = ?
-                              and dist.state = 'ready'
+                              and (dist.state = 'ready' or dist.state = 'prepared')
                               and dist_source.enabled = true
                             order by dist.created_at
                      )
@@ -142,7 +146,7 @@
           and dist.version = dist_source.dist_version
         where project2.id = ?
           and dist.id = ?
-          and dist.state = 'ready'
+          and (dist.state = 'ready' or dist.state = 'prepared')
           and dist_source.enabled = true),
 
     preprocessed as (
@@ -321,15 +325,19 @@
          (repo (legit:init base-dir
                            :if-does-not-exist :create)))
 
+    (log:error "Writing CLPI index for dist with id = ~A and version = ~A"
+               (ignore-errors (mito:object-id dist))
+               (ignore-errors (ultralisp/models/versioned:object-version dist)))
+    
     (ensure-user-in-git-config repo)
 
     (when (changed-files repo)
-      (log:debug "Commiting all files before update")
+      (log:error "Commiting all files before update")
       (legit:add repo ".")
       (legit:commit repo (format nil "Update from ~A"
                                  (local-time:now))))
     
-    (log:debug "Writing CLPI to the disk")
+    (log:error "Writing CLPI to the disk")
     (write-index dist
                  (get-all-dist-projects dist)
                  :base-dir base-dir)
@@ -337,12 +345,12 @@
     (let ((files (changed-files repo)))
       (cond
         (files
-         (log:debug "Uploading CLPI to the hosting")
+         (log:error "Uploading CLPI to the hosting" files)
          (ultralisp/uploader/base:upload base-dir
                                          :clpi
                                          (format nil "/~A/" (dist-name dist))
                                          :only-files files)
-         (log:debug "Done"))
+         (log:error "Done"))
         (t
          (log:warn "There is no new files in CLPI index for \"~A\" dist"
                    (dist-name dist)))))))

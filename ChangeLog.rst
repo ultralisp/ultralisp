@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.11.2 (2021-10-15)
+===================
+
+* Fixed forcing of the manual check.
+* Fixed inclusion of the latest changed project into the CLPI.
+
 1.11.1 (2021-10-14)
 ===================
 
