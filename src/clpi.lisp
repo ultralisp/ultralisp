@@ -241,20 +241,42 @@
                        :stream stream)
                 (terpri stream)))))))))
 
+
+(defun render-index-file (dist stream)
+  (let* ((spinneret:*html* stream)
+         (dist-name (dist-name dist))
+         (url (format nil "https://ultralisp.org/dists/~A" dist-name)))
+    (spinneret:with-html
+      (:html
+       (:body
+        (:div :style "width: 80%; margin: 2em auto 0 auto"
+              (:h1 ("~A" dist-name))
+              (:p ("This is a CLPI index for \"~A\" distribution. You can use it with [Common Lisp Package Manager](https://www.clpm.dev/)."
+                   dist-name))
+              (:p "To learn more about soft, included into this distribution, go to it's page:")
+              (:p (:a :href url
+                      url))))))))
+
+
 (defun write-index (dist projects &key (base-dir #P"clpi/"))
   (ultralisp/db:with-connection ()
-    (let* ((base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
-           (clpi-version-file (merge-pathnames #P"clpi-version" base-dir))
-           (projects-index-file (merge-pathnames #P"project-index" base-dir))
-           (systems-index-file (merge-pathnames #P"system-index" base-dir))
-           (projects-dir (merge-pathnames #P"projects/" base-dir))
-           (systems-dir (merge-pathnames #P"systems/" base-dir)))
+    (let* ((index-file (merge-pathnames #P"index.html" base-dir))
+           (inner-base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
+           (clpi-version-file (merge-pathnames #P"clpi-version" inner-base-dir))
+           (projects-index-file (merge-pathnames #P"project-index" inner-base-dir))
+           (systems-index-file (merge-pathnames #P"system-index" inner-base-dir))
+           (projects-dir (merge-pathnames #P"projects/" inner-base-dir))
+           (systems-dir (merge-pathnames #P"systems/" inner-base-dir)))
       (ensure-directories-exist projects-index-file)
       (ensure-directories-exist systems-index-file)
 
       (with-open-file (stream clpi-version-file :direction :output
                                                 :if-exists :supersede)
         (write "0.4" :stream stream))
+      
+      (with-open-file (stream index-file :direction :output
+                                         :if-exists :supersede)
+        (render-index-file dist stream))
 
       (with-open-file (projects-stream projects-index-file :direction :output
                                                            :if-exists :supersede)

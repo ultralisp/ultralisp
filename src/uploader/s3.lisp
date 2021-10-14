@@ -21,6 +21,7 @@
   (:import-from #:secret-values
                 #:secret-value
                 #:reveal-value)
+  (:import-from #:str)
   (:export
    #:prepare-for-debug))
 (in-package ultralisp/uploader/s3)
@@ -79,7 +80,9 @@
             (log:debug "Uploading" absolute "to" key)
             (put-object absolute
                         bucket
-                        key)))))))
+                        key
+                        :content-type (when (str:ends-with-p ".html" key)
+                                        "text/html"))))))))
 
 
 ;; (defmethod make-uploader ((type (eql :s3)))
