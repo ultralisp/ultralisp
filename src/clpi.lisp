@@ -325,19 +325,19 @@
          (repo (legit:init base-dir
                            :if-does-not-exist :create)))
 
-    (log:error "Writing CLPI index for dist with id = ~A and version = ~A"
-               (ignore-errors (mito:object-id dist))
-               (ignore-errors (ultralisp/models/versioned:object-version dist)))
+    (log:info "Writing CLPI index for dist with id = ~A and version = ~A"
+              (mito:object-id dist)
+              (ultralisp/models/versioned:object-version dist))
     
     (ensure-user-in-git-config repo)
 
     (when (changed-files repo)
-      (log:error "Commiting all files before update")
+      (log:debug "Commiting all files before update")
       (legit:add repo ".")
       (legit:commit repo (format nil "Update from ~A"
                                  (local-time:now))))
     
-    (log:error "Writing CLPI to the disk")
+    (log:debug "Writing CLPI to the disk")
     (write-index dist
                  (get-all-dist-projects dist)
                  :base-dir base-dir)
@@ -345,12 +345,12 @@
     (let ((files (changed-files repo)))
       (cond
         (files
-         (log:error "Uploading CLPI to the hosting" files)
+         (log:debug "Uploading CLPI to the hosting" files)
          (ultralisp/uploader/base:upload base-dir
                                          :clpi
                                          (format nil "/~A/" (dist-name dist))
                                          :only-files files)
-         (log:error "Done"))
+         (log:debug "Done"))
         (t
          (log:warn "There is no new files in CLPI index for \"~A\" dist"
                    (dist-name dist)))))))
