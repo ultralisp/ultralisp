@@ -34,3 +34,5 @@
 (register-system-packages "prometheus.collectors.sbcl" '(#:prometheus.sbcl))
 
 (register-system-packages "prometheus.collectors.process" '(#:prometheus.process))
+
+(register-system-packages "dbd-postgres" '(#:dbd.postgres))

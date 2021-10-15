@@ -34,9 +34,17 @@
   "DIST_DIR"
   "./build/dist/")
 
+(def-env-var get-clpi-dist-dir
+  "CLPI_DIST_DIR"
+  "./build/clpi/")
+
 (def-env-var get-base-url
   "BASE_URL"
   "http://dist.ultralisp.org/")
+
+(def-env-var get-clpi-base-url
+  "CLPI_BASE_URL"
+  "https://clpi.ultralisp.org/")
 
 (def-env-var get-dist-name
   "DIST_NAME"
@@ -91,6 +99,10 @@
 (def-env-var get-s3-bucket
   "S3_BUCKET"
   "dist.ultralisp.org")
+
+(def-env-var get-s3-clpi-bucket
+  "S3_CLPI_BUCKET"
+  "clpi.ultralisp.org")
 
 (def-env-var get-uploader-type
   "UPLOADER_TYPE")

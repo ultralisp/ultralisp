@@ -4,20 +4,24 @@
   (:import-from #:cl-fad
                 #:walk-directory)
   (:import-from #:zs3
-                #:put-object)
+                #:put-object
+                #:get-object)
   
   (:import-from #:ultralisp/utils
                 #:walk-dir
                 #:path-to-string)
   (:import-from #:ultralisp/uploader/base
-                #:make-uploader)
+                #:make-uploader
+                #:make-files-inclusion-checker)
   (:import-from #:ultralisp/variables
                 #:get-aws-access-key-id
                 #:get-aws-secret-access-key
+                #:get-s3-clpi-bucket
                 #:get-s3-bucket)
   (:import-from #:secret-values
                 #:secret-value
                 #:reveal-value)
+  (:import-from #:str)
   (:export
    #:prepare-for-debug))
 (in-package ultralisp/uploader/s3)
@@ -41,11 +45,11 @@
   (unless secret-key
     (error "Please, define AWS_SECRET_ACCESS_KEY environment variable."))
 
-  (check-type secret-key secret-value)
-
   (make-instance 's3-credentials
                  :access-key access-key
-                 :secret-key (reveal-value secret-key)))
+                 :secret-key (etypecase secret-key
+                               (secret-value (reveal-value secret-key))
+                               (string secret-key))))
 
 
 (defun prepare-for-debug (bucket access-key secret-key)
@@ -56,22 +60,29 @@
                           :secret-key secret-key)))
 
 
-(defmethod make-uploader ((type (eql :s3)))
-  (lambda (dir-or-file destination-path)
+(defmethod make-uploader ((type (eql :s3)) repo-type)
+  (lambda (dir-or-file destination-path &key only-files)
     (let* ((zs3:*credentials* (or zs3:*credentials*
                                   (make-credentials)))
            (bucket (or *bucket*
-                       (get-s3-bucket))))
-     
+                       (ecase repo-type
+                         (:quicklisp (get-s3-bucket))
+                         (:clpi (get-s3-clpi-bucket)))))
+           (need-to-upload-p
+             (make-files-inclusion-checker only-files)))
+
       (walk-dir (dir-or-file absolute relative)
-        (let* ((key (string-left-trim '(#\/)
-                                      (concatenate 'string
-                                                   destination-path
-                                                   relative))))
-          (log:info "Uploading" absolute "to" key)
-          (put-object absolute
-                      bucket
-                      key))))))
+        (when (funcall need-to-upload-p relative)
+          (let* ((key (string-left-trim '(#\/)
+                                        (concatenate 'string
+                                                     destination-path
+                                                     relative))))
+            (log:debug "Uploading" absolute "to" key)
+            (put-object absolute
+                        bucket
+                        key
+                        :content-type (when (str:ends-with-p ".html" key)
+                                        "text/html"))))))))
 
 
 ;; (defmethod make-uploader ((type (eql :s3)))

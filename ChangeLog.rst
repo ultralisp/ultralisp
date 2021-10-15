@@ -2,6 +2,35 @@
  ChangeLog
 ===========
 
+1.11.2 (2021-10-15)
+===================
+
+* Fixed forcing of the manual check.
+* Fixed inclusion of the latest changed project into the CLPI.
+
+1.11.1 (2021-10-14)
+===================
+
+Now Ultralisp uploads to S3 only changed part of the CLPI,
+which makes updates much faster. Previously it took about 40 minutes
+to upload the whole index.
+
+1.11.0 (2021-10-10)
+===================
+
+Uploading a new version to S3 each time when
+any dist got updated.
+
+1.10.1 (2021-10-04)
+===================
+
+Preload ``DBD-POSTGRES`` to fix errors in worker.
+
+1.10.0 (2021-09-29)
+===================
+
+Experimental CLPI index support.
+
 1.9.12 (2021-09-21)
 ===================
 

@@ -127,7 +127,8 @@
    #:turn-off-project2
    #:get-projects2-by-username
    #:get-projects-with-sources
-   #:ensure-project))
+   #:ensure-project
+   #:get-all-dist-projects))
 (in-package ultralisp/models/project)
 
 
@@ -723,3 +724,13 @@
          (error "Unable to find ~A"
                 project-name))
        project))))
+
+
+(defun get-all-dist-projects (dist &key (enabled nil enabled-given-p))
+  "Returns sorted list of project names, included into the dist."
+  (let* ((sources
+           (apply #'ultralisp/models/dist-source:dist->sources
+                  dist
+                  (when enabled-given-p
+                    (list :enabled enabled)))))
+    (mapcar #'source->project sources)))

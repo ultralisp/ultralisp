@@ -7,8 +7,8 @@
                 #:has-type)
   (:import-from #:weblocks-test/utils)
   (:import-from #:ultralisp-test/utils
+                #:get-all-dist-project-names
                 #:get-projects-linked-to-the
-                #:get-all-dist-projects
                 #:get-all-dist-names
                 #:get-dist
                 #:get-source
@@ -306,9 +306,9 @@
                              :ready))))
 
               (testing "Both dists should include the project 40ants/defmain"
-                (ok (equal (get-all-dist-projects ultralisp)
+                (ok (equal (get-all-dist-project-names ultralisp)
                            '("40ants/defmain")))
-                (ok (equal (get-all-dist-projects foo)
+                (ok (equal (get-all-dist-project-names foo)
                            '("40ants/defmain"))))
 
               (delete-source source)

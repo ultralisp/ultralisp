@@ -8,6 +8,7 @@
                 #:project-name
                 #:source->project
                 #:make-github-project
+                #:get-all-dist-projects
                 #:project-sources)
   (:import-from #:ultralisp/models/dist
                 #:dist-name)
@@ -28,9 +29,9 @@
            #:make-project
            #:get-dist
            #:get-all-dist-names
-           #:get-all-dist-projects
            #:get-projects-linked-to-the
-           #:build-dists))
+           #:build-dists
+           #:get-all-dist-project-names))
 (in-package ultralisp-test/utils)
 
 
@@ -91,17 +92,13 @@
           #'string<)))
 
 
-(defun get-all-dist-projects (dist &key (enabled nil enabled-given-p))
-  "Returns sorted list of project names, included into the dist."
-  (let* ((sources
-           (apply #'dist->sources
-                  dist
-                  (when enabled-given-p
-                    (list :enabled enabled))))
-         (projects (mapcar #'source->project sources)))
-    (sort (mapcar #'project-name
-                  projects)
-          #'string<)))
+(defun get-all-dist-project-names (dist &rest rest &key enabled)
+  (declare (ignore enabled))
+  (sort (mapcar #'ultralisp/models/project:project-name
+                (apply #'get-all-dist-projects
+                       dist
+                       rest))
+        #'string<))
 
 
 (defun get-projects-linked-to-the (dist &key (enabled nil enabled-given-p))
@@ -112,7 +109,7 @@
        '(:name \"foo/bar\" :enabled t :deleted nil)
 
    This function also is able to return dists which was deleted, whereas
-   GET-ALL-DIST-PROJECTS don't.
+   GET-ALL-DIST-PROJECT-NAMES don't.
 "
   (let* ((sources
            (apply #'dist->sources

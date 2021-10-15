@@ -351,6 +351,7 @@
                                            archive-url))
              (let ((archive-path (get-archive-path release-info)))
                (upload archive-path
+                       :quicklisp
                        archive-destination)))
         (uiop:delete-directory-tree tmp-dir
                                     :validate t)))

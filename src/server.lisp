@@ -314,6 +314,8 @@
   
   (ultralisp/file-server:make-route (get-dist-dir)
                                     "/dist/")
+  (ultralisp/file-server:make-route #"clpi/"
+                                    "/clpi/")
   (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"
                                                                    "images/")
                                     "/images/")
@@ -434,7 +436,7 @@
       (log:info "Setting uploader type to" uploader-type)
       
       (let ((uploader-type (make-keyword (string-upcase uploader-type))))
-        (unless (compute-applicable-methods #'make-uploader (list uploader-type))
+        (unless (compute-applicable-methods #'make-uploader (list uploader-type :quicklisp))
           (error "Uploader of type ~S is not supported."
                  uploader-type))
         (setf *uploader-type*

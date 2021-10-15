@@ -2,6 +2,10 @@
   (:use #:cl)
   (:import-from #:cl-dbi)
   (:import-from #:cl-postgres)
+  ;; To prevent Mito from trying to load driver on first connect.
+  ;; Sometimes this can cause errors if DBD get's updated by some
+  ;; project's check
+  (:import-from #:dbd.postgres)
   (:import-from #:mito)
   (:import-from #:ironclad
                 #:octets-to-integer

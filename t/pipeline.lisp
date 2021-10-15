@@ -6,12 +6,12 @@
                 #:contains
                 #:has-type)
   (:import-from #:ultralisp-test/utils
+                #:get-all-dist-project-names
                 #:make-project
                 #:get-dist
                 #:build-dists
                 #:with-login
                 #:get-source
-                #:get-all-dist-projects
                 #:with-metrics
                 #:with-test-db)
   (:import-from #:ultralisp/models/dist
@@ -83,8 +83,8 @@
           (testing "At this moment dist should be disabled"
             (ok (eql (dist-state dist-before)
                      :ready))
-            (ok (equal (get-all-dist-projects dist-before
-                                              :enabled t)
+            (ok (equal (get-all-dist-project-names dist-before
+                                                   :enabled t)
                        nil)))
         
           (let* ((source-v1 (get-source project)))
@@ -98,5 +98,5 @@
                                    dist-after))))
               
                 (testing "And now dist should include enabled project"
-                  (ok (equal (get-all-dist-projects dist-after :enabled t)
+                  (ok (equal (get-all-dist-project-names dist-after :enabled t)
                              '("40ants/defmain"))))))))))))
