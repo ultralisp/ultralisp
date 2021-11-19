@@ -49,6 +49,8 @@
        (regex #"^.*GlobalPreferences\..*\.plist"))
 
 (allow file-read*
+       (subpath "/Library/Apple/usr/libexec/oah") ;; to make it work under M1
+       (literal "/System/Library/Colors/System.clr")
        (subpath "/private/tmp/checker")
        (literal "/Applications")
        (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist")
