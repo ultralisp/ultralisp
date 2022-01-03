@@ -17,7 +17,7 @@
                 #:get-postgres-user
                 #:get-postgres-host
                 #:get-postgres-dbname)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:immediate-response)
   (:import-from #:secret-values
                 #:ensure-value-revealed)

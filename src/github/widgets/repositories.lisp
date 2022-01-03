@@ -1,21 +1,22 @@
 (defpackage #:ultralisp/github/widgets/repositories
   (:use #:cl)
+  (:import-from #:reblocks-parenscript)
   (:import-from #:parenscript
                 #:@
                 #:chain)
   (:import-from #:link-header)
   (:import-from #:rutils)
   (:import-from #:lparallel)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:update
                 #:get-html-tag
                 #:render
                 #:defwidget)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:f-underscore
                 #:f_)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:get-title)
   (:import-from #:ultralisp/models/project
                 #:get-reason
@@ -30,7 +31,7 @@
                 #:in-readtable)
   (:import-from #:arrows
                 #:->)
-  (:import-from #:weblocks-auth/github
+  (:import-from #:reblocks-auth/github
                 #:get-scopes)
   (:import-from #:quri
                 #:url-encode)
@@ -40,11 +41,11 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/widgets/spinner
                 #:make-spinner)
-  (:import-from #:weblocks-ui/form
+  (:import-from #:reblocks-ui/form
                 #:render-form-and-button)
   (:import-from #:ultralisp/widgets/utils
                 #:render-switch)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:add-retpath-to)
   (:import-from #:ultralisp/models/source
                 #:get-github-sources)
@@ -239,14 +240,14 @@
   (with-html
     (:p "or insert a project's URL:")
 
-    (weblocks-ui/form:with-html-form
+    (reblocks-ui/form:with-html-form
         (:post
          (lambda (&key url &allow-other-keys)
            (log:info "CATCHED ARGS" url)
            (handler-case
                (let* ((project (make-github-project-from-url url))
                       (project-url (ultralisp/models/project:project-url project)))
-                 (weblocks/response:redirect project-url))
+                 (reblocks/response:redirect project-url))
              (unable-to-create-project (condition)
                (let ((reason (get-reason condition)))
                  (log:error "Setting the reason"
@@ -266,15 +267,15 @@
                     (:p :class "label secondary"
                         "But this way a project we'll not be able to setup a webhook and project will be updated only by cron.")))
                (:td
-                (weblocks-ui/form:render-button
+                (reblocks-ui/form:render-button
                  "Add"
                  :class "button")))))))
 
 
 (defgeneric render-with-state (widget state)
   (:method ((state (eql :checking-scopes)) (widget repositories))
-    (let* ((token (weblocks-auth/github:get-token))
-           (user (weblocks-auth/models:get-current-user))
+    (let* ((token (reblocks-auth/github:get-token))
+           (user (reblocks-auth/models:get-current-user))
            (scopes (get-scopes))
            (has-required-scopes
              (loop for scope in *required-scopes*
@@ -287,24 +288,24 @@
          (set-oauth-token widget token)
          (render widget))
         
-        (t (weblocks/html:with-html
+        (t (reblocks/html:with-html
              (cond (user
                     (:p "To show all your public repositories, we need additional permissions from GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
-                               (weblocks-auth/github:render-button
+                               (reblocks-auth/github:render-button
                                 :scopes (append *required-scopes*
-                                                weblocks-auth/github:*default-scopes*))))
+                                                reblocks-auth/github:*default-scopes*))))
                     (render-url-input widget))
                    (t
                     (:p "To be able to add your public repositories, you need to login using GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
-                               (weblocks-auth/github:render-button
+                               (reblocks-auth/github:render-button
                                 :text "Login"
                                 :scopes (append *required-scopes*
-                                                weblocks-auth/github:*default-scopes*)))))))))))
+                                                reblocks-auth/github:*default-scopes*)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
-    (weblocks/html:with-html
+    (reblocks/html:with-html
       (:p "Searching for Common Lisp repositories..."
           (render (get-spinner widget)))
       (render-form-and-button
@@ -338,7 +339,7 @@
   
   
   (:method ((state t) (widget repositories))
-    (weblocks/html:with-html
+    (reblocks/html:with-html
       (:p ("State \"~A\" is not supported yet." state)))))
 
 
@@ -428,7 +429,7 @@
      (turn-on repository)
      (setf (in-ultralisp-p repository)
            t)))
-  (when (weblocks/request:ajax-request-p)
+  (when (reblocks/request:ajax-request-p)
    (update repository)))
 
 
@@ -450,10 +451,10 @@
                                :labels '("On" "Off"))))))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget repositories))
+(defmethod reblocks/dependencies:get-dependencies ((widget repositories))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `(.url-frame
         (tbody :border 0
                (td :padding 0)
@@ -461,7 +462,7 @@
                 :padding-right 1em
                 :padding-top 1px))))
         
-    (weblocks-parenscript:make-dependency
+    (reblocks-parenscript:make-dependency
       (let ((timer (@ window repositories-timer)))
         (unless timer
           (chain console (log "Installing timer to check when repositories will be discovered"))
@@ -480,16 +481,16 @@
    (call-next-method)))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget repository))
+(defmethod reblocks/dependencies:get-dependencies ((widget repository))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `(.repository
         (.switch :margin 0))))
    (call-next-method)))
 
 
-(defmethod weblocks/widget:get-css-classes ((widget repositories))
+(defmethod reblocks/widget:get-css-classes ((widget repositories))
   (cons (get-state widget)
         (call-next-method)))
 

@@ -5,11 +5,11 @@
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/metadata)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget
                 #:render)
   (:import-from #:ultralisp/models/action)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/project
                 #:get-recent-projects
@@ -17,7 +17,7 @@
                 #:get-name
                 #:get-description
                 #:get-all-projects)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:get-title)
   (:import-from #:ultralisp/models/version
                 #:version
@@ -280,10 +280,10 @@
         (ultralisp/widgets/projects:render-projects-list recent-projects)))))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget landing-widget))
+(defmethod reblocks/dependencies:get-dependencies ((widget landing-widget))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `(.dist-list
         ((:or .name-cell .version-cell .timestamp-cell)
          :vertical-align top

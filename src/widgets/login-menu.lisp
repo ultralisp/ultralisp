@@ -1,15 +1,15 @@
 (defpackage #:ultralisp/widgets/login-menu
   (:use #:cl)
-  (:import-from #:weblocks-lass)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks-lass)
+  (:import-from #:reblocks/widget
                 #:defwidget)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user
                 #:get-nickname
                 #:anonymous-p)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:add-retpath-to)
 
   (:export
@@ -21,13 +21,13 @@
   ())
 
 
-(defmethod weblocks/widget:render ((widget login-menu))
+(defmethod reblocks/widget:render ((widget login-menu))
   (let ((user (get-current-user))
         (my-projects-url "/my/projects")
         (my-dists-url "/my/dists")
         (feedback-url "https://github.com/ultralisp/ultralisp/issues"))
     (if (anonymous-p user)
-        (weblocks/html:with-html
+        (reblocks/html:with-html
           (:div :class "login-link"
                 (:a :href feedback-url
                     "Leave feedback")
@@ -54,7 +54,7 @@
 
 
 (defparameter *dependencies*
-  (list (weblocks-lass:make-dependency
+  (list (reblocks-lass:make-dependency
           '(.login-menu
             :color red
             :position absolute
@@ -64,6 +64,6 @@
              (a :margin-right 0.5rem))))))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget login-menu))
+(defmethod reblocks/dependencies:get-dependencies ((widget login-menu))
   (append *dependencies*
           (call-next-method)))

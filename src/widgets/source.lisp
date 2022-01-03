@@ -3,11 +3,11 @@
   (:import-from #:parenscript
                 #:@)
   (:import-from #:ultralisp/protocols/render-changes)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget
                 #:render)
-  (:import-from #:weblocks-lass)
-  (:import-from #:weblocks/dependencies)
+  (:import-from #:reblocks-lass)
+  (:import-from #:reblocks/dependencies)
   (:import-from #:ultralisp/models/dist-source
                 #:dist-version
                 #:dist-id
@@ -22,7 +22,7 @@
                 #:awhen
                 #:it
                 #:fmt)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/dist
                 #:dist-name
@@ -48,7 +48,7 @@
                 #:object-version)
   (:import-from #:ultralisp/models/project
                 #:source->project)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/protocols/moderation
                 #:is-moderator)
@@ -64,7 +64,7 @@
                 #:group-by)
   (:import-from #:ultralisp/models/asdf-system
                 #:asdf-systems-conflict)
-  (:import-from #:weblocks-ui/form
+  (:import-from #:reblocks-ui/form
                 #:form-error-placeholder
                 #:field-error
                 #:error-placeholder)
@@ -125,7 +125,7 @@
           branches
           (slot-value widget 'current)
           default-branch)
-    (weblocks/widget:update widget)))
+    (reblocks/widget:update widget)))
 
 
 (defwidget edit-source-widget ()
@@ -163,7 +163,7 @@
                                               (ultralisp/models/source:get-current-branch source)))))
     (setf (slot-value main 'subwidget)
           subwidget)
-    (weblocks/widget:update main)))
+    (reblocks/widget:update main)))
 
 
 (defun switch-to-readonly (widget)
@@ -179,7 +179,7 @@
 
     (setf (slot-value parent 'subwidget)
           subwidget)
-    (weblocks/widget:update parent)))
+    (reblocks/widget:update parent)))
 
 
 ;; Here is the flow of working with a source.
@@ -300,7 +300,7 @@
      
       (delete-source source)
      
-      (weblocks/utils/misc:safe-funcall (slot-value widget 'on-delete)
+      (reblocks/utils/misc:safe-funcall (slot-value widget 'on-delete)
                                         widget))))
 
 
@@ -336,7 +336,7 @@
                              ;; Controls for editing and deleting source
                              (when user-is-moderator
                                (:div :class "source-controls float-right"
-                                     (weblocks-ui/form:with-html-form
+                                     (reblocks-ui/form:with-html-form
                                          (:post #'deletion-handler
                                           :requires-confirmation-p t
                                           :confirm-question (:div (:h1 "Warning!")
@@ -352,7 +352,7 @@
                                                :name "button"
                                                :value "Remove"))
                                     
-                                     (weblocks-ui/form:with-html-form
+                                     (reblocks-ui/form:with-html-form
                                          (:post (lambda (&rest args)
                                                   (declare (ignorable args))
                                                   (edit widget)))
@@ -465,14 +465,14 @@
                                 ("No checks yet.")))
 
                              (when user-is-moderator
-                               (weblocks-ui/form:with-html-form
+                               (reblocks-ui/form:with-html-form
                                    (:post (lambda (&rest args)
                                             (declare (ignore args))
                                             ;; This call will create a new check
                                             ;; only if it is not exist yet:
                                             (make-check source
                                                         :manual)
-                                            (weblocks/widget:update widget))
+                                            (reblocks/widget:update widget))
                                     :class "float-right")
                                  (:input :type "submit"
                                          :class "button tiny secondary"
@@ -497,7 +497,7 @@
          (last-seen-commit (getf params :last-seen-commit))
          (ignore-dirs (getf params :ignore-dirs))
          ;; (distributions (source-distributions source))
-         (user (weblocks-auth/models:get-current-user))
+         (user (reblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
          (all-dists (append (ultralisp/models/dist:public-dists)
                           user-dists))
@@ -516,14 +516,14 @@
                      :key #'ultralisp/models/dist:dist-name
                      :test #'string-equal)))
       (with-html
-        (weblocks-ui/form:with-html-form
+        (reblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
                      (handler-case (save widget args)
                        (asdf-systems-conflict (c)
                          (let ((message (fmt "~A" c)))
                            (setf (dist-conflicts widget)
                                  message)
-                           (weblocks/widget:update widget)))))
+                           (reblocks/widget:update widget)))))
              :widget widget)
           (form-error-placeholder)
           (:table :class "unstriped"
@@ -534,7 +534,7 @@
                       type
                       (:div :class "source-controls float-right"
                             (let ((js-code-to-cancel
-                                    (weblocks/actions:make-js-action
+                                    (reblocks/actions:make-js-action
                                      (lambda (&rest args)
                                            (declare (ignore args))
                                        (switch-to-readonly widget)))))
@@ -555,7 +555,7 @@
                               :name "url"
                               :type "text"
                               :onchange
-                              (weblocks-parenscript:make-js-handler
+                              (reblocks-parenscript:make-js-handler
                                :lisp-code ((&key url)
                                            (update-url (branches widget)
                                                        url))
@@ -602,7 +602,7 @@
                       (error-placeholder "distributions"))))))))))
 
 
-(defmethod weblocks/widget:render ((widget branch-select-widget))
+(defmethod reblocks/widget:render ((widget branch-select-widget))
   (with-html
     (:select :name "branch"
       (:option :disabled "disabled"
@@ -615,26 +615,26 @@
                         branch)))))
 
 
-(defmethod weblocks/widget:render ((widget source-widget))
-  (weblocks/widget:render (subwidget widget)))
+(defmethod reblocks/widget:render ((widget source-widget))
+  (reblocks/widget:render (subwidget widget)))
 
 
-(defmethod weblocks/widget:render ((widget readonly-source-widget))
+(defmethod reblocks/widget:render ((widget readonly-source-widget))
   (let* ((source (source (parent widget)))
          (type (ultralisp/models/source:source-type source)))
     (render-source widget type source)))
 
 
-(defmethod weblocks/widget:render ((widget edit-source-widget))
+(defmethod reblocks/widget:render ((widget edit-source-widget))
   (let* ((source (source (parent widget)))
          (type (ultralisp/models/source:source-type source)))
     (render-source widget type source)))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget source-widget))
+(defmethod reblocks/dependencies:get-dependencies ((widget source-widget))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `(.source-widget
         :border-top "2px solid #cc4b37"
         (input :margin 0)
@@ -654,7 +654,7 @@
 ;; Methods to render changes between source versions
 
 (defmethod ultralisp/protocols/render-changes:render ((type (eql :github)) prev-source new-source)
-  (weblocks/html:with-html
+  (reblocks/html:with-html
     (:ul
      (loop with old-params = (ultralisp/models/source:source-params prev-source)
            with new-params = (ultralisp/models/source:source-params new-source)
@@ -684,20 +684,20 @@
                     (str:shorten length new-value :ellipsis "…")))))))
 
 
-(defmethod weblocks/widget:render ((widget add-source-widget))
+(defmethod reblocks/widget:render ((widget add-source-widget))
   (let ((project (project widget))
-        (user (weblocks-auth/models:get-current-user)))
-    (weblocks/html:with-html
+        (user (reblocks-auth/models:get-current-user)))
+    (reblocks/html:with-html
       ;; Controls for editing and deleting source
       (when (ultralisp/protocols/moderation:is-moderator user project)
-        (weblocks-ui/form:with-html-form
+        (reblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
                      (declare (ignorable args))
                      (let* ((on-new-source (on-new-source widget))
                             (source-type (make-keyword (getf args :type)))
                             (source (ultralisp/models/source:create-source project
                                                                            source-type)))
-                       (weblocks/utils/misc:safe-funcall on-new-source source))))
+                       (reblocks/utils/misc:safe-funcall on-new-source source))))
           (:table
            (:tr
             (:td

@@ -1,19 +1,19 @@
 (defpackage #:ultralisp/widgets/search
   (:use #:cl)
   (:import-from #:3bmd)
-  (:import-from #:weblocks-lass)
-  (:import-from #:weblocks/request)
-  (:import-from #:weblocks/page)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks-lass)
+  (:import-from #:reblocks/request)
+  (:import-from #:reblocks/page)
+  (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
   (:import-from #:ultralisp/search
                 #:search-objects)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:cl-ppcre
                 #:regex-replace-all)
-  (:import-from #:weblocks/dependencies
+  (:import-from #:reblocks/dependencies
                 #:get-dependencies)
   (:import-from #:alexandria
                 #:make-keyword)
@@ -139,9 +139,9 @@
 
 
 (defmethod render ((widget search-results))
-  (let ((query (weblocks/request:get-parameter "query")))
+  (let ((query (reblocks/request:get-parameter "query")))
     (when query
-      (setf (weblocks/page:get-title)
+      (setf (reblocks/page:get-title)
             (fmt "Search results for \"~A\"" query))
       (setf (get-query widget)
             query))
@@ -158,11 +158,11 @@
                       do (apply #'render-item
                                 uppercased)))
            (when (> total (length results))
-             (weblocks-ui/form:render-link
+             (reblocks-ui/form:render-link
               (lambda (&rest args)
                 (declare (ignorable args))
                 (fetch-next-results widget)
-                (weblocks/widget:update widget))
+                (reblocks/widget:update widget))
               "Load more"))))
         (t (:p ("No results for \"~A\"" query)))))))
 
@@ -170,7 +170,7 @@
 (defmethod get-dependencies ((widget search-results))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `(.search-results
         :margin 0
         (li :list-style-type none

@@ -1,13 +1,13 @@
 (defpackage #:ultralisp/widgets/dists
   (:use #:cl)
   (:import-from #:str)
-  (:import-from #:weblocks/page)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/page)
+  (:import-from #:reblocks/widget
                 #:defwidget)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-nickname
                 #:get-current-user)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/dist
                 #:find-dist
@@ -41,18 +41,18 @@
                name)))))
 
 
-(defmethod weblocks/widget:render ((widget dists-widget))
+(defmethod reblocks/widget:render ((widget dists-widget))
   (let* ((title "Moderated dists")
          (user (get-current-user))
          (nickname (get-nickname user))
          (dists (when user
                   (moderated-dists user))))
-    (setf (weblocks/page:get-title)
+    (setf (reblocks/page:get-title)
           title)
     
     (with-slots (value error) widget
       (flet ((render-form ()
-               (weblocks-ui/form:with-html-form
+               (reblocks-ui/form:with-html-form
                    (:post (lambda (&key name &allow-other-keys)
                             ;; We keep the name in a slot to render it again
                             ;; if there is some error.
@@ -91,7 +91,7 @@
                                        error nil)
                                  (add-dist user full-dist-name)))
                               
-                              (weblocks/widget:update widget))))
+                              (reblocks/widget:update widget))))
                  (:table
                   (:tbody :style "border: 0px solid white; vertical-align: top;"
                           (:tr

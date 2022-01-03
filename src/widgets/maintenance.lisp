@@ -1,10 +1,10 @@
 (defpackage #:ultralisp/widgets/maintenance
   (:use #:cl)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget)
   (:import-from #:global-vars
                 #:define-global-var)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:export
    #:render-maintenance-page
@@ -18,7 +18,7 @@
 
 (defwidget maintenance ()
   ((child :initarg :child
-          :type weblocks/widget:widget)
+          :type reblocks/widget:widget)
    (lock-filename :initarg :lock-filename
                   :type pathname))
   (:documentation "This widget should be used as a toplevel widget.
@@ -27,7 +27,7 @@
 
 
 (defun make-maintenance-widget (child-widget &key (lock-filename *default-lock-filename*))
-  (check-type child-widget weblocks/widget:widget)
+  (check-type child-widget reblocks/widget:widget)
   (make-instance 'maintenance
                  :child child-widget
                  :lock-filename (merge-pathnames lock-filename)))
@@ -36,7 +36,7 @@
 (defgeneric render-maintenance-page (widget)
   (:method ((widget maintenance))
     (let ((title "Temporarily out of service"))
-      (setf (weblocks/page:get-title)
+      (setf (reblocks/page:get-title)
             title)
       (with-html
         (:h1 title)
@@ -44,9 +44,9 @@
         (:p "We'll bring it back as soon as possible.")))))
 
 
-(defmethod weblocks/widget:render ((widget maintenance))
+(defmethod reblocks/widget:render ((widget maintenance))
   (with-slots (lock-filename child) widget
     (let ((lock-exists (probe-file lock-filename)))
       (if lock-exists
           (render-maintenance-page widget)
-          (weblocks/widget:render child)))))
+          (reblocks/widget:render child)))))

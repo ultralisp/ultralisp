@@ -4,7 +4,7 @@
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/models/project)
   (:import-from #:ultralisp/models/version)
-  (:import-from #:weblocks-auth/models)
+  (:import-from #:reblocks-auth/models)
   (:export
    #:migrate))
 (in-package ultralisp/models/migration)

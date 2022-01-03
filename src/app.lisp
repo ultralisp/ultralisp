@@ -1,9 +1,9 @@
 (defpackage #:ultralisp/app
   (:use #:cl)
   ;; (:import-from #:flamegraph)
-  (:import-from #:weblocks/app
+  (:import-from #:reblocks/app
                 #:defapp)
-  (:import-from #:weblocks/request-handler))
+  (:import-from #:reblocks/request-handler))
 (in-package ultralisp/app)
 
 
@@ -16,8 +16,8 @@
 
 ;; Flamegraph does not work on SBCL 2.1.2 yet.
 ;; 
-;; (defmethod weblocks/request-handler:handle-request :around ((app app))
-;;   (let ((path (weblocks/request:get-parameter "flame")))
+;; (defmethod reblocks/request-handler:handle-request :around ((app app))
+;;   (let ((path (reblocks/request:get-parameter "flame")))
 ;;     (if path
 ;;         (flamegraph:save-flame-graph (path)
 ;;           (call-next-method))

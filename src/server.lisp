@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
-  (:import-from #:weblocks-auth/github)
+  (:import-from #:reblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/cron)
@@ -10,22 +10,22 @@
   (:import-from #:mailgun)
   (:import-from #:slynk)
   (:import-from #:mito)
-  (:import-from #:weblocks/debug)
-  (:import-from #:weblocks/server)
-  (:import-from #:weblocks-lass)
-  (:import-from #:weblocks/session)
-  (:import-from #:weblocks-ui
+  (:import-from #:reblocks/debug)
+  (:import-from #:reblocks/server)
+  (:import-from #:reblocks-lass)
+  (:import-from #:reblocks/session)
+  (:import-from #:reblocks-ui
                 #:*foundation-dependencies*)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:render-headers
                 #:get-language)
-  (:import-from #:weblocks/dependencies
+  (:import-from #:reblocks/dependencies
                 #:get-dependencies
                 #:*cache-remote-dependencies-in*)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html
                 #:with-html-string)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:immediate-response)
   (:import-from #:ultralisp/widgets/main
                 #:make-main-routes)
@@ -58,8 +58,8 @@
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/source)
-  (:import-from #:weblocks/request)
-  (:import-from #:weblocks/request-handler
+  (:import-from #:reblocks/request)
+  (:import-from #:reblocks/request-handler
                 #:handle-request)
   (:import-from #:ultralisp/db
                 #:with-connection)
@@ -78,7 +78,7 @@
   (:import-from #:ultralisp/models/project
                 #:get-all-projects)
   (:import-from #:ultralisp/models/asdf-system)
-  (:import-from #:weblocks/error-handler
+  (:import-from #:reblocks/error-handler
                 #:on-error)
 
   ;; Extra dependencies with implementation of important protocols:
@@ -93,7 +93,7 @@
   (:import-from #:ultralisp/widgets/landing)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/widgets/maintenance
                 #:make-maintenance-widget)
@@ -150,16 +150,16 @@
 
 (defparameter +search-help+
   (list "signal - this will search in symbol's name and documentation."
-        "project:\"40ants/weblocks\" AND symbol:\"request\""
-        "package:\"weblocks/actions\" to search all symbols exported from a package."))
+        "project:\"40ants/reblocks\" AND symbol:\"request\""
+        "package:\"reblocks/actions\" to search all symbols exported from a package."))
 
-(defmethod weblocks/session:init ((app app))
+(defmethod reblocks/session:init ((app app))
   (make-maintenance-widget
    (make-main-routes)))
 
 
 (defparameter *app-dependencies*
-  (list (weblocks-lass:make-dependency
+  (list (reblocks-lass:make-dependency
           '(body
             :position absolute
             :height 100%
@@ -199,7 +199,7 @@
             (.page-footer :color "#AAA"
                           :margin-top 3em)))
 
-        ;; (weblocks-lass:make-dependency
+        ;; (reblocks-lass:make-dependency
         ;;   '(.page-header
         ;;     :border-bottom 5px solid "#555"
         ;;     :padding-right 0.5rem
@@ -207,7 +207,7 @@
         ;;     :padding-top 1rem
         ;;     :margin-bottom 2rem))
         
-        (weblocks-lass:make-dependency
+        (reblocks-lass:make-dependency
           '(:media "screen and (max-width: 40em)"
             (.latest-builds
              :display none)
@@ -217,7 +217,7 @@
              :padding-left 1rem
              :padding-right 1rem)))
         
-        ;; (weblocks-parenscript:make-dependency
+        ;; (reblocks-parenscript:make-dependency
         ;;   (defun reach-goal (name)
         ;;     "Регистрирует в Яндекс.Метрике достижение цели."
 
@@ -263,7 +263,7 @@
                                    *started-at*)))))
 
 
-(defmethod weblocks/page:render-body ((app app) body-string)
+(defmethod reblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
   (let ((spinneret::*pre* t)
         (num-projects (or (get-num-projects)
@@ -283,7 +283,7 @@
                                               num-projects)))
                            (:h2 :class "motto"
                                 "A fast-moving Common Lisp software distribution.")
-                           (let ((query (weblocks/request:get-parameter "query"))
+                           (let ((query (reblocks/request:get-parameter "query"))
                                  (show-search (null (uiop:getenv "HIDE_SEARCH"))))
                              (when show-search
                                (:form :method "GET"
@@ -305,7 +305,7 @@
                            (:p "Ultralisp v"
                                (:span :title (make-version-info)
                                       +ultralisp-version+)
-                               ("proudly served by [Common Lisp](https://common-lisp.net) and [Weblocks](http://40ants.com/weblocks/)!"))))))))
+                               ("proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!"))))))))
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
@@ -328,25 +328,25 @@
 
 
 (defmethod on-error ((app app) condition)
-  (setf (weblocks/page:get-title)
+  (setf (reblocks/page:get-title)
         "Some shit happened with ultralisp.org")
 
   (let ((traceback (when condition
                      (print-backtrace :stream nil))))
     (when traceback
-      (with-fields (:uri (weblocks/request:get-path)
+      (with-fields (:uri (reblocks/request:get-path)
                     :user (let ((user (get-current-user)))
                             (cond
                               ((null user)
                                "unknown")
-                              ((weblocks-auth/models:anonymous-p user)
+                              ((reblocks-auth/models:anonymous-p user)
                                "anonymous")
-                              (t (weblocks-auth/models:get-nickname user)))))
+                              (t (reblocks-auth/models:get-nickname user)))))
         (log:error "Returning 500 error to user" traceback)))
 
     (let ((content
             (cond
-              ((weblocks/debug:status)
+              ((reblocks/debug:status)
                (with-html-string
                  (:h3 "Some shit happened.")
                  (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
@@ -360,10 +360,10 @@
                  (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!")))))))
       
       (immediate-response
-       ;; TODO: replace with weblocks/response:return-page
+       ;; TODO: replace with reblocks/response:return-page
        (with-html-string
-         (weblocks/page:render
-          (weblocks/app:get-current)
+         (reblocks/page:render
+          (reblocks/app:get-current)
           content))
        :code 500
        :content-type "text/html"))))
@@ -376,10 +376,6 @@
 
 
 ;; Top level start & stop scripts
-
-(defvar *app* nil
-  "App's instance.")
-
 
 (defvar *previous-args* nil
   "Arguments of the previos `start' call. Used to restart
@@ -396,7 +392,7 @@
                               (port 8080)
                               (interface "localhost")
                               (server-type :woo))
-  "Starts the application by calling 'weblocks/server:start' with appropriate arguments."
+  "Starts the application by calling 'reblocks/server:start' with appropriate arguments."
   (declare (ignore debug port interface server-type))
   
   (log:info "Starting ultralisp" args)
@@ -442,19 +438,19 @@
         (setf *uploader-type*
               uploader-type))))
   
-  (setf weblocks-auth/github:*client-id* (get-github-client-id))
-  (unless weblocks-auth/github:*client-id*
+  (setf reblocks-auth/github:*client-id* (get-github-client-id))
+  (unless reblocks-auth/github:*client-id*
     (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
   
-  (setf weblocks-auth/github:*secret* (get-github-secret))
-  (unless weblocks-auth/github:*secret*
+  (setf reblocks-auth/github:*secret* (get-github-secret))
+  (unless reblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
 
   (setf mailgun:*user-agent* (get-user-agent))
   
   (setf *cache-remote-dependencies-in*
         ;; TODO: make configurable
-        #P"/tmp/weblocks-cache/ultralisp/")
+        #P"/tmp/reblocks-cache/ultralisp/")
   (setf (get-language)
         "en")
 
@@ -463,11 +459,9 @@
   (ultralisp/cron:start)
 
   (log:info "Starting server" args)
-  (apply #'weblocks/server:start args)
+  (apply #'reblocks/server:start :apps '(app) args)
 
   (log:info "DONE")
-  (setf *app*
-        (weblocks/app:start 'app))
   (setf *started-at*
         (local-time:now)))
 
@@ -518,8 +512,8 @@
 
 
 (defun stop ()
-  "Stops the application by calling 'stop-weblocks'."
-  (weblocks/server:stop))
+  "Stops the application by calling 'stop-reblocks'."
+  (reblocks/server:stop))
 
 
 (defun restart ()

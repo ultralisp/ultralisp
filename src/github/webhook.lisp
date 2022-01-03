@@ -1,11 +1,11 @@
 (defpackage #:ultralisp/github/webhook
   (:use #:cl)
 
-  (:import-from #:weblocks/session)
+  (:import-from #:reblocks/session)
   (:import-from #:ultralisp/builder)
   (:import-from #:chanl)
   (:import-from #:ultralisp/uploader/base)
-  (:import-from #:weblocks/routes
+  (:import-from #:reblocks/routes
                 #:defroute)
   (:import-from #:routes
                 #:parse-template)
@@ -22,7 +22,7 @@
                 #:get-project2
                 #:get-github-project
                 #:get-all-projects)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:make-uri)
   (:import-from #:ultralisp/models/check
                 #:make-checks
@@ -178,11 +178,11 @@
 
 
 (defroute (app /webhook/github :content-type "text/plain")
-  (let* ((body (weblocks/request:get-parameters)))
+  (let* ((body (reblocks/request:get-parameters)))
     (log:debug "New payload received" body)
 
     ;; This is API, we don't want to keep any sessions here
-    (weblocks/session:expire)
+    (reblocks/session:expire)
 
     ;; Github may send us a json payload or x-ww-form-urlencoded
     ;; in first case, body contains already parsed json. In second -

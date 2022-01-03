@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/models/dist-moderator
   (:use #:cl)
   (:import-from #:mito)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:user)
   (:import-from #:ultralisp/models/dist
                 #:dist)
@@ -38,7 +38,7 @@
 
    We'll not return all existing dists to super-moderators.
    to not overhelm them."
-  (check-type user weblocks-auth/models:user)
+  (check-type user reblocks-auth/models:user)
   (mito.dao:select-by-sql
    (find-class 'dist)
    "SELECT dist.* FROM dist
@@ -49,7 +49,7 @@
 
 
 (defun add-dist (user name)
-  (check-type user weblocks-auth/models:user)
+  (check-type user reblocks-auth/models:user)
   (check-type name string)
   (with-transaction
     ;; We aren't using unique db index, because there will be many

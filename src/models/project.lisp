@@ -30,7 +30,7 @@
                 #:order-by
                 #:limit
                 #:where)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/db
                 #:with-transaction)

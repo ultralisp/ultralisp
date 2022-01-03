@@ -201,13 +201,12 @@
           for source in all-sources
           for last-check = (get-last-source-check source)
           when last-check
-          do (break)
-             (setf (object-updated-at last-check)
-                   current-ts)
-             (setf current-ts
-                   (local-time-duration:timestamp-duration+ current-ts
-                                                            step))
-             (save-updated last-check))))
+            do (setf (object-updated-at last-check)
+                     current-ts)
+               (setf current-ts
+                     (local-time-duration:timestamp-duration+ current-ts
+                                                              step))
+               (save-updated last-check))))
 
 
 (deftask index-projects ()

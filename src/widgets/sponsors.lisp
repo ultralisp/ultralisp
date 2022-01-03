@@ -1,11 +1,11 @@
 (defpackage #:ultralisp/widgets/sponsors
   (:use #:cl)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget
                 #:render)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:get-title)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:export
    #:make-sponsors-widget))
@@ -22,7 +22,7 @@
 
 ;; Without this method widget had "sponsours-widget" class
 ;; and was removed by ADBlock:
-(defmethod weblocks/widget:get-css-classes ((widget sponsors-widget))
+(defmethod reblocks/widget:get-css-classes ((widget sponsors-widget))
   (list "widget sp-widget"))
 
 
