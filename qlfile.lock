@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20220104114000"))
+  :version "20220104121001"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref "3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f" :branch nil :tag nil)
