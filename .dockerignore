@@ -1,5 +1,6 @@
 .git/
 .qlot/
+env/
 quicklisp/
 quickdist/
 build/
