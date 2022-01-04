@@ -9,9 +9,7 @@
 
 
 (defun render-switch (state action &key disabled labels title)
-  (let* ((action-code (reblocks/actions::function-or-action->action action))
-         (on-click (format nil "initiateAction('~A'); return false;"
-                           action-code))
+  (let* ((on-click (reblocks/actions:make-js-action action))
          (label-attrs (if disabled
                           ;; For some reason, Foundation does not
                           ;; render cursor propertly on a disabled switch.
