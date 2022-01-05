@@ -1,10 +1,10 @@
 (defpackage #:ultralisp/widgets/dist
   (:use #:cl)
-  (:import-from #:weblocks/request)
+  (:import-from #:reblocks/request)
   (:import-from #:ultralisp/protocols/url)
   (:import-from #:ultralisp/protocols/external-url)
   (:import-from #:ultralisp/models/dist)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
@@ -15,7 +15,7 @@
                 #:get-clpi-base-url)
   (:import-from #:ultralisp/protocols/moderation
                 #:is-moderator)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:get-title)
   (:export
    #:make-dist-widget
@@ -48,7 +48,7 @@
 
 (defun render-installation-instructions (dist)
   (let ((url (ultralisp/protocols/external-url:external-url dist)))
-    (weblocks/html:with-html
+    (reblocks/html:with-html
       (when (string-equal (ultralisp/models/dist:dist-name dist)
                           "lispworks")
         (:p "This distribution contains extensions and libraries for LispWorks.")
@@ -93,7 +93,7 @@
                           (min (length sources)
                                limit))))
 
-    (weblocks/html:with-html
+    (reblocks/html:with-html
       (:h1 name)
 
       (render-installation-instructions dist)
@@ -122,7 +122,7 @@
                 [this issue](https://github.com/ultralisp/ultralisp/issues/92)."))))
         ;; TODO: Maybe add a button to add some projects?
         (t (:p "No projects yet.")
-           (when (is-moderator (weblocks-auth/models:get-current-user)
+           (when (is-moderator (reblocks-auth/models:get-current-user)
                                dist)
              (:p "You are the moderator of this distribution. Here is how you can add some projects:")
              (:ol
@@ -135,16 +135,16 @@
               (:li "Push \"Save\" button."))))))))
 
 
-(defmethod weblocks/widget:render ((widget dist-widget))
+(defmethod reblocks/widget:render ((widget dist-widget))
   (register-groups-bind (dist-name)
-      ("^/dists/(.*)$" (weblocks/request:get-path))
+      ("^/dists/(.*)$" (reblocks/request:get-path))
 
     (setf (dist-name widget)
           dist-name
           (get-title)
           (format nil "Ultralisp: ~A distribution" dist-name))
 
-    ;; This is not an idiomatic Weblocks code because we should
+    ;; This is not an idiomatic Reblocks code because we should
     ;; make a database query only when widget gets created, not
     ;; during the render.
     (let ((dist (dist widget)))

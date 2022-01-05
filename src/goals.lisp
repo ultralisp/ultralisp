@@ -1,11 +1,11 @@
 (defpackage #:ultralisp/goals
   (:use #:cl)
-  (:import-from #:weblocks/session)
+  (:import-from #:reblocks/session)
   (:import-from #:log4cl)
   
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:send-script)
-  (:import-from #:weblocks/hooks
+  (:import-from #:reblocks/hooks
                 #:on-application-hook-render)
   (:export
    #:reach-goal))
@@ -17,7 +17,7 @@
       ;; Если отметить достижение цели надо будет лишь после редиректа,
       ;; то добавим её в специальный список внутри сессии
       (push name
-            (weblocks/session:get-value :skazorama-goals))
+            (reblocks/session:get-value :skazorama-goals))
       
       (send-script
        `(reach-goal ,name))))
@@ -27,8 +27,8 @@
   send-delayed-goals ()
 
   "Отправим события, которые были отложены до следующего рендеринга страницы."
-  (loop for name in (weblocks/session:get-value :skazorama-goals)
+  (loop for name in (reblocks/session:get-value :skazorama-goals)
         do (send-script
             `(reach-goal ,name)))
 
-  (weblocks/session:delete-value :skazorama-goals))
+  (reblocks/session:delete-value :skazorama-goals))

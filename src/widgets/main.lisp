@@ -1,20 +1,20 @@
 (defpackage #:ultralisp/widgets/main
   (:use #:cl)
-  (:import-from #:weblocks-navigation-widget
+  (:import-from #:reblocks-navigation-widget
                 #:defroutes)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html-string)
 
   ;; Just depdendencies
   (:import-from #:log)
-  (:import-from #:weblocks/app)
-  (:import-from #:weblocks/widget)
-  (:import-from #:weblocks/page)
+  (:import-from #:reblocks/app)
+  (:import-from #:reblocks/widget)
+  (:import-from #:reblocks/page)
   (:import-from #:ultralisp/widgets/version
                 #:make-version-widget)
   (:import-from #:ultralisp/widgets/landing
                 #:make-landing-widget)
-  (:import-from #:weblocks-auth/core
+  (:import-from #:reblocks-auth/core
                 #:make-logout-processor
                 #:make-login-processor)
   (:import-from #:ultralisp/widgets/login-menu
@@ -69,8 +69,8 @@
    (page-not-found)))
 
 
-(defmethod weblocks/widget:render ((widget main-routes))
-  (weblocks/widget:render
+(defmethod reblocks/widget:render ((widget main-routes))
+  (reblocks/widget:render
    (make-login-menu))
 
   (call-next-method))

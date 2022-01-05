@@ -5,7 +5,7 @@
                 #:assert-that
                 #:contains
                 #:has-type)
-  (:import-from #:weblocks-test/utils)
+  (:import-from #:reblocks-test/utils)
   (:import-from #:ultralisp-test/utils
                 #:get-projects-linked-to-the
                 #:get-all-dist-names
@@ -42,7 +42,7 @@
                 #:object-version)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/dist
                 #:dist-name

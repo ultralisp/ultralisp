@@ -1,6 +1,6 @@
 (defpackage #:ultralisp/models/moderator
   (:use #:cl)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:user
                 #:get-email
                 #:get-nickname)

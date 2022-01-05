@@ -1,21 +1,21 @@
 (defpackage #:ultralisp/widgets/projects
   (:use #:cl)
-  (:import-from #:weblocks/request)
-  (:import-from #:weblocks/page)
+  (:import-from #:reblocks/request)
+  (:import-from #:reblocks/page)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/project
                 #:get-url
                 #:get-name
                 #:get-description)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/models/project-moderator
@@ -59,8 +59,8 @@
 
 (defmethod render ((widget author-projects))
   (register-groups-bind (user-or-org)
-      ("^/projects/(.*)$" (weblocks/request:get-path))
-    ;; This is not an idiomatic Weblocks code because we should
+      ("^/projects/(.*)$" (reblocks/request:get-path))
+    ;; This is not an idiomatic Reblocks code because we should
     ;; make a database query only when widget gets created, not
     ;; during the render.
     (let ((projects (ultralisp/models/project:get-projects2-by-username user-or-org))
@@ -70,7 +70,7 @@
          (with-html
            (:h1 :class "author-name"
                 title)
-           (setf (weblocks/page:get-title)
+           (setf (reblocks/page:get-title)
                  title)
            (render-projects-list projects)))
         (t (page-not-found))))))
@@ -83,7 +83,7 @@
                          :key #'ultralisp/models/project:project-name))
          (title "Moderated projects"))
 
-    (setf (weblocks/page:get-title)
+    (setf (reblocks/page:get-title)
           title)
 
     (with-html

@@ -13,7 +13,7 @@
   (:import-from #:ultralisp/models/dist-moderator
                 #:add-dist
                 #:moderated-dists)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user))
 (in-package ultralisp-test/models/dist)
 

@@ -1,12 +1,12 @@
 (defpackage #:ultralisp/widgets/not-found
   (:use #:cl)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:render
                 #:get-title)
-  (:import-from #:weblocks/app)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/app)
+  (:import-from #:reblocks/html
                 #:with-html-string)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:immediate-response)
   (:export #:page-not-found))
 (in-package ultralisp/widgets/not-found)
@@ -19,9 +19,9 @@
         title)
 
   (immediate-response
-   ;; TODO: replace with weblocks/response:return-page
+   ;; TODO: replace with reblocks/response:return-page
    (with-html-string
-     (render (weblocks/app:get-current)
+     (render (reblocks/app:get-current)
              (with-html-string
                (:h1 "404")
                (:h2 "Page not found"))))

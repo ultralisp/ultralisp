@@ -10,18 +10,18 @@
                 #:get-project2)
   (:import-from #:cl-ppcre
                 #:register-groups-bind)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:defwidget
                 #:render)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
-  (:import-from #:weblocks/page
+  (:import-from #:reblocks/page
                 #:get-title)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/utils
                 #:render-switch)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/protocols/moderation
                 #:is-moderator)
@@ -71,7 +71,7 @@
                  (setf source-widgets
                        (remove source-widget
                                source-widgets)))
-               (weblocks/widget:update widget)))
+               (reblocks/widget:update widget)))
         (setf (slot-value widget 'name)
               new-name
               (slot-value widget 'project)
@@ -91,7 +91,7 @@
                   (slot-value widget 'source-widgets)
                   (list (make-source-widget source
                                             :on-delete #'on-delete)))
-                 (weblocks/widget:update widget))))))))
+                 (reblocks/widget:update widget))))))))
 
 
 (defun toggle (widget project)
@@ -100,7 +100,7 @@
   (if (is-enabled-p project)
       (disable-project project :reason :manual)
       (ultralisp/models/check:make-added-project-check project))
-  (weblocks/widget:update widget))
+  (reblocks/widget:update widget))
 
 
 (defclass next-check ()
@@ -148,12 +148,12 @@
 
 (defmethod render ((widget project))
   (register-groups-bind (project-name)
-      ("^/projects/(.*/.*)$" (weblocks/request:get-path))
+      ("^/projects/(.*/.*)$" (reblocks/request:get-path))
 
     (setf (project-name widget)
           project-name)
     
-    ;; This is not an idiomatic Weblocks code because we should
+    ;; This is not an idiomatic Reblocks code because we should
     ;; make a database query only when widget gets created, not
     ;; during the render.
     (let ((project (project widget)))
@@ -162,10 +162,10 @@
         (t (page-not-found))))))
 
 
-(defmethod weblocks/dependencies:get-dependencies ((widget project))
+(defmethod reblocks/dependencies:get-dependencies ((widget project))
   (append
    (list
-    (weblocks-lass:make-dependency
+    (reblocks-lass:make-dependency
       `((:and .widget .project)
         (.full-name
          :margin-bottom 0

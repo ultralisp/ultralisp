@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/widgets/version
   (:use #:cl)
   (:import-from #:ultralisp/widgets/projects)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
   (:import-from #:ultralisp/widgets/changelog)
@@ -35,7 +35,7 @@
 
 
 (defmethod render ((widget version))
-  (let* ((path (weblocks/request:get-path))
+  (let* ((path (reblocks/request:get-path))
          (version-number (first (all-matches-as-strings "\\d+" path)))
          (version (when version-number
                     (get-version-by-number version-number))))
@@ -49,7 +49,7 @@
                             (ultralisp/variables:get-base-url)
                             (ultralisp/variables:get-dist-name)
                             version-number)))
-      (weblocks/html:with-html
+      (reblocks/html:with-html
         (:h4 ("Version ~A" version-number))
         
         (:h5 "To install:")

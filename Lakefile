@@ -1,5 +1,7 @@
 #|-*- mode:lisp -*-|#
 ;; (in-package :cl-user)
+(ql:quickload :cl-interpol)
+
 (defpackage :lake.user
   (:use :cl :lake :cl-syntax)
   (:shadowing-import-from :lake
@@ -55,7 +57,10 @@
       ;; Here you need to install gen-deps-system using this command
       ;; ros install 40ants/gen-deps-system
       #+darwin
-      (sh "brew install libev")
+      (sh "arch -x86_64 /usr/local/bin/brew install libev")
+
+      #-darwin
+      (sh "sudo apt-get install -y libev-dev")
 
       (unless (zerop (nth-value 2 (uiop:run-program "which gen-deps-system"
                                                     :ignore-error-status t)))

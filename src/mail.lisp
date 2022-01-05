@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/mail
   (:use #:cl)
   (:import-from #:mailgun)
-  (:import-from #:weblocks/response
+  (:import-from #:reblocks/response
                 #:make-uri)
   ;; (:import-from #:mito-email-auth/models
   ;;               #:get-code
@@ -11,7 +11,7 @@
 (in-package ultralisp/mail)
 
 
-;; TODO: remove this code, or move it to weblocks-auth
+;; TODO: remove this code, or move it to reblocks-auth
 ;; (defun send-login-code (code &key retpath)
 ;;   (let* ((retpath (when retpath
 ;;                     (quri:url-encode retpath)))
@@ -37,4 +37,4 @@
 
 ;;       (t (log:warn "You didn't set MAILGUN_DOMAIN and MAILGUN_API_KEY env variables. So I am unable to send auth code."
 ;;                    url)
-;;          (weblocks/response:redirect url)))))
+;;          (reblocks/response:redirect url)))))

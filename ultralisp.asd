@@ -12,6 +12,7 @@
   :class :package-inferred-system
   :version (:read-file-line "ChangeLog.rst" :at search-version-in-changelog)
   :pathname "src"
+  :serial t
   :depends-on ("cl-interpol"
                "log4sly"
 	       ;; To not load it when worker is starting
@@ -20,7 +21,9 @@
 	       "dbd-postgres"
                ;; We need this while will not support package inferred systems:
                ;; https://github.com/ultralisp/ultralisp/issues/3
-               "weblocks-ui"
+               "40ants-doc"
+               "reblocks-ui"
+               "reblocks-auth"
                ;; To make inplace links work in the HTML
                "ultralisp/main"
                "ultralisp/server")

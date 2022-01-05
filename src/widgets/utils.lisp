@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/widgets/utils
   (:use #:cl)
-  (:import-from #:weblocks/actions)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/actions)
+  (:import-from #:reblocks/html
                 #:with-html)
   (:export
    #:render-switch))
@@ -9,9 +9,7 @@
 
 
 (defun render-switch (state action &key disabled labels title)
-  (let* ((action-code (weblocks/actions::function-or-action->action action))
-         (on-click (format nil "initiateAction('~A'); return false;"
-                           action-code))
+  (let* ((on-click (reblocks/actions:make-js-action action))
          (label-attrs (if disabled
                           ;; For some reason, Foundation does not
                           ;; render cursor propertly on a disabled switch.

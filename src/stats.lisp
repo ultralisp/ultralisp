@@ -16,8 +16,8 @@
                 #:make-threads-collector)
   (:import-from #:prometheus.process
                 #:make-process-collector)
-  (:import-from #:weblocks/session)
-  (:import-from #:weblocks/routes
+  (:import-from #:reblocks/session)
+  (:import-from #:reblocks/routes
                 #:defroute)
   (:import-from #:routes
                 #:parse-template)
@@ -37,7 +37,7 @@
   "The holder for prometheus metrics.")
 
 
-(defclass weblocks-stats (collector)
+(defclass reblocks-stats (collector)
   ((gauges :initform (make-hash-table)
            :documentation "Each value is a cons of the gauge object and
   funcallable to set value of the gauge. Funcallable will be called on each
@@ -49,15 +49,15 @@
              :reader get-counters)))
 
 
-(defun make-weblocks-stats (registry)
-  (let ((collector (make-instance 'weblocks-stats
-                                  :name "weblocks_collector")))
+(defun make-reblocks-stats (registry)
+  (let ((collector (make-instance 'reblocks-stats
+                                  :name "reblocks_collector")))
     (when registry
       (prometheus:register collector registry))
     collector))
 
 
-(defmethod prometheus:collect ((collector weblocks-stats) cb)
+(defmethod prometheus:collect ((collector reblocks-stats) cb)
   (loop for (gauge . func) being the hash-values in (get-gauges collector)
         for value = (funcall func)
         do (prometheus:gauge.set gauge value)
@@ -121,7 +121,7 @@
 (defun initialize ()
   (unless *registry*
     (setf *registry* (make-registry))
-    (setf *collector* (make-weblocks-stats *registry*))
+    (setf *collector* (make-reblocks-stats *registry*))
     
     (let ((prom:*default-registry* *registry*))
       #+sbcl
@@ -139,5 +139,5 @@
                          (marshal *registry*)
                          "")))
         ;; This is API, we don't want to keep any sessions here
-        (weblocks/session:expire)
+        (reblocks/session:expire)
         (values content)))))

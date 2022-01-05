@@ -1,13 +1,13 @@
 (defpackage #:ultralisp/widgets/spinner
   (:use #:cl)
-  (:import-from #:weblocks/widget
+  (:import-from #:reblocks/widget
                 #:get-html-tag
                 #:render
                 #:defwidget)
-  (:import-from #:weblocks/dependencies
+  (:import-from #:reblocks/dependencies
                 #:make-dependency
                 #:get-dependencies)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:export
    #:make-spinner
@@ -39,7 +39,7 @@
 (defun make-spinner ()
   (let ((path (asdf:system-relative-pathname :ultralisp #P"src/widgets/gear.gif")))
 
-    (weblocks/server:serve-static-file "/static/gear.gif"
+    (reblocks/server:serve-static-file "/static/gear.gif"
                                        path
                                        :content-type "image/gif")
     (make-instance 'spinner)))

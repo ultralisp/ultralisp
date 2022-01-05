@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/widgets/changelog
   (:use #:cl)
   (:import-from #:str)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:ultralisp/models/action
                 #:get-params

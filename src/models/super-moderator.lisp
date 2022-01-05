@@ -1,6 +1,6 @@
 (defpackage #:ultralisp/models/super-moderator
   (:use #:cl)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:user)
   (:import-from #:function-cache
                 #:defcached)

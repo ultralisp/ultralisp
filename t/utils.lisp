@@ -1,7 +1,7 @@
 (defpackage #:ultralisp-test/utils
   (:use #:cl)
   (:import-from #:ultralisp/db)
-  (:import-from #:weblocks-test/utils)
+  (:import-from #:reblocks-test/utils)
   (:import-from #:cl-dbi)
   (:import-from #:ultralisp/metrics)
   (:import-from #:ultralisp/models/project
@@ -51,12 +51,12 @@
 
 (defmacro with-login ((&key (email "bob@example.com"))
                       &body body)
-  `(weblocks-test/utils:with-session
-     (let* ((user (or (weblocks-auth/models:get-user-by-email ,email)
-                      (mito:create-dao 'weblocks-auth/models:user
+  `(reblocks-test/utils:with-session
+     (let* ((user (or (reblocks-auth/models:get-user-by-email ,email)
+                      (mito:create-dao 'reblocks-auth/models:user
                                        :nickname ,email
                                        :email ,email))))
-       (setf (weblocks-auth/models:get-current-user)
+       (setf (reblocks-auth/models:get-current-user)
              user)
        ,@body)))
 

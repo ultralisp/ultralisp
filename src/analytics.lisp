@@ -4,7 +4,7 @@
   (:import-from #:ultralisp/variables
                 #:get-yandex-counter-id
                 #:get-google-counter-id)
-  (:import-from #:weblocks/html
+  (:import-from #:reblocks/html
                 #:with-html)
   (:export
    #:render-yandex-counter

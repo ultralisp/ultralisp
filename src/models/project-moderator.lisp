@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/models/project-moderator
   (:use #:cl)
   (:import-from #:mito)
-  (:import-from #:weblocks-auth/models
+  (:import-from #:reblocks-auth/models
                 #:get-nickname
                 #:user)
   (:import-from #:ultralisp/models/project
