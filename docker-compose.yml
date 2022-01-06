@@ -104,6 +104,7 @@ services:
       - ./logs/:/app/logs/
       - ./new-libs/:/app/new-libs/
       - ./build/:/app/build/
+      - ./lw-license:/lw-license
     depends_on:
       - postgres
       - elastic

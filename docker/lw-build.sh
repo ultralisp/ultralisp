@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DELIVERY_FILE=${1:-/app/deliver.lisp}
-LICENSE_FILE=${2:-/lw-secrets}
+LICENSE_FILE=${2:-/lw-license}
 
 set -xe
 

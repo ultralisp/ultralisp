@@ -33,6 +33,8 @@ RUN install-dependencies
 
 COPY . /app
 COPY ./docker/.distignore /root/.config/quickdist/
+# END OF THE base
+
 
 FROM base as lw-worker
 
@@ -51,13 +53,17 @@ RUN cd /lispworks && \
 
 RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
 
-RUN docker/lw-build.sh /app/lw-build.lisp /app/.lw80-license
+RUN docker/lw-build.sh /app/lw-build.lisp /app/lw-license
 
 COPY ./docker/s6-lw-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
+# END OF THE lw-worker
+
 
 FROM base as sbcl-app-and-worker
+
+RUN rm /app/lw-license
 
 RUN qlot exec ros build \
     /app/roswell/worker.ros && \
@@ -69,11 +75,14 @@ RUN qlot exec ros build \
 COPY ./docker/s6-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
+# END OF THE sbcl-app-and-worker
+
 
 # Next stage is for development only
 FROM base as dev
 RUN ros install 40ants/gen-deps-system
 ENTRYPOINT ["/app/docker/dev-entrypoint.sh"]
+
 
 # To run Mito commands
 FROM dev as mito
