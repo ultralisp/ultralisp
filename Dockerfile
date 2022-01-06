@@ -44,6 +44,27 @@ RUN qlot exec ros build \
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
 CMD ["/app/docker/entrypoint.sh"]
 
+FROM base as lw-worker
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DISPLAY=host.docker.internal:0
+
+RUN apt-get update && apt-get install -y libgtk2.0-0
+
+COPY dist-lw80 /lispworks
+
+RUN cd /lispworks && \
+    touch "/tmp/."`/bin/date '+%d%m%y'`"lispworks"`id -u` && \
+    sh lwl-install.sh && \
+    cd /usr/local/lib64/LispWorks && \
+    ln -s /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux /usr/local/bin/lispworks
+
+COPY docker/lw-build.sh /build.sh
+RUN docker/lw-build.sh /app/lw-build.lisp /lispworks-license
+
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+CMD ["/app/docker/entrypoint.sh"]
+
 
 # Next stage is for development only
 FROM base as worker

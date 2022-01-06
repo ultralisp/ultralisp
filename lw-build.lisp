@@ -10,6 +10,7 @@
     (load quicklisp-init)))
 
 (hcl:change-directory "~/projects/lisp/ultralisp/")
+(push "./" asdf:*central-registry*)
 
 (ql:quickload :qlot)
 
@@ -39,7 +40,7 @@
   (ql:quickload :ultralisp/worker))
 
   
-(let* ((app-path (asdf:system-relative-pathname :ultralisp "lw-worker")))
+(let* ((app-path "/app/worker"))
   (save-image app-path
               :restart-function 'ultralisp/worker::main
               :multiprocessing t
