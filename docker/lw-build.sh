@@ -28,3 +28,5 @@ fi
 
 ${LW_BINARY} $(cat ${LICENSE_FILE})
 ${LW_BINARY} -build ${DELIVERY_FILE}
+
+rm ${LICENSE_FILE}

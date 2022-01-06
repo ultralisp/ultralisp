@@ -4,12 +4,10 @@
 
 (require 'asdf)
 
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
-                                       (user-homedir-pathname))))
-  (when (probe-file quicklisp-init)
-    (load quicklisp-init)))
+(load "/quicklisp.lisp")
 
-(hcl:change-directory "~/projects/lisp/ultralisp/")
+(quicklisp-quickstart:install)
+
 (push "./" asdf:*central-registry*)
 
 (ql:quickload :qlot)
@@ -28,17 +26,8 @@
 (setf system:*file-encoding-detection-algorithm*
       '(force-utf-8-file-encoding))
 
-(qlot:with-local-quicklisp ((probe-file #P"ultralisp.asd")
-                            :central-registry
-                            (list (probe-file "~/projects/lisp/cl-gearman/")
-                                  ;; Тут патч для :unspecific
-                                  (probe-file "~/projects/lisp/quickdist/")
-                                  (probe-file "~/projects/lisp/defmain/") 
-                                  ;; Без этого жалуется что компонент ASDF не найден
-                                  ;; (возможно это повилось после того, как я проапгрейдил ASDF)
-                                  (probe-file "~/projects/lisp/asdf/")))
+(qlot:with-local-quicklisp ((probe-file #P"ultralisp.asd"))
   (ql:quickload :ultralisp/worker))
-
   
 (let* ((app-path "/app/worker"))
   (save-image app-path

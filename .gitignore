@@ -17,3 +17,5 @@
 /src/packages-extractor
 .stignore
 .sbclrc
+/.lw80-license
+/dist-lw80/
