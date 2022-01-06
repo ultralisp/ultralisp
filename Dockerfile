@@ -61,21 +61,30 @@ ENTRYPOINT ["s6-svscan", "/etc/s6"]
 # END OF THE lw-worker
 
 
-FROM base as sbcl-app-and-worker
+FROM base as sbcl-app
+
+RUN rm -fr /app/lw
+
+RUN qlot exec ros build \
+    /app/roswell/ultralisp-server.ros && \
+    mv /app/roswell/ultralisp-server /app/ultralisp-server
+
+COPY ./docker/s6-app /etc/s6
+ENTRYPOINT ["s6-svscan", "/etc/s6"]
+# END OF THE sbcl-app
+
+
+FROM base as sbcl-worker
 
 RUN rm -fr /app/lw
 
 RUN qlot exec ros build \
     /app/roswell/worker.ros && \
     mv /app/roswell/worker /app/worker
-RUN qlot exec ros build \
-    /app/roswell/ultralisp-server.ros && \
-    mv /app/roswell/ultralisp-server /app/ultralisp-server
 
 COPY ./docker/s6-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
-
-# END OF THE sbcl-app-and-worker
+# END OF THE sbcl-worker
 
 
 # Next stage is for development only
