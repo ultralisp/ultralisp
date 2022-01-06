@@ -53,7 +53,7 @@ RUN cd /lispworks && \
 
 RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
 
-RUN docker/lw-build.sh /app/lw-build.lisp /app/lw-license
+RUN docker/lw-build.sh /app/lw-build.lisp /app/lw/license
 
 COPY ./docker/s6-lw-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
@@ -63,7 +63,7 @@ ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
 FROM base as sbcl-app-and-worker
 
-RUN rm /app/lw-license
+RUN rm -fr /app/lw
 
 RUN qlot exec ros build \
     /app/roswell/worker.ros && \
