@@ -5,7 +5,7 @@
                 #:with-html)
   (:export
    #:render-switch))
-(in-package ultralisp/widgets/utils)
+(in-package #:ultralisp/widgets/utils)
 
 
 (defun render-switch (state action &key disabled labels title)

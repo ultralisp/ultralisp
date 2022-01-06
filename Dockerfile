@@ -66,12 +66,12 @@ RUN qlot exec ros build \
     /app/roswell/ultralisp-server.ros && \
     mv /app/roswell/ultralisp-server /app/ultralisp-server
 
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
-CMD ["/app/docker/entrypoint.sh"]
+COPY ./docker/s6 /etc/s6
+ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
 
 # Next stage is for development only
-FROM sbcl-app-and-worker as worker
+FROM sbcl-app-and-worker as sbcl-worker
 COPY ./docker/s6 /etc/s6
 ENTRYPOINT ["s5-svscan", "/etc/s6"]
 

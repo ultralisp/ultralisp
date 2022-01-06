@@ -4,7 +4,7 @@ services:
     container_name: ultralisp_app
     build:
       context: .
-      target: base
+      target: sbcl-app-and-worker
     restart: always
     # Probably, these aren't needed
     # stdin_open: true
@@ -63,7 +63,7 @@ services:
     container_name: ultralisp_worker
     build:
       context: .
-      target: worker
+      target: sbcl-worker
     restart: always
     ports:
       - "127.0.0.1:14006:4005"
