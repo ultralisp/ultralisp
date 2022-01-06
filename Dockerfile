@@ -53,8 +53,8 @@ RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
 
 RUN docker/lw-build.sh /app/lw-build.lisp /app/.lw80-license
 
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
-CMD ["/app/docker/entrypoint.sh"]
+COPY ./docker/s6-lw-worker /etc/s6
+ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
 
 FROM base as sbcl-app-and-worker
@@ -66,14 +66,8 @@ RUN qlot exec ros build \
     /app/roswell/ultralisp-server.ros && \
     mv /app/roswell/ultralisp-server /app/ultralisp-server
 
-COPY ./docker/s6 /etc/s6
+COPY ./docker/s6-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
-
-
-# Next stage is for development only
-FROM sbcl-app-and-worker as sbcl-worker
-COPY ./docker/s6 /etc/s6
-ENTRYPOINT ["s5-svscan", "/etc/s6"]
 
 
 # Next stage is for development only

@@ -107,7 +107,11 @@
                  (one-task-only "If true, then worker will quit after the task processing."
                                 :flag t)
                  (log-file "Path to a log file"
-                           :default "/app/logs/worker.log")
+                           :default
+                           #-lispworks
+                           "/app/logs/worker.log"
+                           #+lispworks
+                           "/app/logs/lw-worker.log")
                  (debug "If true, then output will be verbose"
                         :flag t
                         :env-var "DEBUG")
@@ -123,7 +127,11 @@
                   :error)
       :appenders ((daily :layout :json
                          :name-format ,log-file
-                         :backup-name-format "worker-%Y%m%d.log"))))
+                         :backup-name-format
+                         #-lispworks
+                         "worker-%Y%m%d.log"
+                         #+lispworks
+                         "lw-worker-%Y%m%d.log"))))
 
   ;; To make it possible to connect to a remote SLYNK server where ports are closed
   ;; with firewall.
@@ -135,12 +143,12 @@
                        :interface slynk-interface)
   
   (log:info "Waiting for tasks" one-task-only)
-  #+lispworks
-  (let ((ultralisp/rpc/command::*db-host-override* "localhost")
-        (ultralisp/rpc/command::*db-port-override* 25432))
-    (process-jobs :gearman-server "localhost:24730"
-                  :one-task-only one-task-only))
-  #-lispworks
+  ;; #+lispworks
+  ;; (let ((ultralisp/rpc/command::*db-host-override* "localhost")
+  ;;       (ultralisp/rpc/command::*db-port-override* 25432))
+  ;;   (process-jobs :gearman-server "localhost:24730"
+  ;;                 :one-task-only one-task-only))
+  ;; #-lispworks
   (process-jobs :one-task-only one-task-only))
 
 
@@ -158,10 +166,10 @@
   (process-jobs))
 
 
-(defun start-lispworks-worker ()
-  (ultralisp/logging:setup-for-repl :level :debug 
-                                    :app "worker")
+;; (defun start-lispworks-worker ()
+;;   (ultralisp/logging:setup-for-repl :level :debug 
+;;                                     :app "worker")
   
-  (let ((ultralisp/rpc/command::*db-host-override* "localhost")
-        (ultralisp/rpc/command::*db-port-override* 25432))
-    (process-jobs :gearman-server "localhost:24730")))
+;;   (let ((ultralisp/rpc/command::*db-host-override* "localhost")
+;;         (ultralisp/rpc/command::*db-port-override* 25432))
+;;     (process-jobs :gearman-server "localhost:24730")))

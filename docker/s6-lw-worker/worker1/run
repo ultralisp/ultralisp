@@ -1,0 +1,8 @@
+#!/bin/bash
+
+/app/worker \
+        --slynk-interface "0.0.0.0" \
+        --slynk-port "4005" \
+        --debug \
+        > /app/logs/lw-worker-stdout.log \
+        2> /app/logs/lw-worker-stderr.log

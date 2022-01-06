@@ -64,12 +64,11 @@ services:
     container_name: ultralisp_worker
     build:
       context: .
-      target: sbcl-worker
+      target: sbcl-app-and-worker
     restart: always
     ports:
       - "127.0.0.1:14006:4005"
     volumes:
-      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
@@ -97,7 +96,6 @@ services:
     ports:
       - "127.0.0.1:14007:4005"
     volumes:
-      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
