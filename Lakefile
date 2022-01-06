@@ -22,15 +22,20 @@
   (uiop:read-file-line "ChangeLog.rst" :at #'search-version-in-changelog))
 
 
-(defvar tag #?"40ants/ultralisp:${(get-current-version)}")
+;; (defvar tag #?"40ants/ultralisp:${(get-current-version)}")
+(defvar app-tag #?"ghcr.io/ultralisp/sbcl-app:${(get-current-version)}")
+(defvar worker-tag #?"ghcr.io/ultralisp/sbcl-worker:${(get-current-version)}")
+(defvar lw-worker-tag #?"ghcr.io/ultralisp/sbcl-lw-worker:${(get-current-version)}")
 
 
 (task "version" ()
-      (format t #?"Current-version: ${(get-current-version)}~%Docker tag: ${tag}~%"))
+      (format t #?"Current-version: ${(get-current-version)}~%Docker tag: ${app-tag}~%"))
 
 
 (task "build" ()
-      (sh #?"docker build --target base -t ${tag} ."))
+      (sh #?"docker build --target sbcl-app -t ${app-tag} .")
+      (sh #?"docker build --target sbcl-worker -t ${worker-tag} .")
+      (sh #?"docker build --target lw-worker -t ${lw-worker-tag} ."))
 
 
 ;; TODO: remove CL_SOURCE_REGISTRY before release
@@ -38,7 +43,9 @@
       (sh #?"CL_SOURCE_REGISTRY=~/common-lisp// qlot exec ros -L sbcl build ./worker.ros"))
 
 (task "push" ("build")
-      (sh #?"docker push ${tag}"))
+      (sh #?"docker push ${app-tag}")
+      (sh #?"docker push ${worker-tag}")
+      (sh #?"docker push ${lw-worker-tag}"))
 
 (file "qlfile.lock" ("qlfile")
       (sh "qlot update"))
