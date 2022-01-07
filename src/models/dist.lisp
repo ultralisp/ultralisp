@@ -72,7 +72,7 @@
    (lisp-implementation :col-type (:text)
                         :initarg :lisp-implementation
                         :initform :sbcl
-                        :reader lisp-implementation
+                        :accessor lisp-implementation
                         :inflate #'inflate-keyword
                         :deflate #'deflate-keyword
                         :documentation "A keyword like :SBCL or :LISPWORKS, denoting the lisp implementation
@@ -224,3 +224,11 @@
                  :id id
                  :version version))
 
+
+(defun change-implementation (dist-name new-implementation)
+  (check-type dist-name string)
+  (check-type new-implementation (member :sbcl :lispworks))
+  (let ((dist (find-dist dist-name)))
+    (setf (lisp-implementation dist)
+          new-implementation)
+    (mito:save-dao dist)))
