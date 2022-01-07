@@ -25,7 +25,7 @@
 ;; (defvar tag #?"40ants/ultralisp:${(get-current-version)}")
 (defvar app-tag #?"ghcr.io/ultralisp/sbcl-app:${(get-current-version)}")
 (defvar worker-tag #?"ghcr.io/ultralisp/sbcl-worker:${(get-current-version)}")
-(defvar lw-worker-tag #?"ghcr.io/ultralisp/sbcl-lw-worker:${(get-current-version)}")
+(defvar lw-worker-tag #?"ghcr.io/ultralisp/lw-worker:${(get-current-version)}")
 
 
 (task "version" ()
