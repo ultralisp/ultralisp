@@ -1,5 +1,6 @@
 (version 1)
 (deny default)
+;; (debug deny)
 
 (allow process-exec (literal "/Users/art/projects/lisp/ultralisp/test-worker"))
 (allow process-exec (literal "/Users/art/projects/lisp/ultralisp/lw-worker"))
@@ -50,7 +51,9 @@
 
 (allow file-read*
        (subpath "/Library/Apple/usr/libexec/oah") ;; to make it work under M1
-       (literal "/System/Library/Colors/System.clr")
+       (subpath "/System/Library/Colors/System.clr")
+       (literal "/Library/Preferences/com.apple.ViewBridge.plist")
+       (subpath "/System/Library/")
        (subpath "/private/tmp/checker")
        (literal "/Applications")
        (literal "/Library/Preferences/Logging/com.apple.diagnosticd.filter.plist")

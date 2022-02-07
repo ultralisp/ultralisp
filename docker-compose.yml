@@ -4,7 +4,7 @@ services:
     container_name: ultralisp_app
     build:
       context: .
-      target: base
+      target: sbcl-app
     restart: always
     # Probably, these aren't needed
     # stdin_open: true
@@ -13,7 +13,6 @@ services:
       - "127.0.0.1:8080:80"
       - "127.0.0.1:14005:4005"
     volumes:
-      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./.qlot/local-projects:/app/.qlot/local-projects
@@ -28,6 +27,7 @@ services:
       - postgres
       - elastic
       - worker
+      - lw_worker
       - gearman
     environment:
       DEBUG: 1
@@ -63,12 +63,11 @@ services:
     container_name: ultralisp_worker
     build:
       context: .
-      target: worker
+      target: sbcl-worker
     restart: always
     ports:
       - "127.0.0.1:14006:4005"
     volumes:
-      - ./docker/entrypoint.sh:/app/docker/entrypoint.sh
       - ./app.asd:/app/app.asd
       - ./app-deps.asd:/app/app-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
@@ -77,6 +76,34 @@ services:
       - ./logs/:/app/logs/
       - ./new-libs/:/app/new-libs/
       - ./build/:/app/build/
+    depends_on:
+      - postgres
+      - elastic
+      - gearman
+    environment:
+      DEBUG: 1
+      MODE: worker
+      ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
+
+  lw_worker:
+    container_name: ultralisp_lw_worker
+    build:
+      context: .
+      target: lw-worker
+    restart: always
+    ports:
+      - "127.0.0.1:14007:4005"
+    volumes:
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
+      - ./new-libs/:/app/new-libs/
+      - ./build/:/app/build/
+      - ./lw/:/lw/
     depends_on:
       - postgres
       - elastic
