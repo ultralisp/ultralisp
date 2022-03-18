@@ -113,7 +113,10 @@
 
 (task "dump-prod-db" ()
   (let ((*ssh-host* "sailfish"))
-    (ssh "docker exec -ti ultralisp_db pg_dump 'user=ultralisp' | bzip2 > db-$(date '+%Y%m%d').sql.bz2 && ln -f -s db-$(date '+%Y%m%d').sql.bz2 db-latest.sql.bz2")))
+    (ssh "docker exec -ti ultralisp_db pg_dump 'user=ultralisp' | bzip2 > db-$(date '+%Y%m%d').sql.bz2 && ln -f -s db-$(date '+%Y%m%d').sql.bz2 db-latest.sql.bz2")
+
+  (sh "scp sailfish:db-$(date '+%Y%m%d').sql.bz2 db/dumps/prod/")
+))
 
 (task "pull-db-from-prod" ()
   ;; (sh "scp sailfish:db-$(date '+%Y%m%d').sql.bz2 db/dumps/prod/")

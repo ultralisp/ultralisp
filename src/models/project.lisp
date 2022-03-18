@@ -407,10 +407,11 @@
         ;; is case insensitive.
         ;; Database should have an special lowercased
         ;; index,
-        (where (:= (:raw "lower(name)")
-                   (string-downcase project-name)
-                   ))
-        (limit 1))
+        (where (:and
+                (:= (:raw "lower(name)")
+                    (string-downcase project-name))
+                (:= :latest
+                    1))))
     (values (first response)
             query)))
 
