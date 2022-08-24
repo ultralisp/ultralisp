@@ -1,4 +1,4 @@
-name: Docker
+name: Build And Deploy
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -69,32 +69,57 @@ jobs:
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
+      - name: Extract Docker metadata for sbcl-app
+        id: sbcl-app-meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sbcl-app
+          
+      - name: Extract Docker metadata for sbcl-worker
+        id: sbcl-app-worker
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sbcl-worker
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build and push sbcl-app
+        id: build-and-push-sbcl-app
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: .
+          target: sbcl-app
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-sbcl-app.outputs.tags }}
+          labels: ${{ steps.meta-sbcl-app.outputs.labels }}
+
+      - name: Build and push sbcl-worker
+        id: build-and-push-sbcl-worker
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: .
+          target: sbcl-worker
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-sbcl-worker.outputs.tags }}
+          labels: ${{ steps.meta-sbcl-worker.outputs.labels }}
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
       # repository is public to avoid leaking data.  If you would like to publish
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
+      - name: Sign the published sbcl-app Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push.outputs.digest }}
+        run: echo "${{ steps.meta-sbcl-app.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-app.outputs.digest }}
+
+      - name: Sign the published sbcl-worker Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${{ steps.meta-sbcl-worker.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-worker.outputs.digest }}
