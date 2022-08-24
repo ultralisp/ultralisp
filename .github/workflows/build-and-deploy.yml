@@ -111,7 +111,7 @@ jobs:
       - name: Prepare LispWorks compiler
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          mkdir -f lw
+          mkdir lw
           echo "${{ secrets.LISPWORKS_LICENSE }}" > lw/license
           curl https://storage.yandexcloud.net/ultralisp-ci/dist-lw80.tar.bz2 | tar jx
         
