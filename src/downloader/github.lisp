@@ -26,30 +26,32 @@
 
 
 (defun git-clone-or-update (url dir &key commit branch)
-  (let* ((absolute-dir (ensure-absolute-dirname dir))
-         (repo (legit:init absolute-dir
-                           :remote url
-                           :if-does-not-exist :clone)))
-    ;; Here we are suppressing output from the git binary
-    (with-output-to-string (*standard-output*)
-      (let ((current-commit (legit:current-commit repo)))
-        (when (or (not commit)
-                  (not (string-equal commit
-                                     current-commit)))
-          (legit:pull repo)
+  ;; Sometimes legit:clone hangs for unknown reason :(
+  (trivial-timeout:with-timeout (360)
+    (let* ((absolute-dir (ensure-absolute-dirname dir))
+           (repo (legit:init absolute-dir
+                             :remote url
+                             :if-does-not-exist :clone)))
+      ;; Here we are suppressing output from the git binary
+      (with-output-to-string (*standard-output*)
+        (let ((current-commit (legit:current-commit repo)))
+          (when (or (not commit)
+                    (not (string-equal commit
+                                       current-commit)))
+            (legit:pull repo)
 
-          (cond
-            ;; If commit given, it should have a preference
-            ;; over everything else, because in this case
-            ;; we want to checkout exact library version:
-            (commit
-             (legit:checkout repo commit))
+            (cond
+              ;; If commit given, it should have a preference
+              ;; over everything else, because in this case
+              ;; we want to checkout exact library version:
+              (commit
+               (legit:checkout repo commit))
 
-            (branch
-              (legit:checkout repo branch))))))
-    
-    ;; return repository so that other actions could be performed on it
-    (values repo)))
+              (branch
+               (legit:checkout repo branch))))))
+     
+      ;; return repository so that other actions could be performed on it
+      (values repo))))
 
 
 (defmethod make-downloader ((source (eql :github)))
