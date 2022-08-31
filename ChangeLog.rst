@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.14.2 (2022-08-31)
+===================
+
+* Added a timeout on git-clone-or-update because legit sometimes hangs forever.
+
 1.14.1 (2022-03-31)
 ===================
 
