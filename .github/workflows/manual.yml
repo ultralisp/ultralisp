@@ -31,21 +31,51 @@ jobs:
     - name: Send greeting
       run: echo "Hello ${{ github.event.inputs.name }}"
 
-    - name: Test ansible playbook
-      uses: svetlyak40wt/ansible-playbook-docker-action@master
-      env:
-        ANSIBLE_STDOUT_CALLBACK: debug
-        ANSIBLE_FORCE_COLOR: true
+
+    - name: Run playbook
+      uses: dawidd6/action-ansible-playbook@v2
       with:
-        playbookName: ".ansible/playbooks/sample-playbook.yml"
-        inventoryFile: ".ansible/inventory/local.yml"
-        requirementsFile: ".ansible/requirements.yml"
-        rolesPath: ".ansible/playbooks/roles"
-        keyFile: ".ansible/random-ssh-key.pem"
-        keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
-        extraFile: ".ansible/extra.yml"
-        extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
-        verbosity: "vvv"
+        # Required, playbook filepath
+        playbook: .ansible/playbooks/sample-playbook.yml
+        # Optional, directory where playbooks live
+        directory: ./
+        # Optional, SSH private key
+        key: ${{secrets.SSH_PRIVATE_KEY}}
+        # Optional, literal inventory file contents
+        inventory: |
+          [all]
+          example.com
+
+          [group1]
+          example.com
+        # Optional, SSH known hosts file content
+        known_hosts: .known_hosts
+        # Optional, encrypted vault password
+        vault_password: ${{secrets.VAULT_PASSWORD}}
+        # Optional, galaxy requirements filepath
+        requirements: galaxy-requirements.yml
+        # Optional, additional flags to pass to ansible-playbook
+        options: |
+          --inventory .hosts
+          --limit group1
+          --extra-vars hello=there
+          --verbose
+      
+    # - name: Test ansible playbook
+    #   uses: svetlyak40wt/ansible-playbook-docker-action@master
+    #   env:
+    #     ANSIBLE_STDOUT_CALLBACK: debug
+    #     ANSIBLE_FORCE_COLOR: true
+    #   with:
+    #     playbookName: ".ansible/playbooks/sample-playbook.yml"
+    #     inventoryFile: ".ansible/inventory/local.yml"
+    #     requirementsFile: ".ansible/requirements.yml"
+    #     rolesPath: ".ansible/playbooks/roles"
+    #     keyFile: ".ansible/random-ssh-key.pem"
+    #     keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
+    #     extraFile: ".ansible/extra.yml"
+    #     extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
+    #     verbosity: "vvv"
 
 #       uses: saubermacherag/ansible-playbook-docker-action@v1.4
 #       with:
