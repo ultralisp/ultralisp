@@ -1,0 +1,15 @@
+# - hosts:
+#   - ultralisp
+
+#   roles:
+#     - ultralisp
+
+- hosts:
+  - localhost
+  tasks:
+    - name: Get Hostname
+      shell: hostname -f
+      register: host_info
+
+    - debug:
+        msg: "{{host_info.stdout_lines}}"
