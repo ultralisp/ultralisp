@@ -32,7 +32,7 @@ jobs:
       run: echo "Hello ${{ github.event.inputs.name }}"
 
     - name: Test ansible playbook
-      uses: saubermacherag/ansible-playbook-docker-action@master
+      uses: svetlyak40wt/ansible-playbook-docker-action@master
       env:
         ANSIBLE_STDOUT_CALLBACK: debug
         ANSIBLE_FORCE_COLOR: true
