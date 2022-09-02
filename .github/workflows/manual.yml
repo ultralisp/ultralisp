@@ -34,7 +34,7 @@ jobs:
     - name: Test ansible playbook
       uses: saubermacherag/ansible-playbook-docker-action@v1.4
       with:
-        playbookName: 'deploy/ansible/ultralisp.yml'
+        playbookName: 'ultralisp.yml'
         # inventoryFile: 'my-inventory.yml'
         # requirementsFile: ".ansible/requirements.yml"
         # galaxyGithubUser: ${{ secrets.GITHUB_USER }}
