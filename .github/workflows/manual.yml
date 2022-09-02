@@ -32,17 +32,32 @@ jobs:
       run: echo "Hello ${{ github.event.inputs.name }}"
 
     - name: Test ansible playbook
-      uses: saubermacherag/ansible-playbook-docker-action@v1.4
+      uses: saubermacherag/ansible-playbook-docker-action@master
+      env:
+        ANSIBLE_STDOUT_CALLBACK: debug
+        ANSIBLE_FORCE_COLOR: true
       with:
-        playbookName: ultralisp.yml
-#         playbookName: .ansible/playbooks/ultralisp.yml
-        # inventoryFile: 'my-inventory.yml'
-        # requirementsFile: ".ansible/requirements.yml"
-        # galaxyGithubUser: ${{ secrets.GITHUB_USER }}
-        # galaxyGithubToken: ${{ secrets.Github_PAT }}
-        # rolesPath: "deploy/ansible/roles"
-        # keyFile: ".ansible/random-ssh-key.pem"
-        # keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
-        # extraFile: ".ansible/extra.yml"
-        # extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
-        verbosity: "vvvv"
+        playbookName: ".ansible/playbooks/sample-playbook.yml"
+        inventoryFile: ".ansible/inventory/local.yml"
+        requirementsFile: ".ansible/requirements.yml"
+        rolesPath: ".ansible/playbooks/roles"
+        keyFile: ".ansible/random-ssh-key.pem"
+        keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
+        extraFile: ".ansible/extra.yml"
+        extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
+        verbosity: "vvv"
+
+#       uses: saubermacherag/ansible-playbook-docker-action@v1.4
+#       with:
+#         playbookName: ultralisp.yml
+# #         playbookName: .ansible/playbooks/ultralisp.yml
+#         # inventoryFile: 'my-inventory.yml'
+#         # requirementsFile: ".ansible/requirements.yml"
+#         # galaxyGithubUser: ${{ secrets.GITHUB_USER }}
+#         # galaxyGithubToken: ${{ secrets.Github_PAT }}
+#         # rolesPath: "deploy/ansible/roles"
+#         # keyFile: ".ansible/random-ssh-key.pem"
+#         # keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
+#         # extraFile: ".ansible/extra.yml"
+#         # extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
+#         verbosity: "vvvv"
