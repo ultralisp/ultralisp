@@ -1,0 +1,10 @@
+{{ ultralisp_host }} {
+    tls svetlyak.40wt@gmail.com
+
+    proxy / http://172.17.0.1:{{ ultralisp_app_port }} {
+        transparent
+        # Because transparent template does not include it yet:
+        # https://github.com/mholt/caddy/issues/2412
+        header_upstream X-Forwarded-Port 443
+    }
+}

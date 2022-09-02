@@ -1,93 +1,41 @@
 # This is a basic workflow that is manually triggered
 
-name: Manual workflow
+name: Deploy Version
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
 on:
-  pull_request:
-    branches: [ "master" ]
+  # pull_request:
+  #   branches: [ "master" ]
   workflow_dispatch:
     # Inputs the workflow accepts.
     inputs:
-      name:
-        # Friendly description to be shown in the UI instead of 'name'
-        description: 'Person to greet'
-        # Default value if no value is explicitly provided
-        default: 'World'
-        # Input has to be provided for the workflow to run
+      version:
+        description: 'Version number to deploy'
+        default: 'v0.1.0'
         required: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "greet"
-  greet:
+  deploy:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
-    - name: Send greeting
-      run: echo "Hello ${{ github.event.inputs.name }}"
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-
-    # - name: Run playbook
-    #   uses: dawidd6/action-ansible-playbook@v2
-    #   with:
-    #     # Required, playbook filepath
-    #     playbook: .ansible/playbooks/sample-playbook.yml
-    #     # Optional, directory where playbooks live
-    #     directory: ./
-    #     # Optional, SSH private key
-    #     key: ${{secrets.SSH_PRIVATE_KEY}}
-    #     # Optional, literal inventory file contents
-    #     inventory: |
-    #       [all]
-    #       example.com
-
-    #       [group1]
-    #       example.com
-    #     # Optional, SSH known hosts file content
-    #     known_hosts: .known_hosts
-    #     # Optional, encrypted vault password
-    #     vault_password: ${{secrets.VAULT_PASSWORD}}
-    #     # Optional, galaxy requirements filepath
-    #     requirements: .ansible/requirements.yml
-    #     # Optional, additional flags to pass to ansible-playbook
-    #     options: |
-    #       --inventory .hosts
-    #       --limit group1
-    #       --extra-vars hello=there
-    #       --verbose
-      
-    - name: Test ansible playbook
+    - name: Deploy to production
       uses: svetlyak40wt/ansible-playbook-docker-action@master
       env:
         ANSIBLE_STDOUT_CALLBACK: debug
         ANSIBLE_FORCE_COLOR: true
       with:
-        playbookName: ".ansible/playbooks/sample-playbook.yml"
-        inventoryFile: ".ansible/inventory/local.yml"
-        requirementsFile: ".ansible/requirements.yml"
-        rolesPath: ".ansible/playbooks/roles"
-        keyFile: ".ansible/random-ssh-key.pem"
-        keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
-        extraFile: ".ansible/extra.yml"
-        extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
+        playbookName: ".ansible/playbooks/ultralisp.yml"
+        inventoryFile: ".ansible/inventory/hosts.yml"
+        keyFile: ".ansible/deploy"
+        keyFileVaultPass: ${{ secrets.ANSIBLE_SSH_KEY_PASS }}
+        extraVars: "-e ultralisp_version=${{ inputs.version }}"
         verbosity: "vvv"
-
-#       uses: saubermacherag/ansible-playbook-docker-action@v1.4
-#       with:
-#         playbookName: ultralisp.yml
-# #         playbookName: .ansible/playbooks/ultralisp.yml
-#         # inventoryFile: 'my-inventory.yml'
-#         # requirementsFile: ".ansible/requirements.yml"
-#         # galaxyGithubUser: ${{ secrets.GITHUB_USER }}
-#         # galaxyGithubToken: ${{ secrets.Github_PAT }}
-#         # rolesPath: "deploy/ansible/roles"
-#         # keyFile: ".ansible/random-ssh-key.pem"
-#         # keyFileVaultPass: ${{ secrets.KEYFILE_VAULT_PASS }}
-#         # extraFile: ".ansible/extra.yml"
-#         # extraVars: "-e my_first_extra=${{ github.actor }} -e my_second_one=${{ github.sha }}"
-#         verbosity: "vvvv"

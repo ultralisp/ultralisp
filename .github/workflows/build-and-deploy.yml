@@ -19,7 +19,7 @@ on:
     inputs:
       version:
         description: 'Version number to build'
-        default: '0.1.0'
+        default: 'v0.1.0'
         required: true
 
 env:
@@ -46,20 +46,20 @@ jobs:
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
-        if: github.event_name != 'pull_request'
+        if: ${{ github.event_name == 'push' }}
         uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
         with:
           cosign-release: 'v1.9.0'
 
-
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
+        if: ${{ github.event_name == 'push' }}
         uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
+        if: ${{ github.event_name == 'push' }}
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
           registry: ${{ env.REGISTRY }}
@@ -70,12 +70,14 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata for sbcl-app
         id: meta-sbcl-app
+        if: ${{ github.event_name == 'push' }}
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sbcl-app
           
       - name: Extract Docker metadata for sbcl-worker
         id: meta-sbcl-worker
+        if: ${{ github.event_name == 'push' }}
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sbcl-worker
@@ -90,6 +92,7 @@ jobs:
       # https://github.com/docker/build-push-action
       - name: Build and push sbcl-app
         id: build-and-push-sbcl-app
+        if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: .
@@ -100,6 +103,7 @@ jobs:
 
       - name: Build and push sbcl-worker
         id: build-and-push-sbcl-worker
+        if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: .
@@ -109,7 +113,7 @@ jobs:
           labels: ${{ steps.meta-sbcl-worker.outputs.labels }}
 
       - name: Prepare LispWorks compiler
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         run: |
           mkdir lw
           echo "${{ secrets.LISPWORKS_LICENSE }}" > lw/license
@@ -117,7 +121,7 @@ jobs:
         
       - name: Build and push lw-worker
         id: build-and-push-lw-worker
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: .
@@ -133,7 +137,7 @@ jobs:
       # https://github.com/sigstore/cosign
       # 
       - name: Sign the published sbcl-app Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         env:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
@@ -141,7 +145,7 @@ jobs:
         run: echo "${{ steps.meta-sbcl-app.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-app.outputs.digest }}
 
       - name: Sign the published sbcl-worker Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         env:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
@@ -149,10 +153,37 @@ jobs:
         run: echo "${{ steps.meta-sbcl-worker.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-worker.outputs.digest }}
 
       - name: Sign the published lw-worker Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         env:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${{ steps.meta-lw-worker.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-lw-worker.outputs.digest }}
- 
+
+      - name: Determine version to deploy
+        id: version-to-deploy
+        run: |
+          # This workflow is triggered either by a version tag or
+          # manually. Thus, the latest tag will be always a version number.
+          manual_version="#{{ inputs.version }}"
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+
+          if [ -z "${manual_version}" ]
+          then
+            echo "::set-output name=version::${manual_version}"
+          else
+            echo "::set-output name=version::${latest_tag}"
+          fi
+
+      - name: Deploy to production
+        uses: svetlyak40wt/ansible-playbook-docker-action@master
+        env:
+          ANSIBLE_STDOUT_CALLBACK: debug
+          ANSIBLE_FORCE_COLOR: true
+        with:
+          playbookName: ".ansible/playbooks/ultralisp.yml"
+          inventoryFile: ".ansible/inventory/hosts.yml"
+          keyFile: ".ansible/deploy"
+          keyFileVaultPass: ${{ secrets.ANSIBLE_SSH_KEY_PASS }}
+          extraVars: "-e ultralisp_version=${{ steps.version-to-deploy.outputs.version }}"
+          verbosity: "vvv"

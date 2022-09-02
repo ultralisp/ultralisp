@@ -1,0 +1,35 @@
+# Usual vars:
+ultralisp_version: "Override this from command line"
+deploy_environment: "production"
+
+ultralisp_host: ultralisp.org
+# ultralisp_base_url: https://prestable.ultralisp.org/dist/
+# ultralisp_base_url: http://prestable-dist.ultralisp.org.s3-website-us-east-1.amazonaws.com/
+ultralisp_base_url: http://dist.ultralisp.org/
+ultralisp_app_port: 8003
+ultralisp_app_slynk_port: 4005
+ultralisp_worker_port: 10100
+ultralisp_lw_worker_port: 10101
+ultralisp_worker_slynk_port: 4006
+ultralisp_lw_worker_slynk_port: 4007
+mailgun_domain: mg.ultralisp.org
+github_prestable_client_id: 471133bfb3dcabeb925b
+github_client_id: f280a8af7d37e25826af
+# s3_bucket: prestable-dist.ultralisp.org
+s3_bucket: dist.ultralisp.org
+
+ufw_open_docker_ports_to_ultralisp_app_and_caddy_proxy:
+  - 80
+  - 443
+
+swapfile_size: 2048MB
+swapfile_location: /swapfile2
+
+# Secrets. Put them to "vault" file:
+
+aws_access_key_id: "{{ secret_aws_access_key_id }}"
+aws_secret_access_key: "{{ secret_aws_secret_access_key }}"
+postgres_password: "{{ secret_postgres_password }}"
+postgres_password_ro: "{{ secret_postgres_password_ro }}"
+mailgun_api_key: "{{ secret_mailgun_api_key }}"
+github_secret: "{{ secret_github_secret }}"
