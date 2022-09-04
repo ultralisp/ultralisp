@@ -189,4 +189,6 @@ jobs:
           keyFile: ".ansible/deploy"
           keyFileVaultPass: ${{ secrets.ANSIBLE_SSH_KEY_PASS }}
           extraVars: "-e ultralisp_version=${{ steps.version-to-deploy.outputs.version }}"
-          verbosity: "vvv"
+          # Warning: enabling this option lead to secrets leak
+          # into the GH logs:
+          # verbosity: "vvv"
