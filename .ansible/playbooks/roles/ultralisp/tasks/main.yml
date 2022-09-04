@@ -1,0 +1,211 @@
+- name: Create a directory for postgres init file
+  file:
+    path: /ultralisp/initdb.d
+    state: directory
+
+- name: Create init file for postgres
+  template:
+    src: initdb.d/initdb.sh
+    dest: /ultralisp/initdb.d/initdb.sh
+    mode: u+rwx
+
+- name: Create a directory for s6 worker
+  file:
+    path: /ultralisp/worker/etc/s6/worker-1
+    state: directory
+
+- name: Create init file for s6 worker
+  template:
+    src: s6/worker-1/run
+    dest: /ultralisp/worker/etc/s6/worker-1/run
+    mode: u+rwx
+
+- name: Create a directory for s6 LW worker
+  file:
+    path: /ultralisp/lw-worker/etc/s6/worker-1
+    state: directory
+
+- name: Create init file for s6 LW worker
+  template:
+    src: s6/lw-worker-1/run
+    dest: /ultralisp/lw-worker/etc/s6/worker-1/run
+    mode: u+rwx
+
+- name: Create a license directory for s6 LW worker
+  file:
+    path: /ultralisp/lw-worker/license/
+    state: directory
+
+- name: Create a license file for s6 LW worker
+  template:
+    src: lw-license
+    dest: /ultralisp/lw-worker/license/license
+    mode: u+rw
+    
+- name: Create a directory for s6 web application
+  file:
+    path: /ultralisp/app/etc/s6/app-1
+    state: directory
+
+- name: Create init file for s6 web application
+  template:
+    src: s6/app-1/run
+    dest: /ultralisp/app/etc/s6/app-1/run
+    mode: u+rwx
+
+- name: Run docker container with Postgres for ultralisp.org
+  docker_container:
+    name: ultralisp_db
+    hostname: "{{ ansible_hostname }}"
+    image: "postgres:10"
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    env:
+      POSTGRES_USER: "ultralisp"
+      POSTGRES_PASSWORD: "{{ postgres_password }}"
+    ports:
+      - 172.17.0.1:5432:5432
+      - 127.0.0.1:5432:5432
+    volumes:
+      - /ultralisp/pgdata:/var/lib/postgresql/data
+      - /ultralisp/initdb.d/:/docker-entrypoint-initdb.d/
+
+
+- name: Run docker container with Gearman for ultralisp.org
+  docker_container:
+    name: ultralisp_gearman
+    hostname: "{{ ansible_hostname }}"
+    image: "artefactual/gearmand:1.1.19.1-alpine"
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    ports:
+      - 172.17.0.1:4730:4730
+      - 127.0.0.1:4730:4730
+
+# - name: Authenticate at GH Registry
+#   shell: "echo {{ docker_registry_pass|quote }} | docker login ghcr.io -u ultralisp --password-stdin > /tmp/auth-status 2>&1"
+
+- name: Run docker container with ultralisp worker
+  docker_container:
+    name: ultralisp_worker
+    hostname: "{{ ansible_hostname }}"
+#    image: "40ants/ultralisp:{{ ultralisp_version }}"
+    image: "ghcr.io/ultralisp/ultralisp-sbcl-worker:{{ ultralisp_version }}"
+    # всегда вытягиваем последнюю версию образа
+    # pull: always
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    # entrypoint:
+    #   - s6-svscan
+    #   - /etc/s6
+    env:
+      ENVIRONMENT: "{{ deploy_environment }}"
+      MODE: "worker"
+      GEARMAN_SERVER: "172.17.0.1:4730"
+      ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+    ports:
+      - "172.17.0.1:{{ ultralisp_worker_port }}:10100"
+      - "{{ ultralisp_worker_slynk_port }}:4005"
+    volumes:
+      - /ultralisp/build/:/app/build/
+      - /ultralisp/logs/:/app/logs/
+      - /ultralisp/worker/etc/s6/:/etc/s6/
+
+- name: Run docker container with ultralisp LW worker
+  docker_container:
+    name: ultralisp_lw_worker
+    hostname: "{{ ansible_hostname }}"
+#    image: "40ants/ultralisp:{{ ultralisp_version }}"
+    image: "ghcr.io/ultralisp/ultralisp-lw-worker:{{ ultralisp_version }}"
+    # всегда вытягиваем последнюю версию образа
+    # pull: always
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    env:
+      ENVIRONMENT: "{{ deploy_environment }}"
+      MODE: "worker"
+      GEARMAN_SERVER: "172.17.0.1:4730"
+      ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+    ports:
+      - "172.17.0.1:{{ ultralisp_lw_worker_port }}:10100"
+      - "{{ ultralisp_lw_worker_slynk_port }}:4005"
+    volumes:
+      - /ultralisp/build/:/app/build/
+      - /ultralisp/logs/:/app/logs/
+      - /ultralisp/lw-worker/etc/s6/:/etc/s6/
+      - /ultralisp/lw-worker/license/:/lw/
+
+
+- name: Run docker container with ultralisp.org
+  docker_container:
+    name: ultralisp_app
+    hostname: "{{ ansible_hostname }}"
+    # image: "40ants/ultralisp:{{ ultralisp_version }}"
+    image: "ghcr.io/ultralisp/ultralisp-sbcl-app:{{ ultralisp_version }}"
+    # всегда вытягиваем последнюю версию образа
+    # pull: always
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    env:
+      ENVIRONMENT: "{{ deploy_environment }}"
+      POSTGRES_HOST: "172.17.0.1"
+      POSTGRES_USER: "ultralisp"
+      POSTGRES_PASS: "{{ postgres_password }}"
+      POSTGRES_RO_USER: "ultralisp_ro"
+      POSTGRES_RO_PASS: "{{ postgres_password_ro }}"
+      UPLOADER_TYPE: "s3"
+      S3_BUCKET: "{{ s3_bucket }}"
+      AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+      AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+      YANDEX_COUNTER_ID: "50122099"
+      GOOGLE_COUNTER_ID: "UA-124723483-1"
+      GITHUB_CLIENT_ID: "{{ github_client_id }}"
+      GITHUB_SECRET: "{{ github_secret }}"
+      MAILGUN_DOMAIN: "{{ mailgun_domain }}"
+      MAILGUN_API_KEY: "{{ mailgun_api_key }}"
+      USER_AGENT: "Ultralisp/{{ ultralisp_version }} (https://{{ ultralisp_host }})"
+#      LFARM_WORKERS: "172.17.0.1:{{ ultralisp_worker_port }}"
+      GEARMAN_SERVER: "172.17.0.1:4730"
+      BASE_URL: "{{ ultralisp_base_url }}"
+      # HIDE_SEARCH: "yes"
+      ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+
+    ports:
+      - "172.17.0.1:{{ ultralisp_app_port }}:80"
+      - "{{ ultralisp_app_slynk_port }}:4005"
+    volumes:
+      # Here we'll keep track CLPI's for each dist
+      # to upload only changed files
+      - /ultralisp/build/:/app/build/
+      - /ultralisp/logs/:/app/logs/
+      - /ultralisp/app/etc/s6/:/etc/s6/
+
+- name: Create config file for the Caddy
+  template:
+    src: Caddyfile
+    dest: /ultralisp/Caddyfile
+
+
+- name: Run docker container with a proxy
+  docker_container:
+    name: ultralisp_balancer
+    hostname: "{{ ansible_hostname }}"
+    image: "abiosoft/caddy"
+    # всегда вытягиваем последнюю версию образа
+    # pull: always
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+    env:
+      ACME_AGREE: "true"
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /ultralisp/Caddyfile:/etc/Caddyfile
+      - /ultralisp/certs:/root/.caddy

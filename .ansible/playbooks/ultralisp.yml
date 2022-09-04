@@ -1,0 +1,8 @@
+---
+
+- name: Install Ultralisp
+  hosts:
+    - ultralisp
+  roles:
+    - ultralisp
+  remote_user: root  

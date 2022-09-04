@@ -217,3 +217,5 @@ After that, your quicklisp distribution will be available as http://dist.ultrali
 
 
 .. _lake: https://github.com/takagi/lake
+
+# TODO: make ansible work
