@@ -166,13 +166,13 @@ jobs:
           # This workflow is triggered either by a version tag or
           # manually. Thus, the latest tag will be always a version number.
           manual_version="#{{ inputs.version }}"
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
 
           if [ -z "${manual_version}" ]
           then
-            echo "::set-output name=version::${manual_version}"
-          else
+            latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
             echo "::set-output name=version::${latest_tag}"
+          else
+            echo "::set-output name=version::${manual_version}"
           fi
 
       - name: Deploy to production
