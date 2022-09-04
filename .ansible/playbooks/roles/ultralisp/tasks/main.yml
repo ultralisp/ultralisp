@@ -84,8 +84,12 @@
       - 172.17.0.1:4730:4730
       - 127.0.0.1:4730:4730
 
-# - name: Authenticate at GH Registry
-#   shell: "echo {{ docker_registry_pass|quote }} | docker login ghcr.io -u ultralisp --password-stdin > /tmp/auth-status 2>&1"
+- name: Docker Login
+  docker_login:
+    username: svetlyak40wt
+    password: "{{ docker_pass }}"
+    registry_url: https://ghcr.io/
+    reauthorize: true
 
 - name: Run docker container with ultralisp worker
   docker_container:
