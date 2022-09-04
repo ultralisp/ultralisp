@@ -3,6 +3,7 @@
   (:import-from #:ultralisp/utils
                 #:starts-with-slash-p
                 #:ends-with-slash-p)
+  (:import-from #:trivial-timeout)
   (:export
    #:make-uploader
    #:*uploader-type*
@@ -28,7 +29,7 @@
                    to the distribution on the local disk."))
 
 
-(defun upload (dir-or-file repo-type destination &key only-files)
+(defun upload (dir-or-file repo-type destination &key only-files (timeout (* 60 5)))
   "Uploads given archive file to the storage (S3 or a static directory on local computer).
 
    Destination should be a string starting from /. If you'll specify just \"/\",
@@ -45,10 +46,11 @@
 
   (unless (member repo-type '(:quicklisp :clpi))
     (error "REPO-TYPE argument should be one of :QUICKLISP or :CLPI"))
-  (funcall (make-uploader *uploader-type* repo-type)
-           dir-or-file
-           destination
-           :only-files only-files))
+  (trivial-timeout:with-timeout (timeout)
+    (funcall (make-uploader *uploader-type* repo-type)
+             dir-or-file
+             destination
+             :only-files only-files)))
 
 
 (defun make-files-inclusion-checker (only-files)
