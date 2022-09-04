@@ -1,7 +1,0 @@
----
-all:
-  children:
-    testhost:
-      hosts:
-        localhost:
-          ansible_connection: local
