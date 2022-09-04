@@ -165,15 +165,18 @@ jobs:
         run: |
           # This workflow is triggered either by a version tag or
           # manually. Thus, the latest tag will be always a version number.
-          manual_version="#{{ inputs.version }}"
+          manual_version="${{ inputs.version }}"
 
           if [ -z "${manual_version}" ]
           then
-            latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-            echo "::set-output name=version::${latest_tag}"
+            version_to_deploy=$(git describe --tags `git rev-list --tags --max-count=1`)
           else
-            echo "::set-output name=version::${manual_version}"
+            version_to_deploy="${manual_version}"
           fi
+
+          echo "Going to deploy '${version_to_deploy}' version."
+          echo "::set-output name=version::${version_to_deploy}"
+
 
       - name: Deploy to production
         uses: svetlyak40wt/ansible-playbook-docker-action@master
