@@ -2,7 +2,7 @@
  ChangeLog
 ===========
 
-1.14.2 (2022-09-04)
+1.14.3 (2022-09-04)
 ===================
 
 * Now 5 minutes timeout is applied when we are uploading new package to S3.
