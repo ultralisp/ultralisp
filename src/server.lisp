@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
+  (:import-from #:github)
   (:import-from #:reblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/logging)
@@ -449,8 +450,6 @@
   (setf reblocks-auth/github:*secret* (get-github-secret))
   (unless reblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
-
-  (setf github:*token* "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")
 
   (setf github:*token* (get-github-robot-token))
   (unless github:*token*
