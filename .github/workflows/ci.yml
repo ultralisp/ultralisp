@@ -82,7 +82,7 @@
         },
         {
           "name": "Run Linter",
-          "run": "qlot exec 40ants-linter --system \"ultralisp\"",
+          "run": "qlot exec .qlot/bin/40ants-linter --system \"ultralisp\"",
           "shell": "bash"
         }
       ]
