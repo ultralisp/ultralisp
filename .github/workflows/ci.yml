@@ -29,7 +29,7 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v1"
+          "uses": "actions/checkout@v2"
         },
         {
           "name": "Grant All Perms to Make Cache Restoring Possible",
@@ -47,8 +47,8 @@
           "id": "cache",
           "uses": "actions/cache@v2",
           "with": {
-            "path": "qlfile\n                           qlfile.lock\n                           /usr/local/bin/ros\n                           ~/.cache/common-lisp/\n                           ~/.roswell\n                           /usr/local/etc/roswell\n                           .qlot",
-            "key": "${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
+            "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
+            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
           }
         },
         {
@@ -59,21 +59,30 @@
         },
         {
           "name": "Setup Common Lisp Environment",
-          "uses": "40ants/setup-lisp@v1",
+          "uses": "40ants/setup-lisp@v2",
           "with": {
-            "asdf-system": "ultralisp",
-            "asdf-version": "3.3.4.18"
+            "asdf-system": "ultralisp"
           },
           "if": "steps.cache.outputs.cache-hit != 'true'"
         },
         {
-          "name": "Install SBLint",
-          "run": "qlot exec ros install cxxxr/sblint",
+          "name": "Change dist to Ultralisp",
+          "run": "echo 'dist ultralisp http://dist.ultralisp.org' > qlfile",
+          "shell": "bash"
+        },
+        {
+          "name": "Update Qlot",
+          "run": "qlot update || qlot update",
+          "shell": "bash"
+        },
+        {
+          "name": "Install SBLint wrapper",
+          "run": "qlot exec ros install 40ants-linter",
           "shell": "bash"
         },
         {
           "name": "Run Linter",
-          "run": "qlot exec sblint ultralisp.asd",
+          "run": "qlot exec 40ants-linter --system \"ultralisp\"",
           "shell": "bash"
         }
       ]
@@ -106,7 +115,7 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v1"
+          "uses": "actions/checkout@v2"
         },
         {
           "name": "Grant All Perms to Make Cache Restoring Possible",
@@ -124,8 +133,8 @@
           "id": "cache",
           "uses": "actions/cache@v2",
           "with": {
-            "path": "qlfile\n                           qlfile.lock\n                           /usr/local/bin/ros\n                           ~/.cache/common-lisp/\n                           ~/.roswell\n                           /usr/local/etc/roswell\n                           .qlot",
-            "key": "${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
+            "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
+            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
           }
         },
         {
@@ -136,10 +145,9 @@
         },
         {
           "name": "Setup Common Lisp Environment",
-          "uses": "40ants/setup-lisp@v1",
+          "uses": "40ants/setup-lisp@v2",
           "with": {
-            "asdf-system": "ultralisp",
-            "asdf-version": "3.3.4.18"
+            "asdf-system": "ultralisp"
           },
           "if": "steps.cache.outputs.cache-hit != 'true'"
         },
