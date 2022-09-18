@@ -125,9 +125,6 @@
                 "+")))))))
 
 
-(defmethod request-tag-input ((widget tags))
-  (reblocks-ui/))
-
 (defmethod get-dependencies ((widget tags))
   (append
    (list
