@@ -25,6 +25,7 @@
                 #:versioned)
   (:import-from #:ultralisp/protocols/moderation)
   (:import-from #:ultralisp/utils/github
+                #:get-topics
                 #:extract-github-name)
   (:import-from #:sxql
                 #:order-by
@@ -330,6 +331,10 @@
                   :type :github
                   :params (list :user-or-org user-or-org
                                 :project project-name))
+
+      (uiop:symbol-call "ULTRALISP/MODELS/TAG" "ADD-TAGS"
+                        project
+                        (get-topics full-project-name))
       project)))
 
 

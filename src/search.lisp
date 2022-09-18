@@ -244,7 +244,7 @@ default values from the arglist."
   (with-output-to-string (output)
     (loop with add-space = nil
           with some-lines-written = nil
-          for line in (rutil:split #\Newline text)
+          for line in (rutils:split #\Newline text)
           for stripped = (string-trim '(#\Space)
                                       line)
           when add-space

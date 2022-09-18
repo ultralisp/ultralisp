@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+  app:
+    container_name: test_app
+    build:
+      context: .
+    extra_hosts:
+      - "myhost:10.0.0.1"
+    restart: always 

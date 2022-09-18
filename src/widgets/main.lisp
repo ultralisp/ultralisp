@@ -36,6 +36,10 @@
                 #:make-search-page)
   (:import-from #:ultralisp/widgets/dists
                 #:make-my-dists-widget)
+  (:import-from #:ultralisp/widgets/all-tags
+                #:make-all-tags-widget)
+  (:import-from #:ultralisp/widgets/projects-by-tag
+                #:make-projects-by-tag-widget)
   (:export #:make-main-routes))
 (in-package ultralisp/widgets/main)
 
@@ -51,6 +55,10 @@
    (make-repositories-widget))
   ("/search/"
    (make-search-page))
+  ("/tags/"
+   (make-all-tags-widget))
+  ("/tags/.*/"
+   (make-projects-by-tag-widget))
   ("/sponsors"
    (make-sponsors-widget))
   ("/versions/\\d+"

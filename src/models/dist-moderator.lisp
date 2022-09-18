@@ -24,11 +24,14 @@
   ((dist-id :col-type :bigint
             :initarg :dist-id
             :reader dist-id
-            :references (dist id))
+            ;; Does not work for some reason
+            ;; :references (dist id)
+            )
    (user-id :col-type :bigint
             :initarg :user-id
             :reader user-id
-            :references (user id)))
+            ;; :references (user id)
+            ))
   (:primary-key dist-id user-id)
   (:metaclass mito:dao-table-class))
 
