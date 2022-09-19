@@ -1,7 +1,5 @@
 (DEFSYSTEM
  "app-deps"
- :CLASS
- :PACKAGE-INFERRED-SYSTEM
  :SERIAL t
  :DEPENDS-ON
  ("3bmd"
