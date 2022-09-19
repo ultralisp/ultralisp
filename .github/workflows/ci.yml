@@ -19,7 +19,7 @@
       "env": {
         "OS": "ubuntu-latest",
         "QUICKLISP_DIST": "quicklisp",
-        "LISP": "sbcl-bin/2.1.2"
+        "LISP": "sbcl-bin/2.2.5"
       },
       "steps": [
         {
@@ -48,7 +48,7 @@
           "uses": "actions/cache@v2",
           "with": {
             "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
-            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
+            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.2.5-${{ hashFiles('qlfile.lock', '*.asd') }}"
           }
         },
         {
