@@ -66,8 +66,8 @@
           "if": "steps.cache.outputs.cache-hit != 'true'"
         },
         {
-          "name": "Change dist to Ultralisp",
-          "run": "echo 'dist ultralisp http://dist.ultralisp.org' > qlfile",
+          "name": "Change dist to Ultralisp if qlfile does not exist",
+          "run": "if [[ ! -e qlfile ]]; then echo 'dist ultralisp http://dist.ultralisp.org' > qlfile; fi",
           "shell": "bash"
         },
         {
@@ -81,17 +81,8 @@
           "shell": "bash"
         },
         {
-    "name": "Start SSH session",
-    "uses": "luchihoratiu/debug-via-ssh@main",
-    "with": {
-        "NGROK_AUTH_TOKEN": "${{ secrets.NGROK_AUTH_TOKEN }}",
-        "NGROK_REGION": "eu",
-        "SSH_PASS": "${{ secrets.SSH_PASS }}"
-    }
-},
-        {
           "name": "Run Linter",
-          "run": "qlot exec .qlot/bin/40ants-linter --system \"ultralisp\"",
+          "run": "qlot exec 40ants-linter --system \"ultralisp\"",
           "shell": "bash"
         }
       ]
