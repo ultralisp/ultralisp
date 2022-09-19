@@ -2,7 +2,7 @@
  ChangeLog
 ===========
 
-1.16.2 (2022-09-19)
+1.16.3 (2022-09-19)
 ===================
 
 * Fixed dependencies installation. It is important to install them in order given at `app-deps`, but when they
