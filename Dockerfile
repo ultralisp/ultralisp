@@ -28,7 +28,7 @@ RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
 # RUN ros install fukamachi/qlot/0.11.5
 
 ENV CC=gcc
-COPY qlfile qlfile.lock app-deps.asd app-deps /app/
+COPY qlfile qlfile.lock app-deps /app/
 COPY install-dependencies /usr/local/bin/
 RUN install-dependencies
 
