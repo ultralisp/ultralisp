@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.16.1 (2022-09-19)
+===================
+
+* Fixed dependencies installation. It is important to install them in order given at `app-deps`, but when they
+  are installed using ASDF, seems their order is unpredictable.
+
 1.16.0 (2022-09-18)
 ===================
 

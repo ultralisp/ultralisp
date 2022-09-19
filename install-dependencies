@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -Eeuo pipefail
+
+for dependency in `cat app-deps`; do
+    qlot exec ros --eval "(ql:quickload :${dependency})"
+fi
