@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
+  (:import-from #:github)
   (:import-from #:reblocks-auth/github)
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/logging)
@@ -66,6 +67,7 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:ultralisp/variables
+                #:get-github-robot-token
                 #:get-dist-dir
                 #:get-user-agent
                 #:get-mailgun-domain
@@ -266,8 +268,13 @@
 (defmethod reblocks/page:render-body ((app app) body-string)
   "Default page-body rendering method"
   (let ((spinneret::*pre* t)
-        (num-projects (or (get-num-projects)
-                          0)))
+        (num-projects (or
+                       ;; Here we ignore errors because if there is a problem with DB
+                       ;; connection, then we'll not be able to render an error page otherwise.
+                       (ignore-errors
+                        (with-log-unhandled ()
+                            (get-num-projects)))
+                       0)))
     (render-yandex-counter)
     (render-google-counter)
   
@@ -277,10 +284,11 @@
                   (:header :class "page-header"
                            (:h1 :class "site-name"
                                 (:a :href "/" "Ultralisp.org")
-                                (:sup :class "num-projects"
-                                      (format nil "includes ~R project~P"
-                                              num-projects
-                                              num-projects)))
+                                (unless (zerop num-projects)
+                                  (:sup :class "num-projects"
+                                        (format nil "includes ~R project~P"
+                                                num-projects
+                                                num-projects))))
                            (:h2 :class "motto"
                                 "A fast-moving Common Lisp software distribution.")
                            (let ((query (reblocks/request:get-parameter "query"))
@@ -327,46 +335,43 @@
   (call-next-method))
 
 
-(defmethod on-error ((app app) condition)
+(defmethod on-error ((app app) condition &key backtrace)
   (setf (reblocks/page:get-title)
         "Some shit happened with ultralisp.org")
 
-  (let ((traceback (when condition
-                     (print-backtrace :stream nil))))
-    (when traceback
-      (with-fields (:uri (reblocks/request:get-path)
-                    :user (let ((user (get-current-user)))
-                            (cond
-                              ((null user)
-                               "unknown")
-                              ((reblocks-auth/models:anonymous-p user)
-                               "anonymous")
-                              (t (reblocks-auth/models:get-nickname user)))))
-        (log:error "Returning 500 error to user" traceback)))
+  (when backtrace
+    (with-fields (:uri (reblocks/request:get-path)
+                  :user (let ((user (get-current-user)))
+                          (cond
+                            ((null user)
+                             "unknown")
+                            ((reblocks-auth/models:anonymous-p user)
+                             "anonymous")
+                            (t (reblocks-auth/models:get-nickname user)))))
+      (log:error "Returning 500 error to user" backtrace)))
 
-    (let ((content
-            (cond
-              ((reblocks/debug:status)
-               (with-html-string
-                 (:h3 "Some shit happened.")
-                 (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
-                 (when condition
-                   (:h5 ("~A" condition)))
-                 (when traceback
-                   (:pre traceback))))
-              (t
-               (with-html-string
-                 (:h3 "Some shit happened.")
-                 (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!")))))))
-      
-      (immediate-response
-       ;; TODO: replace with reblocks/response:return-page
-       (with-html-string
-         (reblocks/page:render
-          (reblocks/app:get-current)
-          content))
-       :code 500
-       :content-type "text/html"))))
+  (let ((content
+          (cond
+            ((reblocks/debug:status)
+             (with-html-string
+               (:h3 "Some shit happened.")
+               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+               (when condition
+                 (:h5 ("~A" condition)))
+               (when backtrace
+                 (:pre backtrace))))
+            (t
+             (with-html-string
+               (:h3 "Some shit happened.")
+               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!")))))))
+    
+    (immediate-response
+     (with-html-string
+       (reblocks/page:render
+        (reblocks/app:get-current)
+        content))
+     :code 500
+     :content-type "text/html")))
 
 
 (defmethod handle-request ((app app))
@@ -446,6 +451,10 @@
   (unless reblocks-auth/github:*secret*
     (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
 
+  (setf github:*token* (get-github-robot-token))
+  (unless github:*token*
+    (log:warn "Set GITHUB_ROBOT_TOKEN environment variable, otherwise github will apply hard rate limit"))
+
   (setf mailgun:*user-agent* (get-user-agent))
   
   (setf *cache-remote-dependencies-in*
@@ -522,78 +531,4 @@
   (apply #'start *previous-args*))
 
 
-(defvar slynk:*use-dedicated-output-stream*)
 
-
-(defmain (main) ((dont-start-server "Don't start HTTP server."
-                                    :flag t)
-                 (log-dir "A directory to store app.log."
-                          :default "/app/logs")
-                 (debug "If true, then log will be include DEBUG and INFO nessages"
-                        :flag t
-                        :short nil
-                        :env-var "DEBUG"))
-
-  
-  (ultralisp/logging:setup log-dir
-                           :level (if debug
-                                      :info
-                                      :error))
-
-  (with-log-unhandled ()
-    (let ((slynk-port 4005)
-          (slynk-interface (getenv "SLYNK_INTERFACE" "0.0.0.0"))
-          (interface (getenv "INTERFACE" "0.0.0.0"))
-          (port (getenv "PORT" 80))
-          (hostname (machine-instance))
-          (debug (when (getenv "DEBUG")
-                   t)))
-
-      (log:info "Starting the server")
-
-      ;; To make it possible to connect to a remote SLYNK server where ports are closed
-      ;; with firewall.
-      (setf slynk:*use-dedicated-output-stream* nil)
-      
-      (format t "Starting slynk server on ~A:~A (dedicated-output: ~A)~%"
-              slynk-interface
-              slynk-port
-              slynk:*use-dedicated-output-stream*)
-
-      (ultralisp/slynk:setup)
-      (slynk:create-server :dont-close t
-                           :port slynk-port
-                           :interface slynk-interface)
-
-      ;; Now we'll ensure that tables are exists in the database
-      ;; (migrate)
-      
-      (unless dont-start-server
-        (format t "Starting HTTP server on ~A:~A~%"
-                interface
-                port)
-        (start :port port
-               :interface interface
-               :debug debug))
-
-      (format t "To start HTTP server:~%")
-      (format t "Run ssh -6 -L ~A:localhost:4005 ~A~%"
-              slynk-port
-              hostname)
-      (format t "Then open local Emacs and connect to the slynk on 4005 port~%")
-      (format t "Evaluate:~%(server:stopserver)~%(server:runserver)~%~%in LISP repl and start hacking.~%")))
-
-  ;; Now we'll wait forever for connections from SLY.
-  (loop
-    do (sleep 60)))
-
-
-(defun test-gearman (arg)
-  (let ((returned-value nil))
-    (cl-gearman:with-client (client "gearman:4730")
-      (log:info "Submitting job")
-      (let* ((raw-result (cl-gearman:submit-job client "upcase" :arg (serialize arg)))
-             (result (deserialize raw-result)))
-        (log:info "Result received" result)
-        (setf returned-value result)))
-    returned-value))

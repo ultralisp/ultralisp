@@ -25,12 +25,13 @@
   ((project-id :col-type :bigint
                :initarg :project-id
                :reader project-id
-               :references (project2 id)
+               ;; :references (project2 id)
                )
    (user-id :col-type :bigint
             :initarg :user-id
             :reader user-id
-            :references (user id)))
+            ;; :references (user id)
+            ))
   (:primary-key project-id user-id)
   (:metaclass mito:dao-table-class))
 

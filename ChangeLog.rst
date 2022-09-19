@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.16.0 (2022-09-18)
+===================
+
+* Now it is possible to tag projects. Also, tags are fetched from the GitHub automatically!
+
 1.15.0 (2022-09-04)
 ===================
 

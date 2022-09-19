@@ -40,6 +40,10 @@
                 #:push-last-item!)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:ultralisp/widgets/tags
+                #:make-tags-widget)
+  (:import-from #:ultralisp/models/tag
+                #:get-project-tags)
   (:export
    #:make-project-widget))
 (in-package ultralisp/widgets/project)
@@ -53,7 +57,9 @@
    (source-widgets :initform nil
                    :reader source-widgets)
    (add-form :initform nil
-             :reader add-form))
+             :reader add-form)
+   (tags-widget :initform nil
+                :reader tags-widget))
   (:documentation "This widget will be updated with (setf (project-name widget) \"another/name\")
                    During update, sources list is changing."))
 
@@ -63,6 +69,7 @@
 
 
 (defmethod (setf project-name) (new-name (widget project))
+  ;; Changes a project bound to the widget
   (unless (equal (slot-value widget 'name)
                  new-name)
     (let ((new-project (ultralisp/models/project:get-project2 new-name)))
@@ -91,7 +98,12 @@
                   (slot-value widget 'source-widgets)
                   (list (make-source-widget source
                                             :on-delete #'on-delete)))
-                 (reblocks/widget:update widget))))))))
+                 (reblocks/widget:update widget)))
+
+              (slot-value widget 'tags-widget)
+              (make-tags-widget new-project
+                                (get-project-tags new-project)
+                                :editable t))))))
 
 
 (defun toggle (widget project)
@@ -118,7 +130,8 @@
 (defun render-project (widget)
   (let* ((project (project widget))
          (project-name (project-name widget))
-         (description (ultralisp/models/project:project-description project)))
+         (description (ultralisp/models/project:project-description project))
+         (tags (tags-widget widget)))
     (setf (get-title)
           (fmt "~A – ~A"
                project-name
@@ -136,7 +149,9 @@
              (:span :class "separator"
                     "/")
              (:span :class "project-name"
-                    project-name)))
+                    project-name))
+           (when tags
+             (render tags)))
       (:h2 :class "project-description"
            description)
 

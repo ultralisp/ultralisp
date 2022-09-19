@@ -12,13 +12,13 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
   ;; load system with all dependencies
 
   #+quicklisp
-  (progn (ql:quickload :ultralisp/server))
+  (progn (ql:quickload :ultralisp/server-cli))
   #-quicklisp
-  (progn (asdf:load-system :ultralisp/server)))
+  (progn (asdf:load-system :ultralisp/server-cli)))
 
 (defpackage :ros.script.ultralisp-server
   (:use :cl)
-  (:import-from #:ultralisp/server
+  (:import-from #:ultralisp/server-cli
                 #:main))
 (in-package :ros.script.ultralisp-server)
 

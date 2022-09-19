@@ -170,6 +170,7 @@
       GOOGLE_COUNTER_ID: "UA-124723483-1"
       GITHUB_CLIENT_ID: "{{ github_client_id }}"
       GITHUB_SECRET: "{{ github_secret }}"
+      GITHUB_ROBOT_TOKEN: "{{ github_robot_token }}"
       MAILGUN_DOMAIN: "{{ mailgun_domain }}"
       MAILGUN_API_KEY: "{{ mailgun_api_key }}"
       USER_AGENT: "Ultralisp/{{ ultralisp_version }} (https://{{ ultralisp_host }})"

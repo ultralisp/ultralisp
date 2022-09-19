@@ -6,10 +6,16 @@
   (:import-from #:ultralisp/models/version)
   (:import-from #:reblocks-auth/models)
   (:export
-   #:migrate))
+   #:migrate
+   #:generate-migrations))
 (in-package ultralisp/models/migration)
 
 
 (defun migrate ()
   (ultralisp/db:with-connection ()
     (mito:migrate "./db/")))
+
+
+(defun generate-migrations ()
+  (ultralisp/db:with-connection ()
+    (mito:generate-migrations "./db/")))

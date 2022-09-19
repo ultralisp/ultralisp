@@ -247,3 +247,11 @@
       `(when (try-to-get-lock ,name :signal-on-failure ,signal-on-failure)
          (log:debug "Lock aquired:" ,name mito:*connection*)
          ,@body)))
+
+
+(defun make-list-placeholders (list)
+  "Given a list of items, returns a string like \"(?,?,?)\"
+   where number of questionmarks corresponds to number of list items."
+  (format nil "(~{~A~^,~})"
+          (loop repeat (length list)
+                collect "?")))

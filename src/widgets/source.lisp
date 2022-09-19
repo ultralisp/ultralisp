@@ -417,7 +417,6 @@
                         (:td :class "field-column"
                              (mapc #'render-distribution
                                    distributions)))
-
                    (:tr (:td :class "label-column"
                              "Last check")
                         (:td :class "field-column"
@@ -523,8 +522,7 @@
                          (let ((message (fmt "~A" c)))
                            (setf (dist-conflicts widget)
                                  message)
-                           (reblocks/widget:update widget)))))
-             :widget widget)
+                           (reblocks/widget:update widget))))))
           (form-error-placeholder)
           (:table :class "unstriped"
            (:thead

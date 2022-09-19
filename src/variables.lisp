@@ -90,6 +90,9 @@
 (def-secret-env-var get-github-secret
   "GITHUB_SECRET")
 
+(def-secret-env-var get-github-robot-token
+  "GITHUB_ROBOT_TOKEN")
+
 (def-env-var get-aws-access-key-id
   "AWS_ACCESS_KEY_ID")
 
