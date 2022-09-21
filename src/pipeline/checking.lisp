@@ -7,6 +7,10 @@
                 #:defcommand)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:local-time)
+  (:import-from #:log)
+  (:import-from #:str)
+  (:import-from #:slynk)
   (:import-from #:ultralisp/models/project
                 #:project-name
                 #:update-and-enable-project
@@ -79,7 +83,7 @@
    #:perform-pending-checks
    #:perform
    #:perform-remotely))
-(in-package ultralisp/pipeline/checking)
+(in-package #:ultralisp/pipeline/checking)
 
 
 (defun perform-remotely (check &key (force nil force-p))

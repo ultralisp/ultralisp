@@ -32,7 +32,7 @@
            #:get-projects-linked-to-the
            #:build-dists
            #:get-all-dist-project-names))
-(in-package ultralisp-test/utils)
+(in-package #:ultralisp-test/utils)
 
 
 (defmacro with-test-db (&body body)

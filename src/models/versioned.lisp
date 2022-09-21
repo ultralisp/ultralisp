@@ -4,6 +4,14 @@
                 #:object-id)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:mito.class
+                #:table-name)
+  (:import-from #:mito.db
+                #:last-insert-id)
+  (:import-from #:sxql
+                #:limit
+                #:order-by
+                #:where)
   (:export
    #:id
    #:version
@@ -14,7 +22,7 @@
    #:deleted-p
    #:versioned-table-class
    #:prev-version))
-(in-package ultralisp/models/versioned)
+(in-package #:ultralisp/models/versioned)
 
 
 ;; (defclass versioned-table-class (mito:dao-table-class)
@@ -52,12 +60,12 @@
 
 
 (defmethod mito:insert-dao :after ((obj versioned))
-  (let ((table-name (mito.class:table-name
+  (let ((table-name (table-name
                      (class-of obj)))
         (column-name "id"))
     (unless (slot-boundp obj 'id)
       (setf (slot-value obj 'id)
-            (mito.db:last-insert-id
+            (last-insert-id
              mito:*connection*
              table-name
              column-name)))
@@ -73,11 +81,11 @@
   (:method ((obj versioned))
     (first
      (mito:select-dao (class-of obj)
-       (sxql:where
+       (where
         (:and (:= 'id (object-id obj))
               ;; There could be gaps in version numbers
               ;; that is why we need to skip to the biggest
               ;; version which less than current version.
               (:< 'version (object-version obj))))
-       (sxql:order-by (:desc 'version))
-       (sxql:limit 1)))))
+       (order-by (:desc 'version))
+       (limit 1)))))

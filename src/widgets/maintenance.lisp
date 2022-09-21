@@ -6,10 +6,12 @@
                 #:define-global-var)
   (:import-from #:reblocks/html
                 #:with-html)
+  (:import-from #:reblocks/page
+                #:get-title)
   (:export
    #:render-maintenance-page
    #:make-maintenance-widget))
-(in-package ultralisp/widgets/maintenance)
+(in-package #:ultralisp/widgets/maintenance)
 
 
 (define-global-var *default-lock-filename*
@@ -36,7 +38,7 @@
 (defgeneric render-maintenance-page (widget)
   (:method ((widget maintenance))
     (let ((title "Temporarily out of service"))
-      (setf (reblocks/page:get-title)
+      (setf (get-title)
             title)
       (with-html
         (:h1 title)

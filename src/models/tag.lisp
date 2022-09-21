@@ -10,7 +10,11 @@
                 #:make-list-placeholders
                 #:with-transaction)
   (:import-from #:ultralisp/utils/github
-                #:get-topics))
+                #:get-topics)
+  (:import-from #:sxql
+                #:order-by
+                #:where
+                #:join))
 (in-package #:ultralisp/models/tag)
 
 
@@ -119,8 +123,8 @@ DELETE FROM project_tag
   "Returns a list of PROJECT2 instances tagged by given tag name."
   (check-type tag-name string)
   (mito:select-dao 'project2
-    (sxql:join :project_tag :on (:= :project2.id :project_tag.project_id))
-    (sxql:join :tag :on (:= :project_tag.tag_id :tag.id))
-    (sxql:where (:and (:= :tag.name tag-name)
-                 :project2.latest))
-    (sxql:order-by :project2.name)))
+    (join :project_tag :on (:= :project2.id :project_tag.project_id))
+    (join :tag :on (:= :project_tag.tag_id :tag.id))
+    (where (:and (:= :tag.name tag-name)
+            :project2.latest))
+    (order-by :project2.name)))

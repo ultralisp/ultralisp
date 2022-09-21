@@ -4,7 +4,7 @@
   (:import-from #:ultralisp/utils
                 #:ensure-absolute-dirname
                 #:directory-mtime))
-(in-package ultralisp/downloader/git)
+(in-package #:ultralisp/downloader/git)
 
 
 (defun git-mtime (path)

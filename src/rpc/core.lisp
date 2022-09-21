@@ -1,9 +1,12 @@
 (defpackage #:ultralisp/rpc/core
   (:use #:cl)
-  (:import-from #:log4cl)
+  (:import-from #:log)
   (:import-from #:slynk)
   (:import-from #:cl-store)
   (:import-from #:cl-gearman)
+  (:import-from #:base64)
+  (:import-from #:flexi-streams)
+  (:import-from #:secret-values)
 
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
@@ -27,7 +30,7 @@
    #:serialize
    #:deserialize
    #:submit-task-to-lispworks))
-(in-package ultralisp/rpc/core)
+(in-package #:ultralisp/rpc/core)
 
 
 ;; We need this code to store/restore secret values,

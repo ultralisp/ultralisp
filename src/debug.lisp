@@ -10,7 +10,7 @@
                 #:perform-pending-checks)
   (:export
    #:check-project))
-(in-package ultralisp/debug)
+(in-package #:ultralisp/debug)
 
 ;; To make development more predictable, stop the cronjobs before going further:
 ;; (ultralisp/cron:stop)

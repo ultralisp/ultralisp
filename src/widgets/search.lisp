@@ -17,12 +17,15 @@
                 #:get-dependencies)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:log)
   (:import-from #:rutils
                 #:fmt
                 #:take)
+  (:import-from #:reblocks-ui/form
+                #:render-link)
   (:export
    #:make-search-page))
-(in-package ultralisp/widgets/search)
+(in-package #:ultralisp/widgets/search)
 
 
 (defwidget search-results ()
@@ -158,7 +161,7 @@
                       do (apply #'render-item
                                 uppercased)))
            (when (> total (length results))
-             (reblocks-ui/form:render-link
+             (render-link
               (lambda (&rest args)
                 (declare (ignorable args))
                 (fetch-next-results widget)

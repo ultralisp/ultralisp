@@ -4,7 +4,7 @@
                 #:split)
   (:export
    #:get-compiler-policies))
-(in-package ultralisp/utils/lisp)
+(in-package #:ultralisp/utils/lisp)
 
 
 (defun get-compiler-policies ()

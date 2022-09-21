@@ -4,7 +4,7 @@
    #:is-moderator
    #:make-moderator
    #:moderators))
-(in-package ultralisp/protocols/moderation)
+(in-package #:ultralisp/protocols/moderation)
 
 
 (defgeneric is-moderator (user obj)

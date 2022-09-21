@@ -4,12 +4,13 @@
                 #:starts-with-slash-p
                 #:ends-with-slash-p)
   (:import-from #:trivial-timeout)
+  (:import-from #:str)
   (:export
    #:make-uploader
    #:*uploader-type*
    #:upload
    #:make-files-inclusion-checker))
-(in-package ultralisp/uploader/base)
+(in-package #:ultralisp/uploader/base)
 
 
 (defvar *uploader-type* :fake

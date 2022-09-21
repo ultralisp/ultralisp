@@ -2,6 +2,8 @@
   (:use #:cl)
   (:import-from #:parenscript
                 #:@)
+  (:import-from #:log)
+  (:import-from #:quickdist)
   (:import-from #:ultralisp/protocols/render-changes)
   (:import-from #:reblocks/widget
                 #:defwidget
@@ -68,10 +70,24 @@
                 #:form-error-placeholder
                 #:field-error
                 #:error-placeholder)
+  (:import-from #:local-time
+                #:now)
+  (:import-from #:local-time-duration
+                #:timestamp-difference)
+  (:import-from #:reblocks/actions
+                #:make-js-action)
+  (:import-from #:reblocks/utils/misc
+                #:safe-funcall)
+  (:import-from #:str
+                #:join)
+  (:import-from #:ultralisp/cron
+                #:get-time-of-the-next-check)
+  (:import-from #:reblocks-parenscript
+                #:make-js-handler)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
-(in-package ultralisp/widgets/source)
+(in-package #:ultralisp/widgets/source)
 
 
 (defwidget source-widget ()
@@ -410,8 +426,8 @@
                                       for (filename . systems) in grouped
                                       do (:dt filename)
                                          (:dd :style "padding-left: 2em"
-                                              (str:join ", " (sort systems
-                                                                   #'string<))))))))
+                                              (join ", " (sort systems
+                                                               #'string<))))))))
                    (:tr (:td :class "label-column"
                              "Distributions")
                         (:td :class "field-column"
@@ -425,17 +441,16 @@
                                 (let* ((processed-at (ultralisp/models/check:get-processed-at
                                                       last-check)))
                                   (cond (processed-at
-                                         (let* ((now (local-time:now))
+                                         (let* ((now (now))
                                                 (duration
                                                   (humanize-duration
-                                                   (local-time-duration:timestamp-difference
+                                                   (timestamp-difference
                                                     now
                                                     processed-at)))
                                                 (error (ultralisp/models/check:get-error last-check))
                                                 (time-to-next-check
                                                   (local-time-duration:timestamp-difference
-                                                                 (ultralisp/cron:get-time-of-the-next-check
-                                                                  source)
+                                                                 (get-time-of-the-next-check source)
                                                                  now))
                                                 (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
                                                                       0)
@@ -532,7 +547,7 @@
                       type
                       (:div :class "source-controls float-right"
                             (let ((js-code-to-cancel
-                                    (reblocks/actions:make-js-action
+                                    (make-js-action
                                      (lambda (&rest args)
                                            (declare (ignore args))
                                        (switch-to-readonly widget)))))
@@ -553,7 +568,7 @@
                               :name "url"
                               :type "text"
                               :onchange
-                              (reblocks-parenscript:make-js-handler
+                              (make-js-handler
                                :lisp-code ((&key url)
                                            (update-url (branches widget)
                                                        url))
@@ -695,7 +710,7 @@
                             (source-type (make-keyword (getf args :type)))
                             (source (ultralisp/models/source:create-source project
                                                                            source-type)))
-                       (reblocks/utils/misc:safe-funcall on-new-source source))))
+                       (safe-funcall on-new-source source))))
           (:table
            (:tr
             (:td

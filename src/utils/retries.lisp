@@ -13,7 +13,7 @@
                    signal an error.")
   (:export
    #:with-tries))
-(in-package ultralisp/utils/retries)
+(in-package #:ultralisp/utils/retries)
 
 
 (defparameter *data-dir* #P"/tmp/retries/")

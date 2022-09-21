@@ -10,6 +10,7 @@
   (:import-from #:jonathan
                 #:to-json)
   (:import-from #:dexador)
+  (:import-from #:log)
   (:import-from #:ultralisp/metadata
                 #:read-metadata)
   (:import-from #:function-cache
@@ -84,6 +85,8 @@
                 #:inflate-json
                 #:deflate-keyword
                 #:inflate-keyword)
+  (:import-from #:mito.dao
+                #:select-by-sql)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -130,7 +133,7 @@
    #:get-projects-with-sources
    #:ensure-project
    #:get-all-dist-projects))
-(in-package ultralisp/models/project)
+(in-package #:ultralisp/models/project)
 
 
 (defclass project ()
@@ -363,7 +366,7 @@
 
 (defun get-projects-with-sources ()
   "Returns projects with not deleted sources."
-  (mito.dao:select-by-sql (find-class 'project2)
+  (select-by-sql (find-class 'project2)
                           "
     WITH projects_with_sources AS (
       SELECT distinct source.project_id

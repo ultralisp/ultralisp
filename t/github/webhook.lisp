@@ -17,7 +17,7 @@
   (:import-from #:ultralisp/models/check
                 #:source-checks
                 #:get-project-checks))
-(in-package ultralisp-test/github/webhook)
+(in-package #:ultralisp-test/github/webhook)
 
 
 (defun load-payload (name)

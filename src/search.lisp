@@ -1,5 +1,11 @@
 (defpackage #:ultralisp/search
   (:use #:cl)
+  (:import-from #:log)
+  (:import-from #:mito)
+  (:import-from #:str)
+  (:import-from #:quri)
+  (:import-from #:quickdist)
+  (:import-from #:quicklisp-client)
   (:import-from #:dexador)
   (:import-from #:jonathan)
   (:import-from #:closer-mop)
@@ -58,7 +64,7 @@
    #:index-projects
    #:delete-project-documents
    #:delete-documents-which-should-not-be-in-the-index))
-(in-package ultralisp/search)
+(in-package #:ultralisp/search)
 
 
 (defvar *current-system-name* nil)

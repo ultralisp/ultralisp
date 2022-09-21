@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/protocols/url
   (:use #:cl)
   (:export #:url))
-(in-package ultralisp/protocols/url)
+(in-package #:ultralisp/protocols/url)
 
 
 (defgeneric url (obj)

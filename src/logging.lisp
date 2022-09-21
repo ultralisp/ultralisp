@@ -5,7 +5,7 @@
   (:export
    #:setup-for-repl
    #:setup))
-(in-package ultralisp/logging)
+(in-package #:ultralisp/logging)
 
 
 (defvar *log-dir* nil

@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export
    #:enabled-p))
-(in-package ultralisp/protocols/enabled)
+(in-package #:ultralisp/protocols/enabled)
 
 
 (defgeneric enabled-p (obj)

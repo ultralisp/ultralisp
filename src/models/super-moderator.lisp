@@ -4,14 +4,16 @@
                 #:user)
   (:import-from #:function-cache
                 #:defcached)
+  (:import-from #:mito
+                #:retrieve-by-sql)
   (:export
    #:is-super-moderator-p))
-(in-package ultralisp/models/super-moderator)
+(in-package #:ultralisp/models/super-moderator)
 
 
 (defcached (%is-super-moderator-p :timeout 600) (user-id)
   (check-type user-id integer)
-  (mito:retrieve-by-sql
+  (retrieve-by-sql
    "SELECT 1
       FROM super_moderator
      WHERE user_id = ?"

@@ -16,7 +16,7 @@
    #:downloaded-project-project
    #:downloaded-project-path
    #:remove-vcs-files))
-(in-package ultralisp/downloader/base)
+(in-package #:ultralisp/downloader/base)
 
 
 (defstruct (downloaded-project (:constructor %make-downloaded-project))

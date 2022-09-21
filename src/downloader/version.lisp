@@ -6,7 +6,7 @@
                 #:download)
   (:import-from #:ultralisp/models/project
                 #:get-projects))
-(in-package ultralisp/downloader/version)
+(in-package #:ultralisp/downloader/version)
 
 
 (defmethod download ((version version) dir &key latest)

@@ -4,6 +4,9 @@
   (:import-from #:reblocks/session)
   (:import-from #:ultralisp/builder)
   (:import-from #:chanl)
+  (:import-from #:jonathan)
+  (:import-from #:log)
+  (:import-from #:reblocks/request)
   (:import-from #:ultralisp/uploader/base)
   (:import-from #:reblocks/routes
                 #:defroute)
@@ -35,9 +38,11 @@
                 #:app)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:bordeaux-threads
+                #:make-thread)
   (:export
    #:get-webhook-url))
-(in-package ultralisp/github/webhook)
+(in-package #:ultralisp/github/webhook)
 
 
 (defvar *github-webhook-path* "/webhook/github")
@@ -172,8 +177,8 @@
          (not (bt:thread-alive-p *processor-thread*)))
      (log:debug "Creating a thread")
      (setf *processor-thread*
-           (bt:make-thread 'process-payloads-from-the-queue
-                           :name "github payloads processor")))
+           (make-thread 'process-payloads-from-the-queue
+                        :name "github payloads processor")))
     (t (log:debug "Thread for payload processing is already running"))))
 
 

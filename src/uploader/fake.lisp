@@ -8,8 +8,11 @@
                 #:get-dist-dir
                 #:get-clpi-dist-dir)
   (:import-from #:metatilities
-                #:relative-pathname))
-(in-package ultralisp/uploader/fake)
+                #:relative-pathname)
+  (:import-from #:log)
+  (:import-from #:ultralisp/utils
+                #:walk-dir))
+(in-package #:ultralisp/uploader/fake)
 
 
 (defmethod make-uploader ((type (eql :fake)) repo-type)
@@ -20,7 +23,7 @@
                                                 destination-path))
            (need-to-upload-p
              (make-files-inclusion-checker only-files)))
-      (ultralisp/utils:walk-dir (dir-or-file absolute relative)
+      (walk-dir (dir-or-file absolute relative)
         (when (funcall need-to-upload-p relative)
           (let ((destination (merge-pathnames relative destination-path)))
             (log:info "Copying" absolute "to" destination)

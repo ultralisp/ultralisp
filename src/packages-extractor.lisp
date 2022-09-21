@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export
    #:get-packages))
-(in-package ultralisp/packages-extractor)
+(in-package #:ultralisp/packages-extractor)
 
 
 (defvar *component-packages*)

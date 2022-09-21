@@ -17,7 +17,7 @@
   (:import-from #:ultralisp/models/moderator
                 #:get-moderators)
   (:export #:create-new-projects))
-(in-package ultralisp/migrations/01-project)
+(in-package #:ultralisp/migrations/01-project)
 
 
 (defun create-new-project (old-project)

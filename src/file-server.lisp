@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:reblocks-file-server)
   (:export #:make-route))
-(in-package ultralisp/file-server)
+(in-package #:ultralisp/file-server)
 
 
 (defun make-route (root uri)

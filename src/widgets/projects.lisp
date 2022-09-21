@@ -25,7 +25,7 @@
    #:render-projects-list
    #:make-author-projects-widget
    #:make-my-projects-widget))
-(in-package ultralisp/widgets/projects)
+(in-package #:ultralisp/widgets/projects)
 
 
 (defwidget author-projects ()

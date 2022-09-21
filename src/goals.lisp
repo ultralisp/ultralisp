@@ -9,7 +9,7 @@
                 #:on-application-hook-render)
   (:export
    #:reach-goal))
-(in-package ultralisp/goals)
+(in-package #:ultralisp/goals)
 
 
 (defun reach-goal (name &key survive-redirect-p)

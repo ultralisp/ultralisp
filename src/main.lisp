@@ -7,7 +7,7 @@
                 #:upload)
   (:export
    #:main))
-(in-package ultralisp/main)
+(in-package #:ultralisp/main)
 
 
 (defmain (main) ((upload "Add this option to upload data to S3."

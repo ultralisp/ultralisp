@@ -8,7 +8,7 @@
   (:export
    #:humanize-duration
    #:humanize-timestamp))
-(in-package ultralisp/utils/time)
+(in-package #:ultralisp/utils/time)
 
 
 (defun default-format-part (stream part-type part)

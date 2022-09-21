@@ -1,9 +1,11 @@
 (defpackage #:ultralisp/widgets/version
   (:use #:cl)
   (:import-from #:ultralisp/widgets/projects)
+  (:import-from #:reblocks/request)
   (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
+  (:import-from #:ultralisp/variables)
   (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/models/version
                 #:get-version-by-number)
@@ -17,7 +19,7 @@
                 #:get-projects)
   (:export
    #:make-version-widget))
-(in-package ultralisp/widgets/version)
+(in-package #:ultralisp/widgets/version)
 
 
 (defwidget version ()

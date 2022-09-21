@@ -13,7 +13,7 @@
   (:export
    #:main
    #:import-quicklisp))
-(in-package ultralisp/import)
+(in-package #:ultralisp/import)
 
 
 (defun empty-string-p (s)

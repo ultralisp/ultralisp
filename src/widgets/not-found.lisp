@@ -9,7 +9,7 @@
   (:import-from #:reblocks/response
                 #:immediate-response)
   (:export #:page-not-found))
-(in-package ultralisp/widgets/not-found)
+(in-package #:ultralisp/widgets/not-found)
 
 
 (defun page-not-found (&key (title "Outer space"))

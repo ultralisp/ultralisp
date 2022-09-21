@@ -10,7 +10,7 @@
    #:render-yandex-counter
    #:render-google-counter
    #:hit))
-(in-package ultralisp/analytics)
+(in-package #:ultralisp/analytics)
 
 
 (defparameter *yandex-template*

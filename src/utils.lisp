@@ -26,6 +26,11 @@
                 #:print-backtrace)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:reblocks/response
+                #:immediate-response)
+  (:import-from #:reblocks/utils/misc
+                #:relative-path)
+  (:import-from #:log)
   (:export
    #:time-in-past
    #:getenv
@@ -49,7 +54,7 @@
    #:time-in-future
    #:make-keyword
    #:ends-with-slash-p))
-(in-package ultralisp/utils)
+(in-package #:ultralisp/utils)
 
 
 (defun getenv (name &optional (default nil))
@@ -107,7 +112,7 @@
                         (cl-fad:pathname-directory-pathname path))))
 
     (flet ((process-file (absolute)
-             (let ((relative (reblocks/utils/misc:relative-path absolute parent-dir)))
+             (let ((relative (relative-path absolute parent-dir)))
                (funcall thunk absolute relative))))
       (if is-directory
           (fad:walk-directory path #'process-file)
@@ -254,7 +259,7 @@
       `(progn
          (log:debug "TRACE: Calling" ,code-name)
          (let ((,result (handler-bind (((or error
-                                            reblocks/response:immediate-response)
+                                            immediate-response)
                                          (lambda (condition)
                                            (log:debug "TRACE: Call to" ,code-name
                                                       "raised" condition))))

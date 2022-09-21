@@ -1,6 +1,7 @@
 (uiop:define-package #:ultralisp/widgets/tags
   (:use #:cl)
   (:import-from #:reblocks-lass)
+  (:import-from #:log)
   (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
@@ -21,7 +22,11 @@
                 #:add-tags)
   (:import-from #:str
                 #:trim
-                #:replace-all))
+                #:replace-all)
+  (:import-from #:parenscript
+                #:chain)
+  (:import-from #:reblocks/request
+                #:ajax-request-p))
 (in-package #:ultralisp/widgets/tags)
 
 
@@ -93,9 +98,9 @@
            ;; And we need reinitialize Zurb because
            ;; otherwise the second click on +
            ;; will not open popup.
-           (when (reblocks/request:ajax-request-p)
+           (when (ajax-request-p)
              (reblocks/response:send-script
-              '(parenscript:chain
+              '(chain
                 (j-query document)
                 (foundation))))))
       (with-html

@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/package-variance-fix
   (:use #:cl)
   (:import-from #:log4cl))
-(in-package ultralisp/package-variance-fix)
+(in-package #:ultralisp/package-variance-fix)
 
 
 ;; For some reasons, some libraries start to raise ASDF compile errors

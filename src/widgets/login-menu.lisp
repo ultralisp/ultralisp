@@ -11,10 +11,12 @@
                 #:anonymous-p)
   (:import-from #:reblocks/response
                 #:add-retpath-to)
+  (:import-from #:reblocks/dependencies
+                #:get-dependencies)
 
   (:export
    #:make-login-menu))
-(in-package ultralisp/widgets/login-menu)
+(in-package #:ultralisp/widgets/login-menu)
 
 
 (defwidget login-menu ()
@@ -64,6 +66,6 @@
              (a :margin-right 0.5rem))))))
 
 
-(defmethod reblocks/dependencies:get-dependencies ((widget login-menu))
+(defmethod get-dependencies ((widget login-menu))
   (append *dependencies*
           (call-next-method)))

@@ -22,9 +22,10 @@
                 #:secret-value
                 #:reveal-value)
   (:import-from #:str)
+  (:import-from #:log)
   (:export
    #:prepare-for-debug))
-(in-package ultralisp/uploader/s3)
+(in-package #:ultralisp/uploader/s3)
 
 
 (defvar *bucket* nil

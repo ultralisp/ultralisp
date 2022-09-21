@@ -8,7 +8,7 @@
   ;;               #:get-email)
   (:export
    #:send-login-code))
-(in-package ultralisp/mail)
+(in-package #:ultralisp/mail)
 
 
 ;; TODO: remove this code, or move it to reblocks-auth

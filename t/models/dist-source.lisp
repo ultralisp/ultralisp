@@ -55,5 +55,5 @@
                 #:source-distributions
                 #:update-source-dists
                 #:dist-id))
-(in-package ultralisp-test/models/dist-source)
+(in-package #:ultralisp-test/models/dist-source)
 

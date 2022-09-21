@@ -15,7 +15,7 @@
                 #:moderated-dists)
   (:import-from #:reblocks-auth/models
                 #:get-current-user))
-(in-package ultralisp-test/models/dist)
+(in-package #:ultralisp-test/models/dist)
 
 
 (deftest test-adding-new-dist

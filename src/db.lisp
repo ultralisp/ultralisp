@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/db
   (:use #:cl)
-  (:import-from #:cl-dbi)
+  (:import-from #:log)
+  (:import-from #:dbi)
+  (:import-from #:dbi.error)
   (:import-from #:cl-postgres)
   ;; To prevent Mito from trying to load driver on first connect.
   ;; Sometimes this can cause errors if DBD get's updated by some
@@ -33,7 +35,7 @@
    #:execute
    #:connect-toplevel-in-dev
    #:lock-timeout))
-(in-package ultralisp/db)
+(in-package #:ultralisp/db)
 
 
 (declaim (notinline inner-connect))

@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/packages-extractor-api
   (:use #:cl)
   (:import-from #:str)
+  (:import-from #:log)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:log4cl-extras/context
@@ -12,7 +13,7 @@
   (:export
    #:get-packages
    #:with-saved-ultralisp-root))
-(in-package ultralisp/packages-extractor-api)
+(in-package #:ultralisp/packages-extractor-api)
 
 
 (defun parse-packages-output (text)

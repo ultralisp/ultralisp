@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/widgets/project
   (:use #:cl)
+  (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/models/project
                 #:get-description
                 #:get-versions
@@ -42,11 +43,18 @@
                 #:fmt)
   (:import-from #:ultralisp/widgets/tags
                 #:make-tags-widget)
+  (:import-from #:reblocks-lass)
   (:import-from #:ultralisp/models/tag
                 #:get-project-tags)
+  (:import-from #:reblocks/request
+                #:get-path)
+  (:import-from #:str
+                #:split)
+  (:import-from #:ultralisp/utils
+                #:format-timestamp)
   (:export
    #:make-project-widget))
-(in-package ultralisp/widgets/project)
+(in-package #:ultralisp/widgets/project)
 
 
 (defwidget project ()
@@ -124,7 +132,7 @@
   (with-html
     (:li ("~@[~A - ~]Planned check"
           (when timestamp
-            (ultralisp/utils:format-timestamp (get-time obj)))))))
+            (format-timestamp (get-time obj)))))))
 
 
 (defun render-project (widget)
@@ -141,7 +149,7 @@
       ;; Show a list of versions where it was included
       (:h1 :class "full-name"
            (destructuring-bind (user-name project-name)
-               (str:split #\/ project-name :limit 2)
+               (split #\/ project-name :limit 2)
              (:a :class "user-name"
                  :href (fmt "/projects/~A"
                             user-name)
@@ -163,7 +171,7 @@
 
 (defmethod render ((widget project))
   (register-groups-bind (project-name)
-      ("^/projects/(.*/.*)$" (reblocks/request:get-path))
+      ("^/projects/(.*/.*)$" (get-path))
 
     (setf (project-name widget)
           project-name)

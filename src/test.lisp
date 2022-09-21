@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export
    #:set-project-github-commit))
-(in-package ultralisp/test)
+(in-package #:ultralisp/test)
 
 ;; Different utils to simplify manual testing
 

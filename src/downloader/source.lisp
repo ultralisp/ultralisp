@@ -1,6 +1,6 @@
 (defpackage #:ultralisp/downloader/source
   (:use #:cl)
-  (:import-from #:log4cl)
+  (:import-from #:log)
   ;; (:import-from #:ultralisp/models/project
   ;;               #:project-version
   ;;               #:get-all-projects
@@ -15,7 +15,7 @@
                 #:source-params
                 #:source-type
                 #:source))
-(in-package ultralisp/downloader/source)
+(in-package #:ultralisp/downloader/source)
 
 
 (defmethod download ((source source) dir &key latest)

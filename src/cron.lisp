@@ -1,7 +1,8 @@
 (defpackage #:ultralisp/cron
   (:use #:cl)
   (:import-from #:cl-cron)
-  (:import-from #:log4cl)
+  (:import-from #:log)
+  (:import-from #:slynk-api)
   (:import-from #:ultralisp/search)
   (:import-from #:ultralisp/models/project
                 #:get-disable-reason
@@ -27,6 +28,7 @@
   (:import-from #:local-time
                 #:now)
   (:import-from #:mito
+                #:execute-sql
                 #:object-updated-at)
   (:import-from #:local-time-duration
                 #:duration-maximum
@@ -36,6 +38,20 @@
                 #:duration-minimum)
   (:import-from #:ultralisp/models/source
                 #:get-all-sources)
+  (:import-from #:alexandria
+                #:with-output-to-file)
+  (:import-from #:mito.class
+                #:table-primary-key)
+  (:import-from #:mito.class
+                #:table-name)
+  (:import-from #:mito.class
+                #:table-name)
+  (:import-from #:sxql
+                #:where
+                #:update
+                #:make-sql-symbol)
+  (:import-from #:mito.dao
+                #:make-set-clause)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
@@ -45,7 +61,7 @@
    #:*cron-jobs-hash*
    #:get-time-of-the-next-check
    #:simulate-cron))
-(in-package ultralisp/cron)
+(in-package #:ultralisp/cron)
 
 
 (defmacro deftask (name (&key (need-connection t)) &body body)
@@ -161,7 +177,7 @@
 
 (defun get-check-times (&optional (filename "/tmp/timestamps"))
   (with-connection ()
-    (alexandria:with-output-to-file (s filename)
+    (with-output-to-file (s filename)
       (loop with now = (now)
             with all-sources = (get-all-sources)
             for source in all-sources
@@ -172,14 +188,14 @@
 
 
 (defun save-updated (obj)
-  (let ((primary-key (mito.class:table-primary-key (class-of obj))))
+  (let ((primary-key (table-primary-key (class-of obj))))
     (unless primary-key
-      (error 'no-primary-keys :table (mito.class:table-name (class-of obj))))
+      (error 'no-primary-keys :table (table-name (class-of obj))))
 
-    (mito:execute-sql
-     (sxql:update (sxql:make-sql-symbol (mito.class:table-name (class-of obj)))
-       (mito.dao::make-set-clause obj)
-       (sxql:where
+    (execute-sql
+     (update (make-sql-symbol (table-name (class-of obj)))
+       (make-set-clause obj)
+       (where
         `(:and ,@(mapcar (lambda (key)
                            `(:= ,(mito.util:unlispify key) ,(slot-value obj key)))
                          primary-key)))))))

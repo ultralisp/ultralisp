@@ -8,12 +8,13 @@
                 #:project)
   (:import-from #:mito
                 #:dao-table-class)
+  (:import-from #:log)
   (:export #:moderator
            #:is-moderator-p
            #:get-moderators
            #:get-projects
            #:make-moderator))
-(in-package ultralisp/models/moderator)
+(in-package #:ultralisp/models/moderator)
 
 
 (defclass moderator ()

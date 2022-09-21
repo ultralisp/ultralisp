@@ -14,7 +14,7 @@
    #:get-source
    #:get-urn
    #:get-description))
-(in-package ultralisp/metadata)
+(in-package #:ultralisp/metadata)
 
 
 (defclass metadata ()

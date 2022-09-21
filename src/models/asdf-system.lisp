@@ -19,6 +19,8 @@
                 #:fmt)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
+  (:import-from #:local-time
+                #:timestamp<)
   (:export
    #:dist-id
    #:asdf-system-name
@@ -30,7 +32,7 @@
    #:asdf-system-project
    #:remove-source-systems
    #:asdf-systems-conflict))
-(in-package ultralisp/models/asdf-system)
+(in-package #:ultralisp/models/asdf-system)
 
 
 (defclass asdf-system ()
@@ -173,7 +175,7 @@
         do (loop for system-name being the hash-keys of system-name->sources
                    using (hash-value sources)
                  for sorted-sources = (sort (copy-list sources)
-                                            #'local-time:timestamp<
+                                            #'timestamp<
                                             :key #'mito:object-created-at)
                  for source = (first sorted-sources)
                  for source-id = (mito:object-id source)

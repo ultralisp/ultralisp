@@ -4,7 +4,7 @@
   (:import-from #:dexador)
   (:export
    #:get-json))
-(in-package ultralisp/utils/http)
+(in-package #:ultralisp/utils/http)
 
 
 (defun get-json (url &key headers)

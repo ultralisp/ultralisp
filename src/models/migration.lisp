@@ -5,14 +5,17 @@
   (:import-from #:ultralisp/models/project)
   (:import-from #:ultralisp/models/version)
   (:import-from #:reblocks-auth/models)
+  (:import-from #:mito)
+  (:import-from #:ultralisp/db
+                #:with-connection)
   (:export
    #:migrate
    #:generate-migrations))
-(in-package ultralisp/models/migration)
+(in-package #:ultralisp/models/migration)
 
 
 (defun migrate ()
-  (ultralisp/db:with-connection ()
+  (with-connection ()
     (mito:migrate "./db/")))
 
 

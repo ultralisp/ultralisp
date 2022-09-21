@@ -9,7 +9,7 @@
                 #:with-html)
   (:export
    #:make-sponsors-widget))
-(in-package ultralisp/widgets/sponsors)
+(in-package #:ultralisp/widgets/sponsors)
 
 
 (defwidget sponsors-widget ()
