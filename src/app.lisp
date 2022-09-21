@@ -4,7 +4,7 @@
   (:import-from #:reblocks/app
                 #:defapp)
   (:import-from #:reblocks/request-handler))
-(in-package ultralisp/app)
+(in-package #:ultralisp/app)
 
 
 (defapp app

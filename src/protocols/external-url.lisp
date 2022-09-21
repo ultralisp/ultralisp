@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export
    #:external-url))
-(in-package ultralisp/protocols/external-url)
+(in-package #:ultralisp/protocols/external-url)
 
 
 (defgeneric external-url (obj)

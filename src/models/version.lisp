@@ -9,6 +9,10 @@
   (:import-from #:ultralisp/utils/db
                 #:deflate-keyword
                 #:inflate-keyword)
+  (:import-from #:sxql
+                #:limit
+                #:order-by
+                #:where)
   (:export
    #:get-or-create-pending-version
    #:make-version
@@ -21,7 +25,7 @@
    #:get-version-by-number
    #:make-version-number
    #:get-prepared-versions))
-(in-package ultralisp/models/version)
+(in-package #:ultralisp/models/version)
 
 
 (defclass version ()
@@ -66,7 +70,7 @@
 (defun get-pending-version ()
   (first
    (select-dao 'version
-     (sxql:where (:= 'type "PENDING")))))
+     (where (:= 'type "PENDING")))))
 
 
 (defun get-prepared-versions ()
@@ -94,6 +98,6 @@
 
 (defun get-latest-versions (&key (limit 10))
   (select-dao 'version
-    (sxql:order-by (:desc :created-at))
-    (sxql:limit limit)))
+    (order-by (:desc :created-at))
+    (limit limit)))
 

@@ -18,7 +18,7 @@
            #:moderator
            #:moderated-project
            #:user->projects))
-(in-package ultralisp/models/project-moderator)
+(in-package #:ultralisp/models/project-moderator)
 
 
 (defclass project-moderator ()

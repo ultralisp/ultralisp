@@ -39,3 +39,17 @@
 (register-system-packages "prometheus.collectors.process" '(#:prometheus.process))
 
 (register-system-packages "dbd-postgres" '(#:dbd.postgres))
+
+(register-system-packages "log4cl" '(#:log))
+
+(register-system-packages "cl-dbi" '(#:dbi.cache.thread #:dbi.error))
+
+(register-system-packages "dexador" '(#:dexador.connection-cache))
+
+(register-system-packages "quicklisp" '(#:quicklisp-client))
+
+(register-system-packages "cl-base64" '(#:base64))
+
+(register-system-packages "mito" '(#:mito.class #:mito.db #:mito.dao #:mito.util))
+
+(register-system-packages "slynk" '(#:slynk-api))

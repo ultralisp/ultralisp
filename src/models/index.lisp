@@ -19,12 +19,14 @@
   (:import-from #:rutils
                 #:it
                 #:awhen)
+  (:import-from #:mito
+                #:retrieve-by-sql)
   (:export
    #:get-index-status
    #:set-index-status
    #:get-projects-to-index
    #:reschedule-indexing))
-(in-package ultralisp/models/index)
+(in-package #:ultralisp/models/index)
 
 
 (defun status-to-postgres (symbol)
@@ -40,7 +42,7 @@
 
 (defun get-index-status (project)
   (let* ((project (ensure-project project))
-         (rows (mito:retrieve-by-sql
+         (rows (retrieve-by-sql
                 "SELECT status, last_update_at, next_update_at, total_time, num_tries
                    FROM project_index WHERE project_id = ?"
                 :binds (list (mito:object-id project))))

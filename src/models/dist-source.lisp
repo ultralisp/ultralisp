@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/models/dist-source
   (:use #:cl)
   (:import-from #:jonathan)
+  (:import-from #:log)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:ultralisp/models/dist
@@ -31,6 +32,8 @@
                 #:deflate-keyword
                 #:inflate-json
                 #:deflate-json)
+  (:import-from #:mito.dao
+                #:select-by-sql)
   (:export
    #:dist-source
    #:dist-id
@@ -52,7 +55,7 @@
    #:add-source-to-dist
    #:get-link
    #:lisp-implementation))
-(in-package ultralisp/models/dist-source)
+(in-package #:ultralisp/models/dist-source)
 
 (defparameter *deb* nil)
 
@@ -167,9 +170,9 @@ SELECT *
                            (if enabled
                                "   AND enabled = true"
                                "   AND enabled = false"))))
-      (mito.dao:select-by-sql (find-class 'dist-source)
-                              sql
-                              :binds params)))
+      (select-by-sql (find-class 'dist-source)
+                     sql
+                     :binds params)))
   
   (:method ((dist ultralisp/models/dist:dist) &key (enabled nil enabled-given-p)
                                                    (limit nil limit-given-p))

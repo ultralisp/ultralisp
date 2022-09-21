@@ -14,7 +14,7 @@
                 #:ok)
   (:export
    #:lisp-implementation))
-(in-package ultralisp/models/check)
+(in-package #:ultralisp/models/check)
 
 
 (deftest test-check-lisp-implementation

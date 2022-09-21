@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.16.7 (2022-09-21)
+===================
+
+* Fixed dependencies in package inferred lisp files.
+
 1.16.6 (2022-09-19)
 ===================
 

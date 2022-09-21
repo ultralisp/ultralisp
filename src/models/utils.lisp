@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/models/utils
   (:use #:cl)
+  (:import-from #:jonathan)
   (:import-from #:quickdist
                 #:get-path
                 #:get-filename
@@ -17,7 +18,7 @@
    #:release-info-to-json
    #:systems-info-from-json
    #:release-info-from-json))
-(in-package ultralisp/models/utils)
+(in-package #:ultralisp/models/utils)
 
 
 (defun %system-info-to-json (system-info)

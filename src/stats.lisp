@@ -30,7 +30,7 @@
    #:add-counter
    #:add-gauge
    #:initialize))
-(in-package ultralisp/stats)
+(in-package #:ultralisp/stats)
 
 
 (defvar *registry* nil

@@ -4,7 +4,7 @@
   (:import-from #:40ants-ci/workflow
                 #:defworkflow)
   (:import-from #:40ants-ci/jobs/run-tests))
-(in-package ultralisp/ci)
+(in-package #:ultralisp/ci)
 
 
 (defclass ultralisp-job-mixin ()

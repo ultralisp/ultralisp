@@ -12,7 +12,7 @@
                 #:with-log-unhandled)
   (:import-from #:defmain
                 #:defmain))
-(in-package ultralisp/server-cli)
+(in-package #:ultralisp/server-cli)
 
 
 (defvar slynk:*use-dedicated-output-stream*)

@@ -5,7 +5,7 @@
                 #:with-connection)
   (:import-from #:alexandria
                 #:assoc-value))
-(in-package ultralisp-test/db)
+(in-package #:ultralisp-test/db)
 
 
 (deftest test-with-connection

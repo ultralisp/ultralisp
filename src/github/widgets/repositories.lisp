@@ -1,6 +1,10 @@
 (defpackage #:ultralisp/github/widgets/repositories
   (:use #:cl)
   (:import-from #:reblocks-parenscript)
+  (:import-from #:dexador)
+  (:import-from #:jonathan)
+  (:import-from #:log)
+  (:import-from #:reblocks-lass)
   (:import-from #:parenscript
                 #:@
                 #:chain)
@@ -48,12 +52,17 @@
   (:import-from #:reblocks/response
                 #:add-retpath-to)
   (:import-from #:ultralisp/models/source
+                #:source-params
                 #:get-github-sources)
   (:import-from #:str)
+  (:import-from #:bordeaux-threads
+                #:make-thread)
+  (:import-from #:ultralisp/models/dist-source
+                #:source->dists)
   (:export
    #:make-repositories-widget
    #:repositories))
-(in-package ultralisp/github/widgets/repositories)
+(in-package #:ultralisp/github/widgets/repositories)
 (in-readtable :interpol-syntax)
 
 
@@ -180,8 +189,8 @@
 
 (defun get-ultralisp-names (repositories)
   (loop for source in (get-sources-for-github-repositories repositories)
-        for params = (ultralisp/models/source:source-params source)
-        for dists = (ultralisp/models/dist-source:source->dists source :enabled t)
+        for params = (source-params source)
+        for dists = (source->dists source :enabled t)
         when dists
         collect (format nil "~A/~A"
                         (getf params :user-or-org)
@@ -228,7 +237,7 @@
   (log:debug "Starting thread to retrieve repositories")
   (let ((webhook-url (ultralisp/github/webhook:get-webhook-url)))
     (setf (slot-value widget 'thread)
-          (bt:make-thread
+          (make-thread
            (lambda ()
              (with-log-unhandled ()
                (with-connection ()

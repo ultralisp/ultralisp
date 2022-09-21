@@ -60,7 +60,7 @@
                 #:dist-id)
   (:import-from #:mito
                 #:object-id))
-(in-package ultralisp-test/models/source)
+(in-package #:ultralisp-test/models/source)
 
 
 (deftest test-prev-version-when-there-is-a-gap-in-dist-versions

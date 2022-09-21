@@ -4,6 +4,7 @@
                 #:concat)
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
+  (:import-from #:reblocks-lass)
   (:import-from #:ultralisp/metadata)
   (:import-from #:reblocks/widget
                 #:defwidget
@@ -60,7 +61,7 @@
                 #:humanize-timestamp)
   (:export
    #:make-landing-widget))
-(in-package ultralisp/widgets/landing)
+(in-package #:ultralisp/widgets/landing)
 
 
 (defwidget landing-widget ()

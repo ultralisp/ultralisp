@@ -11,7 +11,7 @@
                 #:make-downloaded-project
                 #:make-downloader
                 #:download))
-(in-package ultralisp/downloader/project)
+(in-package #:ultralisp/downloader/project)
 
 
 ;; TODO: remove

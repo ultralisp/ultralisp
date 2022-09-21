@@ -35,7 +35,7 @@
            #:get-project
            #:get-version
            #:get-params))
-(in-package ultralisp/models/action)
+(in-package #:ultralisp/models/action)
 
 
 (defmacro defaction (name)

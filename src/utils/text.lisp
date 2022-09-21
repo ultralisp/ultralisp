@@ -3,7 +3,7 @@
   (:import-from #:str)
   (:export
    #:multi-split))
-(in-package ultralisp/utils/text)
+(in-package #:ultralisp/utils/text)
 
 
 (defun multi-split (separators text &key (trim-whitespace t) (remove-empty t))

@@ -17,10 +17,20 @@
                 #:is-moderator)
   (:import-from #:reblocks/page
                 #:get-title)
+  (:import-from #:reblocks-auth/models
+                #:get-current-user)
+  (:import-from #:str
+                #:containsp)
+  (:import-from #:ultralisp/models/dist-source
+                #:dist->sources)
+  (:import-from #:ultralisp/models/project
+                #:source->project)
+  (:import-from #:ultralisp/utils
+                #:remove-last-slash)
   (:export
    #:make-dist-widget
    #:render-installation-instructions))
-(in-package ultralisp/widgets/dist)
+(in-package #:ultralisp/widgets/dist)
 
 
 (defwidget dist-widget ()
@@ -57,7 +67,7 @@
 
       (:h3 "How to use it?")
       
-      (when (str:containsp "/" (ultralisp/models/dist:dist-name dist))
+      (when (containsp "/" (ultralisp/models/dist:dist-name dist))
         (:p ("**WARNING!** Distributions with `/` in their names aren't supported by Quicklisp, because my commit was [reverted](https://github.com/quicklisp/quicklisp-client/commit/4727689c6fcde89149a8a6c5496662cde939a727). File the issue at the quicklisp-client's repo or switch to the CLPM which works with custom Ultralisp distributions.")))
 
 
@@ -84,8 +94,8 @@
   (let* ((dist (dist dist-widget))
          (name (dist-name dist-widget))
          (limit 50)
-         (sources (ultralisp/models/dist-source:dist->sources dist
-                                                              :limit (1+ limit)))
+         (sources (dist->sources dist
+                                 :limit (1+ limit)))
          (has-more (= (length sources)
                       (1+ limit)))
          (sources (subseq sources
@@ -104,7 +114,7 @@
         (sources
          (:ul :class "dist-projects"
               (loop for source in sources
-                    for project = (ultralisp/models/project:source->project source)
+                    for project = (source->project source)
                     for project-name = (ultralisp/models/project:project-name project)
                     for project-description = (ultralisp/models/project:project-description project)
                     for url = (ultralisp/protocols/url:url project)
@@ -122,7 +132,7 @@
                 [this issue](https://github.com/ultralisp/ultralisp/issues/92)."))))
         ;; TODO: Maybe add a button to add some projects?
         (t (:p "No projects yet.")
-           (when (is-moderator (reblocks-auth/models:get-current-user)
+           (when (is-moderator (get-current-user)
                                dist)
              (:p "You are the moderator of this distribution. Here is how you can add some projects:")
              (:ol
@@ -179,7 +189,7 @@
   (let* ((base-url (get-clpi-base-url))
          (dist-name (ultralisp/models/dist:dist-name dist))
          (full-url (concatenate 'string
-                                (ultralisp/utils:remove-last-slash base-url)
+                                (remove-last-slash base-url)
                                 "/"
                                 dist-name
                                 "/")))

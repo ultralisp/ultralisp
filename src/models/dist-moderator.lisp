@@ -11,13 +11,15 @@
                 #:is-moderator)
   (:import-from #:ultralisp/models/super-moderator
                 #:is-super-moderator-p)
+  (:import-from #:mito.dao
+                #:select-by-sql)
   (:export
    #:dist-moderator
    #:dist-id
    #:user-id
    #:moderated-dists
    #:add-dist))
-(in-package ultralisp/models/dist-moderator)
+(in-package #:ultralisp/models/dist-moderator)
 
 
 (defclass dist-moderator ()
@@ -42,7 +44,7 @@
    We'll not return all existing dists to super-moderators.
    to not overhelm them."
   (check-type user reblocks-auth/models:user)
-  (mito.dao:select-by-sql
+  (select-by-sql
    (find-class 'dist)
    "SELECT dist.* FROM dist
       JOIN dist_moderator ON dist.id = dist_moderator.dist_id

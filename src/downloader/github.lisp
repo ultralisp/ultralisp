@@ -20,14 +20,17 @@
   (:import-from #:ultralisp/utils
                 #:ensure-absolute-dirname)
   (:import-from #:log4cl-extras/context
-                #:with-fields))
-(in-package ultralisp/downloader/github)
+                #:with-fields)
+  (:import-from #:log)
+  (:import-from #:trivial-timeout
+                #:with-timeout))
+(in-package #:ultralisp/downloader/github)
 (in-readtable :interpol-syntax)
 
 
 (defun git-clone-or-update (url dir &key commit branch)
   ;; Sometimes legit:clone hangs for unknown reason :(
-  (trivial-timeout:with-timeout (360)
+  (with-timeout (360)
     (let* ((absolute-dir (ensure-absolute-dirname dir))
            (repo (legit:init absolute-dir
                              :remote url

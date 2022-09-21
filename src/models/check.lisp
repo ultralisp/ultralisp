@@ -6,6 +6,10 @@
                 #:project
                 #:project2)
   (:import-from #:ultralisp/models/source)
+  (:import-from #:cl-dbi)
+  (:import-from #:log)
+  (:import-from #:mito.util)
+  (:import-from #:ultralisp/models/dist-source)
   (:import-from #:mito
                 #:object-id
                 #:retrieve-by-sql
@@ -37,6 +41,9 @@
   (:import-from #:ultralisp/utils/db
                 #:inflate-keyword
                 #:deflate-keyword)
+  (:import-from #:local-time
+                #:timestamp>
+                #:now)
   (:export
    #:get-project-checks
    #:make-added-project-check
@@ -72,7 +79,7 @@
    #:position-in-the-queue
    #:get-latest-source-checks
    #:lisp-implementation))
-(in-package ultralisp/models/check)
+(in-package #:ultralisp/models/check)
 
 
 (define-global-var +allowed-check-types+
@@ -293,7 +300,7 @@
   (loop for check in (select-dao 'check2
                        (where (:and (:is-null 'processed-at)
                                     (:= 'type "via-cron"))))
-        do (setf (get-processed-at check) (local-time:now)
+        do (setf (get-processed-at check) (now)
                  (get-processed-in check) 0)
            (save-dao check)
         counting 1))
@@ -466,7 +473,7 @@ SELECT position
           for check = (get-last-source-check source)
           when check
           collect check into results
-          finally (return (sort results #'local-time:timestamp>
+          finally (return (sort results #'timestamp>
                                 :key #'check-timestamp)))))
 
 

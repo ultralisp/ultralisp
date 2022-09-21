@@ -34,7 +34,7 @@
    #:process-jobs
    #:start-outside-docker
    #:start-lispworks-worker))
-(in-package ultralisp/worker)
+(in-package #:ultralisp/worker)
 
 
 (defparameter +hidden-arg+

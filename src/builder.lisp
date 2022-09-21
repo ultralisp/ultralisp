@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/builder
   (:use #:cl)
   (:import-from #:ultralisp/clpi)
+  (:import-from #:log)
   (:import-from #:local-time
                 #:now
                 #:format-timestring)
@@ -73,7 +74,7 @@
                 #:dist->sources)
   (:export #:build
            #:build-pending-dists))
-(in-package ultralisp/builder)
+(in-package #:ultralisp/builder)
 
 
 (defparameter *releases-header-line*

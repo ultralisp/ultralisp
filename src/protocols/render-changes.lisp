@@ -4,7 +4,7 @@
   (:export
    #:render
    #:render-changes))
-(in-package ultralisp/protocols/render-changes)
+(in-package #:ultralisp/protocols/render-changes)
 
 
 (defgeneric render (source-type prev-source new-source)

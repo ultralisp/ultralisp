@@ -3,6 +3,7 @@
   (:import-from #:serapeum)
   (:import-from #:ultralisp/slynk)
   (:import-from #:str)
+  (:import-from #:log)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
@@ -11,7 +12,7 @@
    #:defcommand
    #:with-commands-processor
    #:task-with-commands))
-(in-package ultralisp/rpc/command)
+(in-package #:ultralisp/rpc/command)
 
 
 (defvar *catch-commands* nil)

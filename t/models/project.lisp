@@ -58,7 +58,7 @@
                 #:source-distributions
                 #:update-source-dists
                 #:dist-id))
-(in-package ultralisp-test/models/project)
+(in-package #:ultralisp-test/models/project)
 
 
 (deftest test-github-url-extraction

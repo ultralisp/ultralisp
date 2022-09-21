@@ -41,7 +41,7 @@
   (:import-from #:ultralisp/widgets/projects-by-tag
                 #:make-projects-by-tag-widget)
   (:export #:make-main-routes))
-(in-package ultralisp/widgets/main)
+(in-package #:ultralisp/widgets/main)
 
 
 (defroutes main-routes

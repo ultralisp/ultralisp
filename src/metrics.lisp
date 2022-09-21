@@ -8,7 +8,7 @@
   (:import-from #:function-cache
                 #:defcached)
   (:export #:initialize))
-(in-package ultralisp/metrics)
+(in-package #:ultralisp/metrics)
 
 
 (defvar *ttl* (* 5 60)

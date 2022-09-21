@@ -5,6 +5,10 @@
   (:import-from #:ultralisp/models/source
                 #:source-systems-info)
   (:import-from #:jsown)
+  (:import-from #:log)
+  (:import-from #:quickdist)
+  (:import-from #:spinneret)
+  (:import-from #:ultralisp/models/dist-source)
   (:import-from #:alexandria
                 #:assoc-value)
   (:import-from #:ultralisp/models/dist
@@ -16,8 +20,15 @@
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
   (:import-from #:local-time)
-  (:import-from #:legit))
-(in-package ultralisp/clpi)
+  (:import-from #:legit)
+  (:import-from #:ultralisp/db
+                #:with-connection)
+  (:import-from #:mito
+                #:retrieve-by-sql)
+  (:import-from #:str
+                #:containsp
+                #:split))
+(in-package #:ultralisp/clpi)
 
 
 (defun project-versions (dist project)
@@ -26,7 +37,7 @@
   ;; it will be in 'prepared' state first and will be transferred
   ;; to 'ready' only after Quicklisp and CLPI dists are updated.
   (mapcar #'second
-          (mito:retrieve-by-sql 
+          (retrieve-by-sql 
            "select dist.quicklisp_version
               from project2
               join source on source.project_id = project2.id
@@ -259,7 +270,7 @@
 
 
 (defun write-index (dist projects &key (base-dir #P"clpi/"))
-  (ultralisp/db:with-connection ()
+  (with-connection ()
     (let* ((index-file (merge-pathnames #P"index.html" base-dir))
            (inner-base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
            (clpi-version-file (merge-pathnames #P"clpi-version" inner-base-dir))
@@ -318,7 +329,7 @@
   (loop with git-output = (with-output-to-string (legit:*git-output*)
                             (legit:with-chdir (repo)
                               (legit:git-status "." :porcelain t)))
-        for line in (str:split #\Newline git-output :omit-nulls t)
+        for line in (split #\Newline git-output :omit-nulls t)
         collect (subseq line 3)))
 
 
@@ -326,7 +337,7 @@
   (let* ((filename (merge-pathnames ".git/config"
                                     (legit:location repo)))
          (content (alexandria:read-file-into-string filename)))
-    (unless (str:containsp "[user]" content)
+    (unless (containsp "[user]" content)
       (with-open-file (s filename
                          :direction :output
                          :if-exists :append)

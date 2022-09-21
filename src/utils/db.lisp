@@ -2,12 +2,13 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:jonathan)
   (:export
    #:inflate-json
    #:deflate-json
    #:deflate-keyword
    #:inflate-keyword))
-(in-package ultralisp/utils/db)
+(in-package #:ultralisp/utils/db)
 
 
 (defun deflate-keyword (symbol)

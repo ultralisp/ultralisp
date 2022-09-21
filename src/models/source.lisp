@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/models/source
   (:use #:cl)
   (:import-from #:jonathan)
+  (:import-from #:dexador)
+  (:import-from #:log)
   (:import-from #:cl-ppcre)
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
@@ -47,6 +49,10 @@
   (:import-from #:rutils
                 #:awhen)
   (:import-from #:str)
+  (:import-from #:ultralisp/utils/github
+                #:get-branches)
+  (:import-from #:ultralisp/variables
+                #:get-base-url)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -73,7 +79,7 @@
    #:ignore-dirs
    #:get-latest-version-by-id
    #:get-latest-source))
-(in-package ultralisp/models/source)
+(in-package #:ultralisp/models/source)
 
 
 (defclass source (ultralisp/models/versioned:versioned)
@@ -338,7 +344,7 @@
                   (_ (remove-vcs-files downloaded))
                   (source-id (mito:object-id source))
                   (archive-url (format nil "~A/archive/~A"
-                                       (remove-last-slash (ultralisp/variables:get-base-url))
+                                       (remove-last-slash (get-base-url))
                                        source-id))
                   (archive-destination (format nil "/archive/~A/"
                                                source-id)))
@@ -450,7 +456,7 @@
 
 (defun set-default-branch (source)
   (multiple-value-bind (branches default-branch)
-      (ultralisp/utils/github:get-branches
+      (get-branches
        (external-url source))
     (declare (ignore branches))
     (when default-branch

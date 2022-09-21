@@ -27,7 +27,7 @@
                 #:update-check-as-successful2)
   (:import-from #:ultralisp/models/check
                 #:make-check))
-(in-package ultralisp-test/pipeline)
+(in-package #:ultralisp-test/pipeline)
 
 
 (deftest test-enable-source-if-check-was-successful

@@ -34,7 +34,7 @@
    #:find-dist-version
    #:lisp-implementation
    #:public-dists))
-(in-package ultralisp/models/dist)
+(in-package #:ultralisp/models/dist)
 
 
 (defclass dist (versioned)

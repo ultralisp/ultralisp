@@ -29,7 +29,7 @@
    #:get-key-name
    #:render-action
    #:render-object))
-(in-package ultralisp/widgets/changelog)
+(in-package #:ultralisp/widgets/changelog)
 
 
 (defgeneric get-key-name (key)

@@ -2,11 +2,14 @@
   (:use #:cl)
   (:import-from #:ultralisp/utils/text
                 #:multi-split)
+  (:import-from #:str
+                #:starts-with-p
+                #:ends-with-p)
   (:export
    #:make-file-ignorer
    #:format-ignore-list
    #:parse-ignore-list))
-(in-package ultralisp/utils/source)
+(in-package #:ultralisp/utils/source)
 
 
 (defun parse-ignore-list (input)
@@ -28,9 +31,9 @@
   (loop for path in (multi-split '(#\Newline #\,) input)
         for path1 = (string-left-trim '(#\/) path)
         for path2 = (cond
-                      ((str:ends-with-p "/" path1)
+                      ((ends-with-p "/" path1)
                        path1)
-                      ((str:ends-with-p ".asd" path1)
+                      ((ends-with-p ".asd" path1)
                        path1)
                       (t
                        (concatenate 'string path1 "/")))
@@ -55,7 +58,7 @@
     (if dirs
         (lambda (filename)
           (loop for dir in dirs
-                  thereis (str:starts-with-p dir filename)))
+                  thereis (starts-with-p dir filename)))
         ;; This way we'll not ignore nested asd files by default.
         ;; We need this because of issue:
         ;; https://github.com/ultralisp/ultralisp/issues/55

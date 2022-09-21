@@ -6,7 +6,7 @@
                 #:conceal-value)
   (:export
    #:to-prod-db))
-(in-package ultralisp/variables)
+(in-package #:ultralisp/variables)
 
 
 (defmacro def-env-var (getter var-name &optional default)

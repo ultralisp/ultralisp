@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/widgets/dists
   (:use #:cl)
   (:import-from #:str)
+  (:import-from #:log)
   (:import-from #:reblocks/page)
   (:import-from #:reblocks/widget
                 #:defwidget)
@@ -18,9 +19,13 @@
                 #:moderated-dists)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:reblocks-ui/form
+                #:with-html-form)
+  (:import-from #:spinneret
+                #:with-html-string)
   (:export
    #:make-my-dists-widget))
-(in-package ultralisp/widgets/dists)
+(in-package #:ultralisp/widgets/dists)
 
 
 (defwidget dists-widget ()
@@ -52,7 +57,7 @@
     
     (with-slots (value error) widget
       (flet ((render-form ()
-               (reblocks-ui/form:with-html-form
+               (with-html-form
                    (:post (lambda (&key name &allow-other-keys)
                             ;; We keep the name in a slot to render it again
                             ;; if there is some error.
@@ -74,15 +79,15 @@
                               (cond
                                 ((str:containsp "/" name)
                                  (setf error
-                                       (spinneret:with-html-string
+                                       (with-html-string
                                          (:span "Dist name should not contain / char."))))
                                 ((string= name "")
                                  (setf error
-                                       (spinneret:with-html-string
+                                       (with-html-string
                                          (:span "Dist name consist of your nickname and a second part, which can't be empty."))))
                                 (existing-dist
                                  (setf error
-                                       (spinneret:with-html-string
+                                       (with-html-string
                                          (:span ("Unable to create dist with name \"~A\" because such dist [~A](already exists)."
                                                  full-dist-name
                                                  (ultralisp/protocols/url:url existing-dist))))))

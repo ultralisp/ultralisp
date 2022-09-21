@@ -8,10 +8,12 @@
                 #:get-json)
   (:import-from #:trivial-timeout
                 #:with-timeout)
+  (:import-from #:dexador
+                #:http-request-not-found)
   (:export
    #:get-branches
    #:extract-github-name))
-(in-package ultralisp/utils/github)
+(in-package #:ultralisp/utils/github)
 
 
 (defun extract-github-name (url)
@@ -41,7 +43,7 @@
                  finally (return (sort results #'string<)))
            (getf (github:get "/repos/~A" :params (list name))
                  :|default_branch|))))
-    (dexador:http-request-not-found ()
+    (http-request-not-found ()
       nil)))
 
 
