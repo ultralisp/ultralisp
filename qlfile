@@ -29,3 +29,7 @@ github bordeaux-threads sionescu/bordeaux-threads :ref 61e6e5645848e77367775610e
 # Until this pull will be merged:
 # https://github.com/fukamachi/mito/pull/118
 github mito svetlyak40wt/mito :branch fix-migration
+
+# Until this issue will be resolved:
+# https://github.com/quicklisp/quicklisp-client/issues/219
+ultralisp quicklisp-quicklisp-client 20210216013000
