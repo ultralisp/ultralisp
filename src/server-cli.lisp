@@ -1,7 +1,9 @@
-(defpackage #:ultralisp/server-cli
+(uiop:define-package #:ultralisp/server-cli
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:slynk)
+  (:import-from #:ultralisp/utils
+                #:getenv)
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/server
                 #:start)
