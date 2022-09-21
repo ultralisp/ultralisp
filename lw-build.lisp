@@ -4,9 +4,12 @@
 
 (require 'asdf)
 
-(load "/quicklisp.lisp")
-
-(quicklisp-quickstart:install)
+(cond
+  ((probe-file "/root/quicklisp/setup.lisp")
+   (load "/root/quicklisp/setup.lisp"))
+  (t
+   (load "/quicklisp.lisp")
+   (uiop:symbol-call :quicklisp-quickstart :install)))
 
 (push "./" asdf:*central-registry*)
 

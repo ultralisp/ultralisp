@@ -1,9 +1,19 @@
 #!/bin/bash
 
+
+BASEDIR="$(dirname $0)"
+
 set -Eeuo pipefail
+
+
+if [[ ! -e qlfile ]] || [[ ! -e app-deps ]]; then
+    echo 'Add this line to your Dockerfile'
+    echo 'COPY qlfile qlfile.lock app-deps /app/'
+    exit 1
+fi
 
 qlot install
 
-for dependency in `cat app-deps`; do
-    qlot exec ros --eval "(ql:quickload :${dependency})"
-done
+# Use `qlot exec gen-deps-system app`
+# to regenerate app-deps.asd file
+# qlot exec "${BASEDIR}/install-dependencies.ros"

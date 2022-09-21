@@ -2,6 +2,7 @@
   (:use #:cl)
   (:import-from #:defmain
                 #:defmain)
+  (:import-from #:log4cl-extras)
   (:import-from #:log4cl-extras/config)
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/variables
