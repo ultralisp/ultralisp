@@ -55,10 +55,12 @@
               (topics-to-ignore
                 ;; These topics are too generic for a site about Common Lisp packages:
                 (list "common-lisp"
+                      "commonlisp"
+                      "common"
                       "lisp")))
           (loop for topic in raw-topics
                 unless (member topic topics-to-ignore
                                :test #'string-equal)
-                collect topic)))
+                  collect topic)))
     (trivial-timeout:timeout-error ()
       nil)))

@@ -81,6 +81,9 @@
   (unless (equal (slot-value widget 'name)
                  new-name)
     (let ((new-project (ultralisp/models/project:get-project2 new-name)))
+      (unless new-project
+        (page-not-found))
+      
       (flet ((on-delete (source-widget)
                (with-slots (source-widgets) widget
                  (setf source-widgets
@@ -92,11 +95,10 @@
               (slot-value widget 'project)
               new-project
               (slot-value widget 'source-widgets)
-              (when new-project
-                (loop for source in (ultralisp/models/project:project-sources
-                                     new-project)
-                      collect (make-source-widget source
-                                                  :on-delete #'on-delete)))
+              (loop for source in (ultralisp/models/project:project-sources
+                                   new-project)
+                    collect (make-source-widget source
+                                                :on-delete #'on-delete))
               (slot-value widget 'add-form)
               (make-add-source-widget
                new-project
