@@ -1,5 +1,6 @@
 (uiop:define-package #:ultralisp/widgets/all-tags
   (:use #:cl)
+  (:import-from #:function-cache)
   (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
@@ -20,8 +21,12 @@
   (make-instance 'all-tags))
 
 
+(function-cache:defcached (%cached-get-all-tags-with-counters :timeout (* 15 60)) ()
+  (get-all-tags-with-counters))
+
+
 (defmethod render ((widget all-tags))
-  (let ((all-tags (get-all-tags-with-counters)))
+  (let ((all-tags (%cached-get-all-tags-with-counters)))
     (with-html
       (:h1 "All tags")
       (:ul
