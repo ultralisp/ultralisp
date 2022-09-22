@@ -8,7 +8,8 @@
                 #:project2)
   (:import-from #:ultralisp/db
                 #:make-list-placeholders
-                #:with-transaction)
+                #:with-transaction
+                #:with-connection)
   (:import-from #:ultralisp/utils/github
                 #:get-topics)
   (:import-from #:sxql
@@ -64,7 +65,7 @@
   "TAGS can contain values which already bound to the project.
    Returns tag names which were added."
   (check-type project project2)
-  
+
   (loop for tag in tags
         do (check-type tag string))
 
@@ -80,6 +81,7 @@
                                 :project-id project-id
                                 :tag tag)
             and collect tag-name)))
+
 
 (defun remove-tags (project &rest tags)
   (check-type project project2)
@@ -103,10 +105,13 @@ DELETE FROM project_tag
 
 (defun fill-tags-for-all-projects ()
   "This is a \"one time\" helper. It should be called after the DB migration, just to fill tags for all projects in the database."
-  (loop for project in (get-projects-with-sources)
+  (loop for project in (with-connection ()
+                         (get-projects-with-sources))
         for repository-name = (project-name project)
         for tags = (get-topics repository-name :timeout nil)
-        do (add-tags project tags)))
+        when tags
+          do (with-connection ()
+               (add-tags project tags))))
 
 
 (defun get-all-tags-with-counters ()

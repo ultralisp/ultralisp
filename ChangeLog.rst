@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.16.8 (2022-09-23)
+===================
+
+* Function fill-tags-for-all-projects now saves tags for each project in a separate transaction.
+
 1.16.7 (2022-09-21)
 ===================
 
