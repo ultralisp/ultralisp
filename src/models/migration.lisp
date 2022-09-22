@@ -14,11 +14,16 @@
 (in-package #:ultralisp/models/migration)
 
 
+(defun get-directory ()
+  (or (probe-file "./db/")
+      (probe-file "/app/db/")))
+
+
 (defun migrate ()
   (with-connection ()
-    (mito:migrate "./db/")))
+    (mito:migrate (get-directory))))
 
 
 (defun generate-migrations ()
   (ultralisp/db:with-connection ()
-    (mito:generate-migrations "./db/")))
+    (mito:migrate (get-directory))))
