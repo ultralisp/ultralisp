@@ -1,6 +1,8 @@
 (defpackage #:ultralisp/pipeline/checking
   (:use #:cl)
   (:import-from #:ultralisp/models/action)
+  (:import-from #:trivial-timeout
+                #:with-timeout)
   (:import-from #:ultralisp/rpc/core
                 #:submit-task)
   (:import-from #:ultralisp/rpc/command
@@ -240,88 +242,95 @@
   "Returns True if new changes were discovered during the check."
   (check-type check2 check2)
   
-  (let ((check-id (object-id check2)))
-    (with-tries (check-id)
-      (with-fields (:check-id check-id)
-        (log:info "Running perform2")
-        
-        (let ((started-at (get-internal-real-time)))
-          (handler-bind ((error (lambda (condition)
-                                  (update-check-as-failed2 check2
-                                                           (get-traceback condition)
-                                                           (float (/ (- (get-internal-real-time)
-                                                                         started-at)
-                                                                     internal-time-units-per-second)))
-                                  (if (in-repl)
-                                      (invoke-debugger condition)
-                                      (return-from perform2)))))
-            (let* ((tmp-dir #P"/tmp/checker/")
-                   (source (ultralisp/models/check:check->source check2))
-                   (project (ultralisp/models/project:source->project source))
-                   ;; We need to download source into the folder
-                   ;; having the same name as a project, because
-                   ;; it will be the same in the releases metadata of the dist.
-                   ;; Otherwise issues like https://github.com/ultralisp/ultralisp/issues/140
-                   ;; might occure after the project move from one GitHub user to another.
-                   (subdir (str:replace-all "/" "-"
-                                            (project-name project)))
-                   (target-path (uiop:merge-pathnames* subdir tmp-dir))
-                   (downloaded (download source
-                                         target-path
-                                         :latest t))
-                   (path (downloaded-project-path downloaded)))
-             
-              (with-fields (:check-id check-id
-                            :source-id (object-id source)
-                            :source-version (object-version source)
-                            :project (ultralisp/models/project:project-name project))
-                (log:info "Running perform2 check-type: ~S, force: ~S, force-given-p: ~S"
-                          (ultralisp/models/check:get-type check2)
-                          force
-                          force-give-p)
-                (unwind-protect
-                     (prog1 (cond
-                              ((not (latest-p source)) ;; we only want to process checks for latest sources
-                               (log:warn "Ignoring the check because it is attached to an old version of the source")
-                               (values nil))
-                             
-                              ((or (check-if-source-was-changed source downloaded)
-                                   force)
-                               ;; We should run this perform function inside a worker
-                               ;; process which will be killed after the finishing the task.
-                               ;; That is why it is OK to change a *central-registry* here:
-                               (pushnew path asdf:*central-registry*)
-                               (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
-                                      (systems (progn
-                                                 (log:info "Collecting systems from ~A ignoring dirs ~A"
-                                                           path
-                                                           ignore-dirs)
-                                                 (collect-systems path
-                                                                  :ignore-filename-p
-                                                                  (make-file-ignorer ignore-dirs)))))
+  (let* ((check-id (object-id check2))
+         (num-attempts 3)
+         (timeout-for-one-attempt (* 5 60))
+         (timeout-for-all-attempts (+ (* num-attempts timeout-for-one-attempt)
+                                      ;; Plus one minute to ensure all N timeouts will fall into the window
+                                      60)))
+    (with-tries (check-id :num-attempts num-attempts
+                          :time-window timeout-for-all-attempts)
+      (with-timeout (timeout-for-one-attempt)
+        (with-fields (:check-id check-id)
+          (log:info "Running perform2")
+          
+          (let ((started-at (get-internal-real-time)))
+            (handler-bind ((error (lambda (condition)
+                                    (update-check-as-failed2 check2
+                                                             (get-traceback condition)
+                                                             (float (/ (- (get-internal-real-time)
+                                                                           started-at)
+                                                                       internal-time-units-per-second)))
+                                    (if (in-repl)
+                                        (invoke-debugger condition)
+                                        (return-from perform2)))))
+              (let* ((tmp-dir #P"/tmp/checker/")
+                     (source (ultralisp/models/check:check->source check2))
+                     (project (ultralisp/models/project:source->project source))
+                     ;; We need to download source into the folder
+                     ;; having the same name as a project, because
+                     ;; it will be the same in the releases metadata of the dist.
+                     ;; Otherwise issues like https://github.com/ultralisp/ultralisp/issues/140
+                     ;; might occure after the project move from one GitHub user to another.
+                     (subdir (str:replace-all "/" "-"
+                                              (project-name project)))
+                     (target-path (uiop:merge-pathnames* subdir tmp-dir))
+                     (downloaded (download source
+                                           target-path
+                                           :latest t))
+                     (path (downloaded-project-path downloaded)))
+                
+                (with-fields (:check-id check-id
+                              :source-id (object-id source)
+                              :source-version (object-version source)
+                              :project (ultralisp/models/project:project-name project))
+                  (log:info "Running perform2 check-type: ~S, force: ~S, force-given-p: ~S"
+                            (ultralisp/models/check:get-type check2)
+                            force
+                            force-give-p)
+                  (unwind-protect
+                       (prog1 (cond
+                                ((not (latest-p source)) ;; we only want to process checks for latest sources
+                                 (log:warn "Ignoring the check because it is attached to an old version of the source")
+                                 (values nil))
                                 
-                                 (unless systems
-                                   (error "No asd files were found!"))
-                                
-                                 ;; Now we need to create another version of the source
-                                 ;; with release info and bind it to a pending version
-                                 (create-new-source-version source
-                                                            systems
-                                                            (downloaded-project-params downloaded)
-                                                            :enable t)
-                                
+                                ((or (check-if-source-was-changed source downloaded)
+                                     force)
+                                 ;; We should run this perform function inside a worker
+                                 ;; process which will be killed after the finishing the task.
+                                 ;; That is why it is OK to change a *central-registry* here:
+                                 (pushnew path asdf:*central-registry*)
+                                 (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
+                                        (systems (progn
+                                                   (log:info "Collecting systems from ~A ignoring dirs ~A"
+                                                             path
+                                                             ignore-dirs)
+                                                   (collect-systems path
+                                                                    :ignore-filename-p
+                                                                    (make-file-ignorer ignore-dirs)))))
+                                   
+                                   (unless systems
+                                     (error "No asd files were found!"))
+                                   
+                                   ;; Now we need to create another version of the source
+                                   ;; with release info and bind it to a pending version
+                                   (create-new-source-version source
+                                                              systems
+                                                              (downloaded-project-params downloaded)
+                                                              :enable t)
+                                   
+                                   (values t)))
+                                ;; When source wasn't changed, but probably
+                                ;; was disabled in some distss:
+                                (t
+                                 (enable-this-source-version source)
                                  (values t)))
-                              ;; When source wasn't changed, but probably
-                              ;; was disabled in some distss:
-                              (t
-                               (enable-this-source-version source)
-                               (values t)))
-                       (update-check-as-successful2 check2
-                                                    (float (/ (- (get-internal-real-time)
-                                                                  started-at)
-                                                              internal-time-units-per-second))))
-                  ;; Here we need to make a clean up to not clutter the file system
-                  (log:info "Deleting checked out" path)
-                  (delete-directory-tree path
-                                         :validate t))))))))))
+                         (update-check-as-successful2 check2
+                                                      (float (/ (- (get-internal-real-time)
+                                                                    started-at)
+                                                                internal-time-units-per-second))))
+                    ;; Here we need to make a clean up to not clutter the file system
+                    (log:info "Deleting checked out" path)
+                    (delete-directory-tree path
+                                           :validate t)))))))))))
 

@@ -6,6 +6,9 @@
 ===================
 
 * Function fill-tags-for-all-projects now saves tags for each project in a separate transaction.
+* Made a top level timeout for 16 minutes on a single project check. During this window,
+  Ultralisp will make 3 attempts and each will be limited by 5 minutes timeout. If some
+  project takes longer for compile or hangs, it will fail.
 
 1.16.7 (2022-09-21)
 ===================
