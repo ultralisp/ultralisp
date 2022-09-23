@@ -6,18 +6,22 @@ Be the first one, [support the project](https://www.patreon.com/ultralisp) on Pa
 
 ## Grand Supporters
 
-* [jgart](https://whereis.みんな/)
+Be the first one, [support the project](https://www.patreon.com/ultralisp) on Patreon!
 
 ## Senior Supporters
 
-* Nikolai Matiushev
+Be the first one, [support the project](https://www.patreon.com/ultralisp) on Patreon!
 
 ## Supporters
 
 * Eitaro Fukamachi
-* Vasily Postnicov
+* David Botton
+
+Become [the next](https://www.patreon.com/ultralisp). It is only $5 per month!
 
 ## Junior Supporters
 
-Become [the first](https://www.patreon.com/ultralisp). It is only $1 per month!
+* Dale McBane
+
+Become [the next](https://www.patreon.com/ultralisp). It is only $1 per month!
 
