@@ -35,10 +35,10 @@
     (:p "This place is vacant. Links to Gold Supporters will also be placed on the front page of the site.")
     
     (:h2 "Grand Supporters")
-    ;; (:p "This place is vacant. Links to Gold Supporters will also be placed on the front page of the site.")
-    (:ul
-     (:li (:a :href "https://whereis.みんな/"
-              "jgart") ". Thank you!"))
+    (:p "This place is vacant. Links to Gold Supporters will also be placed on the front page of the site.")
+    ;; (:ul
+    ;;  (:li (:a :href "https://some"
+    ;;           "name") ". Thank you!"))
     
     (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
     (:div :class "donate"
