@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+1.16.10 (2022-09-24)
+====================
+
+* Macro WITH-CONNECTION now signals error if we attempt to get cached connection when non-cached one is active.
+
+  This should prevent errors where cl-dbi tries to commit or rollback connection which already closed:
+  "DB Error: Connection to database server lost".
+
 1.16.9 (2022-09-24)
 ===================
 
