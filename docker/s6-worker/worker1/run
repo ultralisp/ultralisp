@@ -1,5 +1,21 @@
 #!/bin/bash
 
+DATE=$(date --rfc-3339=seconds)
+
+function print_banner () {
+  cat >> $1 <<EOF
+     =======================
+ ===============================
+=== Process started at:       ===
+=== ${DATE} ===
+ ===============================
+     =======================
+EOF
+}
+
+print_banner /app/logs/worker-stdout.log
+print_banner /app/logs/worker-stderr.log
+
 /app/worker \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \

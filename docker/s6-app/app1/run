@@ -1,5 +1,21 @@
 #!/bin/bash
 
+DATE=$(date --rfc-3339=seconds)
+
+function print_banner () {
+  cat >> $1 <<EOF
+     =======================
+ ===============================
+=== Process started at:       ===
+=== ${DATE} ===
+ ===============================
+     =======================
+EOF
+}
+
+print_banner /app/logs/app-stdout.log
+print_banner /app/logs/app-stderr.log
+
 /app/ultralisp-server \
 	>> /app/logs/app-stdout.log \
 	2>> /app/logs/app-stderr.log

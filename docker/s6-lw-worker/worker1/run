@@ -1,5 +1,22 @@
 #!/bin/bash
 
+DATE=$(date --rfc-3339=seconds)
+
+function print_banner () {
+  cat >> $1 <<EOF
+     =======================
+ ===============================
+=== Process started at:       ===
+=== ${DATE} ===
+ ===============================
+     =======================
+EOF
+}
+
+print_banner /app/logs/lw-worker-stdout.log
+print_banner /app/logs/lw-worker-stderr.log
+
+
 if [[ ! -e /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense ]] || ! grep -q $(hostname) /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense; then
     if [[ -e /lw/license ]]; then
         /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license)
