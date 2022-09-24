@@ -23,6 +23,8 @@
                 #:immediate-response)
   (:import-from #:secret-values
                 #:ensure-value-revealed)
+  (:import-from #:alexandria
+                #:with-gensyms)
   (:export
    #:with-transaction
    #:with-connection
@@ -38,11 +40,22 @@
 (in-package #:ultralisp/db)
 
 
+(defparameter *cached-default* t)
+
+
+(define-condition connection-error (error)
+  ((message :initarg :message
+            :reader error-message))
+  (:report (lambda (condition stream)
+             (format stream "~A"
+                     (error-message condition)))))
+
+
 (declaim (notinline inner-connect))
 
 (defun inner-connect (&key host database-name username password
                            (port 5432)
-                           (cached t))
+                           (cached *cached-default*))
   "This function is used to leave a trace in the backtrace and let
    logger know which arguments are secret."
   
@@ -59,7 +72,7 @@
 
 (defun connect (&key host database-name username password
                      (port 5432)
-                     (cached t))
+                     (cached *cached-default*))
   (inner-connect :host (or host
                            (get-postgres-host))
                  :port port
@@ -86,55 +99,73 @@
                         :password "ultralisp")))
 
 
+(defun call-with-transaction (func)
+  (cl-dbi:with-transaction mito:*connection*
+    (handler-bind ((immediate-response
+                     (lambda (condition)
+                       (declare (ignorable condition))
+                       ;; If transaction was interrupted because
+                       ;; of immediate response, then
+                       ;; we need to commit transaction.
+                       ;; Otherwise, cl-dbi will rollback any
+                       ;; changes made during request processing.
+                       (log:info "Commiting transaction because of \"immediate-response\"")
+                       (cl-dbi:commit mito:*connection*))))
+      (funcall func))))
+
+
 (defmacro with-transaction (&body body)
-  `(cl-dbi:with-transaction mito:*connection*
-     (handler-bind ((immediate-response
-                      (lambda (condition)
-                        (declare (ignorable condition))
-                        ;; If transaction was interrupted because
-                        ;; of immediate response, then
-                        ;; we need to commit transaction.
-                        ;; Otherwise, cl-dbi will rollback any
-                        ;; changes made during request processing.
-                        (log:info "Commiting transaction because of \"immediate-response\"")
-                        (cl-dbi:commit mito:*connection*)
-                        (log:info "AFTER COMMIT"))))
-       ,@body)))
+  (with-gensyms (transactional-func)
+    `(flet ((,transactional-func ()
+              ,@body))
+       (declare (dynamic-extent #',transactional-func))
+       (call-with-transaction #',transactional-func))))
 
 
-(defvar *was-cached* nil)
+(defvar *was-cached*)
+
+
+(defun call-with-connection (func &rest connect-options &key (cached *cached-default*) &allow-other-keys)
+  (when (and cached
+             (boundp '*was-cached*)
+             (not *was-cached*))
+    (error 'connection-error
+           :message "Unable to get cached connection inside a block with non-cached connection."))
+
+  (let* ((*was-cached* cached)
+         (mito:*connection*
+           ;; In cached mode we will reuse current connect.
+           ;; This way, nested WITH-CONNECTION calls will
+           ;; reuse the same connection and postgres savepoints.
+           (cond ((and *was-cached*
+                       mito:*connection*)
+                  mito:*connection*)
+                 (t
+                  (apply #'connect
+                         connect-options)))))
+    (unwind-protect
+         (call-with-transaction func)
+      (unless cached
+        ;; We don't want to close nested cached connections
+        ;; because they should be closed only on upper level
+        ;; Here is a state table showing in which cases connect
+        ;; will be closed:
+        ;; | top connect | nested connect | close top | close nested |
+        ;; | cached?     | cached?        | connect?  | connect?     |
+        ;; |-------------+----------------+-----------+--------------|
+        ;; | nil         | nil            | t         | t            |
+        ;; | nil         | t              | t         | t            |
+        ;; | t           | t              | t         | nil          |
+        (cl-dbi:disconnect mito:*connection*)))))
 
 
 (defmacro with-connection ((&rest connect-options) &body body)
   "Establish a new connection and start transaction"
-  (let ((is-cached (getf connect-options :cached t)))
-    `(let* ((was-cached *was-cached*)
-            (*was-cached* ,is-cached)
-            (mito:*connection*
-              ;; In cached mode we will reuse current connect.
-              ;; This way, nested WITH-CONNECTION calls will
-              ;; reuse the same connection and postgres savepoints.
-              (cond ((and *was-cached*
-                          mito:*connection*)
-                     mito:*connection*)
-                    (t
-                     (funcall #'connect
-                              ,@connect-options)))))
-       (unwind-protect
-            (with-transaction
-              ,@body)
-         (unless (and ,is-cached was-cached)
-           ;; We don't want to close nested cached connections
-           ;; because they should be closed only on upper level
-           ;; Here is a state table showing in which cases connect
-           ;; will be closed:
-           ;; | top connect | nested connect | close top | close nested |
-           ;; | cached?     | cached?        | connect?  | connect?     |
-           ;; |-------------+----------------+-----------+--------------|
-           ;; | nil         | nil            | t         | t            |
-           ;; | nil         | t              | t         | t            |
-           ;; | t           | t              | t         | nil          |
-           (cl-dbi:disconnect mito:*connection*))))))
+  (with-gensyms (connected-func)
+    `(flet ((,connected-func ()
+              ,@body))
+       (declare (dynamic-extent #',connected-func))
+       (call-with-connection #',connected-func ,@connect-options))))
 
 
 (defun make-hash-for-lock-name (name)
