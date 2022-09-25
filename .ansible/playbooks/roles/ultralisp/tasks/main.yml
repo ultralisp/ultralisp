@@ -9,50 +9,17 @@
     dest: /ultralisp/initdb.d/initdb.sh
     mode: u+rwx
 
-- name: Create a directory for s6 worker
-  file:
-    path: /ultralisp/worker/etc/s6/worker-1
-    state: directory
-
-- name: Create init file for s6 worker
-  template:
-    src: s6/worker-1/run
-    dest: /ultralisp/worker/etc/s6/worker-1/run
-    mode: u+rwx
-
-- name: Create a directory for s6 LW worker
-  file:
-    path: /ultralisp/lw-worker/etc/s6/worker-1
-    state: directory
-
-- name: Create init file for s6 LW worker
-  template:
-    src: s6/lw-worker-1/run
-    dest: /ultralisp/lw-worker/etc/s6/worker-1/run
-    mode: u+rwx
-
-- name: Create a license directory for s6 LW worker
+- name: Create a license directory for LW worker
   file:
     path: /ultralisp/lw-worker/license/
     state: directory
 
-- name: Create a license file for s6 LW worker
+- name: Create a license file for LW worker
   template:
     src: lw-license
     dest: /ultralisp/lw-worker/license/license
     mode: u+rw
     
-- name: Create a directory for s6 web application
-  file:
-    path: /ultralisp/app/etc/s6/app-1
-    state: directory
-
-- name: Create init file for s6 web application
-  template:
-    src: s6/app-1/run
-    dest: /ultralisp/app/etc/s6/app-1/run
-    mode: u+rwx
-
 - name: Run docker container with Postgres for ultralisp.org
   docker_container:
     name: ultralisp_db
@@ -95,16 +62,12 @@
   docker_container:
     name: ultralisp_worker
     hostname: "{{ ansible_hostname }}"
-#    image: "40ants/ultralisp:{{ ultralisp_version }}"
     image: "ghcr.io/ultralisp/ultralisp-sbcl-worker:{{ ultralisp_version }}"
     # всегда вытягиваем последнюю версию образа
     # pull: always
     state: started
     restart: yes
     restart_policy: unless-stopped
-    # entrypoint:
-    #   - s6-svscan
-    #   - /etc/s6
     env:
       ENVIRONMENT: "{{ deploy_environment }}"
       MODE: "worker"
@@ -116,13 +79,11 @@
     volumes:
       - /ultralisp/build/:/app/build/
       - /ultralisp/logs/:/app/logs/
-      - /ultralisp/worker/etc/s6/:/etc/s6/
 
 - name: Run docker container with ultralisp LW worker
   docker_container:
     name: ultralisp_lw_worker
     hostname: "{{ ansible_hostname }}"
-#    image: "40ants/ultralisp:{{ ultralisp_version }}"
     image: "ghcr.io/ultralisp/ultralisp-lw-worker:{{ ultralisp_version }}"
     # всегда вытягиваем последнюю версию образа
     # pull: always
@@ -140,7 +101,6 @@
     volumes:
       - /ultralisp/build/:/app/build/
       - /ultralisp/logs/:/app/logs/
-      - /ultralisp/lw-worker/etc/s6/:/etc/s6/
       - /ultralisp/lw-worker/license/:/lw/
 
 
@@ -188,7 +148,6 @@
       # to upload only changed files
       - /ultralisp/build/:/app/build/
       - /ultralisp/logs/:/app/logs/
-      - /ultralisp/app/etc/s6/:/etc/s6/
 
 - name: Create config file for the Caddy
   template:

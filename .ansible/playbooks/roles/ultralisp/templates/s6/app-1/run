@@ -1,5 +1,0 @@
-#!/bin/bash
-
-/app/ultralisp-server \
-	> /app/logs/app-stdout.log \
-	2> /app/logs/app-stderr.log

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ ! -e /app/logs ]]; then
+    mkdir -p /app/logs
+fi
+
 DATE=$(date --rfc-3339=seconds)
 
 function print_banner () {
@@ -17,6 +21,7 @@ print_banner /app/logs/worker-stdout.log
 print_banner /app/logs/worker-stderr.log
 
 /app/worker \
+        --one-task-only \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \
         --debug \

@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.16.12 (2022-09-25)
+====================
+
+* Docker entry point now creates /app/logs directory
+  if it does not exist. Also, now we are using the same
+  s6 run files both in dev and in prod.
+
 1.16.11 (2022-09-25)
 ====================
 
