@@ -1,9 +1,0 @@
-#!/bin/bash
-
-/app/worker \
-        --one-task-only \
-        --slynk-interface "0.0.0.0" \
-        --slynk-port "4005" \
-        --debug \
-        > /app/logs/worker-stdout.log \
-        2> /app/logs/worker-stderr.log
