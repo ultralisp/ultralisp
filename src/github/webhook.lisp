@@ -89,19 +89,23 @@
 (defun find-project-related-to (payload)
   "Searches a projects metadata among all projects, known to Ultralisp.
    Returns a `project' object or nil."
+  ;; TODO: probably this code should be fixed to
+  ;; use branch name from the project's source definition
   (let ((current-branch (get-branch-from payload))
-        (main-branch (get-main-branch-from payload)))
+        (main-branch (get-main-branch-from payload))
+        (project-name (fmt "~A/~A"
+                           (get-user-or-org-from payload)
+                           (get-project-name-from payload))))
     (cond
       ((and current-branch
             (string-equal current-branch
                           main-branch))
 
-       (let* ((user-or-org (get-user-or-org-from payload))
-              (project-name (get-project-name-from payload)))
-         (get-project2 (fmt "~A/~A" user-or-org project-name))))
+       (get-project2 project-name))
       
       (t (if current-branch
              (log:warn "Current branch does not match to main"
+                       project-name
                        current-branch
                        main-branch)
              (log:warn "Unable to figure out current branch from the payload"))
