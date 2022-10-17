@@ -4,6 +4,7 @@
                 #:starts-with-slash-p
                 #:ends-with-slash-p)
   (:import-from #:trivial-timeout)
+  (:import-from #:log4cl-extras/error)
   (:import-from #:str)
   (:export
    #:make-uploader
@@ -48,10 +49,11 @@
   (unless (member repo-type '(:quicklisp :clpi))
     (error "REPO-TYPE argument should be one of :QUICKLISP or :CLPI"))
   (trivial-timeout:with-timeout (timeout)
-    (funcall (make-uploader *uploader-type* repo-type)
-             dir-or-file
-             destination
-             :only-files only-files)))
+    (log4cl-extras/error:with-log-unhandled ()
+      (funcall (make-uploader *uploader-type* repo-type)
+               dir-or-file
+               destination
+               :only-files only-files))))
 
 
 (defun make-files-inclusion-checker (only-files)

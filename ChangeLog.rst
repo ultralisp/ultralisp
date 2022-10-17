@@ -2,6 +2,16 @@
  ChangeLog
 ===========
 
+1.16.13 (2022-10-16)
+====================
+
+* Added 15 minutes timeout on each RPC command.
+* Extra logging of archive uploading errors.
+
+  I suspect that sometimes S3 responds with:
+  ``ZS3:SLOW-DOWN: SlowDown: Please reduce your request rate.``
+  error and projects check hangs.
+
 1.16.12 (2022-09-25)
 ====================
 

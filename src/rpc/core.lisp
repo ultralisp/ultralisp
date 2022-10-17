@@ -4,6 +4,7 @@
   (:import-from #:slynk)
   (:import-from #:cl-store)
   (:import-from #:cl-gearman)
+  (:import-from #:trivial-timeout)
   (:import-from #:base64)
   (:import-from #:flexi-streams)
   (:import-from #:secret-values)
@@ -95,21 +96,24 @@
     returned-value))
 
 
-(defun submit-task (func &key (lisp-implementation :sbcl)
-                              args)
+(defun submit-task (func &key
+                           (lisp-implementation :sbcl)
+                           args
+                           (timeout (* 15 60)))
   "Submits a task to one of remote workers and waits for the result."
   (check-type func symbol)
   
-  (with-commands-processor 
-    (apply #'gearman-call
-           (fmt "~A-task-with-commands"
-                (string-downcase
-                 (symbol-name lisp-implementation)))
-           (get-postgres-host)
-           (get-postgres-ro-user)
-           (get-postgres-ro-pass)
-           (get-postgres-dbname)
-           func args)))
+  (trivial-timeout:with-timeout (timeout)
+    (with-commands-processor 
+      (apply #'gearman-call
+             (fmt "~A-task-with-commands"
+                  (string-downcase
+                   (symbol-name lisp-implementation)))
+             (get-postgres-host)
+             (get-postgres-ro-user)
+             (get-postgres-ro-pass)
+             (get-postgres-dbname)
+             func args))))
 
 
 (defun test-func (&rest args)
