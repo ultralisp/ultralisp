@@ -1,3 +1,11 @@
+(loop for path in (list "~/projects/jsonrpc/"
+                        "~/projects/reblocks/"
+                        "~/projects/linter/")
+      when (probe-file path)
+        do (pushnew path asdf:*central-registry*
+                    :test #'equal))
+
+
 (defun search-version-in-changelog (lines)
   (let* ((line (nth 4 lines))
          (space-pos (position #\Space line)))
@@ -53,3 +61,5 @@
 (register-system-packages "mito" '(#:mito.class #:mito.db #:mito.dao #:mito.util))
 
 (register-system-packages "slynk" '(#:slynk-api))
+
+(register-system-packages "lack-middleware-mount" '(#:lack.middleware.mount))
