@@ -43,14 +43,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
-      - name: Install cosign
-        if: ${{ github.event_name == 'push' }}
-        uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
-        with:
-          cosign-release: 'v1.9.0'
-
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
         if: ${{ github.event_name == 'push' }}
@@ -129,36 +121,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-lw-worker.outputs.tags }}
           labels: ${{ steps.meta-lw-worker.outputs.labels }}
-
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data.  If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
-      # 
-      - name: Sign the published sbcl-app Docker image
-        if: ${{ github.event_name == 'push' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.meta-sbcl-app.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-app.outputs.digest }}
-
-      - name: Sign the published sbcl-worker Docker image
-        if: ${{ github.event_name == 'push' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.meta-sbcl-worker.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-sbcl-worker.outputs.digest }}
-
-      - name: Sign the published lw-worker Docker image
-        if: ${{ github.event_name == 'push' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.meta-lw-worker.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push-lw-worker.outputs.digest }}
 
       - name: Determine version to deploy
         id: version-to-deploy
