@@ -48,6 +48,7 @@
                 #:first-letter-of
                 #:get-traceback)
   (:import-from #:ultralisp/variables
+                #:*in-unit-test*
                 #:get-base-url
                 #:get-dist-name)
   (:import-from #:ultralisp/downloader/base
@@ -216,7 +217,10 @@
     ;; check really be marked as failed even if there are some
     ;; other commands which will cause rollback of the outer
     ;; postgres connection:
-    (with-connection (:cached nil)
+    (with-connection (:cached
+                      ;; In unit tests we have to use the same connection,
+                      ;; because database schema exists only inside transaction:
+                      *in-unit-test*)
       (with-transaction
         (let ((project (check->project check)))
           (with-fields (:project-name (project-name project))
