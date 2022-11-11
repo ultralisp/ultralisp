@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
 
 jobs:
   build:
@@ -15,4 +16,6 @@ jobs:
         regex_pattern: "^(?<version>\\d+\\.\\d+\\.\\d+(.+)?)\\n?"
         root: ./ChangeLog.rst
         tag_prefix: "v"
+        dry_run: true
+      env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
