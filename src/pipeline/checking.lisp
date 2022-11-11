@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/pipeline/checking
   (:use #:cl)
+  (:import-from #:qlot)
   (:import-from #:ultralisp/models/action)
   (:import-from #:trivial-timeout
                 #:with-timeout)
@@ -82,6 +83,13 @@
                 #:make-file-ignorer)
   (:import-from #:ultralisp/utils/retries
                 #:with-tries)
+  (:import-from #:serapeum
+                #:length<
+                #:length>)
+  (:import-from #:ultralisp/protocols/external-url
+                #:external-url)
+  (:import-from #:alexandria
+                #:write-string-into-file)
   (:export
    #:perform-pending-checks
    #:perform
@@ -184,6 +192,36 @@
         (source-params (ultralisp/models/source:source-params source)))
     (make-update-diff source-params
                       downloaded-params)))
+
+
+(defun call-with-fresh-quicklisp (url thunk)
+  (let* ((qlot-home #P"/tmp/checker/qlot/")
+         (qlfile (merge-pathnames "qlfile" qlot-home))
+         (asdf/output-translations::*output-translations*
+           (list*
+            (asdf/output-translations:compute-output-translations
+             '(:output-translations
+               :inherit-configuration
+               (T #P"/tmp/checker/qlot/cache/**/*.*")))
+            asdf/output-translations::*output-translations*)))
+    (cond
+      ((probe-file qlfile)
+       (qlot:update qlot-home))
+      (t
+       (ensure-directories-exist qlfile)
+       (write-string-into-file (format nil "dist ultralisp ~A~%"
+                                       url)
+                               qlfile)
+       (qlot:install qlot-home)))
+    
+    (qlot:with-local-quicklisp (qlot-home)
+      (funcall thunk))))
+
+
+(defmacro with-fresh-quicklisp ((url) &body body)
+  `(flet ((run-with-fresh-quicklisp ()
+            ,@body))
+     (call-with-fresh-quicklisp ,url #'run-with-fresh-quicklisp)))
 
 
 (defun collect-systems (path &key (ignore-filename-p (constantly nil)))
@@ -310,7 +348,26 @@
                                  ;; That is why it is OK to change a *central-registry* here:
                                  (pushnew path asdf:*central-registry*)
                                  (let* ((ignore-dirs (ultralisp/models/source:ignore-dirs source))
-                                        (systems (progn
+                                        ;; We need to run check under the fresh quicklisp
+                                        ;; to ensure we check it against latest version of other libs
+                                        ;; from it's distribution
+                                        (dists (ultralisp/models/dist-source:source->dists source))
+                                        (dist-url
+                                          (cond
+                                            ((length< 1 dists)
+                                             (log:info "Source bound to ~A dists. Will use ~A to check against."
+                                                       (length dists)
+                                                       (first dists))
+                                             (external-url
+                                              (first dists)))
+                                            (dists
+                                             (external-url
+                                              (first dists)))
+                                            (t
+                                             (log:warn "Source is not bound to any dists. This is strange. Will use ~A."
+                                                       (get-base-url))
+                                             (get-base-url))))
+                                        (systems (with-fresh-quicklisp (dist-url)
                                                    (log:info "Collecting systems from ~A ignoring dirs ~A"
                                                              path
                                                              ignore-dirs)
