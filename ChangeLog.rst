@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.17.0 (2022-11-11)
+===================
+
+* Now each project check will be made against latest versions of
+  other libraries from it's dist.
+
 1.16.14 (2022-10-16)
 ====================
 
