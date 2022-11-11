@@ -126,6 +126,9 @@
   "elastic")
 
 
+(defvar *in-unit-test* nil)
+
+
 (defun to-prod-db ()
   (setf (uiop:getenv "POSTGRES_DBNAME") "ultralisp_prod")
   (function-cache:clear-cache *get-postgres-dbname-cache*))

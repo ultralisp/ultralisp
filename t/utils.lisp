@@ -4,6 +4,8 @@
   (:import-from #:reblocks-test/utils)
   (:import-from #:cl-dbi)
   (:import-from #:ultralisp/metrics)
+  (:import-from #:ultralisp/variables
+                #:*in-unit-test*)
   (:import-from #:ultralisp/models/project
                 #:project-name
                 #:source->project
@@ -43,7 +45,9 @@
          (mito:execute-sql "CREATE SCHEMA unittest AUTHORIZATION CURRENT_USER;")
          (mito:execute-sql "SET search_path TO unittest;")
          (mito:migrate "./db/")))
-     (unwind-protect (progn ,@body)
+     (unwind-protect
+          (let ((*in-unit-test* t))
+            ,@body)
        ;; We need to return search path to a original state
        ;; to not disrupt accessing real database from the REPL
        (mito:execute-sql "SET search_path TO public;"))))
