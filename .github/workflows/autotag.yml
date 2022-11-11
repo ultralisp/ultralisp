@@ -16,4 +16,4 @@ jobs:
         root: ./ChangeLog.rst
         tag_prefix: "v"
       env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        GITHUB_TOKEN: "${{ github.token }}"
