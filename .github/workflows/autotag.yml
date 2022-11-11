@@ -1,6 +1,7 @@
 name: Add Version Tag
 
 on:
+  pull_request:
   push:
     branches:
       - master
@@ -10,10 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: ${{ github.actor }} permission check to update release version
+      uses: "lannonbr/repo-permission-check-action@2.0.2"
+      with:
+        permission: "write"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - uses: butlerlogic/action-autotag@8bc1ad456dcdee34e8c6ffbce991cc31793578c2
       with:
         regex_pattern: "^(?<version>\\d+\\.\\d+\\.\\d+(.+)?)\\n?"
         root: ./ChangeLog.rst
         tag_prefix: "v"
       env:
-        GITHUB_TOKEN: "${{ github.token }}"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
