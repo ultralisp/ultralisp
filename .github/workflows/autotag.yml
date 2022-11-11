@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: butlerlogic/action-autotag@master
+    - uses: butlerlogic/action-autotag@8bc1ad456dcdee34e8c6ffbce991cc31793578c2
       with:
         regex_pattern: "^(?<version>\\d+\\.\\d+\\.\\d+(.+)?)\\n?"
         root: ./ChangeLog.rst
