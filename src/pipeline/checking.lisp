@@ -211,29 +211,34 @@
     (log:info "Updating check as failed" check)
 
     (increment-counter :checks-failed)
-  
-    (with-transaction
-      (let ((project (check->project check)))
-        (with-fields (:project-name (project-name project))
-          (log:error "Check failed, disabling project" project traceback)
-          (setf (get-error check) traceback
-                (get-processed-at check) (local-time:now)
-                (get-processed-in check) processed-in)
-          (save-dao check)
-          ;; Now we have to disable this version of the source in a new versions of the dists.
-          (let ((source (check->source check)))
-            (create-pending-dists-for-new-source-version
-             ;; old-source
-             source
-             ;; new-source is the same because we didn't change it.
-             ;; It is OK to have the same source version, connected to
-             ;; the different versions of the distribution, because
-             ;; the link is carrying information about error received
-             ;; during the check.
-             source
-             :enable nil
-             :disable-reason (make-disable-reason :check-error
-                                                  :traceback traceback))))))))
+
+    ;; Here we'll take a new connection to ensure, that
+    ;; check really be marked as failed even if there are some
+    ;; other commands which will cause rollback of the outer
+    ;; postgres connection:
+    (with-connection (:cached nil)
+      (with-transaction
+        (let ((project (check->project check)))
+          (with-fields (:project-name (project-name project))
+            (log:error "Check failed, disabling project" project traceback)
+            (setf (get-error check) traceback
+                  (get-processed-at check) (local-time:now)
+                  (get-processed-in check) processed-in)
+            (save-dao check)
+            ;; Now we have to disable this version of the source in a new versions of the dists.
+            (let ((source (check->source check)))
+              (create-pending-dists-for-new-source-version
+               ;; old-source
+               source
+               ;; new-source is the same because we didn't change it.
+               ;; It is OK to have the same source version, connected to
+               ;; the different versions of the distribution, because
+               ;; the link is carrying information about error received
+               ;; during the check.
+               source
+               :enable nil
+               :disable-reason (make-disable-reason :check-error
+                                                    :traceback traceback)))))))))
 
 
 (defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)

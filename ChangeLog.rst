@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.16.14 (2022-10-16)
+====================
+
+* When chack is failed, we'll commit it in a separate DB connection,
+  to prevent accidental transaction rollback.
+
 1.16.13 (2022-10-16)
 ====================
 
