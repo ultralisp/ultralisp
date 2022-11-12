@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.17.1 (2022-11-12)
+===================
+
+* Fixed error caused every project disabling because some external-url method is missing.
+
 1.17.0 (2022-11-11)
 ===================
 

@@ -163,25 +163,6 @@
         (t (page-not-found))))))
 
 
-(defmethod ultralisp/protocols/url:url ((dist ultralisp/models/dist:dist))
-  (format nil "/dists/~A"
-          (ultralisp/models/dist:dist-name dist)))
-
-
-(defmethod ultralisp/protocols/external-url:external-url ((dist ultralisp/models/dist:dist))
-  (let* ((base-url (get-base-url))
-         (dist-name (ultralisp/models/dist:dist-name dist))
-         (full-url (concatenate 'string
-                                base-url
-                                dist-name
-                                ".txt")))
-    (cond ((search "localhost" base-url)
-           full-url)
-          ((string-equal dist-name "ultralisp")
-           base-url)
-          (t
-           full-url))))
-
 
 (defmethod clpi-url (dist)
   (check-type dist ultralisp/models/dist:dist)

@@ -4,6 +4,8 @@
                 #:versioned
                 #:object-version)
   (:import-from #:ultralisp/models/source)
+  (:import-from #:ultralisp/protocols/url
+                #:url)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:ultralisp/db
@@ -15,6 +17,10 @@
   (:import-from #:ultralisp/utils/db
                 #:deflate-keyword
                 #:inflate-keyword)
+  (:import-from #:ultralisp/protocols/external-url
+                #:external-url)
+  (:import-from #:ultralisp/variables
+                #:get-base-url)
   (:export
    #:dist
    #:dist-name
@@ -232,3 +238,27 @@
     (setf (lisp-implementation dist)
           new-implementation)
     (mito:save-dao dist)))
+
+
+(defmethod url ((dist dist))
+  (format nil "/dists/~A"
+          (dist-name dist)))
+
+
+(defmethod external-url ((dist dist))
+  (let* ((base-url (get-base-url))
+         (dist-name (dist-name dist))
+         (full-url (concatenate 'string
+                                base-url
+                                dist-name
+                                ".txt")))
+    (cond ((search "localhost" base-url)
+           full-url)
+          ((string-equal dist-name "ultralisp")
+           base-url)
+          (t
+           full-url))))
+
+
+(defmethod external-url ((bound-dist bound-dist))
+  (external-url (dist bound-dist)))
