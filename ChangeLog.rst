@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.17.2 (2022-12-23)
+===================
+
+* Rebuild to update LispWorks licens in the worker.
+
 1.17.1 (2022-11-12)
 ===================
 
