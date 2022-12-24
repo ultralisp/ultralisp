@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.17.3 (2022-12-24)
+===================
+
+* Disabled "fresh quicklisp dist on checking" for Lispworks distribution,
+  because qlot:install does not work under LispWorks as expected.
+
 1.17.2 (2022-12-23)
 ===================
 
