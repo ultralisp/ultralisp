@@ -33,3 +33,7 @@ github mito svetlyak40wt/mito :branch fix-migration
 # Until this issue will be resolved:
 # https://github.com/quicklisp/quicklisp-client/issues/219
 ultralisp quicklisp-quicklisp-client 20210216013000
+
+# Until this issue will be resolved:
+# https://github.com/ruricolist/spinneret/pull/69
+github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks

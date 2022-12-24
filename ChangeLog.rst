@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.17.7 (2022-12-24)
+===================
+
+* Yet another Qlot update, now with fixed Spinneret.
+
 1.17.6 (2022-12-24)
 ===================
 

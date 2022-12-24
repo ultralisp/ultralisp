@@ -38,3 +38,7 @@
  (:class qlot/source/ultralisp:source-ultralisp
   :initargs (:%version "20210216013000")
   :version "ultralisp-20210216013000"))
+("spinneret" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "svetlyak40wt/spinneret" :ref nil :branch "fix-tags-for-lispworks" :tag nil)
+  :version "github-a00438474dd5234cb5df9b52f4125bb0cd583747"))
