@@ -23,9 +23,14 @@ print_banner /app/logs/lw-worker-stderr.log
 
 if [[ ! -e /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense ]] || ! grep -q $(hostname) /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense; then
     if [[ -e /lw/license ]]; then
+        echo 'Applying LispWorks license.' >> /app/logs/lw-worker-stdout.log
         /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license)
         rm /lw/license
+    else
+        echo "WARN: There is no license for current host $(hostname) and file in /lw/license." >> /app/logs/lw-worker-stdout.log
     fi
+else
+    echo 'Found an LispWorks license.' >> /app/logs/lw-worker-stdout.log
 fi
 
 /app/worker \
