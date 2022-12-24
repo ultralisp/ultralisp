@@ -52,3 +52,24 @@ Eval ~(ultralisp/worker:process-jobs)~ there:
                                  (ultralisp/models/project:get-github-project "guicho271828" "type-i"))
                                 :force t)
 #+END_SRC
+
+* How to update LispWorks license
+
+It is stored in two places:
+
+- GitHub secrets (used to build an image with lw-worker)
+- Ansible secrets .ansible/playbooks/group_vars/ultralisp/vault (installed
+  into a docker container and used to apply license on the host after
+  deployment. On the first container run file with license is applied
+  and removed from the container.)
+
+
+GitHub secret is updated in settings of
+https://github.com/ultralisp/ultralisp organization. To update Ansible
+secrets run the following command:
+
+#+begin_src bash
+
+ansible-vault edit .ansible/playbooks/group_vars/ultralisp/vault
+
+#+end_src
