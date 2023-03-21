@@ -2,6 +2,33 @@
  ChangeLog
 ===========
 
+1.18.0 (2023-03-21)
+===================
+
+* Update Qlot dependencies in attempt to fix this nasty error occured when checking many projects:
+
+  .. code::
+     
+     Condition: export cffi-sys::defcfun-helper-forms causes name-conflicts in
+            #<package "CFFI"> between the following symbols:
+              cffi-sys::defcfun-helper-forms, cffi::defcfun-helper-forms
+
+  This become a problem because new CFFI, available in Ultralisp has been refactored and symbol
+  was moved to another package.
+
+  In old Ultralisp lisp image this symbol is in the CFFI package:
+
+  .. code::
+
+     CL-USER> (find-symbol "DEFCFUN-HELPER-FORMS" (find-package "CFFI"))
+     CFFI::DEFCFUN-HELPER-FORMS
+     :INTERNAL
+
+     CL-USER> (find-symbol "DEFCFUN-HELPER-FORMS" (find-package "CFFI-SYS"))
+     NIL
+     NIL
+
+
 1.17.7 (2022-12-24)
 ===================
 

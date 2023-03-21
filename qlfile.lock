@@ -1,11 +1,11 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2022-11-07"))
+  :version "2023-02-15"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20221224130000"))
+  :version "20230321172501"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref "3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f" :branch nil :tag nil)
@@ -13,7 +13,7 @@
 ("cl-str" .
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
-  :version "ql-2022-11-07"))
+  :version "ql-2023-02-15"))
 ("slynk" .
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/sly" :ref nil :branch "patches" :tag nil)
