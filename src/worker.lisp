@@ -135,10 +135,12 @@
                         "lw-worker-%Y%m%d.log"))))
 
   (when slynk-port
-    (setf (uiop:getenv "SLYNK_PORT" (princ-to-string slynk-port))))
+    (setf (uiop:getenv "SLYNK_PORT")
+          (princ-to-string slynk-port)))
   
   (when slynk-interface
-    (setf (uiop:getenv "SLYNK_INTERFACE" slynk-interface)))
+    (setf (uiop:getenv "SLYNK_INTERFACE")
+          slynk-interface))
   
   (40ants-slynk:start-slynk-if-needed)
   
