@@ -2,8 +2,8 @@
  "app-deps"
  :CLASS
  :PACKAGE-INFERRED-SYSTEM
- :DEPENDS-ON
  :SERIAL t
+ :DEPENDS-ON
  ("3bmd"
   "40ants-doc"
   "40ants-doc/changelog"
