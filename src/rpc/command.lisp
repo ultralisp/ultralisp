@@ -1,7 +1,7 @@
 (defpackage #:ultralisp/rpc/command
   (:use #:cl)
   (:import-from #:serapeum)
-  (:import-from #:ultralisp/slynk)
+  (:import-from #:40ants-slynk)
   (:import-from #:str)
   (:import-from #:log)
   (:import-from #:log4cl-extras/error
@@ -91,8 +91,8 @@
                             ;; We want debugger to popup if we've connected to
                             ;; the process from SLY
                             ;; (invoke-debugger condition)
-                            (when ultralisp/slynk:*connections*
-                              (log:error "Invoking interactive debugger because ultralisp/slynk:*connections* is not nil")
+                            (when 40ants-slynk:*connections*
+                              (log:error "Invoking interactive debugger because 40ants-slynk:*connections* is not nil")
                               (invoke-debugger condition)))))
       (with-log-unhandled ()
         (with-connection (:host (or *db-host-override*

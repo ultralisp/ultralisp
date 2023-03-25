@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.18.1 (2023-03-25)
+===================
+
+* Updated code to work with recent Reblocks version.
+
 1.18.0 (2023-03-21)
 ===================
 

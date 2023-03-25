@@ -1,7 +1,6 @@
 (defpackage #:ultralisp/rpc/core
   (:use #:cl)
   (:import-from #:log)
-  (:import-from #:slynk)
   (:import-from #:cl-store)
   (:import-from #:cl-gearman)
   (:import-from #:trivial-timeout)
@@ -14,7 +13,6 @@
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   
-  (:import-from #:ultralisp/slynk)
   (:import-from #:ultralisp/rpc/command
                 #:task-with-commands
                 #:with-commands-processor)

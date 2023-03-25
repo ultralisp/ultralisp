@@ -123,25 +123,24 @@
     (uiop:quit 0))
   
   (log4cl-extras/config:setup
-    `(:level ,(if debug
-                  :info
-                  :error)
-      :appenders ((daily :layout :json
-                         :name-format ,log-file
-                         :backup-name-format
-                         #-lispworks
-                         "worker-%Y%m%d.log"
-                         #+lispworks
-                         "lw-worker-%Y%m%d.log"))))
+   `(:level ,(if debug
+                 :info
+                 :error)
+     :appenders ((daily :layout :json
+                        :name-format ,log-file
+                        :backup-name-format
+                        #-lispworks
+                        "worker-%Y%m%d.log"
+                        #+lispworks
+                        "lw-worker-%Y%m%d.log"))))
 
-  ;; To make it possible to connect to a remote SLYNK server where ports are closed
-  ;; with firewall.
-  (setf slynk:*use-dedicated-output-stream* nil)
-
-  (ultralisp/slynk:setup)
-  (slynk:create-server :dont-close t
-                       :port slynk-port
-                       :interface slynk-interface)
+  (when slynk-port
+    (setf (uiop:getenv "SLYNK_PORT" (princ-to-string slynk-port))))
+  
+  (when slynk-interface
+    (setf (uiop:getenv "SLYNK_INTERFACE" slynk-interface)))
+  
+  (40ants-slynk:start-slynk-if-needed)
   
   (log:info "Waiting for tasks" one-task-only)
   ;; #+lispworks

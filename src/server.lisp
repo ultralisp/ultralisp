@@ -13,7 +13,6 @@
   (:import-from #:spinneret/cl-markdown)
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/cron)
-  (:import-from #:ultralisp/slynk)
   (:import-from #:reblocks/app)
   (:import-from #:mailgun)
   (:import-from #:slynk)
@@ -25,6 +24,7 @@
   (:import-from #:reblocks-ui
                 #:*foundation-dependencies*)
   (:import-from #:reblocks/page
+                #:init-page
                 #:render-headers
                 #:get-language)
   (:import-from #:reblocks/dependencies
@@ -162,7 +162,10 @@
         "project:\"40ants/reblocks\" AND symbol:\"request\""
         "package:\"reblocks/actions\" to search all symbols exported from a package."))
 
-(defmethod reblocks/session:init ((app app))
+(defmethod init-page ((app app)
+                      (url-path string)
+                      expire-at)
+  (check-type expire-at (or null local-time::timestamp))
   (make-maintenance-widget
    (make-main-routes)))
 
@@ -511,7 +514,9 @@
         "/tmp/ultralisp/temp-%")
 
   (start :port 8081)
-  
+
+  ;; TODO: think how to redesing Ultralisp logging
+  ;; collection to use 40ANTS-LOGGING (https://40ants.com/logging/).
   (ultralisp/logging:setup-for-repl :level "error"
                                     :app "app"))
 
