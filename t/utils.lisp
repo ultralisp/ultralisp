@@ -1,7 +1,7 @@
 (defpackage #:ultralisp-test/utils
   (:use #:cl)
   (:import-from #:ultralisp/db)
-  (:import-from #:reblocks-test/utils)
+  (:import-from #:reblocks-tests/utils)
   (:import-from #:cl-dbi)
   (:import-from #:ultralisp/metrics)
   (:import-from #:ultralisp/variables
@@ -55,7 +55,7 @@
 
 (defmacro with-login ((&key (email "bob@example.com"))
                       &body body)
-  `(reblocks-test/utils:with-session
+  `(reblocks-tests/utils:with-session
      (let* ((user (or (reblocks-auth/models:get-user-by-email ,email)
                       (mito:create-dao 'reblocks-auth/models:user
                                        :nickname ,email

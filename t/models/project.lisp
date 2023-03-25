@@ -5,7 +5,7 @@
                 #:assert-that
                 #:contains
                 #:has-type)
-  (:import-from #:reblocks-test/utils)
+  (:import-from #:reblocks-tests/utils)
   (:import-from #:ultralisp-test/utils
                 #:get-all-dist-project-names
                 #:get-projects-linked-to-the

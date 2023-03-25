@@ -3,6 +3,7 @@
  :CLASS
  :PACKAGE-INFERRED-SYSTEM
  :DEPENDS-ON
+ :SERIAL t
  ("3bmd"
   "40ants-doc"
   "40ants-doc/changelog"
