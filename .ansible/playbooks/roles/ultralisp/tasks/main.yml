@@ -73,6 +73,8 @@
       MODE: "worker"
       GEARMAN_SERVER: "172.17.0.1:4730"
       ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+      SLYNK_INTERFACE: "0.0.0.0"
+      SLYNK_PORT: 4005
     ports:
       - "172.17.0.1:{{ ultralisp_worker_port }}:10100"
       - "{{ ultralisp_worker_slynk_port }}:4005"
@@ -95,6 +97,8 @@
       MODE: "worker"
       GEARMAN_SERVER: "172.17.0.1:4730"
       ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+      SLYNK_INTERFACE: "0.0.0.0"
+      SLYNK_PORT: 4005
     ports:
       - "172.17.0.1:{{ ultralisp_lw_worker_port }}:10100"
       - "{{ ultralisp_lw_worker_slynk_port }}:4005"
@@ -139,6 +143,8 @@
       BASE_URL: "{{ ultralisp_base_url }}"
       # HIDE_SEARCH: "yes"
       ELASTIC_SEARCH_HOST: "es.ultralisp.org"
+      SLYNK_INTERFACE: "0.0.0.0"
+      SLYNK_PORT: 4005
 
     ports:
       - "172.17.0.1:{{ ultralisp_app_port }}:80"
