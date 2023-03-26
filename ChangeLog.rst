@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.18.3 (2023-03-26)
+===================
+
+* Switch from broken Hunchentoot Clack handler to Woo.
+
 1.18.2 (2023-03-26)
 ===================
 

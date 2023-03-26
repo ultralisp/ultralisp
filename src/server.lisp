@@ -403,75 +403,83 @@
        (member :request-uri arg)))
 
 
-(defun start (&rest args &key (debug t)
-                              (port 8080)
-                              (interface "localhost")
-                              (server-type :woo))
+(defun start (&key (debug t)
+                (port 8080)
+                (interface "localhost")
+                (server-type :woo))
   "Starts the application by calling 'reblocks/server:start' with appropriate arguments."
-  (declare (ignore debug port interface server-type))
+  ;; Here I'm not using &REST because this way my own defaults
+  ;; will not be passed to Reblocks and it will use Hunchentoot as the webserver.
+  ;; But hunchentoot was broken recently:
+  ;; https://github.com/fukamachi/clack/issues/186
+  (let ((args (list :debug debug
+                    :port port
+                    :interface interface
+                    :server-type server-type)))
   
-  (log:info "Starting ultralisp" args)
+    (log:info "Starting ultralisp" args)
 
-  ;; This way we'll make backtrace nice and safe
-  (setf log4cl-extras/error:*args-filters*
-        (list (make-args-filter 'lack-env-p
-                                (make-placeholder "lack env"))
-              (make-secrets-replacer)))
+    ;; This way we'll make backtrace nice and safe
+    (setf log4cl-extras/error:*args-filters*
+          (list (make-args-filter 'lack-env-p
+                                  (make-placeholder "lack env"))
+                (make-secrets-replacer)))
   
-  (setf *previous-args* args)
+    (setf *previous-args* args)
   
-  (setf lparallel:*kernel* (make-kernel 8
-                                        :name "parallel worker"))
+    (setf lparallel:*kernel* (make-kernel 8
+                                          :name "parallel worker"))
 
-  (setf mailgun:*domain* (get-mailgun-domain))
-  (unless mailgun:*domain*
-    (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
+    (setf mailgun:*domain* (get-mailgun-domain))
+    (unless mailgun:*domain*
+      (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
   
-  (setf mailgun:*api-key* (get-mailgun-api-key))
-  (unless mailgun:*api-key*
-    (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
+    (setf mailgun:*api-key* (get-mailgun-api-key))
+    (unless mailgun:*api-key*
+      (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
 
-  (let ((uploader-type (get-uploader-type)))
-    (when uploader-type
-      (log:info "Setting uploader type to" uploader-type)
+    (let ((uploader-type (get-uploader-type)))
+      (when uploader-type
+        (log:info "Setting uploader type to" uploader-type)
       
-      (let ((uploader-type (make-keyword (string-upcase uploader-type))))
-        (unless (compute-applicable-methods #'make-uploader (list uploader-type :quicklisp))
-          (error "Uploader of type ~S is not supported."
-                 uploader-type))
-        (setf *uploader-type*
-              uploader-type))))
+        (let ((uploader-type (make-keyword (string-upcase uploader-type))))
+          (unless (compute-applicable-methods #'make-uploader (list uploader-type :quicklisp))
+            (error "Uploader of type ~S is not supported."
+                   uploader-type))
+          (setf *uploader-type*
+                uploader-type))))
   
-  (setf reblocks-auth/github:*client-id* (get-github-client-id))
-  (unless reblocks-auth/github:*client-id*
-    (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
+    (setf reblocks-auth/github:*client-id* (get-github-client-id))
+    (unless reblocks-auth/github:*client-id*
+      (log:error "Set GITHUB_CLIENT_ID environment variable, otherwise github integration will not work"))
   
-  (setf reblocks-auth/github:*secret* (get-github-secret))
-  (unless reblocks-auth/github:*secret*
-    (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
+    (setf reblocks-auth/github:*secret* (get-github-secret))
+    (unless reblocks-auth/github:*secret*
+      (log:error "Set GITHUB_SECRET environment variable, otherwise github integration will not work"))
 
-  (setf github:*token* (get-github-robot-token))
-  (unless github:*token*
-    (log:warn "Set GITHUB_ROBOT_TOKEN environment variable, otherwise github will apply hard rate limit"))
+    (setf github:*token* (get-github-robot-token))
+    (unless github:*token*
+      (log:warn "Set GITHUB_ROBOT_TOKEN environment variable, otherwise github will apply hard rate limit"))
 
-  (setf mailgun:*user-agent* (get-user-agent))
+    (setf mailgun:*user-agent* (get-user-agent))
   
-  (setf *cache-remote-dependencies-in*
-        ;; TODO: make configurable
-        #P"/tmp/reblocks-cache/ultralisp/")
-  (setf (get-language)
-        "en")
+    (setf *cache-remote-dependencies-in*
+          ;; TODO: make configurable
+          #P"/tmp/reblocks-cache/ultralisp/")
+    (setf (get-language)
+          "en")
 
-  (log:info "Starting cron jobs")
-  (ultralisp/cron:setup)
-  (ultralisp/cron:start)
+    (log:info "Starting cron jobs")
+    (ultralisp/cron:setup)
+    (ultralisp/cron:start)
 
-  (log:info "Starting server" args)
-  (apply #'reblocks/server:start :apps '(app) args)
+    (log:info "Starting server" args)
+    (apply #'reblocks/server:start :apps '(app) args)
 
-  (log:info "DONE")
-  (setf *started-at*
-        (local-time:now)))
+    (log:info "DONE")
+    (setf *started-at*
+          (local-time:now))
+    (values)))
 
 
 (defun start-outside-docker ()
