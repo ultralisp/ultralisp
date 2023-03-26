@@ -2,13 +2,6 @@ dist ultralisp http://dist.ultralisp.org/
 
 github quickdist ultralisp/quickdist :ref 3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f
 
-# Until this issue will be resolved:
-# https://github.com/ultralisp/ultralisp/issues/73
-# Either https://ultralisp.org/projects/thodg/str or
-# https://ultralisp.org/projects/vindarel/cl-str should be disabled
-# automatically:
-ql cl-str :latest
-
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
 
