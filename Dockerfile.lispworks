@@ -1,0 +1,23 @@
+FROM 40ants/base-lisp-image:0.15.0-sbcl-bin as lw-worker
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DISPLAY=host.docker.internal:0
+
+RUN apt-get update && apt-get install -y libgtk2.0-0 curl
+
+COPY dist-lw80 /lispworks
+
+RUN cd /lispworks && \
+    touch "/tmp/."`/bin/date '+%d%m%y'`"lispworks"`id -u` && \
+    sh lwl-install.sh && \
+    cd /usr/local/lib64/LispWorks && \
+    ln -s /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux /usr/local/bin/lispworks
+
+RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
+
+RUN docker/lw-build.sh /app/lw-build.lisp /app/lw/license
+
+COPY ./docker/s6-lw-worker /etc/s6
+ENTRYPOINT ["s6-svscan", "/etc/s6"]
+
+# END OF THE lw-worker
