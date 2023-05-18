@@ -8,6 +8,7 @@ services:
       - postgres
       - elastic
       - worker
+      - lw_worker
       - gearman
   gearman:
     extends:
@@ -21,6 +22,33 @@ services:
       - postgres
       - elastic
       - gearman
+  lw_worker:
+    container_name: ultralisp_lw_worker
+    build:
+      context: .
+      target: lw-worker
+    restart: always
+    ports:
+      - "127.0.0.1:14007:4005"
+    volumes:
+      - ./app.asd:/app/app.asd
+      - ./app-deps.asd:/app/app-deps.asd
+      - ./quicklisp/local-projects:/app/quicklisp/local-projects
+      - ./src/:/app/src/
+      - ./roswell/:/app/roswell/
+      - ./logs/:/app/logs/
+      - ./new-libs/:/app/new-libs/
+      - ./build/:/app/build/
+      - ./lw/:/lw/
+    depends_on:
+      - postgres
+      - elastic
+      - gearman
+    environment:
+      DEBUG: 1
+      MODE: worker
+      ELASTIC_HOST: elastic
+      GEARMAN_SERVER: gearman:4730
   postgres:
     extends:
       file: common-services.yml
