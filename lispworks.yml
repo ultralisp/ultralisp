@@ -17,7 +17,7 @@ services:
   worker:
     extends:
       file: common-services.yml
-      service: gearman
+      service: worker
     depends_on:
       - postgres
       - elastic
@@ -25,7 +25,6 @@ services:
   lw_worker:
     container_name: ultralisp_lw_worker
     build:
-      dockerfile: Dockerfile.lispworks
       context: .
       target: lw-worker
     restart: always
