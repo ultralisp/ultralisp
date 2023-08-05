@@ -44,7 +44,7 @@
 
 (register-system-packages "cl-dbi" '(#:dbi.cache.thread #:dbi.error))
 
-(register-system-packages "dexador" '(#:dexador.connection-cache))
+(register-system-packages "dexador" '(#:dexador.connection-cache #:dex))
 
 (register-system-packages "quicklisp" '(#:quicklisp-client))
 

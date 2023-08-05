@@ -87,6 +87,12 @@
                 #:inflate-keyword)
   (:import-from #:mito.dao
                 #:select-by-sql)
+  (:import-from #:ultralisp/sources/guesser
+                #:make-source)
+  (:import-from #:ultralisp/sources/base
+                #:create-project
+                #:base-source
+                #:project-name)
   (:export
    #:update-and-enable-project
    #:is-enabled-p
@@ -100,7 +106,7 @@
    #:get-source
    #:get-params
    #:get-github-project
-   #:add-or-turn-on-github-project
+   #:add-or-turn-on-project
    #:turn-off-github-project
    #:get-last-seen-commit
    #:disable-project
@@ -114,13 +120,12 @@
    #:get-versions
    #:unable-to-create-project
    #:get-reason
-   #:make-github-project-from-url
+   #:make-project-from-url
    #:get-systems-info
    #:get-release-info
    #:get-disable-reason
    #:find-projects-with-conflicting-systems
    #:get-external-url
-   #:get-github-projects
    #:get-recently-updated-projects
    #:enabled
    #:project-description
@@ -281,6 +286,7 @@
   "Set this to token to raise GitHub's rate limit from 60 to 5000 requests per hour.")
 
 
+;; TODO: remove after migration to guessers
 (defcached %github-get-description (user-or-org project)
   (let ((headers (when *github-oauth-token*
                    (list (cons "Authorization"
@@ -311,6 +317,8 @@
                    :params params))
 
 
+;; TODO: remove after the full move to guessers
+;; Tests should be rewritten to guessers too
 (defun make-github-project (user-or-org project-name)
   (ultralisp/db:with-transaction
     (let* ((full-project-name (concatenate 'string
@@ -341,19 +349,19 @@
       project)))
 
 
-(defun make-github-project-from-url (url &key (moderator nil moderator-given-p))
-  (let* ((name (extract-github-name url))
+(defun make-project-from-url (url &key (moderator nil moderator-given-p))
+  (let* ((source (make-source url))
          (project
-           (when name
-             (apply #'add-or-turn-on-github-project
-                    (list* name
+           (when source
+             (apply #'add-or-turn-on-project
+                    (list* source
                            (when moderator-given-p
                              (list :moderator moderator)))))))
-    
+
     (unless project
       (error 'unable-to-create-project
-             :reason (format nil "URL \"~A\" does not looks like a github project"
-                             url)))
+             :reason (fmt "Unable to create a project from URL: ~A"
+                          url)))
     
     (values project)))
 
@@ -433,66 +441,53 @@
     (order-by :name)))
 
 
-;; TODO: remove after refactoring
-(defun get-github-projects (usernames)
-  "Receives a list of usernames or orgnames and returns a list
-   of GitHub projects, known to Ultralisp."
-  (select-dao 'project
-    (where (:and
-            (:= :source
-                "GITHUB")
-            (:in (:raw "params->>'USER-OR-ORG'")
-                 usernames)))))
-
-
-(defun add-or-turn-on-github-project (name &key (moderator (get-current-user)))
+(defun add-or-turn-on-project (source &key (moderator (get-current-user)))
   "Creates or updates a record in database adding current user to moderators list."
-  (destructuring-bind (user-or-org project-name . rest)
-      (str:split "/" name)
-    (declare (ignorable rest))
-    
-    (ultralisp/db:with-transaction
-      (let ((project (get-project2 name)))
-       
-        (unless project
-          (log:info "Adding github project to the database" project)
-          (setf project
-                (make-github-project user-or-org project-name)))
+  (check-type source base-source)
+  
+  (ultralisp/db:with-transaction
+    (let ((project (or (get-project2 (project-name source))
+                       (progn
+                         (log:info "Adding new project to the database" source)
+                         (create-project source)
+                         ;; (make-github-project user-or-org project-name)
+                         ))))
+      
+      ;; Now we need to bind the source to the common distribution
+      ;; if it is not already bound:
+      (loop with dist = (common-dist)
+            for source in (project-sources project)
+            ;; TODO: think if we really need to check source-type here
+            ;; for source-type = (ultralisp/models/source:source-type source)
+            ;; when (eql source-type :github)
+            do (add-source-to-dist dist source)
+               ;; We only add to the common dist the first
+               ;; source of type :github, because there
+               ;; can be more than one such sources in projects
+               ;; which already existed in the database,
+               ;; but Ultralisp prohibits adding a project twice
+               ;; into the same distribution.
+               (return))
+      
 
-        ;; Now we need to bind the source to the common distribution
-        ;; if it is not already bound:
-        (loop with dist = (common-dist)
-              for source in (project-sources project)
-              for source-type = (ultralisp/models/source:source-type source)
-              when (eql source-type :github)
-              do (add-source-to-dist dist source)
-                 ;; We only add to the common dist the first
-                 ;; source of type :github, because there
-                 ;; can be more than one such sources in projects
-                 ;; which already existed in the database,
-                 ;; but Ultralisp prohibits adding a project twice
-                 ;; into the same distribution.
-                 (return))
-        
-
-        ;; Here we only making user a moderator if
-        ;; nobody else owns a project. Otherwise, he
-        ;; need to prove his ownership.
-        (when (and moderator
-                   (null (ultralisp/protocols/moderation:moderators project)))
-          (ultralisp/protocols/moderation:make-moderator
-           moderator
-           project))
-       
-        ;; Also, we need to trigger a check of this project
-        ;; and to enabled it and to include into the next build
-        ;; of a new Ultralisp version.
-        (uiop:symbol-call :ultralisp/models/check
-                          :make-checks
-                          project
-                          :added-project)
-       
-        project))))
+      ;; Here we only making user a moderator if
+      ;; nobody else owns a project. Otherwise, he
+      ;; need to prove his ownership.
+      (when (and moderator
+                 (null (ultralisp/protocols/moderation:moderators project)))
+        (ultralisp/protocols/moderation:make-moderator
+         moderator
+         project))
+      
+      ;; Also, we need to trigger a check of this project
+      ;; and to enabled it and to include into the next build
+      ;; of a new Ultralisp version.
+      (uiop:symbol-call :ultralisp/models/check
+                        :make-checks
+                        project
+                        :added-project)
+      
+      project)))
 
 
 (defun turn-off-github-project (name)
@@ -519,6 +514,8 @@
   (delete-dao project))
 
 
+;; Seems this is a one shot function used at some moment
+;; for data-migration.
 (defun convert-metadata (&optional (filename "projects/projects.txt"))
   "Loads old metadata from file into a database."
   (let ((metadata (read-metadata filename)))

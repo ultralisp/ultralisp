@@ -25,11 +25,10 @@
   (:import-from #:ultralisp/models/project
                 #:get-reason
                 #:unable-to-create-project
-                #:make-github-project-from-url
+                #:make-project-from-url
                 #:is-enabled-p
-                #:add-or-turn-on-github-project
-                #:get-params
-                #:get-github-projects)
+                #:add-or-turn-on-project
+                #:get-params)
   (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
@@ -254,7 +253,7 @@
          (lambda (&key url &allow-other-keys)
            (log:info "CATCHED ARGS" url)
            (handler-case
-               (let* ((project (make-github-project-from-url url))
+               (let* ((project (make-project-from-url url))
                       (project-url (ultralisp/models/project:project-url project)))
                  (reblocks/response:redirect project-url))
              (unable-to-create-project (condition)
@@ -268,7 +267,8 @@
               (:tr :style "vertical-align: top"
                (:td
                 (:input :type "text"
-                        :name "url")
+                        :name "url"
+                        :placeholder "https://github.com/takagi/lake or https://git.sr.ht/~fosskers/cl-transducers")
                 (if (get-url-form-error widget)
                     (:p :class "label alert"
                         (get-url-form-error widget))
@@ -399,7 +399,7 @@
                                `(:|config| (:|url| ,hook
                                              :|content_type| "json"))))))
     
-    (add-or-turn-on-github-project name)
+    (add-or-turn-on-project name)
     (values)))
 
 

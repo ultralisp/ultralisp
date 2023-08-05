@@ -30,7 +30,7 @@
                 #:make-github-project
                 #:is-enabled-p
                 #:get-last-seen-commit
-                #:add-or-turn-on-github-project)
+                #:add-or-turn-on-project)
   (:import-from #:ultralisp/models/check
                 #:make-check
                 #:source-checks
@@ -57,7 +57,9 @@
                 #:delete-source
                 #:source-distributions
                 #:update-source-dists
-                #:dist-id))
+                #:dist-id)
+  (:import-from #:ultralisp/sources/github
+                #:guess-github-source))
 (in-package #:ultralisp-test/models/project)
 
 
@@ -74,7 +76,8 @@
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
-        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+        (let* ((github-source (guess-github-source "https://github.com/40ants/defmain"))
+               (project (add-or-turn-on-project github-source))
                (sources (project-sources project)))
 
           (loop for source in sources
@@ -360,7 +363,8 @@
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
-        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+        (let* ((github-source (guess-github-source "https://github.com/40ants/defmain"))
+               (project (add-or-turn-on-project github-source))
                (source (get-source project)))
 
           (ultralisp/builder::prepare-pending-dists)

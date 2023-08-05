@@ -83,26 +83,26 @@
       (when build
         (execute "build-devserver"))
       
-      (sh "docker-compose up --abort-on-container-exit app"))
+      (sh "docker compose up --abort-on-container-exit app"))
 
 (task "build-devserver" ("deps")
-      (sh "docker-compose build app")
-      (sh "docker-compose build worker"))
+      (sh "docker compose build app")
+      (sh "docker compose build worker"))
 
 (task "dump-db" ()
-      (sh "docker-compose run --rm db-ops dump"))
+      (sh "docker compose run --rm db-ops dump"))
 
 (task "restore-db" ()
       (sh "docker stop ultralisp_app ultralisp_worker")
-      (sh "docker-compose run --rm db-ops restore"))
+      (sh "docker compose run --rm db-ops restore"))
 
 (task "generate-migration" ()
-      (sh "docker-compose rm --stop --force empty-postgres")
-      (sh "docker-compose build mito")
-      (sh "docker-compose run --rm mito generate-migration"))
+      (sh "docker compose rm --stop --force empty-postgres")
+      (sh "docker compose build mito")
+      (sh "docker compose run --rm mito generate-migration"))
 
 (task "migrate" ()
-      (sh "docker-compose run --rm mito migrate"))
+      (sh "docker compose run --rm mito migrate"))
 
 (task "dbshell" ()
       (sh "psql postgresql://ultralisp:ultralisp@localhost"))

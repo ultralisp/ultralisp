@@ -6,7 +6,7 @@
   (:import-from #:cl-fad
                 #:walk-directory)
   (:import-from #:ultralisp/models/project
-                #:make-github-project-from-url)
+                #:make-project-from-url)
   (:import-from #:reblocks-auth/models
                 #:get-user-by-email)
   (:import-from #:str)
@@ -99,7 +99,7 @@
     (loop with 5-min-ago = (ultralisp/utils:time-in-past :minute 15)
           for item in github-items
           for url = (get-url item)
-          for project = (make-github-project-from-url url :moderator moderator)
+          for project = (make-project-from-url url :moderator moderator)
           for created-at = (mito:object-created-at project)
           when (local-time:timestamp> created-at
                                       5-min-ago)

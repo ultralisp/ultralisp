@@ -50,9 +50,11 @@
                 #:awhen)
   (:import-from #:str)
   (:import-from #:ultralisp/utils/github
-                #:get-branches)
+                #:get-github-branches)
   (:import-from #:ultralisp/variables
                 #:get-base-url)
+  (:import-from #:serapeum
+                #:fmt)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -200,18 +202,28 @@
 
 (defun params-to-string (source &key (last-seen t))
   (let ((type (source-type source)))
-    (if (eql type :github)
-        (let ((params (source-params source)))
-          (format nil "~A://~A/~A@~A"
-                  (string-downcase type)
-                  (getf params :user-or-org)
-                  (getf params :project)
-                  (if last-seen
-                      (getf params :last-seen-commit)
-                      (or (getf params :branch)
-                          "master"))))
-        (format nil "~A://unsupported-source-type"
-                (string-downcase type)))))
+    (case type
+      (:github
+       (let ((params (source-params source)))
+         (fmt "~A://~A/~A@~A"
+              (string-downcase type)
+              (getf params :user-or-org)
+              (getf params :project)
+              (if last-seen
+                  (getf params :last-seen-commit)
+                  (or (getf params :branch)
+                      "master")))))
+      (:git
+       (let ((params (source-params source)))
+         (fmt "~A@~A"
+              (getf params :url)
+              (if last-seen
+                  (getf params :last-seen-commit)
+                  (or (getf params :branch)
+                      "master")))))
+      (t
+       (fmt "~A://unsupported-source-type"
+            (string-downcase type))))))
 
 
 (defmethod print-object ((obj source) stream)
@@ -252,14 +264,18 @@
 
 (defmethod external-url ((obj source))
   (let ((type (source-type obj)))
-    (when (eql type :github)
-      (let* ((params (source-params obj))
-             (user (getf params :user-or-org))
-             (project (getf params :project)))
-        (when (and user project)
-          (format nil "https://github.com/~A/~A"
-                  user
-                  project))))))
+    (case type
+      (:git
+       (let* ((params (source-params obj)))
+         (getf params :url)))
+      (:github
+       (let* ((params (source-params obj))
+              (user (getf params :user-or-org))
+              (project (getf params :project)))
+         (when (and user project)
+           (format nil "https://github.com/~A/~A"
+                   user
+                   project)))))))
 
 
 (defun params-from-github (url)
@@ -456,7 +472,7 @@
 
 (defun set-default-branch (source)
   (multiple-value-bind (branches default-branch)
-      (get-branches
+      (get-github-branches
        (external-url source))
     (declare (ignore branches))
     (when default-branch
