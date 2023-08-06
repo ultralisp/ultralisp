@@ -1,7 +1,7 @@
 (DEFSYSTEM
  "app-deps"
  :CLASS
- :PACKAGE-INFERRED-SYSTEM
+ :PACKAGE-INFERRED-SYSTEM :SERIAL t
  :DEPENDS-ON
  ("3bmd"
   "40ants-doc"
@@ -245,29 +245,6 @@
   "puri"
   "pythonic-string-reader"
   "qlot"
-  "qlot/bundle"
-  "qlot/errors"
-  "qlot/install"
-  "qlot/install/quicklisp"
-  "qlot/logger"
-  "qlot/main"
-  "qlot/parser"
-  "qlot/proxy"
-  "qlot/server"
-  "qlot/source"
-  "qlot/source/base"
-  "qlot/source/dist"
-  "qlot/source/git"
-  "qlot/source/github"
-  "qlot/source/http"
-  "qlot/source/ql"
-  "qlot/source/ultralisp"
-  "qlot/utils"
-  "qlot/utils/asdf"
-  "qlot/utils/project"
-  "qlot/utils/ql"
-  "qlot/utils/shell"
-  "qlot/utils/tmp"
   "quantile-estimator"
   "quickdist"
   "quicklisp"
