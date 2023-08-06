@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.19.2 (2023-08-06)
+===================
+
+* Update certificate chain to make git work with SourceHut.
+
 1.19.0 (2023-08-06)
 ===================
 

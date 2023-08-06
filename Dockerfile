@@ -5,11 +5,14 @@ EXPOSE 4005
 
 # These a dev dependencies to simplify log reading and support
 # file search from remote Emacs.
+# Ca-certificates is required to make git work with SourceHut (and probably
+# some other git forges too).
 RUN apt-get update && \
     apt-get install -y \
             python3-pip \
             silversearcher-ag \
             lsof \
+            ca-certificates=20230311ubuntu0.20.04.1 \
             postgresql-client && \
     pip3 install jsail dumb-init
 

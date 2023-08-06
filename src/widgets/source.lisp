@@ -964,7 +964,7 @@
          (type (ultralisp/models/source:source-type source)))
     (with-html
       ;; This piece here to make debugging easier:
-      (:p :style "display: hidden"
+      (:p :style "display: none"
           (fmt "source-id=~S version=~S project-id=~S project-version=~S"
                (object-id source)
                (object-version source)
