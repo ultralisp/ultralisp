@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.19.0 (2023-08-06)
+===================
+
+* An email authentication and generic git repositories support were added.
+
 1.18.3 (2023-03-26)
 ===================
 
