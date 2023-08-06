@@ -52,8 +52,7 @@
                 #:render-google-counter
                 #:render-yandex-counter)
   (:import-from #:ultralisp/models/moderator)
-  (:import-from #:ultralisp/mail
-                #:send-login-code)
+  (:import-from #:ultralisp/mail)
   (:import-from #:lparallel
                 #:make-kernel)
   (:import-from #:alexandria
