@@ -51,7 +51,7 @@
                            :reader change-username-widget)))
 
 
-(defun make-change-username-widget (parent)
+(defun make-change-username-widget ()
   (make-instance 'change-username-widget))
 
 
