@@ -1,5 +1,7 @@
 (defpackage #:ultralisp/server
   (:use #:cl)
+  (:import-from #:reblocks-auth)
+  (:import-from #:ultralisp/mail)
   (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
   (:import-from #:github)
@@ -50,8 +52,7 @@
                 #:render-google-counter
                 #:render-yandex-counter)
   (:import-from #:ultralisp/models/moderator)
-  (:import-from #:ultralisp/mail
-                #:send-login-code)
+  (:import-from #:ultralisp/mail)
   (:import-from #:lparallel
                 #:make-kernel)
   (:import-from #:alexandria
@@ -66,6 +67,7 @@
   (:import-from #:ultralisp/downloader/github)
   (:import-from #:ultralisp/downloader/version)
   (:import-from #:ultralisp/downloader/source)
+  (:import-from #:ultralisp/sources/github)
   (:import-from #:reblocks/request)
   (:import-from #:reblocks/request-handler
                 #:handle-request)
@@ -132,6 +134,8 @@
                 #:now)
   (:import-from #:local-time-duration
                 #:timestamp-difference)
+  (:import-from #:ultralisp/sources/setup
+                #:setup-sources)
   
   (:shadow #:restart)
   (:export
@@ -406,7 +410,9 @@
 (defun start (&key (debug t)
                 (port 8080)
                 (interface "localhost")
-                (server-type :woo))
+                ;; (server-type :woo)
+                (server-type :hunchentoot)
+                )
   "Starts the application by calling 'reblocks/server:start' with appropriate arguments."
   ;; Here I'm not using &REST because this way my own defaults
   ;; will not be passed to Reblocks and it will use Hunchentoot as the webserver.
@@ -469,6 +475,14 @@
     (setf (get-language)
           "en")
 
+    (when (probe-file ".local.lisp")
+      (load ".local.lisp"))
+
+    (setf reblocks-auth:*enabled-services*
+          (list :github :email))
+
+    (setup-sources)
+    
     (log:info "Starting cron jobs")
     (ultralisp/cron:setup)
     (ultralisp/cron:start)
@@ -482,7 +496,7 @@
     (values)))
 
 
-(defun start-outside-docker ()
+(defun start-outside-docker (&key (port 8081))
   "This helper to start Ultralisp in the REPL started outside of Docker.
 
    First, start Postgres, Gearman and Worker in the Docker Compose:
@@ -521,7 +535,7 @@
   (setf cl-fad::*default-template*
         "/tmp/ultralisp/temp-%")
 
-  (start :port 8081)
+  (start :port port)
 
   ;; TODO: think how to redesing Ultralisp logging
   ;; collection to use 40ANTS-LOGGING (https://40ants.com/logging/).
@@ -538,6 +552,3 @@
   (stop)
   (sleep 5)
   (apply #'start *previous-args*))
-
-
-

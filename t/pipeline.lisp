@@ -19,7 +19,7 @@
                 #:dist-equal
                 #:find-dist)
   (:import-from #:ultralisp/models/project
-                #:add-or-turn-on-github-project)
+                #:add-or-turn-on-project)
   (:import-from #:ultralisp/models/source
                 #:create-new-source-version)
   (:import-from #:ultralisp/pipeline/checking

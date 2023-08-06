@@ -10,9 +10,8 @@
                 #:with-timeout)
   (:import-from #:dexador
                 #:http-request-not-found)
-  (:export
-   #:get-branches
-   #:extract-github-name))
+  (:export #:get-github-branches
+           #:extract-github-name))
 (in-package #:ultralisp/utils/github)
 
 
@@ -30,7 +29,7 @@
     name))
 
 
-(defun get-branches (url)
+(defun get-github-branches (url)
   "Returns two values: a list of branches and default branch.
 
    If repository not found, returns NIL."

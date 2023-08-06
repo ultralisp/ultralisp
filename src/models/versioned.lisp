@@ -21,7 +21,8 @@
    #:versioned
    #:deleted-p
    #:versioned-table-class
-   #:prev-version))
+   #:prev-version
+   #:get-latest-version-of))
 (in-package #:ultralisp/models/versioned)
 
 
@@ -89,3 +90,12 @@
               (:< 'version (object-version obj))))
        (order-by (:desc 'version))
        (limit 1)))))
+
+
+(defun get-latest-version-of (obj)
+  (first
+   (mito:select-dao (class-of obj)
+     (where
+      (:and (:= 'id (object-id obj))
+            (:= 'latest 1)))
+     (limit 1))))

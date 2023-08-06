@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/downloader/github
+(uiop:define-package #:ultralisp/downloader/github
   (:use #:cl)
   (:import-from #:legit)
   (:import-from #:ultralisp/models/project
@@ -22,39 +22,10 @@
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:log)
-  (:import-from #:trivial-timeout
-                #:with-timeout))
+  (:import-from #:ultralisp/downloader/git
+                #:git-clone-or-update))
 (in-package #:ultralisp/downloader/github)
 (in-readtable :interpol-syntax)
-
-
-(defun git-clone-or-update (url dir &key commit branch)
-  ;; Sometimes legit:clone hangs for unknown reason :(
-  (with-timeout (360)
-    (let* ((absolute-dir (ensure-absolute-dirname dir))
-           (repo (legit:init absolute-dir
-                             :remote url
-                             :if-does-not-exist :clone)))
-      ;; Here we are suppressing output from the git binary
-      (with-output-to-string (*standard-output*)
-        (let ((current-commit (legit:current-commit repo)))
-          (when (or (not commit)
-                    (not (string-equal commit
-                                       current-commit)))
-            (legit:pull repo)
-
-            (cond
-              ;; If commit given, it should have a preference
-              ;; over everything else, because in this case
-              ;; we want to checkout exact library version:
-              (commit
-               (legit:checkout repo commit))
-
-              (branch
-               (legit:checkout repo branch))))))
-     
-      ;; return repository so that other actions could be performed on it
-      (values repo))))
 
 
 (defmethod make-downloader ((source (eql :github)))

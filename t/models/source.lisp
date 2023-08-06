@@ -29,7 +29,7 @@
                 #:make-github-project
                 #:is-enabled-p
                 #:get-last-seen-commit
-                #:add-or-turn-on-github-project)
+                #:add-or-turn-on-project)
   (:import-from #:ultralisp/models/check
                 #:make-check
                 #:source-checks
@@ -59,7 +59,9 @@
                 #:update-source-dists
                 #:dist-id)
   (:import-from #:mito
-                #:object-id))
+                #:object-id)
+  (:import-from #:ultralisp/sources/github
+                #:guess-github-source))
 (in-package #:ultralisp-test/models/source)
 
 
@@ -76,7 +78,8 @@
                                 :version (ultralisp/models/dist::get-next-dist-version dist)
                                 :name (dist-name dist)
                                 :state :ready)))
-        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+        (let* ((github-source (guess-github-source "https://github.com/40ants/defmain"))
+               (project (add-or-turn-on-project github-source))
                (source (get-source project))
                (ultralisp-v1 (find-dist "ultralisp"))
                (ultralisp-v2 (new-version ultralisp-v1))
@@ -118,7 +121,8 @@
                                 :version (ultralisp/models/dist::get-next-dist-version dist)
                                 :name (dist-name dist)
                                 :state :ready)))
-        (let* ((project (add-or-turn-on-github-project "40ants/defmain"))
+        (let* ((github-source (guess-github-source "https://github.com/40ants/defmain"))
+               (project (add-or-turn-on-project github-source))
                (source (get-source project))
                (ultralisp-v1 (find-dist "ultralisp"))
                (ultralisp-v2 (new-version ultralisp-v1))

@@ -29,7 +29,7 @@
                 #:make-github-project
                 #:is-enabled-p
                 #:get-last-seen-commit
-                #:add-or-turn-on-github-project)
+                #:add-or-turn-on-project)
   (:import-from #:ultralisp/models/check
                 #:make-check
                 #:source-checks

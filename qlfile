@@ -32,5 +32,5 @@ ultralisp quicklisp-quicklisp-client 20210216013000
 github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
 
 # Waiting for this PR to be merged:
-# https://github.com/fukamachi/cl-dbi/pull/75
-github cl-dbi svetlyak40wt/cl-dbi :branch thread-safe-steal-cache-table
+# https://github.com/fukamachi/cl-dbi/pull/75 (merged!)
+# github cl-dbi svetlyak40wt/cl-dbi :branch thread-safe-steal-cache-table

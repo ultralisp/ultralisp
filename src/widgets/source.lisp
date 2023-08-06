@@ -39,14 +39,20 @@
   (:import-from #:ultralisp/utils
                 #:make-keyword)
   (:import-from #:ultralisp/models/source
+                #:project-version
+                #:source-project-id
+                #:source-type
                 #:params-from-github)
+  (:import-from #:ultralisp/utils/git
+                #:get-git-branches)
   (:import-from #:ultralisp/utils/github
-                #:get-branches)
+                #:get-github-branches)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
   (:import-from #:mito
                 #:object-id)
   (:import-from #:ultralisp/models/versioned
+                #:get-latest-version-of
                 #:object-version)
   (:import-from #:ultralisp/models/project
                 #:source->project)
@@ -118,17 +124,23 @@
 (defwidget branch-select-widget ()
   ((branches :initarg :branches
              :reader branches)
+   (retrieve-branches-func :initarg :retrieve-branches-func
+                           :reader retrieve-branches-func)
    (current :initarg :current
             :reader current-branch)))
 
 
-(defun make-branch-select-widget (github-url &optional (current "main"))
-  (multiple-value-bind (branches default-branch)
-      (get-branches github-url)
-    (make-instance 'branch-select-widget
-                   :branches branches
-                   :current (or current
-                                default-branch))))
+(defun make-branch-select-widget (url source-type &key (current "main"))
+  (let ((callable (case source-type
+                    (:github 'get-github-branches)
+                    (:git 'get-git-branches))))
+    (multiple-value-bind (branches default-branch)
+        (funcall callable url)
+      (make-instance 'branch-select-widget
+                     :retrieve-branches-func callable
+                     :branches branches
+                     :current (or current
+                                  default-branch)))))
 
 
 (defun update-url (widget url)
@@ -136,7 +148,7 @@
   (check-type url string)
   
   (multiple-value-bind (branches default-branch)
-      (get-branches url)
+      (funcall (retrieve-branches-func widget) url)
     (setf (slot-value widget 'branches)
           branches
           (slot-value widget 'current)
@@ -176,7 +188,8 @@
                                    :parent main
                                    :branches (make-branch-select-widget
                                               (external-url source)
-                                              (ultralisp/models/source:get-current-branch source)))))
+                                              (source-type source)
+                                              :current (ultralisp/models/source:get-current-branch source)))))
     (setf (slot-value main 'subwidget)
           subwidget)
     (reblocks/widget:update main)))
@@ -218,6 +231,23 @@
                                "Unable to add source to distributions with different lisp implementations"))))
 
 
+(defun get-updated-params (source url branch ignore-dirs)
+  (let ((type (source-type source)))
+    (case type
+      (:github
+       (multiple-value-bind (user-name project-name)
+           (params-from-github url)
+         (list :user-or-org user-name
+               :project project-name
+               :branch branch
+               :ignore-dirs ignore-dirs))
+       )
+      (:git
+       (list :url url
+             :branch branch
+             :ignore-dirs ignore-dirs)))))
+
+
 (defun save (widget args)
   (check-type widget edit-source-widget)
 
@@ -230,28 +260,23 @@
           when (member name '(:distributions :distributions[]))
           collect value into new-dist-names
           finally
-             (multiple-value-bind (user-name project-name)
-                 (params-from-github url)
-
-               (log:info "Saving" new-dist-names url branch)
-               (ensure-all-dists-have-same-lisp-implementation new-dist-names)
-               
-               ;; TODO: we need to refactor this part because for other
-               ;; types of sources we'll need to process params differently:
-               (let ((params-update
-                       (list :user-or-org user-name
-                             :project project-name
-                             :branch branch
-                             :ignore-dirs ignore-dirs)))
-                 (with-fields (:params params-update)
-                   (multiple-value-bind (new-source was-cloned-p)
-                       (update-source-dists (source parent)
-                                            :dists new-dist-names
-                                            :params params-update)
-                     (when was-cloned-p
-                       (log:info "A new source version was created: " new-source)
-                       (setf (source parent)
-                             new-source)))))))
+             (log:info "Saving" new-dist-names url branch)
+             (ensure-all-dists-have-same-lisp-implementation new-dist-names)
+          
+             (let ((params-update
+                     (get-updated-params (source parent)
+                                         url
+                                         branch
+                                         ignore-dirs)))
+               (with-fields (:params params-update)
+                 (multiple-value-bind (new-source was-cloned-p)
+                     (update-source-dists (source parent)
+                                          :dists new-dist-names
+                                          :params params-update)
+                   (when was-cloned-p
+                     (log:info "A new source version was created: " new-source)
+                     (setf (source parent)
+                           new-source))))))
     (switch-to-readonly widget)))
 
 
@@ -495,6 +520,185 @@
                                          :title "Put the check into the queue."))))))))))))
 
 
+;; Probably I need to replace eql git with real class and reuse some code between
+;; git and github source types?
+(defmethod render-source ((widget readonly-source-widget)
+                          (type (eql :git))
+                          source)
+  (let* ((params (ultralisp/models/source:source-params source))
+         (deleted (ultralisp/models/source:deleted-p source))
+         ;; The only difference between github and git sources
+         ;; (url (github-url params))
+         (url (getf params :url))
+         (last-seen-commit (getf params :last-seen-commit))
+         (ignore-dirs (getf params :ignore-dirs))
+         (release-info (ultralisp/models/source:source-release-info source))
+         (distributions (source-distributions source))
+         (systems (ultralisp/models/source:source-systems-info source))
+         (user-is-moderator (is-moderator
+                             (get-current-user)
+                             (source->project source))))
+    ;; Deleted sources should not be in the list
+    ;; for rendering.
+    (assert (not deleted))
+
+    (flet ((deletion-handler (&rest args)
+             (declare (ignorable args))
+             (on-delete (parent widget))))
+      (let ((last-check (get-last-source-check source)))
+        (with-html
+          (:table :class "unstriped"
+                  (:thead
+                   (:tr (:th :class "label-column"
+                             "Type")
+                        (:th :class "field-column"
+                             type
+                             ;; Controls for editing and deleting source
+                             (when user-is-moderator
+                               (:div :class "source-controls float-right"
+                                     (reblocks-ui/form:with-html-form
+                                         (:post #'deletion-handler
+                                          :requires-confirmation-p t
+                                          :confirm-question (:div (:h1 "Warning!")
+                                                                  (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
+                                                                  (:ul
+                                                                   (loop for name in (mapcar #'dist-name
+                                                                                             (remove-if-not
+                                                                                              #'enabled-p
+                                                                                              (source->dists source)))
+                                                                         do (:li name)))))
+                                       (:input :type "submit"
+                                               :class "alert button tiny"
+                                               :name "button"
+                                               :value "Remove"))
+                                    
+                                     (reblocks-ui/form:with-html-form
+                                         (:post (lambda (&rest args)
+                                                  (declare (ignorable args))
+                                                  (edit widget)))
+                                       (:input :type "submit"
+                                               :class "button tiny"
+                                               :name "button"
+                                               :value "Edit")))))))
+                  (:tbody
+                   (:tr (:td :class "label-column"
+                             "Created at")
+                        (:td :class "field-column"
+                             (humanize-timestamp
+                              (mito:object-created-at source))))
+                   (:tr (:td :class "label-column"
+                             "Source")
+                        (:td :class "field-column"
+                             (:a :href url
+                                 url)))
+                   (:tr (:td :class "label-column"
+                             "Branch or tag")
+                        (:td :class "field-column"
+                             (ultralisp/models/source:get-current-branch source)))
+                   (when ignore-dirs
+                     (:tr (:td :class "label-column"
+                               "Ignore systems in these dirs and ASD files")
+                          (:td :class "field-column"
+                               (:pre
+                                (:code
+                                 (format-ignore-list
+                                  ignore-dirs))))))
+                   (when last-seen-commit
+                     (:tr (:td :class "label-column"
+                               "Last seen commit")
+                          (:td :class "field-column"
+                               (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                   last-seen-commit))))
+                   (when release-info
+                     (:tr (:td :class "label-column"
+                               "Release")
+                          (:td :class "field-column"
+                               (:a :href (quickdist:get-project-url release-info)
+                                   (quickdist:get-project-url release-info)))))
+                   (when systems
+                     (:tr (:td :class "label-column"
+                               "Systems")
+                          (:td :class "field-column"
+                               (:dl
+                                (loop with grouped = (sort
+                                                      (group-by systems
+                                                                :key #'quickdist:get-filename
+                                                                :value #'quickdist:get-name
+                                                                :test #'string=)
+                                                      #'string<
+                                                      :key #'car)
+                                      for (filename . systems) in grouped
+                                      do (:dt filename)
+                                         (:dd :style "padding-left: 2em"
+                                              (join ", " (sort systems
+                                                               #'string<))))))))
+                   (:tr (:td :class "label-column"
+                             "Distributions")
+                        (:td :class "field-column"
+                             (mapc #'render-distribution
+                                   distributions)))
+                   (:tr (:td :class "label-column"
+                             "Last check")
+                        (:td :class "field-column"
+                             (cond
+                               (last-check
+                                (let* ((processed-at (ultralisp/models/check:get-processed-at
+                                                      last-check)))
+                                  (cond (processed-at
+                                         (let* ((now (now))
+                                                (duration
+                                                  (humanize-duration
+                                                   (timestamp-difference
+                                                    now
+                                                    processed-at)))
+                                                (error (ultralisp/models/check:get-error last-check))
+                                                (time-to-next-check
+                                                  (local-time-duration:timestamp-difference
+                                                   (get-time-of-the-next-check source)
+                                                   now))
+                                                (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
+                                                                      0)
+                                                                   (fmt " Next check will be made in ~A."
+                                                                        (humanize-duration
+                                                                         time-to-next-check))
+                                                                   " Next check will be made very soon.")))
+                                           (:span (fmt "Finished ~A ago. " duration))
+                                           
+                                           (when error
+                                             (:span "There was an")
+                                             (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
+                                               (:div :id popup-id
+                                                     :class "reveal large"
+                                                     :data-reveal "true"
+                                                     (:h1 "Check Error")
+                                                     (:pre error))
+                                               (:a :data-open popup-id
+                                                   "error"))
+                                             (:span "."))
+                                           (:span next-check-at)))
+                                        (t
+                                         ("Waiting in the queue. Position: ~A."
+                                          (ultralisp/models/check:position-in-the-queue last-check))))))
+                               (t
+                                ("No checks yet.")))
+
+                             (when user-is-moderator
+                               (reblocks-ui/form:with-html-form
+                                   (:post (lambda (&rest args)
+                                            (declare (ignore args))
+                                            ;; This call will create a new check
+                                            ;; only if it is not exist yet:
+                                            (make-check source
+                                                        :manual)
+                                            (reblocks/widget:update widget))
+                                    :class "float-right")
+                                 (:input :type "submit"
+                                         :class "button tiny secondary"
+                                         :name "button"
+                                         :value "Check"
+                                         :title "Put the check into the queue."))))))))))))
+
+
 (defmethod render-source ((widget readonly-source-widget)
                           (type (eql :archive))
                           source)
@@ -615,6 +819,122 @@
                       (error-placeholder "distributions"))))))))))
 
 
+;; TODO: deduplicate code between :git and :github
+(defmethod render-source ((widget edit-source-widget)
+                          (type (eql :git))
+                          source)
+  (let* ((params (ultralisp/models/source:source-params source))
+         (deleted (ultralisp/models/source:deleted-p source))
+         ;; TODO: difference
+         (url (getf params :url))
+         (last-seen-commit (getf params :last-seen-commit))
+         (ignore-dirs (getf params :ignore-dirs))
+         ;; (distributions (source-distributions source))
+         (user (reblocks-auth/models:get-current-user))
+         (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
+         (all-dists (append (ultralisp/models/dist:public-dists)
+                            user-dists))
+         ;; Previously we gathered only enabled dists, but this lead
+         ;; to a bug when you can't remove a source from the dist where
+         ;; it was disabled or where it is not checked yet.
+         (current-dists (source->dists source))
+         (release-info (ultralisp/models/source:source-release-info source)))
+    ;; Deleted sources should not be in the list
+    ;; for rendering.
+    (assert (not deleted))
+
+    (flet ((is-enabled (dist)
+             (member (ultralisp/models/dist:dist-name dist)
+                     current-dists
+                     :key #'ultralisp/models/dist:dist-name
+                     :test #'string-equal)))
+      (with-html
+        (reblocks-ui/form:with-html-form
+            (:post (lambda (&rest args)
+                     (handler-case (save widget args)
+                       (asdf-systems-conflict (c)
+                         (let ((message (fmt "~A" c)))
+                           (setf (dist-conflicts widget)
+                                 message)
+                           (reblocks/widget:update widget))))))
+          (form-error-placeholder)
+          (:table :class "unstriped"
+                  (:thead
+                   (:tr (:th :class "label-column"
+                             "Type")
+                        (:th :class "field-column"
+                             type
+                             (:div :class "source-controls float-right"
+                                   (let ((js-code-to-cancel
+                                           (make-js-action
+                                            (lambda (&rest args)
+                                              (declare (ignore args))
+                                              (switch-to-readonly widget)))))
+                                     (:input :type "button"
+                                             :class "secondary button tiny"
+                                             :name "button"
+                                             :onclick js-code-to-cancel
+                                             :value "Cancel"))
+                                   (:input :type "submit"
+                                           :class "success button tiny"
+                                           :name "button"
+                                           :value "Save")))))
+                  (:tbody
+                   (:tr (:td :class "label-column"
+                             "Source")
+                        (:td :class "field-column"
+                             (:input :value url
+                                     :name "url"
+                                     :type "text"
+                                     :onchange
+                                     (make-js-handler
+                                      :lisp-code ((&key url &allow-other-keys)
+                                                  (update-url (branches widget)
+                                                              url))
+                                      :js-code ((event)
+                                                ;; This will pass new URL value
+                                                ;; to the backend:
+                                                (parenscript:create
+                                                 :url (@ event target value)))))))
+                   (:tr (:td :class "label-column"
+                             "Branch or tag")
+                        (:td :class "field-column"
+                             (render (branches widget))))
+                   (:tr (:td :class "label-column"
+                             "Ignore systems in these dirs and ASD files")
+                        (:td :class "field-column"
+                             (:textarea :name "ignore-dirs"
+                                        :placeholder "vendor/, my-system-test.asd"
+                                        (format-ignore-list
+                                         ignore-dirs))))
+                   (when last-seen-commit
+                     (:tr (:td :class "label-column"
+                               "Last seen commit")
+                          (:td :class "field-column"
+                               (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                   last-seen-commit))))
+                   (when release-info
+                     (:tr (:td :class "label-column"
+                               "Release")
+                          (:td (:a :href (quickdist:get-project-url release-info)
+                                   (quickdist:get-project-url release-info)))))
+                   (:tr (:td :class "label-column"
+                             "Distributions")
+                        (:td :class "field-column"
+                             (loop for dist in all-dists
+                                   for name = (ultralisp/models/dist:dist-name dist)
+                                   do  (:input :type "checkbox"
+                                               :name "distributions"
+                                               :value name
+                                               :checked (is-enabled dist)
+                                               (:label name)))
+                             (when (dist-conflicts widget)
+                               (:pre :class "error"
+                                     (dist-conflicts widget)))
+                             (error-placeholder "distributions"))))))))))
+
+
+
 (defmethod reblocks/widget:render ((widget branch-select-widget))
   (with-html
     (:select :name "branch"
@@ -629,12 +949,27 @@
 
 
 (defmethod reblocks/widget:render ((widget source-widget))
+  ;; When user hits the refresh button we need to update
+  ;; source information because it might be changed
+  ;; while page was opened in the browser.
+  (when (reblocks/request:refresh-request-p)
+    (setf (source widget)
+          (get-latest-version-of (source widget))))
+  
   (reblocks/widget:render (subwidget widget)))
 
 
 (defmethod reblocks/widget:render ((widget readonly-source-widget))
   (let* ((source (source (parent widget)))
          (type (ultralisp/models/source:source-type source)))
+    (with-html
+      ;; This piece here to make debugging easier:
+      (:p :style "display: hidden"
+          (fmt "source-id=~S version=~S project-id=~S project-version=~S"
+               (object-id source)
+               (object-version source)
+               (source-project-id source)
+               (project-version source))))
     (render-source widget type source)))
 
 
@@ -666,7 +1001,7 @@
 
 ;; Methods to render changes between source versions
 
-(defmethod ultralisp/protocols/render-changes:render ((type (eql :github)) prev-source new-source)
+(defmethod ultralisp/protocols/render-changes:render ((type (eql :git)) prev-source new-source)
   (reblocks/html:with-html
     (:ul
      (loop with old-params = (ultralisp/models/source:source-params prev-source)
@@ -697,6 +1032,11 @@
                     (str:shorten length new-value :ellipsis "…")))))))
 
 
+(defmethod ultralisp/protocols/render-changes:render ((type (eql :github)) prev-source new-source)
+  ;; Renders for :git and :github are the same. Probably we don't need a generic function here?
+  (ultralisp/protocols/render-changes:render :git prev-source new-source))
+
+
 (defmethod reblocks/widget:render ((widget add-source-widget))
   (let ((project (project widget))
         (user (reblocks-auth/models:get-current-user)))
@@ -720,10 +1060,14 @@
              (:select :name "type"
                :style "min-width: 7em; margin: 0"
                (:option :selected t
+                        :value "github"
                         "GitHub")
-               (:option "Archive" :disabled t)
-               (:option "Git" :disabled t)
-               (:option "Mercurial" :disabled t)))
+               (:option :value "git"
+                        "Git")
+               (:option :value "archive"
+                        :disabled t "Tar Archive (not supported yet)")
+               (:option :value "mercurial"
+                        :disabled t "Mercurial (not supported yet)")))
             (:td :style "width: 100%"
                  (:input :type "submit"
                          :class "button small"

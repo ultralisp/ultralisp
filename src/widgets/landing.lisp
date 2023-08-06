@@ -228,7 +228,7 @@
       (:a :class "button"
           :href "/github"
           :title "Add your projects from Github to Ultralisp distribution!"
-          "Add projects from Github")
+          "Add projects from GitHub or other forges")
       
       (render-installation-instructions (ultralisp/models/dist:common-dist))
       
