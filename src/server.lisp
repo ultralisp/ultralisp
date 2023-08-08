@@ -138,8 +138,9 @@
                 #:timestamp-difference)
   (:import-from #:ultralisp/sources/setup
                 #:setup-sources)
-  (:import-from #:ultralisp/api/server
-                #:make-api-app)
+  (:import-from #:ultralisp/api/api
+                #:api)
+  (:import-from #:ultralisp/api/server)
   
   (:shadow #:restart)
   (:export
@@ -197,16 +198,16 @@
   ;;              "/api/"
   ;;              (make-api-app))))
   ;;  :before :app)
-  (let ((websocket-middleware
+  (let ((api-middleware
           (cons
-           :websocket
+           :api
            (lambda (app)
              (funcall (lack.util:find-middleware :mount)
                       app
                       "/api"
-                      (make-api-app))))))
+                      (openrpc-server:make-clack-app api))))))
     (insert-middleware (call-next-method)
-                       websocket-middleware
+                       api-middleware
                        :after :session)))
 
 
