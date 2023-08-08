@@ -13,9 +13,12 @@
   (:import-from #:ultralisp/utils/github
                 #:get-topics)
   (:import-from #:sxql
+                #:limit
                 #:order-by
                 #:where
-                #:join))
+                #:join)
+  (:import-from #:alexandria
+                #:length=))
 (in-package #:ultralisp/models/tag)
 
 
@@ -46,11 +49,18 @@
 
 (defun get-project-tags (project)
   "Returns a list of string with tag names."
-  (check-type project project2)
-  (loop for link in (mito:select-dao 'project-tag
-                      (mito:includes 'tag)
-                      (sxql:where (:= :project-id (object-id project))))
-        collect (tag-name (tag link))))
+  (check-type project (or project2 integer))
+  
+  (loop with project-id = (etypecase project
+                            (project2 (object-id project))
+                            (integer project))
+        for tag in (mito:select-dao 'tag
+                     (sxql:join :project-tag :on (:= :project-tag.tag-id
+                                                  :tag.id))
+                     (sxql:where (:= :project-tag.project-id
+                                     project-id))
+                     (sxql:order-by :tag.name))
+        collect (tag-name tag)))
 
 
 (defun get-or-create (tag-name)
@@ -131,5 +141,28 @@ DELETE FROM project_tag
     (join :project_tag :on (:= :project2.id :project_tag.project_id))
     (join :tag :on (:= :project_tag.tag_id :tag.id))
     (where (:and (:= :tag.name tag-name)
-            :project2.latest))
+                 (:not :project2.deleted)
+                 :project2.latest))
     (order-by :project2.name)))
+
+
+(defun get-projects-by-tag-paginated (tag-name &key (limit 10) page-key)
+  "Returns a list of PROJECT2 instances tagged by given tag name."
+  (check-type tag-name string)
+  (let* ((previous-project-id (or page-key
+                                  -1))
+         (items
+           (mito:select-dao 'project2
+             (join :project_tag :on (:= :project2.id :project_tag.project_id))
+             (join :tag :on (:= :project_tag.tag_id :tag.id))
+             (where (:and (:= :tag.name tag-name)
+                          (:> :project2.id previous-project-id)
+                          (:not :project2.deleted)
+                          :project2.latest))
+             (order-by :project2.id)
+             (limit limit)))
+         (last-item (car (last items))))
+    (values items
+            (when (and last-item
+                       (length= limit items))
+              (object-id last-item)))))

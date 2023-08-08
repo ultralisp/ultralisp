@@ -4,6 +4,7 @@
   (:import-from #:ultralisp/mail)
   (:import-from #:ultralisp/metrics)
   (:import-from #:woo)
+  (:import-from #:lack.middleware.mount)
   (:import-from #:github)
   (:import-from #:cl-fad)
   (:import-from #:dbi)
@@ -20,7 +21,8 @@
   (:import-from #:slynk)
   (:import-from #:mito)
   (:import-from #:reblocks/debug)
-  (:import-from #:reblocks/server)
+  (:import-from #:reblocks/server
+                #:insert-middleware)
   (:import-from #:reblocks-lass)
   (:import-from #:reblocks/session)
   (:import-from #:reblocks-ui
@@ -136,6 +138,9 @@
                 #:timestamp-difference)
   (:import-from #:ultralisp/sources/setup
                 #:setup-sources)
+  (:import-from #:ultralisp/api/api
+                #:api)
+  (:import-from #:ultralisp/api/server)
   
   (:shadow #:restart)
   (:export
@@ -166,12 +171,44 @@
         "project:\"40ants/reblocks\" AND symbol:\"request\""
         "package:\"reblocks/actions\" to search all symbols exported from a package."))
 
+
+(defclass ultralisp-server (reblocks/server:server)
+  ())
+
+
 (defmethod init-page ((app app)
                       (url-path string)
                       expire-at)
   (check-type expire-at (or null local-time::timestamp))
+
   (make-maintenance-widget
    (make-main-routes)))
+
+
+(defmethod reblocks/server:make-middlewares ((server ultralisp-server) &rest rest)
+  (declare (ignore rest))
+  
+  ;; (reblocks/server:insert-middleware
+  ;;  (call-next-method)
+  ;;  (cons
+  ;;   :websocket
+  ;;   (lambda (app)
+  ;;     (funcall (lack.util:find-middleware :mount)
+  ;;              app
+  ;;              "/api/"
+  ;;              (make-api-app))))
+  ;;  :before :app)
+  (let ((api-middleware
+          (cons
+           :api
+           (lambda (app)
+             (funcall (lack.util:find-middleware :mount)
+                      app
+                      "/api"
+                      (openrpc-server:make-clack-app api))))))
+    (insert-middleware (call-next-method)
+                       api-middleware
+                       :after :session)))
 
 
 (defparameter *app-dependencies*
@@ -478,6 +515,7 @@
     (when (probe-file ".local.lisp")
       (load ".local.lisp"))
 
+
     (setf reblocks-auth:*enabled-services*
           (list :github :email))
 
@@ -488,8 +526,11 @@
     (ultralisp/cron:start)
 
     (log:info "Starting server" args)
-    (apply #'reblocks/server:start :apps '(app) args)
-
+    (apply #'reblocks/server:start
+           :apps '(app)
+           :server-class 'ultralisp-server
+           args)
+    
     (log:info "DONE")
     (setf *started-at*
           (local-time:now))

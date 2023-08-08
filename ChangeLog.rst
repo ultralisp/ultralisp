@@ -2,6 +2,16 @@
  ChangeLog
 ===========
 
+1.20.0 (2023-08-08)
+===================
+
+* OpenRPC API was added with following methods:
+
+  - ``get_projects_by_tag``
+  - ``get_project_tags``
+  - ``get_project_by_name``
+  - ``search_symbol``
+
 1.19.3 (2023-08-06)
 ===================
 

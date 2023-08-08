@@ -77,6 +77,7 @@
 
 
 (defun index (collection id data)
+  "Put object into a given index."
   (let ((content (jonathan:to-json data))
         (url (fmt "http://~A:9200/~A/_doc/~A"
                   (get-elastic-host)
@@ -112,7 +113,8 @@
                    :reader get-original-error)))
 
 
-(defun search-objects (term &key (from 0))
+(defun search-objects (term &key (from 0) (limit 10))
+  "Here FROM is a number of results to be skipped."
   ;; TODO: научиться обрабатывать 400 ответы от Elastic
   ;; например на запрос: TYPE:macro AND storage NAME:FLEXI-STREAMS:WITH-OUTPUT-TO-SEQUENCE
   (handler-case
@@ -124,7 +126,8 @@
                                     (list :|fields|
                                           (list "documentation" "symbol" "package")
                                           :|query| term))
-                          :|from| from)
+                          :|from| from
+                          :|size| limit)
             with content = (jonathan:to-json query)
             with body = (dex:post url
                                   :content content
