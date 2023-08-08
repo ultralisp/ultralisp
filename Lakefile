@@ -58,7 +58,7 @@
 
 (defun build-deps-file ()
   (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
-  (sh "qlot exec gen-deps-system --except ultralisp,sb-concurrency,sb-bsd-sockets,sb-cltl2,sb-introspect,sb-posix,sb-rotate-byte,asdf app"))
+  (sh "qlot exec gen-deps-system --except ultralisp,asdf app"))
 
 (task "deps" ("qlfile.lock")
       ;; Here you need to install gen-deps-system using this command
