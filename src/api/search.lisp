@@ -36,7 +36,7 @@
                   :reader search-result-documentation)))
 
 
-(define-rpc-method (api search-symbol) (term &key (page-key 0) (limit *default-page-size*))
+(define-rpc-method (api search-symbols) (term &key (page-key 0) (limit *default-page-size*))
   (:summary "Search a symbol by it's name or docstring.")
   (:param term string "A search term. Syntax is the same as on the site.")
   (:param page-key integer "Next page key.")

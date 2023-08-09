@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.20.2 (2023-08-09)
+===================
+
+* Added more API methods: ``get-project-systems``, ``get-all-tags``.
+* API method ``search-symbol`` was renamed to ``search-symbols``.
+
 1.20.1 (2023-08-09)
 ===================
 

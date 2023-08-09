@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/models/project
+(uiop:define-package #:ultralisp/models/project
   (:use #:cl)
   (:import-from #:mito
                 #:object-id
@@ -70,7 +70,8 @@
                 #:external-url)
   (:import-from #:ultralisp/protocols/url
                 #:url)
-  (:import-from #:ultralisp/models/source)
+  (:import-from #:ultralisp/models/source
+                #:source-systems-info)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:ultralisp/models/dist
@@ -137,7 +138,9 @@
    #:get-projects2-by-username
    #:get-projects-with-sources
    #:ensure-project
-   #:get-all-dist-projects))
+   #:get-all-dist-projects
+   #:get-project-systems
+   #:get-project2-by-id))
 (in-package #:ultralisp/models/project)
 
 
@@ -426,6 +429,19 @@
         (where (:and
                 (:= (:raw "lower(name)")
                     (string-downcase project-name))
+                (:= :latest
+                    1))))
+    (values (first response)
+            query)))
+
+
+(defun get-project2-by-id (project-id)
+  (check-type project-id integer)
+  (multiple-value-bind (response query)
+      (select-dao 'project2
+        (where (:and
+                (:= :id
+                    project-id)
                 (:= :latest
                     1))))
     (values (first response)
@@ -740,3 +756,10 @@
                   (when enabled-given-p
                     (list :enabled enabled)))))
     (mapcar #'source->project sources)))
+
+
+(defun get-project-systems (project)
+  (check-type project project2)
+  (loop for source in (project-sources project)
+        for systems = (source-systems-info source)
+        appending systems))
