@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.20.1 (2023-08-09)
+===================
+
+* Fixed pagination argument in the API methods.
+
 1.20.0 (2023-08-08)
 ===================
 

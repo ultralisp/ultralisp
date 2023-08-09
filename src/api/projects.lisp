@@ -18,17 +18,17 @@
 (in-package #:ultralisp/api/projects)
 
 
-(define-rpc-method (api get-projects-by-tag) (tag &key next-page-key (limit *default-page-size*))
+(define-rpc-method (api get-projects-by-tag) (tag &key page-key (limit *default-page-size*))
   (:summary "Returns project market by a given tag.")
   (:param tag string "Tag name.")
-  (:param next-page-key integer "Next page key.")
+  (:param page-key integer "Next page key.")
   (:param limit integer "Maximum number of projects per page.")
   (:result (paginated-list-of project2))
   
-  (log:error "Retrieving projects with" tag next-page-key)
+  (log:error "Retrieving projects with" tag page-key)
   (ultralisp/db:with-connection ()
     (ultralisp/models/tag::get-projects-by-tag-paginated tag
-                                                         :page-key next-page-key
+                                                         :page-key page-key
                                                          :limit limit)))
 
 

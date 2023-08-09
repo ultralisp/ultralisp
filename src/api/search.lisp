@@ -36,16 +36,16 @@
                   :reader search-result-documentation)))
 
 
-(define-rpc-method (api search-symbol) (term &key (next-page-key 0) (limit *default-page-size*))
+(define-rpc-method (api search-symbol) (term &key (page-key 0) (limit *default-page-size*))
   (:summary "Search a symbol by it's name or docstring.")
   (:param term string "A search term. Syntax is the same as on the site.")
-  (:param next-page-key integer "Next page key.")
+  (:param page-key integer "Next page key.")
   (:param limit integer "Maximum number of items per page.")
   (:result (paginated-list-of search-result))
   
   (ultralisp/search:search-objects term)
   (loop for item in (ultralisp/search:search-objects term
-                                                     :from next-page-key
+                                                     :from page-key
                                                      :limit limit)
         for type = (string-downcase
                     (symbol-name (first item)))
@@ -60,5 +60,5 @@
                                :documentation documentation)
         into results
         finally (return (values results
-                                (+ next-page-key
+                                (+ page-key
                                     (length results))))))
