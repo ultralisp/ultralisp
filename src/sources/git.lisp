@@ -40,7 +40,6 @@
          (full-name (if username
                         (fmt "~A/~A" username project-name)
                         project-name)))
-    (error "Foo")
     (~>> full-name 
          (replace-all "@" "")
          (replace-all "~" ""))))

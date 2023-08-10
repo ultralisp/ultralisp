@@ -2,7 +2,12 @@
  ChangeLog
 ===========
 
-1.20.3 (2023-08-09)
+1.20.4 (2023-08-10)
+===================
+
+* Removed debug form.
+
+1.20.3 (2023-08-10)
 ===================
 
 * Fixed creationg of new Git projects from URL.
