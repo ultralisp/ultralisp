@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.20.3 (2023-08-09)
+===================
+
+* Fixed creationg of new Git projects from URL.
+* Error page and logs now have "request-id" field to simplify debugging.
+
 1.20.2 (2023-08-09)
 ===================
 

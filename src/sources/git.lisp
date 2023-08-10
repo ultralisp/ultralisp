@@ -5,6 +5,7 @@
   (:import-from #:alexandria
                 #:last-elt)
   (:import-from #:serapeum
+                #:~>>
                 #:fmt)
   (:import-from #:ultralisp/sources/base
                 #:base-source
@@ -19,7 +20,9 @@
                 #:add-source
                 #:project2)
   (:import-from #:ultralisp/utils/git
-                #:probe-git-url))
+                #:probe-git-url)
+  (:import-from #:str
+                #:replace-all))
 (in-package #:ultralisp/sources/git)
 
 
@@ -33,10 +36,14 @@
          (project-name (pathname-name parsed-path))
          (dir (pathname-directory parsed-path))
          (username (when (> (length dir) 1)
-                     (last-elt dir))))
-    (if username
-        (fmt "~A/~A" username project-name)
-        project-name)))
+                     (last-elt dir)))
+         (full-name (if username
+                        (fmt "~A/~A" username project-name)
+                        project-name)))
+    (error "Foo")
+    (~>> full-name 
+         (replace-all "@" "")
+         (replace-all "~" ""))))
 
 
 (defun guess-git-source (url)

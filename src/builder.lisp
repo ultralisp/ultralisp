@@ -55,8 +55,7 @@
                 #:with-fields)
   (:import-from #:ultralisp/utils
                 #:delete-file-if-exists
-                #:remove-last-slash
-                #:make-request-id)
+                #:remove-last-slash)
   (:import-from #:alexandria
                 #:write-string-into-file)
   (:import-from #:arrows
