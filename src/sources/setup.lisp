@@ -1,7 +1,8 @@
 (uiop:define-package #:ultralisp/sources/setup
   (:use #:cl)
   (:import-from #:ultralisp/sources/git
-                #:guess-git-sourcehub
+                #:guess-git-source)
+  (:import-from #:ultralisp/sources/github
                 #:guess-github-source)
   (:import-from #:ultralisp/sources/guesser
                 #:*hooks*))

@@ -265,20 +265,20 @@
                  (update widget))))))
       (:table :class "url-frame"
               (:tr :style "vertical-align: top"
-               (:td
-                (:input :type "text"
-                        :name "url"
-                        :placeholder "https://github.com/takagi/lake or https://git.sr.ht/~fosskers/cl-transducers")
-                (if (get-url-form-error widget)
-                    (:p :class "label alert"
-                        (get-url-form-error widget))
-                    ;; Otherwise, just show a note about webhooks
-                    (:p :class "label secondary"
-                        "But this way a project we'll not be able to setup a webhook and project will be updated only by cron.")))
-               (:td
-                (reblocks-ui/form:render-button
-                 "Add"
-                 :class "button")))))))
+                   (:td
+                    (:input :type "text"
+                            :name "url"
+                            :placeholder "https://github.com/takagi/lake or https://git.sr.ht/~fosskers/cl-transducers")
+                    (if (get-url-form-error widget)
+                        (:p :class "label alert"
+                            (get-url-form-error widget))
+                        ;; Otherwise, just show a note about webhooks
+                        (:p :class "label secondary"
+                            "But this way a project we'll not be able to setup a webhook and project will be updated only by cron.")))
+                   (:td
+                    (reblocks-ui/form:render-button
+                     "Add"
+                     :class "button")))))))
 
 
 (defgeneric render-with-state (widget state)

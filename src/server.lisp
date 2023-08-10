@@ -42,6 +42,7 @@
   (:import-from #:ultralisp/widgets/main
                 #:make-main-routes)
   (:import-from #:ultralisp/utils
+                #:make-request-id
                 #:getenv)
   (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/app
@@ -170,6 +171,10 @@
   (list "signal - this will search in symbol's name and documentation."
         "project:\"40ants/reblocks\" AND symbol:\"request\""
         "package:\"reblocks/actions\" to search all symbols exported from a package."))
+
+
+(defvar *request-id* nil
+  "Here we'll keep current request id when rendering a response to HTTP request or action.")
 
 
 (defclass ultralisp-server (reblocks/server:server)
@@ -407,6 +412,7 @@
              (with-html-string
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+               (:h4 ("Mention ~S request id in the issue." *request-id*))
                (when condition
                  (:h5 ("~A" condition)))
                (when backtrace
@@ -414,7 +420,8 @@
             (t
              (with-html-string
                (:h3 "Some shit happened.")
-               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!")))))))
+               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+               (:h4 ("Mention ~S request id in the issue." *request-id*)))))))
     
     (immediate-response
      (with-html-string
@@ -428,7 +435,11 @@
 (defmethod handle-request ((app app))
   "Here we create a new connection and start new transaction on each request."
   (with-connection ()
-    (call-next-method)))
+    (let ((*request-id* (make-request-id)))
+      (reblocks/response:add-header :x-request-id
+                                    *request-id*)
+      (with-fields (:request-id *request-id*)
+        (call-next-method)))))
 
 
 ;; Top level start & stop scripts
