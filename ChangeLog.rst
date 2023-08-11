@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.20.5 (2023-08-11)
+===================
+
+* Fixed issue happened when you adding a new project from GitHub by selecting it from the list.
+
 1.20.4 (2023-08-10)
 ===================
 

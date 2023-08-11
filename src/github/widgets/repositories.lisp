@@ -2,7 +2,11 @@
   (:use #:cl)
   (:import-from #:reblocks-parenscript)
   (:import-from #:dexador)
+  (:import-from #:ultralisp/sources/github
+                #:guess-github-source)
   (:import-from #:jonathan)
+  (:import-from #:serapeum
+                #:fmt)
   (:import-from #:log)
   (:import-from #:reblocks-lass)
   (:import-from #:parenscript
@@ -399,7 +403,8 @@
                                `(:|config| (:|url| ,hook
                                              :|content_type| "json"))))))
     
-    (add-or-turn-on-project name)
+    (let ((repository-url (fmt "https://github.com/~A" name)))
+      (add-or-turn-on-project (guess-github-source repository-url)))
     (values)))
 
 
