@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.21.0 (2023-08-13)
+===================
+
+* Added API method get-project-sources. This way you can learn information about sources, their systems and release_info.
+
 1.20.5 (2023-08-11)
 ===================
 

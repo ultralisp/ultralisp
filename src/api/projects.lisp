@@ -73,3 +73,19 @@
                                           project-id)
                                      :code -1))
       (ultralisp/models/project::get-project-systems project))))
+
+
+(define-rpc-method (api get-project-sources) (project-id)
+  (:summary "Retrieve all sources known for given project.")
+  (:param project-id integer "ID of a project.")
+  (:result (list-of ultralisp/models/source::source))
+  
+  (ultralisp/db:with-connection ()
+    (let ((project (get-project2-by-id project-id)))
+      (unless project
+        (openrpc-server:return-error (fmt "Project with id ~A not found."
+                                          project-id)
+                                     :code -1))
+
+      (let ((sources (ultralisp/models/project::project-sources project)))
+        (values sources)))))
