@@ -90,6 +90,8 @@
                 #:external-url)
   (:import-from #:alexandria
                 #:write-string-into-file)
+  (:import-from #:ultralisp/models/system-info
+                #:transform-to-ultralisp-systems-info)
   (:export
    #:perform-pending-checks
    #:perform
@@ -230,8 +232,10 @@
 
 
 (defun collect-systems (path &key (ignore-filename-p (constantly nil)))
-  (quickdist:make-systems-info path
-                               :ignore-filename-p ignore-filename-p))
+  (let ((systems (quickdist:make-systems-info path
+                                              :ignore-filename-p ignore-filename-p)))
+    (mapcar #'transform-to-ultralisp-systems-info
+            systems)))
 
 
 (defcommand update-check-as-successful2 (check processed-in)

@@ -13,20 +13,28 @@
                 #:get-archive-path
                 #:get-project-url
                 #:get-project-name)
-  (:export
-   #:systems-info-to-json
-   #:release-info-to-json
-   #:systems-info-from-json
-   #:release-info-from-json))
+  (:import-from #:ultralisp/models/system-info
+                #:system-info)
+  (:export #:systems-info-to-json
+           #:release-info-to-json
+           #:systems-info-from-json
+           #:release-info-from-json))
 (in-package #:ultralisp/models/utils)
 
 
 (defun %system-info-to-json (system-info)
+  (check-type system-info system-info)
+  
   (list :path (uiop:native-namestring (get-path system-info))
         :project-name (get-project-name system-info)
         :filename (get-filename system-info)
         :name (quickdist:get-name system-info)
-        :dependencies (get-dependencies system-info)))
+        :dependencies (get-dependencies system-info)
+        :license (ultralisp/models/system-info::system-info-license system-info)
+        :author (ultralisp/models/system-info::system-info-author system-info)
+        :maintainer (ultralisp/models/system-info::system-info-maintainer system-info)
+        :description (ultralisp/models/system-info::system-info-description system-info)
+        :long-description (ultralisp/models/system-info::system-info-long-description system-info)))
 
 (defun systems-info-to-json (systems-info)
   "Prepares a list of systems info objects to be serialized to json."
@@ -52,12 +60,17 @@
 (defun %system-info-from-json (data)
   "Prepares a list of systems info objects to be deserialized from json."
   (when data
-    (make-instance 'quickdist:system-info
+    (make-instance 'system-info
                    :path (getf data :path)
                    :project-name (getf data :project-name)
                    :filename (getf data :filename)
                    :name (getf data :name)
-                   :dependencies (getf data :dependencies))))
+                   :dependencies (getf data :dependencies)
+                   :license (getf data :license)
+                   :author (getf data :author)
+                   :maintainer (getf data :maintainer)
+                   :description (getf data :description)
+                   :long-description (getf data :long-description))))
 
 
 (defun release-info-from-json (json)

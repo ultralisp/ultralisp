@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.22.0 (2023-08-13)
+===================
+
+* Added such fields as author, maintainer, license, description and long description to source's asdf system objects.
+
 1.21.0 (2023-08-13)
 ===================
 
