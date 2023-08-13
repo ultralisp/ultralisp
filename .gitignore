@@ -21,3 +21,4 @@
 /dist-lw80/
 /lw-license-backup
 .local.lisp
+*.fasl

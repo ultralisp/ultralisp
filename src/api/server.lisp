@@ -8,6 +8,7 @@
   (:import-from #:ultralisp/api/tags)
   (:import-from #:ultralisp/models/source)
   (:import-from #:alexandria
+                #:curry
                 #:plist-hash-table))
 (in-package #:ultralisp/api/server)
 
@@ -39,4 +40,11 @@
                    value)
           finally (setf (gethash "params" result)
                         params-hash))
+
+    ;; Also, it is better to return system-info sorted by system name
+    (setf (gethash "systems_info" result)
+          (sort (gethash "systems_info" result)
+                #'string<
+                :key (curry #'gethash "name")))
+    
     (values result)))

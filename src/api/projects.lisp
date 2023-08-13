@@ -16,7 +16,9 @@
   (:import-from #:mito
                 #:object-id)
   (:import-from #:openrpc-server
-                #:define-rpc-method))
+                #:define-rpc-method)
+  (:import-from #:ultralisp/models/system-info
+                #:system-info))
 (in-package #:ultralisp/api/projects)
 
 
@@ -63,8 +65,12 @@
 
 (define-rpc-method (api get-project-systems) (project-id)
   (:summary "Retrieve all systems of a given project.")
+  (:description "Systems are sorted alphabetically.
+
+                 In case if project defines two or more sources, systems can be duplicated in the list.
+                 Use get-project-sources in this case, to get separated list of systems for each source.")
   (:param project-id integer "ID of a project.")
-  (:result (list-of quickdist:system-info))
+  (:result (list-of system-info))
   
   (ultralisp/db:with-connection ()
     (let ((project (get-project2-by-id project-id)))
@@ -72,7 +78,9 @@
         (openrpc-server:return-error (fmt "Project with id ~A not found."
                                           project-id)
                                      :code -1))
-      (ultralisp/models/project::get-project-systems project))))
+      (sort (ultralisp/models/project::get-project-systems project)
+            #'string<
+            :key #'quickdist:get-name))))
 
 
 (define-rpc-method (api get-project-sources) (project-id)
@@ -82,7 +90,9 @@
                  If source type is GITHUB, then it's params contain \"user-or-org\" and \"project\" keys.
                  URL can be contructed from these values.
 
-                 For source type GIT, params hashmap will contain \"url\" key.")
+                 For source type GIT, params hashmap will contain \"url\" key.
+
+                 Systems in systems-info key of a source, are sorted by name.")
   (:param project-id integer "ID of a project.")
   (:result (list-of ultralisp/models/source::source))
   
