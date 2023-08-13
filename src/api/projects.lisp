@@ -77,6 +77,12 @@
 
 (define-rpc-method (api get-project-sources) (project-id)
   (:summary "Retrieve all sources known for given project.")
+  (:description "URL of the project can be retrieved from it's source params.
+
+                 If source type is GITHUB, then it's params contain \"user-or-org\" and \"project\" keys.
+                 URL can be contructed from these values.
+
+                 For source type GIT, params hashmap will contain \"url\" key.")
   (:param project-id integer "ID of a project.")
   (:result (list-of ultralisp/models/source::source))
   
