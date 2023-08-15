@@ -54,7 +54,10 @@
   (:import-from #:ultralisp/variables
                 #:get-base-url)
   (:import-from #:serapeum
+                #:soft-list-of
                 #:fmt)
+  (:import-from #:ultralisp/models/system-info
+                #:system-info)
   (:export
    #:source-systems-info
    #:source-release-info
@@ -122,12 +125,14 @@
            :deflate #'deflate-json
            :inflate #'inflate-json)
    (systems-info :col-type (or :jsonb :null)
+                 :type (soft-list-of system-info)
                  :documentation "Contains a list of lists describing systems same way as quickdist returns."
                  :initform nil
                  :reader source-systems-info
                  :deflate #'systems-info-to-json
                  :inflate #'systems-info-from-json)
    (release-info :col-type (or :jsonb :null)
+                 :type quickdist:release-info
                  :documentation ""
                  :initform nil
                  :reader source-release-info

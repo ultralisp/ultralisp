@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.22.1 (2023-08-15)
+===================
+
+* Slots systems-info and release-info of source have got their types.
+  This should fix their representation in the API.
+
 1.22.0 (2023-08-13)
 ===================
 
