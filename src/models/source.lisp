@@ -132,7 +132,7 @@
                  :deflate #'systems-info-to-json
                  :inflate #'systems-info-from-json)
    (release-info :col-type (or :jsonb :null)
-                 :type quickdist:release-info
+                 :type (or null quickdist:release-info)
                  :documentation ""
                  :initform nil
                  :reader source-release-info

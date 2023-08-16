@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.22.2 (2023-08-16)
+===================
+
+* Fixed type of release-info slot and corresponding dist build issue.
+
 1.22.1 (2023-08-15)
 ===================
 
