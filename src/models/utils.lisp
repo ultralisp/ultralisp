@@ -44,7 +44,7 @@
 
 
 (defun release-info-to-json (release-info)
-  (check-type release-info quickdist:release-info)
+  (check-type release-info (or null quickdist:release-info))
   
   (jonathan:to-json
    (if release-info

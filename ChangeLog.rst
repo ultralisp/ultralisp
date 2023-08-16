@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.22.3 (2023-08-16)
+===================
+
+* Fixed type declaration in the yet another place.
+
 1.22.2 (2023-08-16)
 ===================
 
