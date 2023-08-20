@@ -309,7 +309,7 @@
 
 
 (defcached (get-num-projects :timeout (* 60 5)) ()
-  (length (get-all-projects :only-enabled t)))
+  (ultralisp/models/project::get-projects-count))
 
 
 (defun make-version-info ()

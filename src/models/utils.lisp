@@ -1,6 +1,9 @@
 (defpackage #:ultralisp/models/utils
   (:use #:cl)
-  (:import-from #:jonathan)
+  (:import-from #:yason)
+  (:import-from #:serapeum
+                #:dict
+                #:@)
   (:import-from #:quickdist
                 #:get-path
                 #:get-filename
@@ -24,73 +27,77 @@
 
 (defun %system-info-to-json (system-info)
   (check-type system-info system-info)
-  
-  (list :path (uiop:native-namestring (get-path system-info))
-        :project-name (get-project-name system-info)
-        :filename (get-filename system-info)
-        :name (quickdist:get-name system-info)
-        :dependencies (get-dependencies system-info)
-        :license (ultralisp/models/system-info::system-info-license system-info)
-        :author (ultralisp/models/system-info::system-info-author system-info)
-        :maintainer (ultralisp/models/system-info::system-info-maintainer system-info)
-        :description (ultralisp/models/system-info::system-info-description system-info)
-        :long-description (ultralisp/models/system-info::system-info-long-description system-info)))
+
+  ;; Using uppercase to preserve backward compatibility
+  ;; with old data in the database.
+  (dict "PATH" (uiop:native-namestring (get-path system-info))
+        "PROJECT-NAME" (get-project-name system-info)
+        "FILENAME" (get-filename system-info)
+        "NAME" (quickdist:get-name system-info)
+        "DEPENDENCIES" (get-dependencies system-info)
+        "LICENSE" (ultralisp/models/system-info::system-info-license system-info)
+        "AUTHOR" (ultralisp/models/system-info::system-info-author system-info)
+        "MAINTAINER" (ultralisp/models/system-info::system-info-maintainer system-info)
+        "DESCRIPTION" (ultralisp/models/system-info::system-info-description system-info)
+        "LONG-DESCRIPTION" (ultralisp/models/system-info::system-info-long-description system-info)))
 
 (defun systems-info-to-json (systems-info)
   "Prepares a list of systems info objects to be serialized to json."
-  (jonathan:to-json
+  (yason:with-output-to-string* ()
+    (yason:encode
      (mapcar #'%system-info-to-json
-           systems-info)))
+             systems-info))))
 
 
 (defun release-info-to-json (release-info)
   (check-type release-info (or null quickdist:release-info))
   
-  (jonathan:to-json
-   (if release-info
-       (list :project-name (get-project-name release-info)
-             :project-url (get-project-url release-info)
-             :archive-path (uiop:native-namestring (get-archive-path release-info))
-             :file-size (get-file-size release-info)
-             :md5sum (get-md5sum release-info)
-             :content-sha1 (get-content-sha1 release-info)
-             :project-prefix (get-project-prefix release-info)
-             :system-files (get-system-files release-info))
-       :null)))
+  (yason:with-output-to-string* ()
+    (yason:encode
+     (if release-info
+         (dict "PROJECT-NAME" (get-project-name release-info)
+               "PROJECT-URL" (get-project-url release-info)
+               "ARCHIVE-PATH" (uiop:native-namestring (get-archive-path release-info))
+               "FILE-SIZE" (get-file-size release-info)
+               "MD5SUM" (get-md5sum release-info)
+               "CONTENT-SHA1" (get-content-sha1 release-info)
+               "PROJECT-PREFIX" (get-project-prefix release-info)
+               "SYSTEM-FILES" (get-system-files release-info))
+         :null))))
 
 
 (defun %system-info-from-json (data)
   "Prepares a list of systems info objects to be deserialized from json."
   (when data
     (make-instance 'system-info
-                   :path (getf data :path)
-                   :project-name (getf data :project-name)
-                   :filename (getf data :filename)
-                   :name (getf data :name)
-                   :dependencies (getf data :dependencies)
-                   :license (getf data :license)
-                   :author (getf data :author)
-                   :maintainer (getf data :maintainer)
-                   :description (getf data :description)
-                   :long-description (getf data :long-description))))
+                   :path (@ data "PATH")
+                   :project-name (@ data "PROJECT-NAME")
+                   :filename (@ data "FILENAME")
+                   :name (@ data "NAME")
+                   :dependencies (@ data "DEPENDENCIES")
+                   :license (@ data "LICENSE")
+                   :author (@ data "AUTHOR")
+                   :maintainer (@ data "MAINTAINER")
+                   :description (@ data "DESCRIPTION")
+                   :long-description (@ data "LONG-DESCRIPTION"))))
 
 
 (defun release-info-from-json (json)
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
+  (let ((data (yason:parse json)))
     (when data
       (make-instance 'quickdist:release-info
-                     :project-name (getf data :project-name)
-                     :project-url (getf data :project-url)
-                     :archive-path (getf data :archive-path)
-                     :file-size (getf data :file-size)
-                     :md5sum (getf data :md5sum)
-                     :content-sha1 (getf data :content-sha1)
-                     :project-prefix (getf data :project-prefix)
-                     :system-files (getf data :system-files)))))
+                     :project-name (@ data "PROJECT-NAME")
+                     :project-url (@ data "PROJECT-URL")
+                     :archive-path (@ data "ARCHIVE-PATH")
+                     :file-size (@ data "FILE-SIZE")
+                     :md5sum (@ data "MD5SUM")
+                     :content-sha1 (@ data "CONTENT-SHA1")
+                     :project-prefix (@ data "PROJECT-PREFIX")
+                     :system-files (@ data "SYSTEM-FILES")))))
 
 
 (defun systems-info-from-json (json)
   "Prepares a list of systems info objects to be serialized to json."
-  (let ((data (jonathan:parse (coerce json 'simple-base-string))))
+  (let ((data (yason:parse json)))
     (mapcar #'%system-info-from-json
             data)))

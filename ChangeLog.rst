@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+1.22.4 (2023-08-20)
+===================
+
+* Fixed error on the frontpage caused by incompability of Jonthan to parse JSON
+  including strings with accents. I've switched to Yason at this place.
+* Fixed rendering of total projects count on the front page.
+
 1.22.3 (2023-08-16)
 ===================
 
