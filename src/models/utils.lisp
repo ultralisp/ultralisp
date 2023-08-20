@@ -45,8 +45,11 @@
   "Prepares a list of systems info objects to be serialized to json."
   (yason:with-output-to-string* ()
     (yason:encode
-     (mapcar #'%system-info-to-json
-             systems-info))))
+     ;; If we won't transform systems-info list into the vector,
+     ;; then yason will output "null" instead of "[]" for empty lists
+     (map 'simple-vector
+          #'%system-info-to-json
+          systems-info))))
 
 
 (defun release-info-to-json (release-info)
