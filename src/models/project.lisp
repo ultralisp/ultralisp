@@ -397,6 +397,13 @@
     (order-by (:desc :created-at))
     (limit limit)))
 
+
+(defun get-projects-count ()
+  "Returns a total number of projects in the database (including projects with disabled sources."
+  (getf (first (mito:retrieve-by-sql "SELECT COUNT(*) as cnt FROM project2"))
+        :CNT))
+
+
 (defun get-recently-updated-projects (&key (since (time-in-past :day 1)))
   "Returns a list of recently added projects to show them on a landing page."
   (select-dao 'project

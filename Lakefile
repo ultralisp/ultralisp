@@ -105,7 +105,11 @@
       (sh "docker compose run --rm mito migrate"))
 
 (task "dbshell" ()
-      (sh "psql postgresql://ultralisp:ultralisp@localhost"))
+  (sh "docker exec -ti ultralisp_db psql 'user=ultralisp'")
+  ;; For some reaseon this does not work with postgresl running in the docker
+  ;; despite that connection from lisp can be established:
+  ;; (sh "psql postgresql://ultralisp:ultralisp@localhost")
+  )
 
 (task "dbshell-prod" ()
   (let ((*ssh-host* "sailfish"))
