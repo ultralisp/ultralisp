@@ -86,21 +86,23 @@
 
 
 (defun release-info-from-json (json)
-  (let ((data (yason:parse json)))
-    (when data
-      (make-instance 'quickdist:release-info
-                     :project-name (@ data "PROJECT-NAME")
-                     :project-url (@ data "PROJECT-URL")
-                     :archive-path (@ data "ARCHIVE-PATH")
-                     :file-size (@ data "FILE-SIZE")
-                     :md5sum (@ data "MD5SUM")
-                     :content-sha1 (@ data "CONTENT-SHA1")
-                     :project-prefix (@ data "PROJECT-PREFIX")
-                     :system-files (@ data "SYSTEM-FILES")))))
+  (when json
+    (let ((data (yason:parse json)))
+      (when data
+        (make-instance 'quickdist:release-info
+                       :project-name (@ data "PROJECT-NAME")
+                       :project-url (@ data "PROJECT-URL")
+                       :archive-path (@ data "ARCHIVE-PATH")
+                       :file-size (@ data "FILE-SIZE")
+                       :md5sum (@ data "MD5SUM")
+                       :content-sha1 (@ data "CONTENT-SHA1")
+                       :project-prefix (@ data "PROJECT-PREFIX")
+                       :system-files (@ data "SYSTEM-FILES"))))))
 
 
 (defun systems-info-from-json (json)
   "Prepares a list of systems info objects to be serialized to json."
-  (let ((data (yason:parse json)))
-    (mapcar #'%system-info-from-json
-            data)))
+  (when json
+    (let ((data (yason:parse json)))
+      (mapcar #'%system-info-from-json
+              data))))
