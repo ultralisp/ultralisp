@@ -25,6 +25,20 @@
 (in-package #:ultralisp/models/utils)
 
 
+(defun %normalize-names (name-or-names)
+  ;; This is a workaround for cases when quoting is used inside defsystem
+  ;; https://github.com/thephoeron/fmcs/pull/1
+  (typecase name-or-names
+    (list (cond
+            ((eql (first name-or-names)
+                  'quote)
+             (second name-or-names))
+            (t
+             name-or-names)))
+    (string name-or-names)
+    (t nil)))
+
+
 (defun %system-info-to-json (system-info)
   (check-type system-info system-info)
 
@@ -36,8 +50,10 @@
         "NAME" (quickdist:get-name system-info)
         "DEPENDENCIES" (get-dependencies system-info)
         "LICENSE" (ultralisp/models/system-info::system-info-license system-info)
-        "AUTHOR" (ultralisp/models/system-info::system-info-author system-info)
-        "MAINTAINER" (ultralisp/models/system-info::system-info-maintainer system-info)
+        "AUTHOR" (%normalize-names
+                  (ultralisp/models/system-info::system-info-author system-info))
+        "MAINTAINER" (%normalize-names
+                      (ultralisp/models/system-info::system-info-maintainer system-info))
         "DESCRIPTION" (ultralisp/models/system-info::system-info-description system-info)
         "LONG-DESCRIPTION" (ultralisp/models/system-info::system-info-long-description system-info)))
 
