@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.22.6 (2023-09-02)
+===================
+
+* Fix error which occur when author or maintainer in ASD files is quoted by a mistake.
+
 1.22.5 (2023-08-20)
 ===================
 
