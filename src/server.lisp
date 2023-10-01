@@ -17,7 +17,7 @@
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/cron)
   (:import-from #:reblocks/app)
-  (:import-from #:mailgun)
+  (:import-from #:resend)
   (:import-from #:slynk)
   (:import-from #:mito)
   (:import-from #:reblocks/debug)
@@ -82,8 +82,7 @@
                 #:get-github-robot-token
                 #:get-dist-dir
                 #:get-user-agent
-                #:get-mailgun-domain
-                #:get-mailgun-api-key
+                #:get-resend-api-key
                 #:get-github-client-id
                 #:get-github-secret
                 #:get-uploader-type)
@@ -484,13 +483,9 @@
     (setf lparallel:*kernel* (make-kernel 8
                                           :name "parallel worker"))
 
-    (setf mailgun:*domain* (get-mailgun-domain))
-    (unless mailgun:*domain*
-      (log:error "Set MAILGUN_DOMAIN environment variable, otherwise login will not work"))
-  
-    (setf mailgun:*api-key* (get-mailgun-api-key))
-    (unless mailgun:*api-key*
-      (log:error "Set MAILGUN_API_KEY environment variable, otherwise login will not work"))
+    (setf resend:*api-key* (get-resend-api-key))
+    (unless resend:*api-key*
+      (log:error "Set RESEND_API_KEY environment variable, otherwise login will not work"))
 
     (let ((uploader-type (get-uploader-type)))
       (when uploader-type
@@ -515,7 +510,7 @@
     (unless github:*token*
       (log:warn "Set GITHUB_ROBOT_TOKEN environment variable, otherwise github will apply hard rate limit"))
 
-    (setf mailgun:*user-agent* (get-user-agent))
+    (setf resend:*user-agent* (get-user-agent))
   
     (setf *cache-remote-dependencies-in*
           ;; TODO: make configurable

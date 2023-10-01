@@ -1,9 +1,10 @@
 (uiop:define-package #:ultralisp/mail
-  (:use #:cl))
+  (:use #:cl)
+  (:import-from #:reblocks-auth/providers/email/resend))
 (in-package #:ultralisp/mail)
 
 
-(reblocks-auth/providers/email/mailgun:define-code-sender send-code ("Ultralisp.org <noreply@ultralisp.org>" url)
+(reblocks-auth/providers/email/resend:define-code-sender send-code ("Ultralisp.org <noreply@ultralisp.org>" url)
   (:p ("To log into [Ultralisp.org](~A), follow [this link](~A)."
        url
        url))
