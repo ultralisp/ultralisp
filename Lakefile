@@ -57,6 +57,8 @@
       )
 
 (defun build-deps-file ()
+  ;; Or you can use (gen-deps-system:generate "app" :except (list "ultralisp" "asdf"))
+  ;; in the REPL:
   (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
   (sh "qlot exec gen-deps-system --except ultralisp,asdf app"))
 

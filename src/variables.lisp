@@ -110,11 +110,8 @@
 (def-env-var get-uploader-type
   "UPLOADER_TYPE")
 
-(def-env-var get-mailgun-domain
-  "MAILGUN_DOMAIN")
-
-(def-secret-env-var get-mailgun-api-key
-  "MAILGUN_API_KEY")
+(def-secret-env-var get-resend-api-key
+  "RESEND_API_KEY")
 
 (def-env-var get-user-agent
   "USER_AGENT"

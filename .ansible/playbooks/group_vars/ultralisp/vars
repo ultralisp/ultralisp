@@ -12,7 +12,6 @@ ultralisp_worker_port: 10100
 ultralisp_lw_worker_port: 10101
 ultralisp_worker_slynk_port: 4006
 ultralisp_lw_worker_slynk_port: 4007
-mailgun_domain: mg.ultralisp.org
 github_prestable_client_id: 471133bfb3dcabeb925b
 github_client_id: f280a8af7d37e25826af
 # s3_bucket: prestable-dist.ultralisp.org
@@ -31,7 +30,7 @@ aws_access_key_id: "{{ secret_aws_access_key_id }}"
 aws_secret_access_key: "{{ secret_aws_secret_access_key }}"
 postgres_password: "{{ secret_postgres_password }}"
 postgres_password_ro: "{{ secret_postgres_password_ro }}"
-mailgun_api_key: "{{ secret_mailgun_api_key }}"
+resend_api_key: "{{ secret_resend_api_key }}"
 github_secret: "{{ secret_github_secret }}"
 github_robot_token: "{{ secret_github_robot_token }}"
 docker_pass: "{{ secret_docker_pass }}"
