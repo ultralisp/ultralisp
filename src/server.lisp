@@ -480,8 +480,9 @@
   
     (setf *previous-args* args)
   
-    (setf lparallel:*kernel* (make-kernel 8
-                                          :name "parallel worker"))
+    (unless lparallel:*kernel*
+      (setf lparallel:*kernel* (make-kernel 8
+                                            :name "parallel worker")))
 
     (setf resend:*api-key* (get-resend-api-key))
     (unless resend:*api-key*

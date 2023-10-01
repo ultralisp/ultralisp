@@ -17,7 +17,7 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 
 # Because bug in constant definition:
 # https://github.com/ultralisp/ultralisp/issues/84
-github bordeaux-threads sionescu/bordeaux-threads :ref 61e6e5645848e77367775610e4537043ea810f6d
+# github bordeaux-threads sionescu/bordeaux-threads :ref 61e6e5645848e77367775610e4537043ea810f6d
 
 # Until this pull will be merged:
 # https://github.com/fukamachi/mito/pull/118

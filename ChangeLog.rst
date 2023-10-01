@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.23.2 (2023-10-01)
+===================
+
+* Using the latest Bordeaux Threads because the version pinned as `:ref 61e6e5645848e77367775610e4537043ea810f6d` does not work with latest Clack anymore - a web server just not starting.
+
 1.23.1 (2023-10-01)
 ===================
 
