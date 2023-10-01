@@ -34,3 +34,7 @@ github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
 # Waiting for this PR to be merged:
 # https://github.com/fukamachi/cl-dbi/pull/75 (merged!)
 # github cl-dbi svetlyak40wt/cl-dbi :branch thread-safe-steal-cache-table
+
+# Until this PR will be merged:
+# https://github.com/Shinmera/legit/pull/11
+github legit svetlyak40wt/legit :branch fix-slash-on-lispworks

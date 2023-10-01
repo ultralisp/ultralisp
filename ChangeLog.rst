@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.23.1 (2023-10-01)
+===================
+
+* Use patched Legit, to make it work on LispWorks.
+
 1.23.0 (2023-10-01)
 ===================
 
