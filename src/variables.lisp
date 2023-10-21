@@ -113,6 +113,12 @@
 (def-secret-env-var get-resend-api-key
   "RESEND_API_KEY")
 
+(def-env-var get-recaptcha-site-key
+  "RECAPTCHA_SITE_KEY")
+
+(def-env-var get-recaptcha-secret-key
+  "RECAPTCHA_SECRET_KEY")
+
 (def-env-var get-user-agent
   "USER_AGENT"
   "Ultralisp (https://ultralisp.org)")
