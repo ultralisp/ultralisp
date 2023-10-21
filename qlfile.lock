@@ -5,7 +5,7 @@
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "http://dist.ultralisp.org/" :%version :latest)
-  :version "20231001183500"))
+  :version "20231021192004"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref "3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f" :branch nil :tag nil)
@@ -14,27 +14,11 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/sly" :ref nil :branch "patches" :tag nil)
   :version "github-030a8441f57f7e0bb401570935e741dfd9edfb83"))
-("cl-cron" .
- (:class qlot/source/github:source-github
-  :initargs (:repos "svetlyak40wt/cl-cron" :ref nil :branch "name-all-branches" :tag nil)
-  :version "github-6586b303a51c371951e0398f992f98b35d73c485"))
 ("cl-gearman" .
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-gearman" :ref nil :branch "patches" :tag nil)
   :version "github-a4d2ebbd1b05670ac712b8ac623bf6b916fa526e"))
-("mito" .
+("cl-isaac" .
  (:class qlot/source/github:source-github
-  :initargs (:repos "svetlyak40wt/mito" :ref nil :branch "fix-migration" :tag nil)
-  :version "github-6d75f5dfa0fe412960a337334b7ecae18e288aeb"))
-("quicklisp-quicklisp-client" .
- (:class qlot/source/ultralisp:source-ultralisp
-  :initargs (:%version "20210216013000")
-  :version "ultralisp-20210216013000"))
-("spinneret" .
- (:class qlot/source/github:source-github
-  :initargs (:repos "svetlyak40wt/spinneret" :ref nil :branch "fix-tags-for-lispworks" :tag nil)
-  :version "github-a00438474dd5234cb5df9b52f4125bb0cd583747"))
-("legit" .
- (:class qlot/source/github:source-github
-  :initargs (:repos "svetlyak40wt/legit" :ref nil :branch "fix-slash-on-lispworks" :tag nil)
-  :version "github-56dc6f078f760fe3dba522bdab97cb4fbb10b9a8"))
+  :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
+  :version "github-77a51b88d7d0e78f7517d744fff4a3135727b3b6"))
