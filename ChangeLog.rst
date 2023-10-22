@@ -2,6 +2,10 @@
  ChangeLog
 ===========
 
+1.24.2 (2023-10-22)
+
+* Use deploy token to autotrigger builds.
+
 1.24.1 (2023-10-22)
 ===================
 
