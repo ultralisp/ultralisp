@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.24.0 (2023-10-22)
+===================
+
+* Use reCaptcha when user signs up using email to prevent spam bots.
+
 1.23.2 (2023-10-01)
 ===================
 
