@@ -370,7 +370,7 @@
                            (:p "Ultralisp v"
                                (:span :title (make-version-info)
                                       +ultralisp-version+)
-                               ("proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!"))))))))
+                               (" proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!"))))))))
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
