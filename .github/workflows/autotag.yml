@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: butlerlogic/action-autotag@8bc1ad456dcdee34e8c6ffbce991cc31793578c2
       with:
-        regex_pattern: "^(?<version>\\d+\\.\\d+\\.\\d+(.+)?)\\n?"
+        regex_pattern: "^(?<version>\\d+\\.\\d+\\.\\d+([^ ]+)?)\\n?"
         root: ./ChangeLog.rst
         tag_prefix: "v"
       env:

@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.24.1 (2023-10-22)
+===================
+
+* Fixed a typo in the footer.
+* Added a note about using local ``clpmfile``.
+
 1.24.0 (2023-10-22)
 ===================
 

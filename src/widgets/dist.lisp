@@ -81,7 +81,7 @@
             (format nil "dist ultralisp ~A"
                     url))
       
-      (:p ("Or if you are using [CLPM](https://www.clpm.dev/), put these lines into your **clpmfile**:"))
+      (:p ("Or if you are using [CLPM](https://www.clpm.dev/), put these lines into your local **clpmfile**:"))
       (:pre :style "margin-bottom: 1em"
             (format nil "(:source \"~A\"
  :url \"~A\"
