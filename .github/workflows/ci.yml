@@ -29,7 +29,7 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v2"
+          "uses": "actions/checkout@v3"
         },
         {
           "name": "Grant All Perms to Make Cache Restoring Possible",
@@ -39,13 +39,13 @@
         {
           "name": "Get Current Month",
           "id": "current-month",
-          "run": "echo \"::set-output name=value::$(date -u \"+%Y-%m\")\"",
+          "run": "echo \"value=$(date -u \"+%Y-%m\")\" >> $GITHUB_OUTPUT",
           "shell": "bash"
         },
         {
           "name": "Cache Roswell Setup",
           "id": "cache",
-          "uses": "actions/cache@v2",
+          "uses": "actions/cache@v3",
           "with": {
             "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
             "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.2.5-${{ hashFiles('qlfile.lock', '*.asd') }}"
@@ -72,12 +72,12 @@
         },
         {
           "name": "Update Qlot",
-          "run": "qlot update || qlot update",
+          "run": "qlot update --no-deps",
           "shell": "bash"
         },
         {
           "name": "Install SBLint wrapper",
-          "run": "qlot exec ros install 40ants-linter",
+          "run": "qlot exec ros install 40ants-asdf-system 40ants-linter",
           "shell": "bash"
         },
         {
@@ -115,7 +115,7 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v2"
+          "uses": "actions/checkout@v3"
         },
         {
           "name": "Grant All Perms to Make Cache Restoring Possible",
@@ -125,13 +125,13 @@
         {
           "name": "Get Current Month",
           "id": "current-month",
-          "run": "echo \"::set-output name=value::$(date -u \"+%Y-%m\")\"",
+          "run": "echo \"value=$(date -u \"+%Y-%m\")\" >> $GITHUB_OUTPUT",
           "shell": "bash"
         },
         {
           "name": "Cache Roswell Setup",
           "id": "cache",
-          "uses": "actions/cache@v2",
+          "uses": "actions/cache@v3",
           "with": {
             "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
             "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"

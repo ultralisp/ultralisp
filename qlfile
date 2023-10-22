@@ -10,7 +10,7 @@ github slynk svetlyak40wt/sly :branch patches
 
 # Until this pull will be merged:
 # https://github.com/ciel-lang/cl-cron/pull/2
-github cl-cron svetlyak40wt/cl-cron :branch name-all-branches
+# github cl-cron svetlyak40wt/cl-cron :branch name-all-branches
 
 # Here I've fixed error and timeout processing:
 github cl-gearman svetlyak40wt/cl-gearman :branch patches
@@ -21,15 +21,15 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 
 # Until this pull will be merged:
 # https://github.com/fukamachi/mito/pull/118
-github mito svetlyak40wt/mito :branch fix-migration
+# github mito svetlyak40wt/mito :branch fix-migration
 
 # Until this issue will be resolved:
 # https://github.com/quicklisp/quicklisp-client/issues/219
-ultralisp quicklisp-quicklisp-client 20210216013000
+# ultralisp quicklisp-quicklisp-client 20210216013000
 
 # Until this issue will be resolved:
 # https://github.com/ruricolist/spinneret/pull/69
-github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
+# github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
 
 # Waiting for this PR to be merged:
 # https://github.com/fukamachi/cl-dbi/pull/75 (merged!)
@@ -37,4 +37,9 @@ github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
 
 # Until this PR will be merged:
 # https://github.com/Shinmera/legit/pull/11
-github legit svetlyak40wt/legit :branch fix-slash-on-lispworks
+# github legit svetlyak40wt/legit :branch fix-slash-on-lispworks
+
+
+# Until this PR will be merged:
+# https://github.com/thephoeron/cl-isaac/pull/13
+github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error

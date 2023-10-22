@@ -79,6 +79,8 @@
   (:import-from #:defmain
                 #:defmain)
   (:import-from #:ultralisp/variables
+                #:get-recaptcha-secret-key
+                #:get-recaptcha-site-key
                 #:get-github-robot-token
                 #:get-dist-dir
                 #:get-user-agent
@@ -524,7 +526,11 @@
 
 
     (setf reblocks-auth:*enabled-services*
-          (list :github :email))
+          (list :github :email)
+          reblocks-auth/providers/email/processing:*recaptcha-site-key*
+          (get-recaptcha-site-key)
+          reblocks-auth/providers/email/processing:*recaptcha-secret-key*
+          (get-recaptcha-secret-key))
 
     (setup-sources)
     

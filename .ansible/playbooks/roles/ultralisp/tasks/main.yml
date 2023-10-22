@@ -136,6 +136,8 @@
       GITHUB_SECRET: "{{ github_secret }}"
       GITHUB_ROBOT_TOKEN: "{{ github_robot_token }}"
       RESEND_API_KEY: "{{ resend_api_key }}"
+      RECAPTCHA_SITE_KEY: "{{ recaptcha_site_key }}"
+      RECAPTCHA_SECRET_KEY: "{{ recaptcha_secret_key }}"
       USER_AGENT: "Ultralisp/{{ ultralisp_version }} (https://{{ ultralisp_host }})"
 #      LFARM_WORKERS: "172.17.0.1:{{ ultralisp_worker_port }}"
       GEARMAN_SERVER: "172.17.0.1:4730"
