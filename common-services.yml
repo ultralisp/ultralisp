@@ -44,6 +44,8 @@ services:
       # cron jobs. To run cron jobs manually, do:
       # (ultralisp/cron:setup :force t)
       CRON_DISABLED: "yes"
+      SLYNK_PORT: 4005
+      SLYNK_INTERFACE: 0.0.0.0
 
   gearman:
     container_name: ultralisp_gearman
@@ -75,6 +77,8 @@ services:
       MODE: worker
       ELASTIC_HOST: elastic
       GEARMAN_SERVER: gearman:4730
+      SLYNK_PORT: 4005
+      SLYNK_INTERFACE: 0.0.0.0
 
   postgres:
     container_name: ultralisp_db
