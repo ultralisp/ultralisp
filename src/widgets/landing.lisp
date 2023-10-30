@@ -64,7 +64,38 @@
 (in-package #:ultralisp/widgets/landing)
 
 
-(defwidget landing-widget ()
+(defwidget cache-widget ()
+  ((cached-content :initform nil
+                   :type (or string null)
+                   :accessor widget-cached-content)
+   (content-ttl :initform 60
+                :initarg :content-ttl
+                :type integer
+                :accessor widget-content-ttl)
+   (expiration-time :initform (- (get-internal-real-time) 1)
+                    :initarg :expiration-time
+                    :type integer
+                    :accessor widget-content-expiration-time)))
+
+
+(defmethod reblocks/widget:render :around ((widget cache-widget))
+  (when (<= (widget-content-expiration-time widget)
+            (get-internal-real-time))
+    ;; Updating widget content
+    (setf (widget-cached-content widget)
+          (reblocks/html:with-html-string
+            (call-next-method)))
+    
+    (setf (widget-content-expiration-time widget)
+          (+ (get-internal-real-time)
+              (* (widget-content-ttl widget)
+                 internal-time-units-per-second))))
+  
+  (reblocks/html:with-html
+    (:raw (widget-cached-content widget))))
+
+
+(defwidget landing-widget (cache-widget)
   ())
 
 
