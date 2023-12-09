@@ -28,8 +28,7 @@
   (:import-from #:reblocks/response
                 #:make-uri)
   (:import-from #:ultralisp/models/check
-                #:make-checks
-                #:make-via-webhook-check)
+                #:make-checks)
   (:import-from #:log4cl-extras/error
                 #:with-log-unhandled)
   (:import-from #:ultralisp/db
