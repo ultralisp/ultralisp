@@ -116,15 +116,6 @@
                                 :editable t))))))
 
 
-(defun toggle (widget project)
-  (check-type widget project)
-  (check-type project ultralisp/models/project:project)
-  (if (is-enabled-p project)
-      (disable-project project :reason :manual)
-      (ultralisp/models/check:make-added-project-check project))
-  (reblocks/widget:update widget))
-
-
 (defclass next-check ()
   ((at :initarg :at
        :reader get-time)))
