@@ -2,7 +2,21 @@
  ChangeLog
 ===========
 
+1.24.3 (2023-12-10)
+===================
+
+* Fixed a rare error when source check was created with "nil" string in lisp_implementation slot.
+
+  Presumable, the problem occur when a check is created for the source not bound to any quicklisp distribution.
+
+  Previously a check was created with "nil" in the lisp_implementation slot. Because of that, no worker was able to process such a check.
+
+  Also, such check prevented creation of new correct checks because "check already exists" error.
+
+  After the fix check will not be created in this case.
+
 1.24.2 (2023-10-22)
+===================
 
 * Use deploy token to autotrigger builds.
 

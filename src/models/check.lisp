@@ -46,9 +46,6 @@
                 #:now)
   (:export
    #:get-project-checks
-   #:make-added-project-check
-   #:make-via-webhook-check
-   #:make-via-cron-check
    #:base-check
    #:get-project
    #:project-has-changes-p
@@ -98,12 +95,7 @@
   (let ((class-name (intern
                      (string-upcase
                       (format nil "~A-check"
-                              name))))
-        (make-func-name (intern
-                         (string-upcase
-                          (format nil "make-~A-check"
-                                  name))))
-        (check-type (make-keyword name)))
+                              name)))))
     `(progn
        (export ',class-name)
        (defclass ,class-name (any-check)
@@ -143,31 +135,7 @@
            (format stream "~A~@[ ~A~]"
                    (get-name (get-project check))
                    (when (slot-boundp check 'processed-at)
-                     (get-processed-at check)))))
-
-
-       (defun ,make-func-name (project)
-         "Creates or gets a check for the project.
-
-          As a second value, returns `t' if check was created, or nil
-          if it already existed in the database."
-         (check-type project project)
-         (let ((type ,check-type))
-           (log:info "Triggering a check for" project type)
-           
-           (unless (member type +allowed-check-types+)
-             (let ((*print-case* :downcase))
-               (error "Unable to create check of type ~S"
-                      type)))
-
-           (acond
-             ((get-project-checks project :pending t)
-              (log:warn "Check already exists")
-              (values (first it) nil))
-             (t (values (mito:create-dao ',class-name
-                                         :project project
-                                         :type type)
-                        t))))))))
+                     (get-processed-at check))))))))
 
 
 (defcheck base)
@@ -217,14 +185,8 @@
   (:metaclass dao-table-class))
 
 
-
-
-;; #:make-added-project-check
-;; #:make-via-webhook-check
-;; #:make-via-cron-check
-
 (defun make-check (source check-type)
-  "Creates or gets a check for the project.
+  "Creates or gets a check for the project's source.
 
    As a second value, returns `t' if check was created, or nil
    if it already existed in the database."
@@ -242,12 +204,21 @@
     ((source-checks source :pending t)
      (log:warn "Check already exists")
      (values (first it) nil))
-    (t (values (mito:create-dao 'check2
-                                :source-id (object-id source)
-                                :source-version (object-version source)
-                                :type check-type
-                                :lisp-implementation (ultralisp/models/dist-source:lisp-implementation source))
-               t))))
+    (t (let ((implementation (ultralisp/models/dist-source:lisp-implementation source)))
+         (cond
+           (implementation
+            (values
+             (mito:create-dao 'check2
+                              :source-id (object-id source)
+                              :source-version (object-version source)
+                              :type check-type
+                              :lisp-implementation implementation)
+             t))
+           (t
+            (let ((project-id (ultralisp/models/source:source-project-id source)))
+              (log:error "Unable to make a check for project"
+                         project-id)
+              (values nil nil))))))))
 
 
 (defun make-checks (project check-type)

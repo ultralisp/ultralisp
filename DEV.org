@@ -48,8 +48,9 @@ Eval ~(ultralisp/worker:process-jobs)~ there:
 (ultralisp/db:connect-toplevel)
 
 (ultralisp/rpc/core:submit-task 'ultralisp/pipeline/checking:perform
-                                (ultralisp/models/check:make-via-cron-check
-                                 (ultralisp/models/project:get-github-project "guicho271828" "type-i"))
+                                (ultralisp/models/check:make-checks
+                                 (ultralisp/models/project:get-github-project "guicho271828" "type-i")
+                                 :manual)
                                 :force t)
 #+END_SRC
 
