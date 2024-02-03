@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/models/source
+(uiop:define-package #:ultralisp/models/source
   (:use #:cl)
   (:import-from #:jonathan)
   (:import-from #:dexador)
@@ -25,8 +25,10 @@
                 #:defcommand)
   (:import-from #:ultralisp/utils
                 #:remove-last-slash
-                #:update-plist)
+                #:update-plist
+                #:get-traceback)
   (:import-from #:ultralisp/db
+                #:with-connection
                 #:with-transaction)
   (:import-from #:quickdist
                 #:get-archive-path
@@ -401,7 +403,8 @@
                           :params (update-plist (source-params source)
                                                 params))))
       (log:debug "Creating a new dist version")
-      (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
+      (uiop:symbol-call :ultralisp/models/dist-source
+                        :create-pending-dists-for-new-source-version
                         source new-source :enable enable)
       (log:debug "New dist was created"))))
 

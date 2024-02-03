@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.24.4 (2024-02-03)
+===================
+
+* Fixed issue #247, where process checking stuck trying to process `Fset <https://github.com/slburson/fset/tree/40859727fa6f93b72c2f2cfb70f314965cf0e06c>`_ which has two ``fset.asd`` files in different directories.
+
 1.24.3 (2023-12-10)
 ===================
 

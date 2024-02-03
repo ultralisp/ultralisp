@@ -57,6 +57,7 @@
 
 
 (defun make-asdf-system (dist-id name source-id dependencies)
+  (log:debug "Adding asdf_system" dist-id name source-id dependencies)
   (mito:create-dao 'asdf-system
                    :dist-id dist-id
                    :name name
@@ -96,19 +97,38 @@
     
     (remove-source-systems dist source)
   
-    (loop for system-info in (source-systems-info source)
+    (loop with processed = (make-hash-table :test 'equal)
+          for system-info in (source-systems-info source)
           for system-name = (quickdist:get-name system-info)
           for dependencies = (quickdist:get-dependencies system-info)
-          do (make-asdf-system (object-id dist)
-                               system-name
-                               (object-id source)
-                               dependencies))))
+          ;; Some projects can include the same system more then once
+          ;; by a mistake. For example, see "fset" from this commit:
+          ;; https://github.com/slburson/fset/tree/40859727fa6f93b72c2f2cfb70f314965cf0e06c
+          ;; It has fset.asd and Code/fset.asd.
+          ;;
+          ;; Here we need to ignore duplicates to not fail on such
+          ;; systems. I tried to signal an error, but in this case
+          ;; Ultralisp is not able to save a disabled source version,
+          ;; because in the process it calls create-pending-dists-for-new-source-version
+          ;; and add-source-systems again, but they fail because we already have
+          ;; two systems with the same name. So, ignore duplicates here.
+          if (gethash system-name processed)
+            do (log:error "System is present a few times, ignoring all except the first one" system-name)
+          else
+            do (make-asdf-system (object-id dist)
+                                 system-name
+                                 (object-id source)
+                                 dependencies)
+               (setf (gethash system-name processed) t))))
 
 
 (defun remove-source-systems (dist source)
-  (mito:execute-sql "DELETE FROM asdf_system WHERE dist_id = ? AND source_id = ?"
-                    (list (mito:object-id dist)
-                          (mito:object-id source))))
+  (let ((dist-id (mito:object-id dist))
+        (source-id (mito:object-id source)))
+    (log:debug "Deleting from asdf_system" dist-id source-id)
+    (mito:execute-sql "DELETE FROM asdf_system WHERE dist_id = ? AND source_id = ?"
+                      (list dist-id
+                            source-id))))
 
 
 (defmethod print-object ((obj asdf-system) stream)
@@ -209,6 +229,7 @@
                                systems)))
     (when (and dist-ids
                system-names)
+      (log:debug "Searching conflicting asdf_system" dist-ids source-id system-names)
       (mito:select-dao 'asdf-system
         (sxql:where (:and (:in 'dist-id
                                dist-ids)
