@@ -153,10 +153,9 @@
         },
         {
           "name": "Run Tests",
-          "uses": "40ants/run-tests@v2",
+          "uses": "40ants/run-tests@fix-ultralisp",
           "with": {
-            "asdf-system": "ultralisp",
-            "coveralls-token": "${{ secrets.github_token }}"
+            "asdf-system": "ultralisp"
           }
         }
       ]

@@ -10,13 +10,16 @@
   (:import-from #:ultralisp-test/utils
                 #:with-test-db)
   (:import-from #:ultralisp/models/project
+                #:make-project-from-url
                 #:project-sources
                 #:make-github-project)
   (:import-from #:ultralisp/github/webhook
                 #:process-payload)
   (:import-from #:ultralisp/models/check
                 #:source-checks
-                #:get-project-checks))
+                #:get-project-checks)
+  (:import-from #:ultralisp/sources/setup
+                #:setup-sources))
 (in-package #:ultralisp-test/github/webhook)
 
 
@@ -29,16 +32,28 @@
 
 
 (deftest test-case-when-webhook-receives-a-payload-for-known-project
+  (setup-sources)
+  
   (with-test-db
     (testing "A new check should be created for the project"
       (let* ((payload (load-payload "push-to-master"))
-             (project (make-github-project "40ants" "log4cl-json"))
+             (project (make-project-from-url "https://github.com/40ants/log4cl-json"
+                                             :moderator nil))
              (sources (project-sources project)))
-        
+
         (assert-that sources
                      (has-length 1))
         
-        (process-payload payload)
+        ;; Delete :added check because while it is there a new check cannot be created.
+        (mapcar #'mito:delete-dao
+                (source-checks (first sources)))
+
+        (let* ((source (first sources))
+               (dists (ultralisp/models/dist-source:source->dists source)))
+          (assert-that dists
+                       (has-length 1)))
+
+        (ok (process-payload payload))
 
         (loop for source in sources
               for checks = (source-checks source)

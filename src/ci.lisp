@@ -48,4 +48,7 @@
           :lisp "sbcl-bin/2.2.5")
          (run-tests
           :lisp "sbcl-bin/2.1.2"
-          :coverage t)))
+          ;; Does not work because cl-coverage complains
+          ;; it can't quickload app-deps. Hmmm...
+          ;; :coverage nil
+          )))

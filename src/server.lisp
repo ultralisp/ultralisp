@@ -572,6 +572,10 @@
   #+darwin
   (uiop:run-program "brew install gnu-tar"
                     :ignore-error-status t)
+  #+darwin
+  (setf quickdist::*gnutar*
+        (or (probe-file "/usr/local/bin/gtar")
+            (probe-file "/opt/homebrew/bin/gtar")))
 
   ;; These vars are the same as in the 
   (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
