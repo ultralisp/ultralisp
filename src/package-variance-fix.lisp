@@ -11,22 +11,22 @@
 #+sbcl
 (defmethod asdf/component:around-compile-hook :around ((component t))
   (let ((previous-hook (call-next-method)))
-    (lambda (compile-function)
-      (handler-bind ((sb-int:package-at-variance-error
-                       (lambda (c)
-                         (log:warn "Suppressing package-at-varience-error: ~S"
-                                   (apply #'format nil
-                                          (simple-condition-format-control c)
-                                          (simple-condition-format-arguments c)))
-                         (invoke-restart 'sb-impl::drop-them))))
-        ;; We need this binding to make sbcl signal a restartable error
-        (let ((sb-ext:*on-package-variance* '(:error t)))
-          (cond
-            (previous-hook
-             (format t "TRACE: Calling previous hook ~S~%"
-                     previous-hook)
-             (funcall previous-hook compile-function))
-            (t
-             (format t "TRACE: Calling compile-function ~S~%"
-                     compile-function)
-             (funcall compile-function))))))))
+    #'(lambda (compile-function)
+        (handler-bind ((sb-int:package-at-variance-error
+                         (lambda (c)
+                           (log:warn "Suppressing package-at-varience-error: ~S"
+                                     (apply #'format nil
+                                            (simple-condition-format-control c)
+                                            (simple-condition-format-arguments c)))
+                           (invoke-restart 'sb-impl::drop-them))))
+          ;; We need this binding to make sbcl signal a restartable error
+          (let ((sb-ext:*on-package-variance* '(:error t)))
+            (cond
+              (previous-hook
+               (format t "TRACE: Calling previous hook ~S~%"
+                       previous-hook)
+               (funcall previous-hook compile-function))
+              (t
+               (format t "TRACE: Calling compile-function ~S~%"
+                       compile-function)
+               (funcall compile-function))))))))
