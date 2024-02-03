@@ -21,6 +21,12 @@
                          (invoke-restart 'sb-impl::drop-them))))
         ;; We need this binding to make sbcl signal a restartable error
         (let ((sb-ext:*on-package-variance* '(:error t)))
-          (if previous-hook
-              (funcall previous-hook compile-function)
-              (funcall compile-function)))))))
+          (cond
+            (previous-hook
+             (format t "TRACE: Calling previous hook ~S~%"
+                     previous-hook)
+             (funcall previous-hook compile-function))
+            (t
+             (format t "TRACE: Calling compile-function ~S~%"
+                     compile-function)
+             (funcall compile-function))))))))
