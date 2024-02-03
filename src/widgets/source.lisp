@@ -773,7 +773,7 @@
                               :type "text"
                               :onchange
                               (make-js-handler
-                               :lisp-code ((&key url)
+                               :lisp-code ((&key url &allow-other-keys)
                                            (update-url (branches widget)
                                                        url))
                                :js-code ((event)
