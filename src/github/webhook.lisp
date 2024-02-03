@@ -149,6 +149,9 @@
       )))
 
 
+(declaim (ftype (function (list) (values boolean &optional))
+                process-payload))
+
 (defun process-payload (payload)
   (with-log-unhandled ()
     (with-connection ()
@@ -162,8 +165,12 @@
                          (length *payloads*))))
      
       (let* ((project (find-project-related-to payload)))
-        (when project
-          (make-checks project :via-webhook))))))
+        (cond
+          (project
+           (make-checks project :via-webhook)
+           (values t))
+          (t
+           (values nil)))))))
 
 
 (defun process-payloads-from-the-queue ()
