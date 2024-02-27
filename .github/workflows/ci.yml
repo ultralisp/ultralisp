@@ -29,41 +29,15 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v3"
-        },
-        {
-          "name": "Grant All Perms to Make Cache Restoring Possible",
-          "run": "sudo mkdir -p /usr/local/etc/roswell\n                 sudo chown \"${USER}\" /usr/local/etc/roswell\n                 # Here the ros binary will be restored:\n                 sudo chown \"${USER}\" /usr/local/bin",
-          "shell": "bash"
-        },
-        {
-          "name": "Get Current Month",
-          "id": "current-month",
-          "run": "echo \"value=$(date -u \"+%Y-%m\")\" >> $GITHUB_OUTPUT",
-          "shell": "bash"
-        },
-        {
-          "name": "Cache Roswell Setup",
-          "id": "cache",
-          "uses": "actions/cache@v3",
-          "with": {
-            "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
-            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.2.5-${{ hashFiles('qlfile.lock', '*.asd') }}"
-          }
-        },
-        {
-          "name": "Restore Path To Cached Files",
-          "run": "echo $HOME/.roswell/bin >> $GITHUB_PATH\n                 echo .qlot/bin >> $GITHUB_PATH",
-          "shell": "bash",
-          "if": "steps.cache.outputs.cache-hit == 'true'"
+          "uses": "actions/checkout@v4"
         },
         {
           "name": "Setup Common Lisp Environment",
-          "uses": "40ants/setup-lisp@v2",
+          "uses": "40ants/setup-lisp@v4",
           "with": {
-            "asdf-system": "ultralisp"
-          },
-          "if": "steps.cache.outputs.cache-hit != 'true'"
+            "asdf-system": "ultralisp",
+            "cache": "true"
+          }
         },
         {
           "name": "Change dist to Ultralisp if qlfile does not exist",
@@ -115,45 +89,19 @@
         },
         {
           "name": "Checkout Code",
-          "uses": "actions/checkout@v3"
-        },
-        {
-          "name": "Grant All Perms to Make Cache Restoring Possible",
-          "run": "sudo mkdir -p /usr/local/etc/roswell\n                 sudo chown \"${USER}\" /usr/local/etc/roswell\n                 # Here the ros binary will be restored:\n                 sudo chown \"${USER}\" /usr/local/bin",
-          "shell": "bash"
-        },
-        {
-          "name": "Get Current Month",
-          "id": "current-month",
-          "run": "echo \"value=$(date -u \"+%Y-%m\")\" >> $GITHUB_OUTPUT",
-          "shell": "bash"
-        },
-        {
-          "name": "Cache Roswell Setup",
-          "id": "cache",
-          "uses": "actions/cache@v3",
-          "with": {
-            "path": "qlfile\nqlfile.lock\n~/.cache/common-lisp/\n~/.roswell\n/usr/local/etc/roswell\n/usr/local/bin/ros\n/usr/local/Cellar/roswell\n.qlot",
-            "key": "a-${{ steps.current-month.outputs.value }}-${{ env.cache-name }}-ubuntu-latest-quicklisp-sbcl-bin/2.1.2-${{ hashFiles('qlfile.lock', '*.asd') }}"
-          }
-        },
-        {
-          "name": "Restore Path To Cached Files",
-          "run": "echo $HOME/.roswell/bin >> $GITHUB_PATH\n                 echo .qlot/bin >> $GITHUB_PATH",
-          "shell": "bash",
-          "if": "steps.cache.outputs.cache-hit == 'true'"
+          "uses": "actions/checkout@v4"
         },
         {
           "name": "Setup Common Lisp Environment",
-          "uses": "40ants/setup-lisp@v2",
+          "uses": "40ants/setup-lisp@v4",
           "with": {
-            "asdf-system": "ultralisp"
-          },
-          "if": "steps.cache.outputs.cache-hit != 'true'"
+            "asdf-system": "ultralisp",
+            "cache": "true"
+          }
         },
         {
           "name": "Run Tests",
-          "uses": "40ants/run-tests@fix-ultralisp",
+          "uses": "40ants/run-tests@v2",
           "with": {
             "asdf-system": "ultralisp"
           }
