@@ -392,6 +392,10 @@
                                            archive-dir
                                            archive-url))
              (let ((archive-path (get-archive-path release-info)))
+               (log:info "Uploading ~A from ~A to ~A"
+                         project-name
+                         archive-path
+                         archive-destination)
                (upload archive-path
                        :quicklisp
                        archive-destination)))
