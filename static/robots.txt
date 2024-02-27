@@ -1,0 +1,10 @@
+User-agent: *
+
+Allow: /$
+Allow: /favicon.*
+Allow: /robots.txt
+Allow: /sitemap.xml
+Allow: /projects/*
+Allow: /dists/*
+
+Disallow: /

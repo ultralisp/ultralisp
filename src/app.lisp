@@ -3,6 +3,7 @@
   ;; (:import-from #:flamegraph)
   (:import-from #:reblocks/app
                 #:defapp)
+  (:import-from #:reblocks/routes)
   (:import-from #:reblocks/request-handler))
 (in-package #:ultralisp/app)
 
@@ -22,3 +23,9 @@
 ;;         (flamegraph:save-flame-graph (path)
 ;;           (call-next-method))
 ;;         (call-next-method))))
+
+
+(reblocks/routes:defroute (app /robots.txt :content-type "text/plain")
+  (alexandria:read-file-into-string
+   (asdf:system-relative-pathname "ultralisp"
+                                  "static/robots.txt")))
