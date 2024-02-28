@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.24.5 (2024-02-28)
+===================
+
+* Added robots.txt file.
+* More logging in the make-release function was added.
+
 1.24.4 (2024-02-03)
 ===================
 
