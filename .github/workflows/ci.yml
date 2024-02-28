@@ -13,11 +13,11 @@
       }
     ]
   },
-  "env": {
-    "CL_SOURCE_REGISTRY": "${{ github.workspace }}/"
-  },
   "jobs": {
     "linter": {
+      "job": {
+        "CL_SOURCE_REGISTRY": "${{ github.workspace }}/"
+      },
       "runs-on": "ubuntu-latest",
       "env": {
         "OS": "ubuntu-latest",
@@ -77,6 +77,9 @@
             "5432:5432"
           ]
         }
+      },
+      "job": {
+        "CL_SOURCE_REGISTRY": "${{ github.workspace }}/"
       },
       "runs-on": "ubuntu-latest",
       "env": {

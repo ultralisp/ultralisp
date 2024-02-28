@@ -45,9 +45,11 @@
   :on-pull-request t
   :cache t
   :jobs ((linter
-          :lisp "sbcl-bin/2.2.5")
+          :lisp "sbcl-bin/2.2.5"
+          :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/")))
          (run-tests
           :lisp "sbcl-bin/2.1.2"
+          :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/"))
           ;; Does not work because cl-coverage complains
           ;; it can't quickload app-deps. Hmmm...
           ;; :coverage nil
