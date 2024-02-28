@@ -13,11 +13,13 @@
       }
     ]
   },
+  "env": {
+    "CL_SOURCE_REGISTRY": "${{ github.workspace }}/"
+  },
   "jobs": {
     "linter": {
       "runs-on": "ubuntu-latest",
       "env": {
-        "CL_SOURCE_REGISTRY": "${{ github.workspace }}/",
         "OS": "ubuntu-latest",
         "QUICKLISP_DIST": "quicklisp",
         "LISP": "sbcl-bin/2.2.5"
@@ -78,7 +80,6 @@
       },
       "runs-on": "ubuntu-latest",
       "env": {
-        "CL_SOURCE_REGISTRY": "${{ github.workspace }}/",
         "OS": "ubuntu-latest",
         "QUICKLISP_DIST": "quicklisp",
         "LISP": "sbcl-bin/2.1.2"

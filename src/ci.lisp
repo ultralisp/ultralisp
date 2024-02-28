@@ -44,12 +44,11 @@
   :by-cron "0 10 * * 1"
   :on-pull-request t
   :cache t
+  :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/"))
   :jobs ((linter
-          :lisp "sbcl-bin/2.2.5"
-          :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/")))
+          :lisp "sbcl-bin/2.2.5")
          (run-tests
           :lisp "sbcl-bin/2.1.2"
-          :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/"))
           ;; Does not work because cl-coverage complains
           ;; it can't quickload app-deps. Hmmm...
           ;; :coverage nil
