@@ -14,7 +14,7 @@
     ]
   },
   "env": {
-    "CL_SOURCE_REGISTRY": "./"
+    "CL_SOURCE_REGISTRY": "${{ github.workspace }}/"
   },
   "jobs": {
     "linter": {
