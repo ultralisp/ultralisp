@@ -361,10 +361,18 @@
                   (full-project-name (str:replace-all "/" "-"
                                                       project-name))
                   (target-path (uiop:merge-pathnames* full-project-name tmp-dir))
-                  (downloaded (download source target-path :latest t))
+                  (downloaded (progn
+                                (log:info "Downloading project ~A to ~A"
+                                          project-name
+                                          target-path)
+                                (download source target-path :latest t)))
                   (archive-dir (uiop:ensure-pathname (merge-pathnames ".archive/" tmp-dir)
                                                      :ensure-directories-exist t))
-                  (_ (remove-vcs-files downloaded))
+                  (_ (progn
+                       (log:info "Removing VCS files of project ~A from ~A"
+                                 project-name
+                                 target-path)
+                       (remove-vcs-files downloaded)))
                   (source-id (mito:object-id source))
                   (archive-url (format nil "~A/archive/~A"
                                        (remove-last-slash (get-base-url))
@@ -372,6 +380,11 @@
                   (archive-destination (format nil "/archive/~A/"
                                                source-id)))
              (declare (ignorable _))
+             
+             (log:info "Archiving project ~A from ~A to ~A"
+                       project-name
+                       target-path
+                       archive-dir)
              (setf release-info
                    (quickdist:make-archive (downloaded-project-path downloaded)
                                            full-project-name
@@ -379,6 +392,10 @@
                                            archive-dir
                                            archive-url))
              (let ((archive-path (get-archive-path release-info)))
+               (log:info "Uploading ~A from ~A to ~A"
+                         project-name
+                         archive-path
+                         archive-destination)
                (upload archive-path
                        :quicklisp
                        archive-destination)))
