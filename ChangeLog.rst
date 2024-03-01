@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.24.7 (2024-03-01)
+===================
+
+* Handle SERIOUS-CONDITION instead of ERROR in DEFCRON macro. This should prevent server restarts in some cases.
+
 1.24.6 (2024-03-01)
 ===================
 
