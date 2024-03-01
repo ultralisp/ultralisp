@@ -88,14 +88,14 @@ create type index_status as enum ('ok', 'failed', 'timeout');
 
 CREATE OR REPLACE FUNCTION project_exists(id BIGINT)
 RETURNS BOOLEAN AS
-$$
+$Code$
 BEGIN
 IF id IN (SELECT project2.id FROM project2)
 THEN RETURN true;
 ELSE RETURN false;
 END IF;
 END
-$$ LANGUAGE PLpgSQL;
+$Code$ LANGUAGE PLpgSQL;
 
 create table "project_index" (
        "id" bigserial not null primary key,
