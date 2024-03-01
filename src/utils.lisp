@@ -272,3 +272,15 @@
 (defun make-keyword (text)
   (alexandria:make-keyword
    (string-upcase text)))
+
+
+;; TODO: move to a separate ASDF system
+(defun reset-random-state ()
+  (let ((new-random-state (make-random-state t)))
+    (setf *random-state*
+          new-random-state)
+
+    (let ((symbol (uiop:find-symbol* "*NAME-RANDOM-STATE*" "CL-FAD" nil)))
+      (when symbol
+        (setf (symbol-value symbol)
+              new-random-state)))))

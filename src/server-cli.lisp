@@ -2,7 +2,8 @@
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:ultralisp/utils
-                #:getenv)
+                #:getenv
+                #:reset-random-state)
   (:import-from #:ultralisp/logging)
   (:import-from #:ultralisp/server
                 #:start)
@@ -23,6 +24,7 @@
                         :short nil
                         :env-var "DEBUG"))
 
+  (reset-random-state)
   
   (ultralisp/logging:setup log-dir
                            :level (if debug

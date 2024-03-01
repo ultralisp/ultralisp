@@ -31,6 +31,8 @@
                 #:make-secrets-replacer)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:ultralisp/utils
+                #:reset-random-state)
   (:export
    #:process-jobs
    #:start-outside-docker
@@ -119,6 +121,8 @@
                         :env-var "DEBUG")
                  (help "Show help and exit"
                        :flag t))
+  (reset-random-state)
+  
   (when help
     (defmain:print-help)
     (uiop:quit 0))
