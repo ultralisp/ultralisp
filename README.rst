@@ -118,11 +118,24 @@ and ``worker`` containers are not running and run::
 Running tests
 -------------
 
+Install Postgres database, then create a test user and database:
+
+.. code:: shell
+
+   sudo -u postgres psql -c "CREATE USER ultralisp_test WITH PASSWORD 'ultralisp_test'"
+   sudo -u postgres psql -c "CREATE DATABASE ultralisp_test OWNER = 'ultralisp_test'"
+   sudo -u postgres createdb --owner ultralisp_test ultralisp_test
+
 Connect to the REPL and run:
 
 .. code:: common-lisp
 
    (ql:quickload :ultralisp-test)
+   (setf (uiop:getenv "POSTGRES_USER") "ultralisp_test")
+   (setf (uiop:getenv "POSTGRES_DBNAME") "ultralisp_test")
+   (setf (uiop:getenv "POSTGRES_PASS") "ultralisp_test")
+   (setf (uiop:getenv "POSTGRES_HOST") "localhost")
+   
    (setf rove:*enable-colors* nil)
    (setf rove:*debug-on-error* t)
    (asdf:test-system :ultralisp-test)

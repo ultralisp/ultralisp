@@ -32,7 +32,7 @@
      . (("postgres"
          . (("image" . "postgres:10")
             ("env" . (("POSTGRES_USER" . "ultralisp")
-                      ("POSTGRES_PASSWORD" . "ultralisp")))
+                      ("POSTGRES_PASS" . "ultralisp")))
             ("options"
              . "--health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5")
             ("ports" . ("5432:5432"))))))

@@ -84,10 +84,11 @@
          ;;       We need to implement "crossfinger" logging facility
          ;;       in the log4cl-extras and change it back to the INFO.
          (log:info "Running cron task" ',name)
-         (handler-bind ((error (lambda (condition)
-                                 (if slynk-api:*emacs-connection*
-                                     (invoke-debugger condition)
-                                     (return-from ,name nil)))))
+         (handler-bind ((serious-condition
+                          (lambda (condition)
+                            (if slynk-api:*emacs-connection*
+                                (invoke-debugger condition)
+                                (return-from ,name nil)))))
            (with-log-unhandled ()
              (handler-case (progn ,body)
                (ultralisp/db:lock-timeout ()

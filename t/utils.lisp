@@ -44,7 +44,7 @@
          (mito:execute-sql "DROP SCHEMA IF EXISTS unittest CASCADE;")
          (mito:execute-sql "CREATE SCHEMA unittest AUTHORIZATION CURRENT_USER;")
          (mito:execute-sql "SET search_path TO unittest;")
-         (mito:migrate "./db/")))
+         (mito:migrate #P"./db/")))
      (unwind-protect
           (let ((*in-unit-test* t))
             ,@body)

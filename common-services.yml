@@ -86,7 +86,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ultralisp
-      POSTGRES_PASSWORD: ultralisp
+      POSTGRES_PASS: ultralisp
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -111,7 +111,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ultralisp
-      POSTGRES_PASSWORD: ultralisp
+      POSTGRES_PASS: ultralisp
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
