@@ -249,17 +249,12 @@
          (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
                issues-url))
          (:li "Suggest your own ideas.")
-         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development:"))
+         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) and donate money to support further development:"))
               (:div :class "donate"
                     (:a :class "button success"
                         :href "https://www.patreon.com/join/ultralisp"
-                        "Donate $$$ at Patreon")
-                    (:span :style "display: inline-block; width: 2em"
-                           " ")
-                    (:a :class "button success"
-                        :href "https://en.liberapay.com/Ultralisp.org/donate"
-                        "Donate $$$ at Liberapay"))
-              (:p ("Gold sponsors will be listed at the bottom of this page, and grand sponsors on [this separate page](/sponsors).")))))
+                        "Donate $$$ at Patreon"))
+              (:p ("Grand sponsors will be listed at the bottom of this page and also [this separate page](/sponsors) together with gold sponsors. You can send me a link an logo of your company for the sponsor page.")))))
 
       (when latest-dists
         (:div :class "latest-builds"
