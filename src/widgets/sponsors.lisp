@@ -40,13 +40,8 @@
     ;;  (:li (:a :href "https://some"
     ;;           "name") ". Thank you!"))
     
-    (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) or [Liberapay](https://en.liberapay.com/Ultralisp.org) and donate money to support further development of the Ultralisp.org:"))
+    (:p ("To get listed on this page, become a \"gold\" or \"grand\" sponsor on [Patreon](https://www.patreon.com/ultralisp) and donate money to support further development of the Ultralisp.org:"))
     (:div :class "donate"
           (:a :class "button success"
               :href "https://www.patreon.com/join/ultralisp"
-              "Donate $$$ at Patreon")
-          (:span :style "display: inline-block; width: 2em"
-                 " ")
-          (:a :class "button success"
-              :href "https://en.liberapay.com/Ultralisp.org/donate"
-              "Donate $$$ at Liberapay"))))
+              "Donate $$$ at Patreon"))))

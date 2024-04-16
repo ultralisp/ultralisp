@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.24.8 (2024-04-16)
+============================
+
+* Update deps to solve problem introduced by `package rename <https://github.com/sionescu/bordeaux-threads/commit/666b5836f541c33e427eefd3ddf8809737e2ab33>`_ in the bordeaux-threads. This problem broke checks for some projects. Reported issue `#261 <https://github.com/ultralisp/ultralisp/issues/261>`_.
+* Updated the list of sponsors and removed a link to the Liberapay, because it is useless.
+
 1.24.7 (2024-03-01)
 ===================
 
