@@ -17,7 +17,6 @@ Be the first one, [support the project](https://www.patreon.com/ultralisp) on Pa
 * Eitaro Fukamachi
 * David Botton
 * 舜杰 毕
-* Abedalmohimen Alagha
 
 Become [the next](https://www.patreon.com/ultralisp). It is only $5 per month!
 
