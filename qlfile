@@ -32,8 +32,8 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 # github spinneret svetlyak40wt/spinneret :branch fix-tags-for-lispworks
 
 # Waiting for this PR to be merged:
-# https://github.com/fukamachi/cl-dbi/pull/75 (merged!)
-# github cl-dbi svetlyak40wt/cl-dbi :branch thread-safe-steal-cache-table
+# https://github.com/fukamachi/cl-dbi/pull/87
+github cl-dbi svetlyak40wt/cl-dbi :branch application-name
 
 # Until this PR will be merged:
 # https://github.com/Shinmera/legit/pull/11

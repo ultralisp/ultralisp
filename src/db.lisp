@@ -25,6 +25,8 @@
                 #:ensure-value-revealed)
   (:import-from #:alexandria
                 #:with-gensyms)
+  (:import-from #:bordeaux-threads-2
+                #:make-lock)
   (:export
    #:with-transaction
    #:with-connection
@@ -42,6 +44,16 @@
 
 (defparameter *cached-default* t)
 
+(defvar *debug* t
+  "If T, then Postgres application name will include pid and a thread name.")
+
+(defvar *transaction-state-queries-lock*
+  (make-lock :name "*transaction-state-queries* lock"))
+
+(defvar *transaction-state-queries*
+  (make-hash-table)
+  "This hash will be filled with queries when *debug* mode is on.")
+
 
 (define-condition connection-error (error)
   ((message :initarg :message
@@ -51,10 +63,28 @@
                      (error-message condition)))))
 
 
+(defun get-application-name ()
+  (let ((result
+          (cond
+            (*debug*
+             #+sbcl
+             (format nil "ul:~A:~A"
+                     (sb-posix:getpid)
+                     (bordeaux-threads-2:thread-name
+                      (bordeaux-threads-2:current-thread)))
+             #+lispworks
+             (format nil "ul:~A"
+                     (bordeaux-threads-2:thread-name
+                      (bordeaux-threads-2:current-thread))))
+            (t
+             "ultralisp"))))
+    (str:shorten 63 result :ellipsis "")))
+
 (declaim (notinline inner-connect))
 
 (defun inner-connect (&key host database-name username password
                            (port 5432)
+                           (application-name (get-application-name))
                            (cached *cached-default*))
   "This function is used to leave a trace in the backtrace and let
    logger know which arguments are secret."
@@ -67,11 +97,13 @@
            :port port
            :database-name database-name
            :username username
+           :application-name application-name
            :password (ensure-value-revealed password)))
 
 
 (defun connect (&key host database-name username password
                      (port 5432)
+                     (application-name (get-application-name))
                      (cached *cached-default*))
   (inner-connect :host (or host
                            (get-postgres-host))
@@ -82,6 +114,7 @@
                                (get-postgres-user))
                  :password (or password
                                (get-postgres-pass))
+                 :application-name application-name
                  :cached cached))
 
 
@@ -95,6 +128,7 @@
                         :host (ultralisp/variables:get-postgres-host)
                         :port 5432
                         :database-name (ultralisp/variables:get-postgres-dbname)
+                        :application-name "ultralisp-repl"
                         :username "ultralisp"
                         :password "ultralisp")))
 
@@ -288,3 +322,66 @@
   (format nil "(~{~A~^,~})"
           (loop repeat (length list)
                 collect "?")))
+
+
+(defmethod dbi.driver:execute-using-connection :around (conn query params)
+  (let ((transaction-state (dbi.driver::get-transaction-state conn)))
+    (when transaction-state
+      (bt2:with-lock-held (*transaction-state-queries-lock*)
+        (push (cons query params)
+              (gethash transaction-state *transaction-state-queries*))))
+
+    (call-next-method)))
+
+
+(defun forget-connection-queries (conn)
+  (let ((transaction-state (dbi.driver::get-transaction-state conn)))
+    (when transaction-state
+      (bt2:with-lock-held (*transaction-state-queries-lock*)
+        (remhash transaction-state *transaction-state-queries*)))))
+
+
+(defmethod dbi.driver:commit :around ((conn t))
+  (unwind-protect
+       (call-next-method)
+    (forget-connection-queries conn)))
+
+(defmethod dbi.driver:rollback :around ((conn t))
+  (unwind-protect
+       (call-next-method)
+    (forget-connection-queries conn)))
+
+
+(defun print-transactions-state (stream)
+  "How to use this function for getting trace from a stucked thread:
+
+(bt:interrupt-thread some-thread
+     (funcall (lambda (stream) (lambda () (ultralisp/db::print-transactions-state stream)))
+              *debug-io*))
+"
+  (loop with connections = (reverse
+                            (remove-duplicates
+                             (mapcar #'dbi.driver::get-conn
+                                     dbi.driver::*transaction-state*)))
+        with connection-to-name = (loop with result = (make-hash-table)
+                                        for conn in connections
+                                        for idx upfrom 0
+                                        for name = (code-char (+ (char-code #\A)
+                                                                  idx))
+                                        do (setf (gethash conn result)
+                                                 name)
+                                        finally (return result))
+        for state in (reverse dbi.driver::*transaction-state*)
+        for state-type = (symbol-name (type-of state))
+        for conn = (dbi.driver::get-conn state)
+        for conn-name = (gethash conn connection-to-name)
+        for queries = (reverse (bt2:with-lock-held (*transaction-state-queries-lock*)
+                                 (gethash state *transaction-state-queries*)))
+        do (format stream "Connection ~A (~A):~2%"
+                   conn-name
+                   state-type)
+           (if queries
+               (loop for (query . params) in queries
+                     do (format stream "~A with ~A~2%"
+                                query params))
+               (format stream "No queries.~2%"))))
