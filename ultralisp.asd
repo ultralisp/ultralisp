@@ -63,3 +63,5 @@
 (register-system-packages "slynk" '(#:slynk-api))
 
 (register-system-packages "lack-middleware-mount" '(#:lack.middleware.mount))
+
+(register-system-packages "bordeaux-threads" '(#:bordeaux-threads-2))
