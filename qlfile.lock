@@ -18,6 +18,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-gearman" :ref nil :branch "patches" :tag nil)
   :version "github-a4d2ebbd1b05670ac712b8ac623bf6b916fa526e"))
+("cl-dbi" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "svetlyak40wt/cl-dbi" :ref nil :branch "application-name" :tag nil)
+  :version "github-f2f507892ecbc38df262f6f8a945abe7726e3dad"))
 ("cl-isaac" .
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
