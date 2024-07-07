@@ -1,4 +1,4 @@
-FROM 40ants/base-lisp-image:0.15.0-sbcl-bin as base
+FROM 40ants/base-lisp-image:0.19.0-sbcl-bin as base
 
 EXPOSE 80
 EXPOSE 4005
@@ -12,9 +12,9 @@ RUN apt-get update && \
             python3-pip \
             silversearcher-ag \
             lsof \
-            ca-certificates=20230311ubuntu0.20.04.1 \
-            postgresql-client && \
-    pip3 install jsail dumb-init
+            ca-certificates=20230311ubuntu0.22.04.1 \
+            postgresql-client \
+            git
 
 RUN mkdir -p /tmp/s6 && cd /tmp/s6 && \
     git clone https://github.com/skarnet/skalibs && cd skalibs && \
@@ -92,13 +92,13 @@ ENTRYPOINT ["s6-svscan", "/etc/s6"]
 
 # Next stage is for development only
 FROM base as dev
-RUN ros install 40ants/gen-deps-system
+RUN qlot exec ros install 40ants/gen-deps-system
 ENTRYPOINT ["/app/docker/dev-entrypoint.sh"]
 
 
 # To run Mito commands
 FROM dev as mito
-RUN ros install fukamachi/mito
+RUN qlot exec ros install fukamachi/mito
 
 # https://medium.com/the-code-review/how-to-use-entrypoint-with-docker-and-docker-compose-1c2062aa17a2
 ENTRYPOINT ["/app/docker/mito.sh"]
