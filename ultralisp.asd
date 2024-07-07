@@ -1,9 +1,10 @@
-(loop for path in (list "~/projects/jsonrpc/"
-                        "~/projects/reblocks/"
-                        "~/projects/linter/")
-      when (probe-file path)
-        do (pushnew path asdf:*central-registry*
-                    :test #'equal))
+;; (loop for path in (list
+;;                    "~/projects/jsonrpc/"
+;;                    "~/projects/reblocks/"
+;;                    "~/projects/linter/")
+;;       when (probe-file path)
+;;         do (pushnew path asdf:*central-registry*
+;;                     :test #'equal))
 
 
 (defun search-version-in-changelog (lines)

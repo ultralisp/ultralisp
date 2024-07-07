@@ -129,7 +129,7 @@ services:
 
     command: |
       bash -c " \
-      ros install 40ants/gen-deps-system && \
+      qlot exec ros install 40ants/gen-deps-system && \
       qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)' && \
       qlot exec /root/.roswell/bin/gen-deps-system --except ultralisp app \ 
       "
