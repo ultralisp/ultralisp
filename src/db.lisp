@@ -382,6 +382,7 @@
                    state-type)
            (if queries
                (loop for (query . params) in queries
-                     do (format stream "~A with ~A~2%"
-                                query params))
+                     do (format stream "~S with ~A~2%"
+                                (dbi.driver:query-sql query)
+                                params))
                (format stream "No queries.~2%"))))

@@ -70,7 +70,9 @@
              mito:*connection*
              table-name
              column-name)))
-    (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = False WHERE id = ?" table-name)
+    ;; TODO: Probably we have to define around method and to make these changes along with the main
+    ;;       changes of insert-dao using a transaction?
+    (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = False WHERE id = ? AND latest" table-name)
                       (list (object-id obj)))
     (mito:execute-sql (fmt "UPDATE \"~A\" SET latest = True WHERE id = ? AND version = ?" table-name)
                       (list (object-id obj)

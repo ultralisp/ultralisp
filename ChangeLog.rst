@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.26.1 (2024-07-29)
+============================
+
+Now update of the dist will be made 10 times faster and hopefully will not trigger lock timeouts.
+
 1.26.0 (2024-07-28)
 ============================
 

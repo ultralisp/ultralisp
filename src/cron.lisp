@@ -5,6 +5,8 @@
   (:import-from #:slynk-api)
   (:import-from #:ultralisp/search)
   (:import-from #:ultralisp/models/project
+                #:project-name
+                #:source->project
                 #:get-disable-reason
                 #:get-all-projects)
   (:import-from #:ultralisp/models/check
@@ -52,6 +54,8 @@
                 #:make-sql-symbol)
   (:import-from #:mito.dao
                 #:make-set-clause)
+  (:import-from #:ultralisp/models/versioned
+                #:object-version)
   (:export
    #:list-cron-jobs
    #:delete-all-cron-jobs
@@ -169,11 +173,15 @@
   (loop with now = (now)
         with all-sources = (get-all-sources)
         for source in all-sources
+        for project = (source->project source)
         for time-for-check = (get-time-of-the-next-check source)
         when (local-time:timestamp< time-for-check
                                     now)
-          do (log:info "Creating cron check for" source)
-             (make-check source :via-cron)))
+        do (with-fields (:project-name (project-name project)
+                         :project-id (mito:object-id project)
+                         :project-version (object-version project))
+             (log:info "Creating cron check for" source)
+             (make-check source :via-cron))))
 
 
 (defun get-check-times (&optional (filename "/tmp/timestamps"))
