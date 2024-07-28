@@ -22,3 +22,5 @@
 /lw-license-backup
 .local.lisp
 *.fasl
+*.~undo-tree~
+.DS_Store
