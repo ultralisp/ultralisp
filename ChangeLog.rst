@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.26.0 (2024-07-28)
+============================
+
+Switch to newer version of Quickdist where ``canonical-distinfo-url`` is added to the dist metadata file.
+
 1.25.0 (2024-07-07)
 ===================
 

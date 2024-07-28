@@ -1,6 +1,6 @@
 dist ultralisp http://dist.ultralisp.org/
 
-github quickdist ultralisp/quickdist :ref 3cd3bdbb2d681157c41bd0584e6a2bbfcc60049f
+github quickdist ultralisp/quickdist :ref 9d6b0ef58d84ad1204b9ad209f51d93e1150f2ca
 
 # To make log4slime work also for SLY
 # github log4cl 40ants/log4cl :branch support-sly
