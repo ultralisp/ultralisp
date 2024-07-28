@@ -3,11 +3,14 @@
   (:import-from #:ultralisp/models/project
                 #:project-sources
                 #:get-name
+                #:project-name
                 #:project
                 #:project2)
   (:import-from #:ultralisp/models/source)
   (:import-from #:cl-dbi)
   (:import-from #:log)
+  (:import-from #:log4cl-extras/context
+                #:with-fields)
   (:import-from #:mito.util)
   (:import-from #:ultralisp/models/dist-source)
   (:import-from #:mito
@@ -215,18 +218,19 @@
                               :lisp-implementation implementation)
              t))
            (t
-            (let ((project-id (ultralisp/models/source:source-project-id source)))
-              (log:error "Unable to make a check for project"
-                         project-id)
-              (values nil nil))))))))
+            (log:error "Unable to make a check for project because it has no sources bound to some implementation")
+            (values nil nil)))))))
 
 
 (defun make-checks (project check-type)
   "Creates checks of given type for all project sources."
   (check-type project ultralisp/models/project:project2)
   
-  (loop for source in (project-sources project)
-        collect (make-check source check-type)))
+  (with-fields (:project-name (project-name project)
+                :project-id (mito:object-id project)
+                :project-version (object-version project))
+    (loop for source in (project-sources project)
+          collect (make-check source check-type))))
 
 
 (defmethod get-error :around (check)
