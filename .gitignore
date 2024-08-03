@@ -24,3 +24,4 @@
 *.fasl
 *.~undo-tree~
 .DS_Store
+/docs/build/

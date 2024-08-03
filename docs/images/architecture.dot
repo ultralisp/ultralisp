@@ -1,0 +1,50 @@
+// To build, do: lake build-images
+
+digraph G {
+  node [shape=rect];
+
+  subgraph cluster_1 {
+    color=darkgrey;
+    S3;
+    label = "AWS";
+  }
+
+  subgraph cluster_2 {
+    color=darkgrey;
+    label = "Digital Ocean";
+
+    subgraph cluster_2_1 {
+      color=darkgrey;
+      label = "Snapfish";
+      ElasticSearch;
+    }
+
+    subgraph cluster_2_2 {
+      color=darkgrey;
+      MainApp;
+      Checker;
+      Gearman;
+      PostgreSQL;
+      label = "Sailfish";
+    }
+    subgraph cluster_2_3 {
+      color=darkgrey;
+      Grafana;
+      label = "Opilio";
+    }
+  }
+  
+  CloudFlare[label="CloudFlare\nreverse proxy"]
+  CloudFlare -> S3;
+  CloudFlare -> MainApp;
+  
+  MainApp -> S3;
+  MainApp -> ElasticSearch;
+  MainApp -> Gearman;
+  Checker -> Gearman;
+  
+  MainApp -> PostgreSQL;
+  Checker -> PostgreSQL;
+
+  Grafana -> MainApp;
+}

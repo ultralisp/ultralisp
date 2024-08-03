@@ -1,0 +1,54 @@
+{
+  "name": "DOCS",
+  "on": {
+    "push": {
+      "branches": [
+        "master"
+      ]
+    },
+    "pull_request": null,
+    "schedule": [
+      {
+        "cron": "0 10 * * 1"
+      }
+    ]
+  },
+  "jobs": {
+    "build-docs": {
+      "runs-on": "ubuntu-latest",
+      "env": {
+        "OS": "ubuntu-latest",
+        "QUICKLISP_DIST": "quicklisp",
+        "LISP": "sbcl-bin"
+      },
+      "steps": [
+        {
+          "name": "Install libev",
+          "run": "sudo apt-get install libev4",
+          "shell": "bash"
+        },
+        {
+          "name": "Checkout Code",
+          "uses": "actions/checkout@v4"
+        },
+        {
+          "name": "Setup Common Lisp Environment",
+          "uses": "40ants/setup-lisp@v4",
+          "with": {
+            "qlot-no-deps": "true",
+            "asdf-system": "ultralisp-docs",
+            "cache": "false"
+          }
+        },
+        {
+          "name": "Build Docs",
+          "uses": "40ants/build-docs@v1",
+          "with": {
+            "asdf-system": "ultralisp-docs",
+            "error-on-warnings": false
+          }
+        }
+      ]
+    }
+  }
+}
