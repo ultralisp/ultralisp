@@ -22,7 +22,7 @@ digraph G {
     subgraph cluster_2_2 {
       color=darkgrey;
       MainApp;
-      Checker;
+      Worker;
       Gearman;
       PostgreSQL;
       label = "Sailfish";
@@ -41,10 +41,10 @@ digraph G {
   MainApp -> S3;
   MainApp -> ElasticSearch;
   MainApp -> Gearman;
-  Checker -> Gearman;
+  Worker -> Gearman;
   
   MainApp -> PostgreSQL;
-  Checker -> PostgreSQL;
+  Worker -> PostgreSQL;
 
   Grafana -> MainApp;
 }

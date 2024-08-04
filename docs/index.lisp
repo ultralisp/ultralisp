@@ -17,6 +17,10 @@
                 #:defautodoc)
   (:import-from #:ultralisp-docs/architecture
                 #:@architecture)
+  (:import-from #:ultralisp-docs/dev
+                #:@dev)
+  (:import-from #:ultralisp-docs/intro
+                #:@intro)
   (:export #:@index
            #:@readme
            #:@changelog))
@@ -25,48 +29,41 @@
 (in-readtable pythonic-string-syntax)
 
 
+(defsection-copy @index @intro)
+(defsection-copy @readme @intro)
+
 (defmethod docs-config ((system (eql (asdf:find-system "ultralisp-docs"))))
-  ;; 40ANTS-DOC-THEME-40ANTS system will bring
-  ;; as dependency a full 40ANTS-DOC but we don't want
-  ;; unnecessary dependencies here:
-  #+quicklisp
-  (ql:quickload "40ants-doc-theme-40ants")
-  #-quicklisp
-  (asdf:load-system "40ants-doc-theme-40ants")
-  
-  (list :theme
-        (find-symbol "40ANTS-THEME"
-                     (find-package "40ANTS-DOC-THEME-40ANTS")))
-  )
+  (list :root-sections '(@index
+                         @architecture
+                         @dev
+                         @readme)))
 
 
-(defsection @index (:title "ultralisp - A Quicklisp compatible Common Lisp software distribution."
-                    :ignore-words ("JSON"
-                                   "HTTP"
-                                   "TODO"
-                                   "BSD"
-                                   "REPL"
-                                   "ASDF:PACKAGE-INFERRED-SYSTEM"
-                                   "ASDF"
-                                   "S3"
-                                   "40A"
-                                   "API"
-                                   "URL"
-                                   "URI"
-                                   "RPC"
-                                   "GIT"))
-  (ultralisp system)
-  "
-[![](https://github-actions.40ants.com/ultralisp/ultralisp/matrix.svg?only=ci.run-tests)](https://github.com/ultralisp/ultralisp/actions)
+;; (defsection @index (:title "ultralisp - A Quicklisp compatible Common Lisp software distribution."
+;;                     :ignore-words ("JSON"
+;;                                    "HTTP"
+;;                                    "TODO"
+;;                                    "BSD"
+;;                                    "TCP"
+;;                                    "SLY"
+;;                                    "REPL"
+;;                                    "ASDF:PACKAGE-INFERRED-SYSTEM"
+;;                                    "ASDF"
+;;                                    "S3"
+;;                                    "40A"
+;;                                    "API"
+;;                                    "URL"
+;;                                    "URI"
+;;                                    "RPC"
+;;                                    "GIT"))
+;;   (ultralisp system)
+;;   "
+;; [![](https://github-actions.40ants.com/ultralisp/ultralisp/matrix.svg?only=ci.run-tests)](https://github.com/ultralisp/ultralisp/actions)
 
-![Quicklisp](http://quickdocs.org/badge/ultralisp.svg)
-"
-  ;; (@installation section)
-  ;; (@usage section)
-  (@architecture section))
-
-
-(defsection-copy @readme @index)
+;; ![Quicklisp](http://quickdocs.org/badge/ultralisp.svg)
+;; "
+;;   (@architecture section)
+;;   (@dev section))
 
 
 ;; (defsection @installation (:title "Installation")
