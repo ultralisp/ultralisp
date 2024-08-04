@@ -147,5 +147,8 @@
             do (ignore-errors
                 (sh #?"docker stop ${container}"))))
 
+(task "build-images" ()
+      (sh "/usr/bin/dot docs/images/architecture.dot -Tpng > docs/images/architecture.png"))
+
 (task "default" ("devserver")
       ())
