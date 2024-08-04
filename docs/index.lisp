@@ -30,7 +30,15 @@
 
 
 (defsection-copy @index @intro)
-(defsection-copy @readme @intro)
+
+(defsection @readme (:title "Ultralisp - A Quicklisp compatible Common Lisp software distribution.")
+  (@intro section)
+  (@more-info section))
+
+
+(defsection @more-info (:title "What is next?")
+  "For more information, see [full documentation](https://ultralisp.github.io/ultralisp/).")
+
 
 (defmethod docs-config ((system (eql (asdf:find-system "ultralisp-docs"))))
   (list :root-sections '(@index
