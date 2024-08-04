@@ -37,7 +37,7 @@
           "with": {
             "qlot-no-deps": "true",
             "asdf-system": "ultralisp-docs",
-            "cache": "false"
+            "cache": "true"
           }
         },
         {
