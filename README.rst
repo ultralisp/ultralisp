@@ -2,44 +2,6 @@
  Ultralisp
 ===========
 
-
-
-How to host Ultralisp on my own server
-======================================
-
-The easiest way to start a local Ultralisp server is to use
-``docker-compose``.
-
-Checkout the repository::
-
-  git clone https://github.com/ultralisp/ultralisp
-  cd ultralisp
-
-And run::
-
-  docker-compose run --rm mito migrate
-  docker-compose up app
-
-**Note, you have at least 4G of RAM on your machine, to run all services, needed for Ultralisp!**
-
-
-Harder way
-----------
-
-You may also build docker images out of Dockerfile and run them manually like this::
-
-  docker run --rm \
-             --name ultralisp \
-             -p 80:80 \
-             -p 4005:4005 \
-             -v `pwd`:/app \
-             -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-             -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-             -e RESEND_API_KEY=key-xxxxxxxxxxxxx \
-             -e USER_AGENT=xxxxxxxxxxxxx \
-             40ants/ultralisp:latest
-
-
 Hacking around
 ==============
 
