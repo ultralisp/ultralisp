@@ -15,6 +15,8 @@
    #:import-quicklisp))
 (in-package #:ultralisp/import)
 
+;; This is not finished tool for fetching projects metadata from main Quicklisp distribution
+;; I've intended to make it a periodical task, but really used only once from the REPL.
 
 (defun empty-string-p (s)
   (string= s ""))
