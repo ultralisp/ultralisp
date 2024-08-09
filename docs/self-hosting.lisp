@@ -111,23 +111,23 @@ And you need to create a bucket on the S3.
   an url like that: https://s3.console.aws.amazon.com/s3/buckets/dist.my-ultralisp.org/?region=us-east-1&tab=permissions
   and insert such code into the "Bucket Policy" tab:
 
-  ```javascrip
-  {
-    "Id": "Policy1547940357563",
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Sid": "Stmt1547940349039",
-        "Action": [
-          "s3:GetObject"
-        ],
-        "Effect": "Allow",
-        "Resource": "arn:aws:s3:::dist.my-ultralisp.org/*",
-        "Principal": "*"
-      }
-    ]
-  }
-  ```
+    ```javascrip
+    {
+      "Id": "Policy1547940357563",
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "Stmt1547940349039",
+          "Action": [
+            "s3:GetObject"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:s3:::dist.my-ultralisp.org/*",
+          "Principal": "*"
+        }
+      ]
+    }
+    ```
 
   This will make this bucket readable to anybody.
 
