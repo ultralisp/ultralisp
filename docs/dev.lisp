@@ -22,6 +22,7 @@
 
 (defsection @dev (:title "Development"
                   :ignore-words ("TCP"
+                                 "URL"
                                  "SLY"))
   "
 # Running in dev
@@ -121,7 +122,7 @@ dev:~$ DEBUG=1 \
        roswell/ultralisp-server --log-dir `pwd`/logs/
 ```
 
-Pay attention to the client id and github secret. These are values I've created for a dev version Ultralisp server, hosted on localhost. If yor want to create a self-hosted installation, you'll have to create your own GitHub app and to keep it's secrets in some secure vault.
+**Note:** pay attention to the client id and github secret. These are values I've created for a dev version Ultralisp server, hosted on localhost. If yor want to create a self-hosted installation, you'll have to create your own GitHub app and to keep it's secrets in some secure vault.
 
-Well, now open URL http://localhost:8001/ in the browser! It will show the front page of your dev Ultralisp server!
+Now open URL http://localhost:8001/ in the browser! It will show the front page of your dev Ultralisp server!
 ")
