@@ -19,8 +19,12 @@
                 #:@architecture)
   (:import-from #:ultralisp-docs/dev
                 #:@dev)
+  (:import-from #:ultralisp-docs/self-hosting
+                #:@self-hosting)
   (:import-from #:ultralisp-docs/intro
                 #:@intro)
+  (:import-from #:ultralisp-docs/hacking
+                #:@hacking)
   (:export #:@index
            #:@readme
            #:@changelog))
@@ -44,6 +48,8 @@
   (list :root-sections '(@index
                          @architecture
                          @dev
+                         @self-hosting
+                         @hacking
                          @readme)))
 
 

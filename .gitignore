@@ -25,3 +25,5 @@
 *.~undo-tree~
 .DS_Store
 /docs/build/
+/roswell/ultralisp-server
+/roswell/worker
