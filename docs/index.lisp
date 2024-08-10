@@ -25,6 +25,8 @@
                 #:@intro)
   (:import-from #:ultralisp-docs/hacking
                 #:@hacking)
+  (:import-from #:ultralisp-docs/releases
+                #:@releases)
   (:export #:@index
            #:@readme
            #:@changelog))
@@ -50,6 +52,7 @@
                          @dev
                          @self-hosting
                          @hacking
+                         @releases
                          @readme)))
 
 
