@@ -104,10 +104,12 @@
 
 (defmain (main) ((slynk-port "A port to listen for connection from SLY."
                              :default 10200
-                             :short nil)
+                             :short nil
+                             :env-var "SLYNK_PORT")
                  (slynk-interface "An interface to listen on for connection from SLY."
                                   :default "localhost"
-                                  :short nil)
+                                  :short nil
+                                  :env-var "SLYNK_INTERFACE")
                  (one-task-only "If true, then worker will quit after the task processing."
                                 :flag t)
                  (log-file "Path to a log file"
