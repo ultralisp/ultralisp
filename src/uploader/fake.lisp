@@ -17,9 +17,10 @@
 
 (defmethod make-uploader ((type (eql :fake)) repo-type)
   (lambda (dir-or-file destination-path &key only-files)
-    (let* ((destination-path (relative-pathname (ecase repo-type
-                                                  (:quicklisp (get-dist-dir))
-                                                  (:clpi (get-clpi-dist-dir)))
+    (let* ((destination-path (relative-pathname (uiop:ensure-directory-pathname
+                                                 (ecase repo-type
+                                                   (:quicklisp (get-dist-dir))
+                                                   (:clpi (get-clpi-dist-dir))))
                                                 destination-path))
            (need-to-upload-p
              (make-files-inclusion-checker only-files)))

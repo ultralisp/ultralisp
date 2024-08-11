@@ -31,7 +31,7 @@ services:
       POSTGRES_DBNAME: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
       POSTGRES_RO_PASS: ultralisp_ro
-      ELASTIC_HOST: elastic
+      ELASTIC_SEARCH_HOST: elastic
       GEARMAN_SERVER: gearman:4730
       # These tokens are from the development app and
       # we don't need to keep them in secret
@@ -75,7 +75,7 @@ services:
     environment:
       DEBUG: 1
       MODE: worker
-      ELASTIC_HOST: elastic
+      ELASTIC_SEARCH_HOST: elastic
       GEARMAN_SERVER: gearman:4730
       SLYNK_PORT: 4005
       SLYNK_INTERFACE: 0.0.0.0

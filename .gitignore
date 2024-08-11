@@ -27,3 +27,5 @@
 /docs/build/
 /roswell/ultralisp-server
 /roswell/worker
+/dist/
+/elastic-data/
