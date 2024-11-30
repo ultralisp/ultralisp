@@ -5,6 +5,8 @@ if [[ ! -e /app/logs ]]; then
 fi
 
 DATE=$(date --rfc-3339=seconds)
+STDOUT_FILE=/app/logs/app-stdout.log
+STDERR_FILE=/app/logs/app-stderr.log
 
 function print_banner () {
   cat >> $1 <<EOF
@@ -17,10 +19,10 @@ function print_banner () {
 EOF
 }
 
-print_banner /app/logs/app-stdout.log
-print_banner /app/logs/app-stderr.log
+print_banner ${STDOUT_FILE}
+print_banner ${STDERR_FILE}
 
-/app/ultralisp-server \
-	>> /app/logs/app-stdout.log \
-	2>> /app/logs/app-stderr.log
+exec /app/ultralisp-server \
+        >> ${STDOUT_FILE} \
+        2>> ${STDERR_FILE}
 
