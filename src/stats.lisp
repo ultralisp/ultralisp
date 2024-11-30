@@ -124,8 +124,10 @@
     (setf *collector* (make-reblocks-stats *registry*))
     
     (let ((prom:*default-registry* *registry*))
-      #+sbcl
-      (make-memory-collector)
+      ;; NOTE: Turned off because process hangs after some period of time
+      ;;       See https://github.com/ultralisp/ultralisp/issues/288 for details
+      ;; #+sbcl
+      ;; (make-memory-collector)
       #+sbcl
       (make-threads-collector)
       (make-process-collector)))

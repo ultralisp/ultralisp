@@ -71,6 +71,6 @@ secrets run the following command:
 
 #+begin_src bash
 
-ansible-vault edit .ansible/playbooks/group_vars/ultralisp/vault
+pyenv exec ansible-vault edit .ansible/playbooks/group_vars/ultralisp/vault
 
 #+end_src
