@@ -7,6 +7,7 @@
 
 * Turned off memory metrics because they cause hanging of the server.
   Details are described at https://github.com/ultralisp/ultralisp/issues/288
+* Updated LispWorks license once more.
 
 1.26.2 (2024-11-19)
 ===================
