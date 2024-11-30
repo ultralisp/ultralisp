@@ -1,10 +1,14 @@
 #!/bin/bash
 
+set -Eeuo pipefail
+
 if [[ ! -e /app/logs ]]; then
     mkdir -p /app/logs
 fi
 
 DATE=$(date --rfc-3339=seconds)
+STDOUT_FILE=/app/logs/lw-worker-stdout.log
+STDERR_FILE=/app/logs/lw-worker-stderr.log
 
 function print_banner () {
   cat >> $1 <<EOF
@@ -17,28 +21,30 @@ function print_banner () {
 EOF
 }
 
-print_banner /app/logs/lw-worker-stdout.log
-print_banner /app/logs/lw-worker-stderr.log
+print_banner ${STDOUT_FILE}
+print_banner ${STDERR_FILE}
 
 
 if [[ ! -e /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense ]] || ! grep -q $(hostname) /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense; then
     if [[ -e /lw/license ]]; then
-        echo 'Applying LispWorks license.' >> /app/logs/lw-worker-stdout.log
-        /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license)
+        echo 'Applying LispWorks license.' >> ${STDOUT_FILE}
+        /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license) >> ${STDOUT_FILE} 2>&1
         
-        echo 'License was successfully applied:'
-        grep -e '###' -e 'SERIAL' -e 'EXPIRATION' /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense
+        echo 'License was successfully applied:' >> ${STDOUT_FILE}
+        grep -e '###' -e 'SERIAL' -e 'EXPIRATION' /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense >> ${STDOUT_FILE}
 
-        echo 'Removing /lw/license file'
+        echo 'Removing /lw/license file' >> ${STDOUT_FILE}
         rm /lw/license
     else
-        echo "WARN: There is no license for current host $(hostname) and file in /lw/license." >> /app/logs/lw-worker-stdout.log
+        echo "ERROR: There is no license for current host $(hostname) and file in /lw/license." >> ${STDOUT_FILE}
+        sleep 60
+        exit 1
     fi
 else
-    echo 'Found an LispWorks license.' >> /app/logs/lw-worker-stdout.log
+    echo 'Found a LispWorks license.' >> ${STDOUT_FILE}
 fi
 
-/app/worker \
+exec /app/worker \
         --one-task-only \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \

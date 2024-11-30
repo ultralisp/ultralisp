@@ -5,6 +5,8 @@ if [[ ! -e /app/logs ]]; then
 fi
 
 DATE=$(date --rfc-3339=seconds)
+STDOUT_FILE=/app/logs/worker-stdout.log
+STDERR_FILE=/app/logs/worker-stderr.log
 
 function print_banner () {
   cat >> $1 <<EOF
@@ -17,13 +19,13 @@ function print_banner () {
 EOF
 }
 
-print_banner /app/logs/worker-stdout.log
-print_banner /app/logs/worker-stderr.log
+print_banner ${STDOUT_FILE}
+print_banner ${STDERR_FILE}
 
-/app/worker \
+exec /app/worker \
         --one-task-only \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \
         --debug \
-        >> /app/logs/worker-stdout.log \
-        2>> /app/logs/worker-stderr.log
+        >> ${STDOUT_FILE} \
+        2>> ${STDERR_FILE}
