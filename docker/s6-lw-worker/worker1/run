@@ -25,6 +25,11 @@ if [[ ! -e /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense ]] || ! grep 
     if [[ -e /lw/license ]]; then
         echo 'Applying LispWorks license.' >> /app/logs/lw-worker-stdout.log
         /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license)
+        
+        echo 'License was successfully applied:'
+        grep -e '###' -e 'SERIAL' -e 'EXPIRATION' /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense
+
+        echo 'Removing /lw/license file'
         rm /lw/license
     else
         echo "WARN: There is no license for current host $(hostname) and file in /lw/license." >> /app/logs/lw-worker-stdout.log

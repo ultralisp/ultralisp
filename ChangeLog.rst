@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.26.4 (2024-11-30)
+===================
+
+* Show more info about status of LW license application.
+
 1.26.3 (2024-11-30)
 ===================
 
