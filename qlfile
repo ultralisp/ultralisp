@@ -33,7 +33,7 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 
 # Waiting for this PR to be merged:
 # https://github.com/fukamachi/cl-dbi/pull/87
-github cl-dbi svetlyak40wt/cl-dbi :branch application-name
+# github cl-dbi svetlyak40wt/cl-dbi :branch application-name
 
 # Until this PR will be merged:
 # https://github.com/Shinmera/legit/pull/11
@@ -43,3 +43,8 @@ github cl-dbi svetlyak40wt/cl-dbi :branch application-name
 # Until this PR will be merged:
 # https://github.com/thephoeron/cl-isaac/pull/13
 github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
+
+
+# Until we solve https://github.com/fukamachi/qlot/issues/265
+# and https://github.com/ultralisp/ultralisp/issues/278
+# github qlot fukamachi/qlot :ref a4abc8921c4a8cf1c43f453bb2106ee56ae3c13d

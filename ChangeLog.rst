@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+1.26.6 (2025-02-14)
+===================
+
+* Normalize license info when collecting system info.
+  Some authors may use symbol as license name like in:
+  https://github.com/ajberkley/cl-binary-store/blob/3b0587eaaa74c79734477cb38132237411068ef8/cl-binary-store.asd#L66
+  But we need to serialize it to JSON. Yason library fails to serialize symbols, so we cast license to string now.
+
 1.26.5 (2024-11-30)
 ===================
 
