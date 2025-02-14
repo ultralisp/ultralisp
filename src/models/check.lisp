@@ -218,7 +218,9 @@
                               :lisp-implementation implementation)
              t))
            (t
-            (log:error "Unable to make a check for project because it has no sources bound to some implementation")
+            ;; There are many such projects in the production.
+            ;; Don't know what to do with them :(
+            (log:info "Unable to make a check for project because it has no sources bound to some implementation")
             (values nil nil)))))))
 
 

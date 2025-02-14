@@ -39,6 +39,15 @@
     (t nil)))
 
 
+(defun %normalize-license (license)
+  (typecase license
+    (string license)
+    (t
+     (log:warn "Project's license is not string: ~S. Coercing to string."
+               license)
+     (princ-to-string license))))
+
+
 (defun %system-info-to-json (system-info)
   (check-type system-info system-info)
 
@@ -49,7 +58,11 @@
         "FILENAME" (get-filename system-info)
         "NAME" (quickdist:get-name system-info)
         "DEPENDENCIES" (get-dependencies system-info)
-        "LICENSE" (ultralisp/models/system-info::system-info-license system-info)
+        ;; Some authors may use symbol as license name like in:
+        ;; https://github.com/ajberkley/cl-binary-store/blob/3b0587eaaa74c79734477cb38132237411068ef8/cl-binary-store.asd#L66
+        ;; But we need to serialize it to JSON:
+        "LICENSE" (%normalize-license
+                   (ultralisp/models/system-info::system-info-license system-info))
         "AUTHOR" (%normalize-names
                   (ultralisp/models/system-info::system-info-author system-info))
         "MAINTAINER" (%normalize-names
