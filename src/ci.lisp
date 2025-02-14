@@ -51,9 +51,9 @@
   :cache t
   :env (("CL_SOURCE_REGISTRY" . "${{ github.workspace }}/"))
   :jobs ((linter
-          :lisp "sbcl-bin/2.2.5")
+          :lisp "sbcl-bin/2.4.6")
          (run-tests
-          :lisp "sbcl-bin/2.1.2"
+          :lisp "sbcl-bin/2.4.6"
           ;; Does not work because cl-coverage complains
           ;; it can't quickload app-deps. Hmmm...
           ;; :coverage nil
@@ -64,7 +64,7 @@
   :on-push-to "master"
   :by-cron "0 10 * * 1"
   :on-pull-request t
-  ;; :cache t
+  :cache t
   :jobs ((build-docs :asdf-system "ultralisp-docs"
                      ;; Because of unknown issue, builder on CI shows this message but not a single warning:
                      ;; WARNING: 92 warnings were caught

@@ -35,7 +35,6 @@
           "name": "Setup Common Lisp Environment",
           "uses": "40ants/setup-lisp@v4",
           "with": {
-            "qlot-no-deps": "true",
             "asdf-system": "ultralisp-docs",
             "cache": "true"
           }

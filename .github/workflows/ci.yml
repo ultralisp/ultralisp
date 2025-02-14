@@ -22,7 +22,7 @@
       "env": {
         "OS": "ubuntu-latest",
         "QUICKLISP_DIST": "quicklisp",
-        "LISP": "sbcl-bin/2.2.5"
+        "LISP": "sbcl-bin/2.4.6"
       },
       "steps": [
         {
@@ -82,7 +82,7 @@
       "env": {
         "OS": "ubuntu-latest",
         "QUICKLISP_DIST": "quicklisp",
-        "LISP": "sbcl-bin/2.1.2"
+        "LISP": "sbcl-bin/2.4.6"
       },
       "steps": [
         {
