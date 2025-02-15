@@ -264,10 +264,7 @@
     ;; check really be marked as failed even if there are some
     ;; other commands which will cause rollback of the outer
     ;; postgres connection:
-    (with-connection (:cached
-                      ;; In unit tests we have to use the same connection,
-                      ;; because database schema exists only inside transaction:
-                      *in-unit-test*)
+    (with-connection (:cached nil)
       (with-transaction
         (let ((project (check->project check)))
           (with-fields (:project-name (project-name project))

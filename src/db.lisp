@@ -15,6 +15,7 @@
                 #:make-hmac
                 #:ascii-string-to-byte-array)
   (:import-from #:ultralisp/variables
+                #:*in-unit-test*
                 #:get-postgres-pass
                 #:get-postgres-user
                 #:get-postgres-host
@@ -166,7 +167,11 @@
     (error 'connection-error
            :message "Unable to get cached connection inside a block with non-cached connection."))
 
-  (let* ((*was-cached* cached)
+  (let* ((cached (or cached
+                     ;; In unit tests we have to use the same connection,
+                     ;; because database schema exists only inside transaction:
+                     *in-unit-test*))
+         (*was-cached* cached)
          (mito:*connection*
            ;; In cached mode we will reuse current connect.
            ;; This way, nested WITH-CONNECTION calls will
