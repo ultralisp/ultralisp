@@ -13,6 +13,15 @@
 
 (push "./" asdf:*central-registry*)
 
+;; Qlot will require lparallel,
+;; but it is broken in Quicklisp 2024-10-12 distribution
+;; and can't compile on LispWorks.
+;; That is why we need to install Ultralisp dist
+;; here. Later we'll change it to the dist
+;; mentioned in qlfile.lock by calling qlot:with-local-quicklisp
+(ql-dist:install-dist "http://dist.ultralisp.org/ultralisp/20250214233001/distinfo.txt"
+                      :prompt nil)
+
 (ql:quickload :qlot)
 
 ;; Without this, russian text is loaded incorrectly:
