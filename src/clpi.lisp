@@ -21,8 +21,6 @@
                 #:enabled-p)
   (:import-from #:local-time)
   (:import-from #:legit)
-  (:import-from #:ultralisp/db
-                #:with-connection)
   (:import-from #:mito
                 #:retrieve-by-sql)
   (:import-from #:str
@@ -270,58 +268,57 @@
 
 
 (defun write-index (dist projects &key (base-dir #P"clpi/"))
-  (with-connection ()
-    (let* ((index-file (merge-pathnames #P"index.html" base-dir))
-           (inner-base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
-           (clpi-version-file (merge-pathnames #P"clpi-version" inner-base-dir))
-           (projects-index-file (merge-pathnames #P"project-index" inner-base-dir))
-           (systems-index-file (merge-pathnames #P"system-index" inner-base-dir))
-           (projects-dir (merge-pathnames #P"projects/" inner-base-dir))
-           (systems-dir (merge-pathnames #P"systems/" inner-base-dir)))
-      (ensure-directories-exist projects-index-file)
-      (ensure-directories-exist systems-index-file)
+  (let* ((index-file (merge-pathnames #P"index.html" base-dir))
+         (inner-base-dir (merge-pathnames #P"clpi/v0.4/" base-dir)) ;; this part is required by CLPM
+         (clpi-version-file (merge-pathnames #P"clpi-version" inner-base-dir))
+         (projects-index-file (merge-pathnames #P"project-index" inner-base-dir))
+         (systems-index-file (merge-pathnames #P"system-index" inner-base-dir))
+         (projects-dir (merge-pathnames #P"projects/" inner-base-dir))
+         (systems-dir (merge-pathnames #P"systems/" inner-base-dir)))
+    (ensure-directories-exist projects-index-file)
+    (ensure-directories-exist systems-index-file)
 
-      (with-open-file (stream clpi-version-file :direction :output
-                                                :if-exists :supersede)
-        (write "0.4" :stream stream))
-      
-      (with-open-file (stream index-file :direction :output
-                                         :if-exists :supersede)
-        (render-index-file dist stream))
+    (with-open-file (stream clpi-version-file :direction :output
+                                              :if-exists :supersede)
+      (write "0.4" :stream stream))
+    
+    (with-open-file (stream index-file :direction :output
+                                       :if-exists :supersede)
+      (render-index-file dist stream))
 
-      (with-open-file (projects-stream projects-index-file :direction :output
-                                                           :if-exists :supersede)
-        (with-open-file (systems-stream systems-index-file :direction :output
-                                                           :if-exists :supersede)
-          (loop for project in (sort
-                                ;; We need to sort projects by name to make project-index file
-                                ;; stable and to minimize git diff
-                                (copy-list projects)
-                                #'string<
-                                :key #'ultralisp/models/project:project-name)
-                for project-name = (ultralisp/models/project:project-name project)
-                for releases-path = (merge-pathnames (format nil "~A/releases" project-name)
-                                                     projects-dir)
-                for version-scheme-path = (merge-pathnames (format nil "~A/version-scheme" project-name)
-                                                           projects-dir)
-                for repo-path = (merge-pathnames (format nil "~A/repo" project-name)
-                                                 projects-dir)
-                do (write-project dist project projects-stream)
-                   (write-project-systems dist project systems-stream)
-                  
-                   (ensure-directories-exist releases-path)
-                   (with-open-file (releases-stream releases-path :direction :output
-                                                                  :if-exists :supersede)
-                     (write-project-releases dist project releases-stream))
-                   ;; TODO: probably, when we'll make version extraction out of ASDF,
-                   ;;       we'll need to guess version type and write :DATE or :SEMANTIC
-                   ;;       depending on actual version numbering of the project.
-                   (with-open-file (stream version-scheme-path :direction :output
-                                                               :if-exists :supersede)
-                     (write :date :stream stream))
+    (with-open-file (projects-stream projects-index-file :direction :output
+                                                         :if-exists :supersede)
+      (with-open-file (systems-stream systems-index-file :direction :output
+                                                         :if-exists :supersede)
+        (loop for project in (sort
+                              ;; We need to sort projects by name to make project-index file
+                              ;; stable and to minimize git diff
+                              (copy-list projects)
+                              #'string<
+                              :key #'ultralisp/models/project:project-name)
+              for project-name = (ultralisp/models/project:project-name project)
+              for releases-path = (merge-pathnames (format nil "~A/releases" project-name)
+                                                   projects-dir)
+              for version-scheme-path = (merge-pathnames (format nil "~A/version-scheme" project-name)
+                                                         projects-dir)
+              for repo-path = (merge-pathnames (format nil "~A/repo" project-name)
+                                               projects-dir)
+              do (write-project dist project projects-stream)
+                 (write-project-systems dist project systems-stream)
+              
+                 (ensure-directories-exist releases-path)
+                 (with-open-file (releases-stream releases-path :direction :output
+                                                                :if-exists :supersede)
+                   (write-project-releases dist project releases-stream))
+                 ;; TODO: probably, when we'll make version extraction out of ASDF,
+                 ;;       we'll need to guess version type and write :DATE or :SEMANTIC
+                 ;;       depending on actual version numbering of the project.
+                 (with-open-file (stream version-scheme-path :direction :output
+                                                             :if-exists :supersede)
+                   (write :date :stream stream))
 
-                   (write-repo-info dist project repo-path)
-                   (write-systems-info dist systems-dir project))))))
+                 (write-repo-info dist project repo-path)
+                 (write-systems-info dist systems-dir project)))))
   (values))
 
 

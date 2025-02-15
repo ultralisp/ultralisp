@@ -2,6 +2,8 @@
   (:use #:cl)
   (:import-from #:ultralisp/clpi)
   (:import-from #:log)
+  (:import-from #:trivial-garbage
+                #:gc)
   (:import-from #:local-time
                 #:now
                 #:format-timestring)
@@ -247,9 +249,13 @@
     (log:info "Trying to acquire a lock performing-pending-checks")
     (with-lock ("build-prepared-dists")
       (log:info "Checking if there is a version to build")
-      
-      (mapc #'build-dist
-            (get-prepared-dists)))))
+
+      (loop for dist in (get-prepared-dists)
+            ;; Building each dist in a separate transaction,
+            ;; to commmit intermediate results:
+            do (with-connection (:cached nil)
+                 (build-dist dist))
+               (gc :full t)))))
 
 
 (defun test-build (&key
