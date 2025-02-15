@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.26.8 (2025-02-15)
+===================
+
+* Fixed the way how "processed" dist version are processed. Now each dist is processed in a separate transaction. Also, we collect garbage between dist builds.
+* Fixed a login page broken after the last dependencies upgrade.
+
 1.26.7 (2025-02-15)
 ===================
 
