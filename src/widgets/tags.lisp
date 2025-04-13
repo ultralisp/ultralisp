@@ -2,6 +2,10 @@
   (:use #:cl)
   (:import-from #:reblocks-lass)
   (:import-from #:log)
+  (:import-from #:ultralisp/protocols/moderation
+                #:is-moderator)
+  (:import-from #:reblocks-auth/models
+                #:get-current-user)
   (:import-from #:reblocks/widget
                 #:render
                 #:defwidget)
@@ -36,13 +40,10 @@
             :reader tags-project)
    (tags :initarg :tags
          :type list
-         :reader tags-list)
-   (editable :initarg :editable
-             :initform nil
-             :reader editablep)))
+         :reader tags-list)))
 
 
-(defun make-tags-widget (project tags &key editable)
+(defun make-tags-widget (project tags)
   (check-type tags list)
   (check-type project project2)
   (loop for tag in tags
@@ -50,8 +51,7 @@
   
   (make-instance 'tags
                  :project project
-                 :tags tags
-                 :editable editable))
+                 :tags tags))
 
 (defgeneric normalize-tag (widget value)
   (:method ((widget tags) (value string))
@@ -70,27 +70,37 @@
 
 
 (defmethod render ((widget tags))
-  (let ((reblocks/html:*pretty-html* nil))
+  (let ((reblocks/html:*pretty-html* nil)
+        (editablep (is-moderator (get-current-user)
+                                 (tags-project widget))))
     (labels
         ((remove-tag (&key tag &allow-other-keys)
-           (log:info "Removing tag" tag)
-           (remove-tags (tags-project widget)
-                        tag)
-           (removef (slot-value widget 'tags)
-                    tag
-                    :test #'string=)
-           (reblocks/widget:update widget)
-           (reinitialize))
+           (cond
+             (editablep 
+              (log:info "Removing tag" tag)
+              (remove-tags (tags-project widget)
+                           tag)
+              (removef (slot-value widget 'tags)
+                       tag
+                       :test #'string=)
+              (reblocks/widget:update widget)
+              (reinitialize))
+             (t
+              (log:error "Attemtp to call REMOVE-TAG when tags widget is not editable"))))
          (add-new-tags (&key tags &allow-other-keys)
-           (let ((normalized-tags (split-and-normalize widget tags)))
-             (when normalized-tags
-               (log:info "Adding tags" normalized-tags)
-               (let ((added-tags (add-tags (tags-project widget)
-                                           normalized-tags)))
-                 (setf (slot-value widget 'tags)
-                       (sort (append (slot-value widget 'tags)
-                                     added-tags)
-                             #'string<)))))
+           (cond
+             (editablep 
+              (let ((normalized-tags (split-and-normalize widget tags)))
+                (when normalized-tags
+                  (log:info "Adding tags" normalized-tags)
+                  (let ((added-tags (add-tags (tags-project widget)
+                                              normalized-tags)))
+                    (setf (slot-value widget 'tags)
+                          (sort (append (slot-value widget 'tags)
+                                        added-tags)
+                                #'string<))))))
+             (t
+              (log:error "Attemtp to call ADD-NEW-TAGS when tags widget is not editable")))
              
            (reblocks/widget:update widget)
            (reinitialize))
@@ -108,12 +118,12 @@
               do (:span :class "tag"
                         (:a :href (fmt "/tags/~A/" tag)
                             (fmt "#~A" tag))
-                        (when (editablep widget)
+                        (when editablep 
                           (:span :class "delete"
                                  (with-html-form (:post #'remove-tag)
                                    (:input :type "hidden" :name "tag" :value tag)
                                    (reblocks-ui/form:render-button "✕" :class "button alert"))))))
-        (when (editablep widget)
+        (when editablep 
           (let* ((popup-id (symbol-name (gensym "NEW-TAG-POPUP"))))
             (:div :id popup-id
                   :class "reveal small"

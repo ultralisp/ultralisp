@@ -80,7 +80,7 @@
   ;; Changes a project bound to the widget
   (unless (equal (slot-value widget 'name)
                  new-name)
-    (let ((new-project (ultralisp/models/project:get-project2 new-name)))
+    (let* ((new-project (ultralisp/models/project:get-project2 new-name)))
       (unless new-project
         (page-not-found))
       
@@ -112,8 +112,7 @@
 
               (slot-value widget 'tags-widget)
               (make-tags-widget new-project
-                                (get-project-tags new-project)
-                                :editable t))))))
+                                (get-project-tags new-project)))))))
 
 
 (defclass next-check ()
