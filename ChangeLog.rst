@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.26.9 (2025-04-13)
+===================
+
+* Fixed vulnerability when non-authenticated user was able to add and remove tags on projects.
+  Reported by Charlie McMackin.
+
 1.26.8 (2025-02-15)
 ===================
 
