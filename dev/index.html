@@ -1,0 +1,121 @@
+<html lang=en>
+ <head>
+  <meta charset=UTF-8><meta name=viewport
+      content="width=device-width, initial-scale=1">
+  <title>Development</title>
+  <link rel=alternate
+        href="https://ultralisp.github.io/ultralisp/changelog.xml"
+        type="application/rss+xml">
+  <link rel=stylesheet type="text/css"
+        href="../theme.css">
+  <script type="text/javascript" src="../jquery.js"></script>
+  <script type="text/javascript" src="../toc.js"></script>
+  <script type="text/javascript">$(document).ready(function() {$('a:has(img)').css('border-bottom', 'none')})</script>
+  <link rel=stylesheet type="text/css"
+      href="../highlight.min.css">
+  <script type="text/javascript"
+          src="../highlight.min.js"></script>
+  <script type="text/javascript">hljs.highlightAll();</script>
+ </head>
+ <body>
+  <div class=page><div class=sidebar><div class=header><form class=search method=GET
+      action="../search/">
+      <input type=text name=q>
+      <input type=submit value=Search><span id=search-progress></span>
+     </form>
+    </div><div class=content><div class=page-toc><ul><li><p><a href="../#x-28ULTRALISP-DOCS-2FINDEX-3A-40INDEX-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="../" data-node="x-28ULTRALISP-DOCS-2FINDEX-3A-40INDEX-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">Introduction</a></p><ul><li><p><a href="../#what-is-this" data-document="../" data-node="what-is-this">What is this?</a></p></li><li><p><a href="../#how-to-use-it" data-document="../" data-node="how-to-use-it">How to use it?</a></p></li></ul></li><li><p><a href="../architecture/#x-28ULTRALISP-DOCS-2FARCHITECTURE-3A-3A-40ARCHITECTURE-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="../architecture/" data-node="x-28ULTRALISP-DOCS-2FARCHITECTURE-3A-3A-40ARCHITECTURE-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">Architecture</a></p><ul><li><p><a href="../architecture/#components-of-the-system" data-document="../architecture/" data-node="components-of-the-system">Components of the system</a></p><ul><li><p><a href="../architecture/#main-app" data-document="../architecture/" data-node="main-app">MainApp</a></p></li><li><p><a href="../architecture/#worker" data-document="../architecture/" data-node="worker">Worker</a></p></li><li><p><a href="../architecture/#gearman" data-document="../architecture/" data-node="gearman">Gearman</a></p></li><li><p><a href="../architecture/#file-storage" data-document="../architecture/" data-node="file-storage">FileStorage</a></p></li></ul></li></ul></li><li><p><a href="#x-28ULTRALISP-DOCS-2FDEV-3A-3A-40DEV-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="" data-node="x-28ULTRALISP-DOCS-2FDEV-3A-3A-40DEV-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">Development</a></p><ul><li><p><a href="#running-in-dev" data-document="" data-node="running-in-dev">Running in dev</a></p><ul><li><p><a href="#easy-way" data-document="" data-node="easy-way">Easy way</a></p></li></ul></li><li><p><a href="#harder-way" data-document="" data-node="harder-way">Harder way</a></p><ul><li><p><a href="#database-setup" data-document="" data-node="database-setup">Database setup</a></p></li><li><p><a href="#building-and-running-lisp-components" data-document="" data-node="building-and-running-lisp-components">Building and running lisp components</a></p></li><li><p><a href="#connecting-worker-to-the-main-application" data-document="" data-node="connecting-worker-to-the-main-application">Connecting worker to the main application</a></p></li><li><p><a href="#checking-if-everything-works" data-document="" data-node="checking-if-everything-works">Checking if everything works</a></p></li><li><p><a href="#building-the-search-index" data-document="" data-node="building-the-search-index">Building the search index</a></p></li></ul></li></ul></li><li><p><a href="../self-hosting/#x-28ULTRALISP-DOCS-2FSELF-HOSTING-3A-3A-40SELF-HOSTING-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="../self-hosting/" data-node="x-28ULTRALISP-DOCS-2FSELF-HOSTING-3A-3A-40SELF-HOSTING-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">How to host Ultralisp on my own server</a></p><ul><li><p><a href="../self-hosting/#easy-way" data-document="../self-hosting/" data-node="easy-way">Easy way</a></p></li><li><p><a href="../self-hosting/#harder-way" data-document="../self-hosting/" data-node="harder-way">Harder way</a></p></li><li><p><a href="../self-hosting/#uploading-distribution-to-s3" data-document="../self-hosting/" data-node="uploading-distribution-to-s3">Uploading distribution to S3</a></p><ul><li><p><a href="../self-hosting/#how-to-create-a-bucket" data-document="../self-hosting/" data-node="how-to-create-a-bucket">How to create a bucket</a></p></li><li><p><a href="../self-hosting/#setup-a-proxy-server" data-document="../self-hosting/" data-node="setup-a-proxy-server">Setup a proxy server</a></p></li></ul></li></ul></li><li><p><a href="../hacking/#x-28ULTRALISP-DOCS-2FHACKING-3A-3A-40HACKING-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="../hacking/" data-node="x-28ULTRALISP-DOCS-2FHACKING-3A-3A-40HACKING-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">Hacking around</a></p><ul><li><p><a href="../hacking/#running-and-creating-database-migrations" data-document="../hacking/" data-node="running-and-creating-database-migrations">Running and creating database migrations</a></p></li><li><p><a href="../hacking/#running-tests" data-document="../hacking/" data-node="running-tests">Running tests</a></p></li><li><p><a href="../hacking/#interesting-environment-variables" data-document="../hacking/" data-node="interesting-environment-variables">Interesting environment variables</a></p></li></ul></li><li><p><a href="../releases/#x-28ULTRALISP-DOCS-2FRELEASES-3A-3A-40RELEASES-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29" data-document="../releases/" data-node="x-28ULTRALISP-DOCS-2FRELEASES-3A-3A-40RELEASES-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29">How to release new Ultralisp version</a></p><ul><li><p><a href="../releases/#making-a-new-release" data-document="../releases/" data-node="making-a-new-release">Making a new release</a></p></li></ul></li></ul>
+     </div>
+    </div><div class=footer>
+     <a href="https://40ants.com/doc">[generated by 40ANTS-DOC]</a>
+    </div>
+   </div><div class=content role=main><h1>Development<a class=header-link
+     href=#x-28ULTRALISP-DOCS-2FDEV-3A-3A-40DEV-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29
+     title="Permalink to this headline"
+     id=x-28ULTRALISP-DOCS-2FDEV-3A-3A-40DEV-2040ANTS-DOC-2FLOCATIVES-3ASECTION-29></a></h1><p><style>
+img {
+  width: 100%;
+}
+</style></p><h2 id="running-in-dev">Running in dev</h2><h3 id="easy-way">Easy way</h3><p>To run all components in docker containers, just run:</p><pre><code class="">dev:~$ docker compose up</code></pre><p>It will start 5 docker containers with names started with <code>ultralisp_</code>. Web application will be running on 8080 <code>TCP</code> port.</p><p>You can connect to the lisp parts of the Ultralisp using <code>SLY</code>:</p><ul><li><p>MainApp is running on 14005</p></li><li><p>Worker is running on 14006</p></li></ul><p>Other services are also export some ports. See the full list in the common-services.yml file.</p><h2 id="harder-way">Harder way</h2><p>In hard mode we will build need componens manually. In this case you will have Roswell and Qlot installed on your machine.
+I know, somebody might tell me they don't want to use these tools too, but I'm too lazy to manage my Lisp installations manually and Qlot allows to make builds almost hermetic (at least in terms of lisp dependencies).</p><h3 id="database-setup">Database setup</h3><p>by default, app tries to connect to the postgresql running on the same host to a database <code>ultralisp</code> as user <code>ultralisp</code> with password <code>ultralisp</code>. if there is no such database, it will quit.</p><p>let's install local postgres and create such database:</p><pre><code class="bash">dev:~$ sudo apt-get install postgresql-14
+dev:~$ sudo systemctl start postgresql
+
+dev:~$ sudo su - postgres
+
+postgres@dev:~$ createuser --interactive --pwprompt
+Enter name of role to add: ultralisp
+Enter password for new role:
+Enter it again:
+Shall the new role be a superuser? (y/n) n
+Shall the new role be allowed to create databases? (y/n) n
+Shall the new role be allowed to create more new roles? (y/n) n
+
+postgres@dev:~$ createdb -o ultralisp ultralisp</code></pre><p><b>Note:</b> if you want, you can use another login, dbname and password. in this case you'll have to pass them to the webserver as <code>postgres_host</code>, <code>postgres_user</code>, <code>postgres_pass</code>, <code>postgres_dbname</code> environment variables.</p><p>now we need to fill the database with a schema:</p><pre><code class="bash">dev:~$ qlot exec ros install mito
+
+dev:~$ qlot exec .qlot/bin/mito \
+            migrate --type postgres \
+                    --host localhost \
+                    --database ultralisp \
+                    --username ultralisp \
+                    --password ultralisp</code></pre><p>Also, we need another user which read-only access to the database. It will be used in the worker process. This needed for security reasons, because worker loads untrusted code from the internet and it is unwise to give it an full access to the database. For the same reason, worker is running in the restricted Docker sandbox in production.</p><p>Enter this commands to create a read-only user:</p><pre><code class="bash">dev:~$ sudo su - postgres
+
+postgres@dev2:~$ createuser --interactive --pwprompt
+Enter name of role to add: ultralisp_ro
+Enter password for new role:
+Enter it again:
+Shall the new role be a superuser? (y/n) n
+Shall the new role be allowed to create databases? (y/n) n
+Shall the new role be allowed to create more new roles? (y/n) n
+
+
+postgres@dev:~$ psql ultralisp
+
+grant select on &quot;source&quot; to &quot;ultralisp_ro&quot;;
+grant select on &quot;project&quot; to &quot;ultralisp_ro&quot;;
+grant select on &quot;project2&quot; to &quot;ultralisp_ro&quot;;
+grant select on &quot;dist_source&quot; to &quot;ultralisp_ro&quot;;
+grant select on &quot;dist&quot; to &quot;ultralisp_ro&quot;;</code></pre><h3 id="building-and-running-lisp-components">Building and running lisp components</h3><p>To do this kind of installation, we need to build our main web server and a worker. Do it like this:</p><pre><code class="">dev:~$ qlot install --no-deps</code></pre><p>This command will create a <code>.qlot</code> directory with local environment.</p><p>Then run the build:</p><pre><code class="">dev:~$ qlot exec ros build roswell/ultralisp-server.ros
+dev:~$ qlot exec ros build roswell/worker.ros</code></pre><p>After that, we can run our webserver:</p><pre><code class="">dev:~$ mkdir dist
+
+dev:~$ DEBUG=1 \
+       PORT=8001 \
+       INTERFACE=localhost \
+       SLYNK_PORT=14005 \
+       CRON_DISABLED=yes \
+       DIST_DIR=`pwd`/dist/ \
+       GEARMAN_SERVER=localhost:4730 \
+       ELASTIC_SEARCH_HOST=localhost \
+       BASE_URL=http://localhost:8001/dist/ \
+       GITHUB_CLIENT_ID=0bc769474b14267aac28 \
+       GITHUB_SECRET=3f46156c6bd57f4c233db9449ed556b6e545315a \
+       roswell/ultralisp-server --log-dir `pwd`/logs/</code></pre><p><b>Note:</b> pay attention to the client id and github secret. These are values I've created for a dev version Ultralisp server, hosted on localhost. If yor want to create a self-hosted installation, you'll have to create your own GitHub app and to keep it's secrets in some secure vault.</p><p>Now open <code>URL</code> http://localhost:8001/ in the browser! It will show the front page of your dev Ultralisp server!</p><h3 id="connecting-worker-to-the-main-application">Connecting worker to the main application</h3><p>Main server executes project checks using Gearman as a proxy. So, to bind them, we need to
+start German daemon. You can try to install Gearman using a system package management tool.
+But for me, the easiest way to do this, is to use Docker.</p><p>Here is how to start Gearman daemon using docker:</p><pre><code class="bash">dev:~$ docker run --name ultralisp_gearman --rm -p 4730:4730 artefactual/gearmand:1.1.19.1-alpine</code></pre><p>This commands starts gearman on <code>TCP</code> port 4730 and we tell this to our lisp apps using <code>GEARMAN_SERVER</code> environment variable.</p><p>Our main application is already running, so it is time to start a worker:</p><pre><code class="bash">dev:~$ DEBUG=1 \
+       SLYNK_PORT=14006 \
+       ELASTIC_SEARCH_HOST=localhost \
+       GEARMAN_SERVER=localhost:4730 \
+       roswell/worker --log-file `pwd`/logs/worker.log</code></pre><h3 id="checking-if-everything-works">Checking if everything works</h3><p>Now, when all database, main appication, gearman and worker are running, we need to ensure that project
+checks will work as expected.</p><p>Open the http://localhost:8001/ in the browser, log in and add a first project:</p><p><img src="../docs/images/new-project-form.png"></p><p>After you hit &quot;Add&quot; button, Ultralisp will show you information about the project and status of the last chec &quot;Waiting in the queue. Position: 0&quot;:</p><p><img src="../docs/images/waiting-in-queue.png"></p><p>This mean the check was not performed yet. And it will not, because cron job inside the main server is turned off in the develop environment. This done for convenience, because regular cron might take a lock and prevent your from running checks from the repl.</p><p>Let's run the project check from the <code>REPL</code>. Remember, we tell our main application where to listen for a connection: <code>SLYNK_PORT=14005</code>.</p><p>Open an emacs with <code>SLY</code> installed, do M-x sly-connect and enter \&quot;localhost:14005\&quot;. Then in the <code>REPL</code> run checks like this:</p><pre><code class="lisp">CL-USER&gt; (ultralisp/db:with-connection()
+           (ultralisp/pipeline/checking:perform-pending-checks))</code></pre><p>When this command will finish, refresh the browser page. You should see a similar page:</p><p><img src="../docs/images/successful-check.png"></p><p>If check was not successful, then you will see something like that. Pay attention the the \&quot;error\&quot; word and a link. If you'll click
+on the link, a popup with a full traceback will be opened.</p><p>To put another check to the queue, push \&quot;Check\&quot; button and then to perform this check, run lisp function <code>perform-pending-checks</code>.</p><p>If you wish to simulate regular process like they run in the production environment, run this in the <code>REPL</code>:</p><pre><code class="lisp">CL-USER&gt; (ultralisp/cron:setup :force t)</code></pre><p>Now, when everything is running like in production, Ultralisp should build a first distribution release. Open the front page in the browser and you will see this in the bottom:</p><p><img src="../docs/images/first-release.png"></p><p>Click on the distribution name (circled with a pen) and you will see:</p><p><img
+     src="../docs/images/distribution-page.png"></p><p>Copy underlined link <a href="http://localhost:8001/dist/ultralisp.txt">http://localhost:8001/dist/ultralisp.txt</a> and try to open it in a separate tab. The file will have content like this:</p><pre><code class="">name: ultralisp
+version: 20240811163753
+distinfo-subscription-url: http://localhost:8001/dist/ultralisp.txt
+distinfo-template-url: http://localhost:8001/dist/ultralisp/{{version}}/distinfo.txt
+release-index-url: http://localhost:8001/dist/ultralisp/20240811163753/releases.txt
+system-index-url: http://localhost:8001/dist/ultralisp/20240811163753/systems.txt</code></pre><p>Now you have local Quicklisp distribution, ready to be used with quicklisp-client!</p><p>These files are located in the directory pointed by <code>DIST_DIR</code> environment variable.</p><p>The only part is not covered by this instruction is search index in the Elastic Search.</p><h3 id="building-the-search-index">Building the search index</h3><p>Ultralisp uses the Elastic Search for building the search index. So, to make search work
+we have to point the main application to some Elastic Search installation. In production
+a separate server used, but for development we can run a local instance using Docker:</p><pre><code class="bash">dev:~$ mkdir elastic-data
+dev:~$ chmod +777 elastic-data
+dev:~$ docker run \
+              --name ultralisp_elastic \
+              --rm \
+              -p 9200:9200 \
+              -p 9300:9300 \
+              -e discovery.type=single-node \
+              -v `pwd`/elastic-data2:/usr/share/elasticsearch/data \
+              elasticsearch:7.3.2</code></pre><p>Now run this code in the <code>REPL</code> of the main application:</p><pre><code class="lisp">CL-USER&gt; (ultralisp/db:with-connection()
+           (ultralisp/search:index-projects :force t))</code></pre><p>This should update the search index and it will be possible to test it using the search input on the site.</p>
+   </div>
+  </div>
+ </body>
+</html>
