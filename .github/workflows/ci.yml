@@ -49,11 +49,6 @@
           "shell": "bash"
         },
         {
-          "name": "Update Qlot",
-          "run": "qlot update --no-deps",
-          "shell": "bash"
-        },
-        {
           "name": "Install SBLint wrapper",
           "run": "qlot exec ros install 40ants-asdf-system 40ants-linter",
           "shell": "bash"
