@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/pipeline/checking
   (:use #:cl)
   (:import-from #:qlot)
+  (:import-from #:cl-ppcre)
   (:import-from #:ultralisp/models/action)
   (:import-from #:trivial-timeout
                 #:with-timeout)
@@ -196,14 +197,15 @@
                       downloaded-params)))
 
 
-(defun call-with-fresh-quicklisp (url thunk)
-  (declare (ignorable url))
+(defun call-with-fresh-quicklisp (dist-url dist-version thunk)
   #+lispworks
   (progn (log:warn "Lispworks does not support checking with fresh Quicklisp")
          (funcall thunk))
   #-lispworks
   (let* ((qlot-home #P"/tmp/checker/qlot/")
          (qlfile (merge-pathnames "qlfile" qlot-home))
+         (qlot-dir (merge-pathnames (make-pathname :directory '(:relative ".qlot"))
+                                    qlot-home))
          (asdf/output-translations::*output-translations*
            (list*
             (asdf/output-translations:compute-output-translations
@@ -211,24 +213,49 @@
                :inherit-configuration
                (T #P"/tmp/checker/qlot/cache/**/*.*")))
             asdf/output-translations::*output-translations*)))
-    (cond
-      ((probe-file qlfile)
-       (qlot:update qlot-home))
-      (t
-       (ensure-directories-exist qlfile)
-       (write-string-into-file (format nil "dist ultralisp ~A~%"
-                                       url)
-                               qlfile)
-       (qlot:install qlot-home)))
 
-    (qlot:with-local-quicklisp (qlot-home)
-      (funcall thunk))))
+    (let ((qlot:*project-root* qlot-home)
+          (original-quicklisp-home ql:*quicklisp-home*))
+      
+      ;; Ensure .qlot directory exists
+      (qlot:init qlot-home)
+
+      (cond
+        ((probe-file qlot-dir)
+         ;; Warning, qlot upgrades dist to the latest
+         ;; version of the dist instead of
+         ;; using version from qlfile:
+         ;; https://github.com/fukamachi/qlot/issues/324
+         ;; TODO: Need to check this issue later
+         (qlot:update nil))
+        (t
+         (ensure-directories-exist qlfile)
+         (write-string-into-file (format nil "dist ultralisp ~A~@[ ~A~]~%"
+                                         dist-url
+                                         dist-version)
+                                 qlfile
+                                 :if-exists :supersede)
+         (qlot:install)))
+
+      (multiple-value-prog1
+          (qlot:with-local-quicklisp (qlot-home)
+            (funcall thunk))
+        ;; We need to restore quicklisp home,
+        ;; because during the
+        ;; load on file /tmp/checker/qlot/.qlot/setup.lisp
+        ;; is called and it resets ql:*quicklisp-home* parameter
+        ;; to the #P"/private/tmp/checker/qlot/.qlot/".
+        ;; Restoration of this path is required to
+        ;; make another call to with-local-quicklisp
+        ;; in case if directory /tmp/checker/qlot/ was removed.
+        (setf ql:*quicklisp-home*
+              original-quicklisp-home)))))
 
 
-(defmacro with-fresh-quicklisp ((url) &body body)
+(defmacro with-fresh-quicklisp ((dist-url &key dist-version) &body body)
   `(flet ((run-with-fresh-quicklisp ()
             ,@body))
-     (call-with-fresh-quicklisp ,url #'run-with-fresh-quicklisp)))
+     (call-with-fresh-quicklisp ,dist-url ,dist-version #'run-with-fresh-quicklisp)))
 
 
 (defun collect-systems (path &key (ignore-filename-p (constantly nil)))
@@ -374,7 +401,12 @@
                                                (log:warn "Source is not bound to any dists. This is strange. Will use ~A."
                                                          (get-base-url))
                                                (get-base-url))))
-                                          (systems (with-fresh-quicklisp (dist-url)
+                                          (dist-version
+                                            (cl-ppcre:register-groups-bind (version)
+                                                ("^https://dist.ultralisp.org/ultralisp/([^/]+).*$"
+                                                 dist-url)
+                                              version))
+                                          (systems (with-fresh-quicklisp (dist-url :dist-version dist-version)
                                                      (log:info "Collecting systems from ~A ignoring dirs ~A"
                                                                path
                                                                ignore-dirs)

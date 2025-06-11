@@ -39,17 +39,13 @@
           "uses": "40ants/setup-lisp@v4",
           "with": {
             "asdf-system": "ultralisp",
-            "cache": "true"
+            "qlot-version": "1.7.1",
+            "cache": "false"
           }
         },
         {
           "name": "Change dist to Ultralisp if qlfile does not exist",
           "run": "if [[ ! -e qlfile ]]; then echo 'dist ultralisp http://dist.ultralisp.org' > qlfile; fi",
-          "shell": "bash"
-        },
-        {
-          "name": "Update Qlot",
-          "run": "qlot update --no-deps",
           "shell": "bash"
         },
         {
