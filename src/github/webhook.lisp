@@ -8,8 +8,6 @@
   (:import-from #:log)
   (:import-from #:reblocks/request)
   (:import-from #:ultralisp/uploader/base)
-  (:import-from #:reblocks/routes
-                #:defroute)
   (:import-from #:routes
                 #:parse-template)
   (:import-from #:alexandria
@@ -39,6 +37,8 @@
                 #:fmt)
   (:import-from #:bordeaux-threads
                 #:make-thread)
+  (:import-from #:ultralisp/routes
+                #:process-webhook-route)
   (:export
    #:get-webhook-url))
 (in-package #:ultralisp/github/webhook)
@@ -192,7 +192,7 @@
     (t (log:debug "Thread for payload processing is already running"))))
 
 
-(defroute (app /webhook/github :content-type "text/plain")
+(defmethod process-webhook-route ((app app))
   (let* ((body (reblocks/request:get-parameters)))
     (log:debug "New payload received" body)
 
