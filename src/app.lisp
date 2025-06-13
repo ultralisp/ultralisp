@@ -12,7 +12,10 @@
   :prefix "/"
   :description "The UltraLisp.org server."
   :autostart nil
-  :debug t)
+  :debug t
+  :routes ((reblocks/routes:static-file "/robots.txt"
+                                        (asdf:system-relative-pathname "ultralisp"
+                                                                       "static/robots.txt"))))
 
 
 ;; Flamegraph does not work on SBCL 2.1.2 yet.
@@ -24,8 +27,3 @@
 ;;           (call-next-method))
 ;;         (call-next-method))))
 
-
-(reblocks/routes:defroute (app /robots.txt :content-type "text/plain")
-  (alexandria:read-file-into-string
-   (asdf:system-relative-pathname "ultralisp"
-                                  "static/robots.txt")))
