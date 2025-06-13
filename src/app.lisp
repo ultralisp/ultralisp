@@ -22,6 +22,9 @@
   :routes ((static-file "/robots.txt"
                         (asdf:system-relative-pathname "ultralisp"
                                                        "static/robots.txt"))
+           (static-file "/static/gear.gif"
+                        (asdf:system-relative-pathname :ultralisp #P"src/widgets/gear.gif")
+                        :content-type "image/gif")
            (post ("/webhook/github")
              (process-webhook-route (get-current)))))
 
