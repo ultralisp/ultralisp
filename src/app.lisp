@@ -28,10 +28,7 @@
   :description "The UltraLisp.org server."
   :autostart nil
   :debug t
-  :routes ((reblocks/routes:page ("/")
-             (make-maintenance-widget
-              (make-main-routes)))
-           (static-file "/robots.txt"
+  :routes ((static-file "/robots.txt"
                         (asdf:system-relative-pathname "ultralisp"
                                                        "static/robots.txt"))
            (static-file "/static/gear.gif"
@@ -72,7 +69,10 @@
            (metrics ("/metrics"
                      :user-metrics (list (make-collector))))
            (post ("/webhook/github")
-             (process-webhook-route (get-current)))))
+             (process-webhook-route (get-current)))
+           (reblocks/routes:page ("/.*")
+             (make-maintenance-widget
+              (make-main-routes)))))
 
 
 ;; Flamegraph does not work on SBCL 2.1.2 yet.
