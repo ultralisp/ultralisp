@@ -60,7 +60,7 @@
 (defun render-yandex-counter ()
   (let ((counter-id (get-yandex-counter-id)))
     (when counter-id
-      (with-html
+      (with-html ()
         (:raw (format nil
                       *yandex-template*
                       counter-id
@@ -70,7 +70,7 @@
 (defun render-google-counter ()
   (let ((counter-id (get-google-counter-id)))
     (when counter-id
-      (with-html
+      (with-html ()
         (:raw (format nil
                       *google-template*
                       counter-id

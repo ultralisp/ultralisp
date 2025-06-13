@@ -121,7 +121,7 @@
 
 
 (defmethod ultralisp/widgets/changelog:render-object ((obj next-check) &key timestamp)
-  (with-html
+  (with-html ()
     (:li ("~@[~A - ~]Planned check"
           (when timestamp
             (format-timestamp (get-time obj)))))))
@@ -137,7 +137,7 @@
                project-name
                description))
     
-    (with-html
+    (with-html ()
       ;; Show a list of versions where it was included
       (:h1 :class "full-name"
            (destructuring-bind (user-name project-name)

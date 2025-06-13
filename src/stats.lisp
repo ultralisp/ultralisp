@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/stats
+(uiop:define-package #:ultralisp/stats
   (:use #:cl)
   (:import-from #:log4cl)
   (:import-from #:log4cl-extras/error
@@ -17,19 +17,12 @@
   (:import-from #:prometheus.process
                 #:make-process-collector)
   (:import-from #:reblocks/session)
-  (:import-from #:reblocks/routes
-                #:defroute)
-  (:import-from #:routes
-                #:parse-template)
   (:import-from #:kebab
                 #:to-snake-case)
-  (:import-from #:ultralisp/app
-                #:app)
-  (:export
-   #:increment-counter
-   #:add-counter
-   #:add-gauge
-   #:initialize))
+  (:export #:increment-counter
+           #:add-counter
+           #:add-gauge
+           #:make-collector))
 (in-package #:ultralisp/stats)
 
 
@@ -75,7 +68,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call ultralisp/stats:initialize before calling this function."))
+    (error "Please call ultralisp/stats:make-collector before calling this function."))
   
   (setf (gethash name (get-counters *collector*))
         (prom:make-counter :name (to-snake-case (symbol-name name))
@@ -89,7 +82,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call ultralisp/stats:initialize before calling this function."))
+    (error "Please call ultralisp/stats:make-collector before calling this function."))
   
   (setf (gethash name (get-gauges *collector*))
         (cons (prom:make-gauge :name (to-snake-case (symbol-name name))
@@ -107,7 +100,7 @@
   (check-type labels list)
 
   (unless *collector*
-    (error "Please call ultralisp/stats:initialize before calling this function."))
+    (error "Please call ultralisp/stats:make-collector before calling this function."))
   
   (let ((counter (gethash name (get-counters *collector*))))
     (unless counter
@@ -118,28 +111,7 @@
                             :labels labels)))
 
 
-(defun initialize ()
-  (unless *registry*
-    (setf *registry* (make-registry))
-    (setf *collector* (make-reblocks-stats *registry*))
-    
-    (let ((prom:*default-registry* *registry*))
-      ;; NOTE: Turned off because process hangs after some period of time
-      ;;       See https://github.com/ultralisp/ultralisp/issues/288 for details
-      ;; #+sbcl
-      ;; (make-memory-collector)
-      #+sbcl
-      (make-threads-collector)
-      (make-process-collector)))
-  (values))
-
-
-(defroute (app /metrics :content-type "text/plain")
-  (with-log-unhandled ()
-    (with-connection ()
-      (let ((content (if *registry*
-                         (marshal *registry*)
-                         "")))
-        ;; This is API, we don't want to keep any sessions here
-        (reblocks/session:expire)
-        (values content)))))
+(defun make-collector ()
+  (or *collector*
+      (setf *collector*
+            (make-reblocks-stats *registry*))))

@@ -44,7 +44,7 @@
 
 
 (defun render-projects-list (projects)
-  (with-html
+  (with-html ()
     (:table :class "projects-list"
             (loop for project in projects
                   for description = (ultralisp/models/project:project-description project)
@@ -67,7 +67,7 @@
           (title (format nil "All projects of ~A" user-or-org)))
       (cond
         (projects
-         (with-html
+         (with-html ()
            (:h1 :class "author-name"
                 title)
            (setf (reblocks/page:get-title)
@@ -86,7 +86,7 @@
     (setf (reblocks/page:get-title)
           title)
 
-    (with-html
+    (with-html ()
       (:h1 :class "author-name"
            title)
       (cond

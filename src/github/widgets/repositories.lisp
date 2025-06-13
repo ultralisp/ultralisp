@@ -1,7 +1,9 @@
-(defpackage #:ultralisp/github/widgets/repositories
+(uiop:define-package #:ultralisp/github/widgets/repositories
   (:use #:cl)
   (:import-from #:reblocks-parenscript)
   (:import-from #:dexador)
+  (:import-from #:reblocks/response
+                #:make-uri)
   (:import-from #:ultralisp/sources/github
                 #:guess-github-source)
   (:import-from #:jonathan)
@@ -33,7 +35,6 @@
                 #:is-enabled-p
                 #:add-or-turn-on-project
                 #:get-params)
-  (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
   (:import-from #:arrows
@@ -62,9 +63,10 @@
                 #:make-thread)
   (:import-from #:ultralisp/models/dist-source
                 #:source->dists)
-  (:export
-   #:make-repositories-widget
-   #:repositories))
+  (:import-from #:ultralisp/variables
+                #:*github-webhook-path*)
+  (:export #:make-repositories-widget
+           #:repositories))
 (in-package #:ultralisp/github/widgets/repositories)
 (in-readtable :interpol-syntax)
 
@@ -230,6 +232,11 @@
     ultralisp-names))
 
 
+(defun get-full-webhook-url ()
+  "Returns a full path to a webhook, which can be used in GitHub's settings."
+  (make-uri *github-webhook-path*))
+
+
 (defun set-oauth-token (widget token)
   (log:debug "Setting oauth token")
   (setf (slot-value widget 'oauth-token)
@@ -238,7 +245,7 @@
         :fetching-data)
 
   (log:debug "Starting thread to retrieve repositories")
-  (let ((webhook-url (ultralisp/github/webhook:get-webhook-url)))
+  (let ((webhook-url (get-full-webhook-url)))
     (setf (slot-value widget 'thread)
           (make-thread
            (lambda ()
@@ -249,7 +256,7 @@
 
 
 (defun render-url-input (widget)
-  (with-html
+  (with-html ()
     (:p "or insert a project's URL:")
 
     (reblocks-ui/form:with-html-form
@@ -301,7 +308,7 @@
          (set-oauth-token widget token)
          (render widget))
         
-        (t (reblocks/html:with-html
+        (t (reblocks/html:with-html ()
              (cond (user
                     (:p "To show all your public repositories, we need additional permissions from GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
@@ -318,7 +325,7 @@
                                                 reblocks-auth/github:*default-scopes*)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (:p "Searching for Common Lisp repositories..."
           (render (get-spinner widget)))
       (render-form-and-button
@@ -330,7 +337,7 @@
        :button-class "button refresh")))
   
   (:method ((state (eql :data-fetched)) (widget repositories))
-    (with-html
+    (with-html ()
       (:p "Show forks?"
           (:span :style "position: relative; top: 0.4em"
                  (render-switch (show-forks-p widget)
@@ -352,7 +359,7 @@
   
   
   (:method ((state t) (widget repositories))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (:p ("State \"~A\" is not supported yet." state)))))
 
 
@@ -451,7 +458,7 @@
   :tr)
 
 (defmethod render ((widget repository))
-  (with-html
+  (with-html ()
     (:td (get-name widget)
          (when (is-fork-p widget)
            (:span :class "label secondary"

@@ -110,7 +110,7 @@
 
 (defgeneric render-item (type name doc &rest rest)
   (:method (type name doc &key arguments system project package original-package)
-    (with-html
+    (with-html ()
       (:li (:span :class "name"
                   ("~:@(~A:~A~)" package name))
            (when arguments
@@ -148,7 +148,7 @@
             (fmt "Search results for \"~A\"" query))
       (setf (get-query widget)
             query))
-    (with-html
+    (with-html ()
       (cond
         ((get-error widget)
          (:p ("Unable to parse \"~A\"" query)))

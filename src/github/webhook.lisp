@@ -8,8 +8,6 @@
   (:import-from #:log)
   (:import-from #:reblocks/request)
   (:import-from #:ultralisp/uploader/base)
-  (:import-from #:reblocks/routes
-                #:defroute)
   (:import-from #:routes
                 #:parse-template)
   (:import-from #:alexandria
@@ -25,8 +23,6 @@
                 #:get-project2
                 #:get-github-project
                 #:get-all-projects)
-  (:import-from #:reblocks/response
-                #:make-uri)
   (:import-from #:ultralisp/models/check
                 #:make-checks)
   (:import-from #:log4cl-extras/error
@@ -39,12 +35,11 @@
                 #:fmt)
   (:import-from #:bordeaux-threads
                 #:make-thread)
+  (:import-from #:ultralisp/routes
+                #:process-webhook-route)
   (:export
    #:get-webhook-url))
 (in-package #:ultralisp/github/webhook)
-
-
-(defvar *github-webhook-path* "/webhook/github")
 
 
 (defvar *payloads* nil
@@ -192,7 +187,7 @@
     (t (log:debug "Thread for payload processing is already running"))))
 
 
-(defroute (app /webhook/github :content-type "text/plain")
+(defmethod process-webhook-route ((app app))
   (let* ((body (reblocks/request:get-parameters)))
     (log:debug "New payload received" body)
 
@@ -220,7 +215,3 @@
 
     (values "OK")))
 
-
-(defun get-webhook-url ()
-  "Returns a full path to a webhook, which can be used in GitHub's settings."
-  (make-uri *github-webhook-path*))

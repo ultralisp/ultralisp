@@ -1,4 +1,4 @@
-dist ultralisp http://dist.ultralisp.org/
+dist http://dist.ultralisp.org/ 20250607045000
 
 github quickdist ultralisp/quickdist :ref 9d6b0ef58d84ad1204b9ad209f51d93e1150f2ca
 
@@ -48,3 +48,6 @@ github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 # Until we solve https://github.com/fukamachi/qlot/issues/265
 # and https://github.com/ultralisp/ultralisp/issues/278
 # github qlot fukamachi/qlot :ref a4abc8921c4a8cf1c43f453bb2106ee56ae3c13d
+
+
+github reblocks-auth 40ants/reblocks-auth :branch fix-for-new-reblocks

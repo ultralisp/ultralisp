@@ -29,13 +29,13 @@
         (my-dists-url "/my/dists")
         (feedback-url "https://github.com/ultralisp/ultralisp/issues"))
     (if (anonymous-p user)
-        (reblocks/html:with-html
+        (reblocks/html:with-html ()
           (:div :class "login-link"
                 (:a :href feedback-url
                     "Leave feedback")
                 (:a :href (add-retpath-to "/login") "Log In")))
         
-        (with-html
+        (with-html ()
           (:ul :class "dropdown menu"
                :data-dropdown-menu t
                (:li (:a :href "#"

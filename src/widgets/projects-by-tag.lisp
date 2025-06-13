@@ -49,7 +49,7 @@
       (setf (reblocks/page:get-title)
             title)
 
-      (with-html
+      (with-html ()
         (:h1 (:a :href "/tags/"
                  "All tags")
              (:span (fmt " > ~A" tag-name)))

@@ -30,7 +30,7 @@
   (setf (get-title)
         "Ultralisp - Sponsors")
   
-  (with-html
+  (with-html ()
     (:h2 "Gold Sponsors")
     (:p "This place is vacant. Links to Gold Supporters will also be placed on the front page of the site.")
     

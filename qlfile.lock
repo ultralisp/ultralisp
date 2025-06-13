@@ -4,8 +4,8 @@
   :version "2024-10-12"))
 ("ultralisp" .
  (:class qlot/source/dist:source-dist
-  :initargs (:distribution "https://dist.ultralisp.org/" :%version :latest)
-  :version "20250215102501"))
+  :initargs (:distribution "https://dist.ultralisp.org/" :%version "20250607045000")
+  :version "20250607045000"))
 ("quickdist" .
  (:class qlot/source/github:source-github
   :initargs (:repos "ultralisp/quickdist" :ref "9d6b0ef58d84ad1204b9ad209f51d93e1150f2ca" :branch nil :tag nil)
@@ -22,3 +22,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
   :version "github-5194fce4ddf3dcc992984df509a11b594e6ff45d"))
+("reblocks-auth" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "40ants/reblocks-auth" :ref nil :branch "fix-for-new-reblocks" :tag nil)
+  :version "github-590447bde781c4eb5d78f75d692727e5efcb3ab6"))

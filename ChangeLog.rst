@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.27.0 (2025-06-13)
+===================
+
+* Updated dependencies and code to use the latest Reblocks and other libs from the fresh Ultralisp dist.
+
 1.26.11 (2025-06-12)
 ====================
 

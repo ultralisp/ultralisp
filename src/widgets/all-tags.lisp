@@ -27,7 +27,7 @@
 
 (defmethod render ((widget all-tags))
   (let ((all-tags (%cached-get-all-tags-with-counters)))
-    (with-html
+    (with-html ()
       (:h1 "All tags")
       (:ul
        (loop for item in all-tags

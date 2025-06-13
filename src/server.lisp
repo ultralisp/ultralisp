@@ -44,7 +44,6 @@
   (:import-from #:ultralisp/utils
                 #:make-request-id
                 #:getenv)
-  (:import-from #:ultralisp/file-server)
   (:import-from #:ultralisp/app
                 #:app)
   (:import-from #:ultralisp/models/migration
@@ -72,8 +71,6 @@
   (:import-from #:ultralisp/downloader/source)
   (:import-from #:ultralisp/sources/github)
   (:import-from #:reblocks/request)
-  (:import-from #:reblocks/request-handler
-                #:handle-request)
   (:import-from #:ultralisp/db
                 #:with-connection)
   (:import-from #:defmain
@@ -297,7 +294,7 @@
   "Additional tags for head block."
   (call-next-method)
   
-  (with-html
+  (with-html ()
     (:link :rel "icon"
            :type "image/png"
            :href "/images/favicon.png")
@@ -335,7 +332,7 @@
     (render-yandex-counter)
     (render-google-counter)
   
-    (with-html
+    (with-html ()
       (:div :class "grid-x"
             (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"
                   (:header :class "page-header"
@@ -363,7 +360,8 @@
                                     (random-elt +search-help+))))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
-                          (with-html (:raw body-string))))
+                          (with-html ()
+                            (:raw body-string))))
 
 
                   (:footer :class "page-footer"
@@ -376,14 +374,6 @@
   (declare (ignorable args))
 
   (ultralisp/metrics:initialize)
-  
-  (ultralisp/file-server:make-route (get-dist-dir)
-                                    "/dist/")
-  (ultralisp/file-server:make-route #"clpi/"
-                                    "/clpi/")
-  (ultralisp/file-server:make-route (asdf:system-relative-pathname "ultralisp"
-                                                                   "images/")
-                                    "/images/")
 
   ;; (serve-static-file
   ;;  "/favicon.png"
@@ -410,7 +400,7 @@
   (let ((content
           (cond
             ((reblocks/debug:status)
-             (with-html-string
+             (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (:h4 ("Mention ~S request id in the issue." *request-id*))
@@ -419,13 +409,13 @@
                (when backtrace
                  (:pre backtrace))))
             (t
-             (with-html-string
+             (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (:h4 ("Mention ~S request id in the issue." *request-id*)))))))
     
     (immediate-response
-     (with-html-string
+     (with-html-string ()
        (reblocks/page:render
         (reblocks/app:get-current)
         content))
@@ -433,7 +423,7 @@
      :content-type "text/html")))
 
 
-(defmethod handle-request ((app app))
+(defmethod reblocks/routes:serve :around ((route reblocks/routes:page-route) (env t))
   "Here we create a new connection and start new transaction on each request."
   (with-connection ()
     (let ((*request-id* (make-request-id)))

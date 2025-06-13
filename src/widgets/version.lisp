@@ -51,7 +51,7 @@
                             (ultralisp/variables:get-base-url)
                             (ultralisp/variables:get-dist-name)
                             version-number)))
-      (reblocks/html:with-html
+      (reblocks/html:with-html ()
         (:h4 ("Version ~A" version-number))
         
         (:h5 "To install:")

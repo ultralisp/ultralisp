@@ -34,7 +34,6 @@ Eval ~(ultralisp/worker:process-jobs)~ there:
 
 (ultralisp/worker:start-outside-docker)
 
-
 #+end_src
 
 
@@ -43,15 +42,14 @@ Eval ~(ultralisp/worker:process-jobs)~ there:
 
 #+BEGIN_SRC lisp
 
-(log4cl-json:setup :level :info)
+(40ants-logging:setup-for-repl :level :info)
 (ultralisp/cron:stop)
 (ultralisp/db:connect-toplevel)
 
-(ultralisp/rpc/core:submit-task 'ultralisp/pipeline/checking:perform
-                                (ultralisp/models/check:make-checks
-                                 (ultralisp/models/project:get-github-project "guicho271828" "type-i")
-                                 :manual)
-                                :force t)
+(ql:quickload :ultralisp/dev)
+
+(ultralisp/dev:run-check "guicho271828/type-i")
+
 #+END_SRC
 
 * How to update LispWorks license

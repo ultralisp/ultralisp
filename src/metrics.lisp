@@ -88,7 +88,7 @@
 
 
 (defun initialize ()
-  (ultralisp/stats:initialize)
+  (ultralisp/stats:make-collector)
   
   (add-counter :checks-processed "A number of processed checks")
   (add-counter :checks-failed "A number of failed checks")

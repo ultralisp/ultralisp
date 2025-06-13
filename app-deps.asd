@@ -54,7 +54,6 @@
    "reblocks"
    "reblocks-ui"
    "reblocks-auth"
-   "reblocks-file-server"
    "reblocks-lass"
    "reblocks-navigation-widget"
    "reblocks-parenscript"

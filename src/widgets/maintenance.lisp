@@ -40,7 +40,7 @@
     (let ((title "Temporarily out of service"))
       (setf (get-title)
             title)
-      (with-html
+      (with-html ()
         (:h1 title)
         (:p "Site is under maintenance.")
         (:p "We'll bring it back as soon as possible.")))))
