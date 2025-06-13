@@ -31,8 +31,8 @@ services:
     ports:
       - "127.0.0.1:14007:4005"
     volumes:
-      - ./app.asd:/app/app.asd
-      - ./app-deps.asd:/app/app-deps.asd
+      - ./ultralisp.asd:/app/ultralisp.asd
+      - ./ultralisp-deps.asd:/app/ultralisp-deps.asd
       - ./quicklisp/local-projects:/app/quicklisp/local-projects
       - ./src/:/app/src/
       - ./roswell/:/app/roswell/

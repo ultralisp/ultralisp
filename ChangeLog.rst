@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.27.1 (2025-06-13)
+===================
+
+* Fixed dependency loading during the build process.
+
 1.27.0 (2025-06-13)
 ===================
 

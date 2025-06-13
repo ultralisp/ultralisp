@@ -35,7 +35,8 @@
                "reblocks-auth"
                ;; To make inplace links work in the HTML
                "ultralisp/main"
-               "ultralisp/server")
+               "ultralisp/server"
+               "ultralisp/worker")
   :in-order-to ((test-op (test-op ultralisp-test)))
   ;; :perform (compile-op :before (o c)
   ;;                      #+ros.installing
