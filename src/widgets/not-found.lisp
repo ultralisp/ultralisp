@@ -20,9 +20,9 @@
 
   (immediate-response
    ;; TODO: replace with reblocks/response:return-page
-   (with-html-string
+   (with-html-string ()
      (render (reblocks/app:get-current)
-             (with-html-string
+             (with-html-string ()
                (:h1 "404")
                (:h2 "Page not found"))))
    :content-type "text/html"

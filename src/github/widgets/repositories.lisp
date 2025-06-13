@@ -249,7 +249,7 @@
 
 
 (defun render-url-input (widget)
-  (with-html
+  (with-html ()
     (:p "or insert a project's URL:")
 
     (reblocks-ui/form:with-html-form
@@ -301,7 +301,7 @@
          (set-oauth-token widget token)
          (render widget))
         
-        (t (reblocks/html:with-html
+        (t (reblocks/html:with-html ()
              (cond (user
                     (:p "To show all your public repositories, we need additional permissions from GitHub."
                         (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
@@ -318,7 +318,7 @@
                                                 reblocks-auth/github:*default-scopes*)))))))))))
   
   (:method ((state (eql :fetching-data)) (widget repositories))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (:p "Searching for Common Lisp repositories..."
           (render (get-spinner widget)))
       (render-form-and-button
@@ -330,7 +330,7 @@
        :button-class "button refresh")))
   
   (:method ((state (eql :data-fetched)) (widget repositories))
-    (with-html
+    (with-html ()
       (:p "Show forks?"
           (:span :style "position: relative; top: 0.4em"
                  (render-switch (show-forks-p widget)
@@ -352,7 +352,7 @@
   
   
   (:method ((state t) (widget repositories))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (:p ("State \"~A\" is not supported yet." state)))))
 
 
@@ -451,7 +451,7 @@
   :tr)
 
 (defmethod render ((widget repository))
-  (with-html
+  (with-html ()
     (:td (get-name widget)
          (when (is-fork-p widget)
            (:span :class "label secondary"

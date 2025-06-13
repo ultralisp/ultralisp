@@ -113,7 +113,7 @@
               '(chain
                 (j-query document)
                 (foundation))))))
-      (with-html
+      (with-html ()
         (loop for tag in (tags-list widget)
               do (:span :class "tag"
                         (:a :href (fmt "/tags/~A/" tag)

@@ -29,3 +29,4 @@
 /roswell/worker
 /dist/
 /elastic-data/
+/postgresql-data

@@ -58,7 +58,7 @@
 
 (defun render-installation-instructions (dist)
   (let ((url (ultralisp/protocols/external-url:external-url dist)))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (when (string-equal (ultralisp/models/dist:dist-name dist)
                           "lispworks")
         (:p "This distribution contains extensions and libraries for LispWorks.")
@@ -103,7 +103,7 @@
                           (min (length sources)
                                limit))))
 
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       (:h1 name)
 
       (render-installation-instructions dist)

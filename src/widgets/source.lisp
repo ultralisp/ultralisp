@@ -311,7 +311,7 @@
                    ;; and probably make a popup with the traceback.
                    (fmt "Disabled: ~A"
                         (ultralisp/models/dist-source:disable-reason dist-source)))))
-    (with-html
+    (with-html ()
       (:a :class class
           :title reason
           :href url
@@ -367,7 +367,7 @@
              (declare (ignorable args))
              (on-delete (parent widget))))
       (let ((last-check (get-last-source-check source)))
-        (with-html
+        (with-html ()
           (:table :class "unstriped"
                   (:thead
                    (:tr (:th :class "label-column"
@@ -546,7 +546,7 @@
              (declare (ignorable args))
              (on-delete (parent widget))))
       (let ((last-check (get-last-source-check source)))
-        (with-html
+        (with-html ()
           (:table :class "unstriped"
                   (:thead
                    (:tr (:th :class "label-column"
@@ -702,7 +702,7 @@
 (defmethod render-source ((widget readonly-source-widget)
                           (type (eql :archive))
                           source)
-  (with-html
+  (with-html ()
     (:p "Archive sources aren't supported yet")))
 
 
@@ -733,7 +733,7 @@
                      current-dists
                      :key #'ultralisp/models/dist:dist-name
                      :test #'string-equal)))
-      (with-html
+      (with-html ()
         (reblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
                      (handler-case (save widget args)
@@ -848,7 +848,7 @@
                      current-dists
                      :key #'ultralisp/models/dist:dist-name
                      :test #'string-equal)))
-      (with-html
+      (with-html ()
         (reblocks-ui/form:with-html-form
             (:post (lambda (&rest args)
                      (handler-case (save widget args)
@@ -936,7 +936,7 @@
 
 
 (defmethod reblocks/widget:render ((widget branch-select-widget))
-  (with-html
+  (with-html ()
     (:select :name "branch"
       (:option :disabled "disabled"
                "Select a branch")
@@ -962,7 +962,7 @@
 (defmethod reblocks/widget:render ((widget readonly-source-widget))
   (let* ((source (source (parent widget)))
          (type (ultralisp/models/source:source-type source)))
-    (with-html
+    (with-html ()
       ;; This piece here to make debugging easier:
       (:p :style "display: none"
           (fmt "source-id=~S version=~S project-id=~S project-version=~S"
@@ -1002,7 +1002,7 @@
 ;; Methods to render changes between source versions
 
 (defmethod ultralisp/protocols/render-changes:render ((type (eql :git)) prev-source new-source)
-  (reblocks/html:with-html
+  (reblocks/html:with-html ()
     (:ul
      (loop with old-params = (ultralisp/models/source:source-params prev-source)
            with new-params = (ultralisp/models/source:source-params new-source)
@@ -1040,7 +1040,7 @@
 (defmethod reblocks/widget:render ((widget add-source-widget))
   (let ((project (project widget))
         (user (reblocks-auth/models:get-current-user)))
-    (reblocks/html:with-html
+    (reblocks/html:with-html ()
       ;; Controls for editing and deleting source
       (when (ultralisp/protocols/moderation:is-moderator user project)
         (reblocks-ui/form:with-html-form

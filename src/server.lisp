@@ -297,7 +297,7 @@
   "Additional tags for head block."
   (call-next-method)
   
-  (with-html
+  (with-html ()
     (:link :rel "icon"
            :type "image/png"
            :href "/images/favicon.png")
@@ -335,7 +335,7 @@
     (render-yandex-counter)
     (render-google-counter)
   
-    (with-html
+    (with-html ()
       (:div :class "grid-x"
             (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"
                   (:header :class "page-header"
@@ -363,7 +363,8 @@
                                     (random-elt +search-help+))))))
                   (:div :class "page-content"
                         (let ((spinneret::*pre* t))
-                          (with-html (:raw body-string))))
+                          (with-html ()
+                            (:raw body-string))))
 
 
                   (:footer :class "page-footer"
@@ -410,7 +411,7 @@
   (let ((content
           (cond
             ((reblocks/debug:status)
-             (with-html-string
+             (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (:h4 ("Mention ~S request id in the issue." *request-id*))
@@ -419,13 +420,13 @@
                (when backtrace
                  (:pre backtrace))))
             (t
-             (with-html-string
+             (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (:h4 ("Mention ~S request id in the issue." *request-id*)))))))
     
     (immediate-response
-     (with-html-string
+     (with-html-string ()
        (reblocks/page:render
         (reblocks/app:get-current)
         content))

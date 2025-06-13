@@ -21,7 +21,7 @@
                        2)))
       (error "Labels argument should be either nil or a list of two strings."))
     
-    (with-html
+    (with-html ()
       (:span :class "switch tiny" :title title
              (:input :class "switch-input"
                      :type "checkbox"

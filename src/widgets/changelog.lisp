@@ -46,7 +46,7 @@
 ;; TODO: remove this code after refactoring
 (defgeneric render-object (action &key timestamp)
   (:method ((obj t) &key timestamp)
-    (with-html
+    (with-html ()
       (:li ("~@[~A - ~]Unknown type of object ~A"
             (when timestamp
               (format-timestamp (object-updated-at obj)))
@@ -58,7 +58,7 @@
            ;; TODO: create a generic get-uri and define it for a version class
            (url (format nil "/versions/~A" number))
            (version-type (ultralisp/models/version:get-type version)))
-      (with-html
+      (with-html ()
         (if (eql version-type :ready)
             (:li ("~@[~A - ~]Version [~A](~A)"
                   (when timestamp
@@ -72,7 +72,7 @@
     (let* ((project (get-project action))
            (name (get-name project))
            (url (get-url project)))
-      (with-html
+      (with-html ()
         (:li ("~@[~A - ~]Project [~A](~A) was added"
               (when timestamp
                 (format-timestamp (object-updated-at action)))
@@ -85,7 +85,7 @@
            (params (get-params action))
            (reason (getf params :reason))
            (traceback (getf params :traceback)))
-      (with-html
+      (with-html ()
         (:li ("~@[~A - ~]Project [~A](~A) was removed."
               (when timestamp
                 (format-timestamp (object-updated-at action)))
@@ -103,7 +103,7 @@
            (url (get-url project))
            (params (get-params action))
            (diff (getf params :diff)))
-      (with-html
+      (with-html ()
         (:li (:p ("~@[~A - ~]Project [~A](~A) was updated"
                   (when timestamp
                     (format-timestamp (object-updated-at action)))
@@ -117,7 +117,7 @@
                         else
                         do (:dd ("set to ~A" (prepare-value key after)))))))))
   (:method ((check any-check) &key timestamp)
-    (with-html
+    (with-html ()
       (:li (:p ("~@[~A - ~]~A"
                 (when timestamp
                   (format-timestamp (object-updated-at check)))
@@ -128,7 +128,7 @@
 
 (defun render (objects &key timestamps limit)
   (check-type objects (or list null))
-  (with-html
+  (with-html ()
     (cond (objects
            (:ul :class "changelog"
                 (loop with objects = (if limit

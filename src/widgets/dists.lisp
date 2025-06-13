@@ -69,7 +69,7 @@
   (check-type dist ultralisp/models/dist:dist)
   (let ((name (dist-name dist))
         (url (ultralisp/protocols/url:url dist)))
-    (with-html
+    (with-html ()
       (:li (:a :href url
                name)))))
 
@@ -89,7 +89,7 @@
                      (get-nickname user))))
     (when (and nickname
                (bad-nickname-p nickname))
-      (reblocks/html:with-html
+      (reblocks/html:with-html ()
         (:p ("You current nickname ~S contains special characters such like ~S. Please, change nickname to add custom distributions:"
              nickname
              *bad-chars*))
@@ -140,7 +140,7 @@
 
     (cond
       ((null user)
-       (with-html
+       (with-html ()
          (:p "This page requires authentication.")))
       ((bad-nickname-p nickname)
        (reblocks/widget:render
@@ -172,15 +172,15 @@
                                  (cond
                                    ((str:containsp "/" name)
                                     (setf error
-                                          (with-html-string
+                                          (with-html-string ()
                                             (:span "Dist name should not contain / char."))))
                                    ((string= name "")
                                     (setf error
-                                          (with-html-string
+                                          (with-html-string ()
                                             (:span "Dist name consist of your nickname and a second part, which can't be empty."))))
                                    (existing-dist
                                     (setf error
-                                          (with-html-string
+                                          (with-html-string ()
                                             (:span ("Unable to create dist with name \"~A\" because such dist [~A](already exists)."
                                                     full-dist-name
                                                     (ultralisp/protocols/url:url existing-dist))))))
@@ -207,7 +207,7 @@
                                    (:input :type "submit"
                                            :class "button"
                                            :value "Add"))))))))
-           (with-html
+           (with-html ()
              (:h1 title)
              (cond
                ((null user)

@@ -82,7 +82,7 @@
          (actions (ultralisp/models/action:get-version-actions version :limit 3))
          ;; TODO: create a generic get-uri and define it for a version class
          (version-uri (format nil "/versions/~A" number)))
-    (with-html
+    (with-html ()
       (:tr
        (:td :class "version-cell"
             (case version-type
@@ -106,7 +106,7 @@
   (let* ((project (ultralisp/models/project:source->project source))
          (prev-source (prev-version source)))
 
-    (with-html
+    (with-html ()
       (:li ("Project [~A](~A) ~A"
             (ultralisp/protocols/url:url project)
             (ultralisp/models/project:project-name project)
@@ -173,7 +173,7 @@
          ;;              )
          )
     (when bound-sources
-      (with-html
+      (with-html ()
         (:tr
          (:td :class "name-cell"
               (:a :href dist-url
@@ -213,7 +213,7 @@
 
   (let ((latest-dists (latest-dists))
         (recent-projects (get-recent-projects)))
-    (with-html
+    (with-html ()
       ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
       (:a :class "github-fork-ribbon left-top"
           :href "https://github.com/ultralisp/ultralisp"
