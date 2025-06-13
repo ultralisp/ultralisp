@@ -51,6 +51,7 @@
    "clack-handler-hunchentoot"
    "clack-prometheus"
    "clack-socket"
+   "40ants-routes"
    "reblocks"
    "reblocks-ui"
    "reblocks-auth"
