@@ -39,7 +39,7 @@
           "uses": "40ants/setup-lisp@v4",
           "with": {
             "asdf-system": "ultralisp",
-            "qlot-version": "1.7.1",
+            "qlot-version": "1.7.2",
             "cache": "false"
           }
         },
@@ -95,7 +95,8 @@
           "uses": "40ants/setup-lisp@v4",
           "with": {
             "asdf-system": "ultralisp",
-            "cache": "true"
+            "qlot-version": "1.7.2",
+            "cache": "false"
           }
         },
         {
