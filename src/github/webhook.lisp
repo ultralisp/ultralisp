@@ -23,8 +23,6 @@
                 #:get-project2
                 #:get-github-project
                 #:get-all-projects)
-  (:import-from #:reblocks/response
-                #:make-uri)
   (:import-from #:ultralisp/models/check
                 #:make-checks)
   (:import-from #:log4cl-extras/error
@@ -42,9 +40,6 @@
   (:export
    #:get-webhook-url))
 (in-package #:ultralisp/github/webhook)
-
-
-(defvar *github-webhook-path* "/webhook/github")
 
 
 (defvar *payloads* nil
@@ -220,7 +215,3 @@
 
     (values "OK")))
 
-
-(defun get-webhook-url ()
-  "Returns a full path to a webhook, which can be used in GitHub's settings."
-  (make-uri *github-webhook-path*))

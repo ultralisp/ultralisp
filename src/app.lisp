@@ -1,6 +1,10 @@
 (defpackage #:ultralisp/app
   (:use #:cl)
-  ;; (:import-from #:flamegraph)
+  (:import-from #:ultralisp/widgets/maintenance
+                #:make-maintenance-widget)
+  (:import-from #:ultralisp/widgets/main
+                #:make-main-routes)
+  
   (:import-from #:reblocks/app
                 #:get-current
                 #:defapp)
@@ -23,7 +27,10 @@
   :description "The UltraLisp.org server."
   :autostart nil
   :debug t
-  :routes ((static-file "/robots.txt"
+  :routes ((reblocks/routes:page ("/")
+             (make-maintenance-widget
+              (make-main-routes)))
+           (static-file "/robots.txt"
                         (asdf:system-relative-pathname "ultralisp"
                                                        "static/robots.txt"))
            (static-file "/static/gear.gif"

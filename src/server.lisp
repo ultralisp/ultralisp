@@ -72,8 +72,6 @@
   (:import-from #:ultralisp/downloader/source)
   (:import-from #:ultralisp/sources/github)
   (:import-from #:reblocks/request)
-  (:import-from #:reblocks/request-handler
-                #:handle-request)
   (:import-from #:ultralisp/db
                 #:with-connection)
   (:import-from #:defmain
@@ -434,7 +432,7 @@
      :content-type "text/html")))
 
 
-(defmethod handle-request ((app app))
+(defmethod reblocks/routes:serve :around ((route reblocks/routes:page-route) (env t))
   "Here we create a new connection and start new transaction on each request."
   (with-connection ()
     (let ((*request-id* (make-request-id)))

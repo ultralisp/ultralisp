@@ -129,6 +129,9 @@
   "elastic")
 
 
+(defvar *github-webhook-path* "/webhook/github")
+
+
 (defvar *in-unit-test* nil)
 
 

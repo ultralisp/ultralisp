@@ -1,7 +1,9 @@
-(defpackage #:ultralisp/github/widgets/repositories
+(uiop:define-package #:ultralisp/github/widgets/repositories
   (:use #:cl)
   (:import-from #:reblocks-parenscript)
   (:import-from #:dexador)
+  (:import-from #:reblocks/response
+                #:make-uri)
   (:import-from #:ultralisp/sources/github
                 #:guess-github-source)
   (:import-from #:jonathan)
@@ -33,7 +35,6 @@
                 #:is-enabled-p
                 #:add-or-turn-on-project
                 #:get-params)
-  (:import-from #:ultralisp/github/webhook)
   (:import-from #:named-readtables
                 #:in-readtable)
   (:import-from #:arrows
@@ -62,9 +63,10 @@
                 #:make-thread)
   (:import-from #:ultralisp/models/dist-source
                 #:source->dists)
-  (:export
-   #:make-repositories-widget
-   #:repositories))
+  (:import-from #:ultralisp/variables
+                #:*github-webhook-path*)
+  (:export #:make-repositories-widget
+           #:repositories))
 (in-package #:ultralisp/github/widgets/repositories)
 (in-readtable :interpol-syntax)
 
@@ -230,6 +232,11 @@
     ultralisp-names))
 
 
+(defun get-full-webhook-url ()
+  "Returns a full path to a webhook, which can be used in GitHub's settings."
+  (make-uri *github-webhook-path*))
+
+
 (defun set-oauth-token (widget token)
   (log:debug "Setting oauth token")
   (setf (slot-value widget 'oauth-token)
@@ -238,7 +245,7 @@
         :fetching-data)
 
   (log:debug "Starting thread to retrieve repositories")
-  (let ((webhook-url (ultralisp/github/webhook:get-webhook-url)))
+  (let ((webhook-url (get-full-webhook-url)))
     (setf (slot-value widget 'thread)
           (make-thread
            (lambda ()
