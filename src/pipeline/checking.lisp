@@ -230,7 +230,7 @@
          (qlot:update nil))
         (t
          (ensure-directories-exist qlfile)
-         (write-string-into-file (format nil "dist ultralisp ~A~@[ ~A~]~%"
+         (write-string-into-file (format nil "dist ~A~@[ ~A~]~%"
                                          dist-url
                                          dist-version)
                                  qlfile
