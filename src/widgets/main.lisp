@@ -77,6 +77,7 @@
    (page-not-found)))
 
 
+
 (defmethod reblocks/widget:render ((widget main-routes))
   (reblocks/widget:render
    (make-login-menu))
