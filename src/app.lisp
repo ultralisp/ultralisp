@@ -10,7 +10,11 @@
   (:import-from #:40ants-routes/defroutes
                 #:post)
   (:import-from #:ultralisp/routes
-                #:process-webhook-route))
+                #:process-webhook-route)
+  (:import-from #:reblocks-prometheus
+                #:metrics)
+  (:import-from #:ultralisp/stats
+                #:make-collector))
 (in-package #:ultralisp/app)
 
 
@@ -25,6 +29,7 @@
            (static-file "/static/gear.gif"
                         (asdf:system-relative-pathname :ultralisp #P"src/widgets/gear.gif")
                         :content-type "image/gif")
+           (metrics ("/metrics" :user-metrics (list (make-collector))))
            (post ("/webhook/github")
              (process-webhook-route (get-current)))))
 
