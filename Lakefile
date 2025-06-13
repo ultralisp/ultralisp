@@ -59,8 +59,8 @@
 (defun build-deps-file ()
   ;; Or you can use (gen-deps-system:generate "app" :except (list "ultralisp" "asdf"))
   ;; in the REPL:
-  (sh "qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
-  (sh "qlot exec gen-deps-system --except ultralisp,asdf app"))
+  (sh "CL_SOURCE_REGISTRY=`pwd` qlot exec ros run --eval '(ql:quickload :ultralisp)' --eval '(uiop:quit)'")
+  (sh "CL_SOURCE_REGISTRY=`pwd` qlot exec gen-deps-system --except ultralisp,asdf ultralisp"))
 
 (task "deps" ("qlfile.lock")
       ;; Here you need to install gen-deps-system using this command

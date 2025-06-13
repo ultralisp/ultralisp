@@ -55,7 +55,7 @@
          (run-tests
           :lisp "sbcl-bin/2.4.6"
           ;; Does not work because cl-coverage complains
-          ;; it can't quickload app-deps. Hmmm...
+          ;; it can't quickload ultralisp-deps. Hmmm...
           ;; :coverage nil
           )))
 
