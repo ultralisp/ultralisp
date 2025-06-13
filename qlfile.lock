@@ -22,3 +22,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
   :version "github-5194fce4ddf3dcc992984df509a11b594e6ff45d"))
+("reblocks-auth" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "40ants/reblocks-auth" :ref nil :branch "fix-for-new-reblocks" :tag nil)
+  :version "github-590447bde781c4eb5d78f75d692727e5efcb3ab6"))
