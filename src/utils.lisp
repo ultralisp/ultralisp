@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/utils
+(uiop:define-package #:ultralisp/utils
   (:use #:cl)
   (:import-from #:cl-fad
                 #:generate-random-pathname
@@ -31,29 +31,29 @@
   (:import-from #:reblocks/utils/misc
                 #:relative-path)
   (:import-from #:log)
-  (:export
-   #:time-in-past
-   #:getenv
-   #:directory-mtime
-   #:ensure-absolute-dirname
-   #:ensure-existing-file
-   #:path-to-string
-   #:make-request-id
-   #:make-update-diff
-   #:update-plist
-   #:format-timestamp
-   #:get-traceback
-   #:walk-dir
-   #:starts-with-slash-p
-   #:first-letter-of
-   #:remove-last-slash
-   #:with-tmp-directory
-   #:delete-file-if-exists
-   #:in-repl
-   #:with-trace
-   #:time-in-future
-   #:make-keyword
-   #:ends-with-slash-p))
+  (:export #:time-in-past
+           #:getenv
+           #:directory-mtime
+           #:ensure-absolute-dirname
+           #:ensure-existing-file
+           #:path-to-string
+           #:make-request-id
+           #:make-update-diff
+           #:update-plist
+           #:format-timestamp
+           #:get-traceback
+           #:walk-dir
+           #:starts-with-slash-p
+           #:first-letter-of
+           #:remove-last-slash
+           #:with-tmp-directory
+           #:delete-file-if-exists
+           #:in-repl
+           #:with-trace
+           #:time-in-future
+           #:make-keyword
+           #:ends-with-slash-p
+           #:run-program))
 (in-package #:ultralisp/utils)
 
 
@@ -284,3 +284,58 @@
       (when symbol
         (setf (symbol-value symbol)
               new-random-state)))))
+
+
+(define-condition program-failed (error)
+  ((args :initarg :args
+         :reader program-args)
+   (exit-code :initarg :exit-code
+              :reader program-exit-code)
+   (output :initarg :output
+           :reader program-output))
+  (:report (lambda (c stream)
+             (format stream "Program ~S failed with code ~A. Here is it's output:~%~A"
+                     (program-args c)
+                     (program-exit-code c)
+                     (program-output c)))))
+
+
+(declaim (ftype (function ((or string list)
+                           &key
+                           (:directory (or string
+                                           pathname))
+                           (:ignore-errors-p boolean))
+                          (values (or null string)))
+                run-program))
+
+(defun run-program (args &key directory ignore-errors-p)
+  "Returns a full output of the outer programm or signals an error if exit code is not 0.
+
+   If argument is :ignore-error, then in case of not 0 exit code, NIL will be returned.
+   This helpful, if you interested in output only if an utility found something like:
+
+   where qlot
+
+   should return a path or NIL if qlot not found."
+  (log:info "Running program" args directory)
+  
+  (uiop:with-current-directory (directory)
+    (multiple-value-bind (full-output stderr code)
+        (uiop:run-program args
+                          :output '(:string :stripped t)
+                          :error-output :output
+                          :ignore-error-status t)
+      ;; We have both stdout and stderr mixed in stdout var
+      (declare (ignore stderr))
+      (cond
+        ((zerop code)
+         (values full-output))
+        (t
+         (cond
+           (ignore-errors-p
+            (values nil))
+           (t
+            (error 'program-failed
+                   :exit-code code
+                   :output full-output
+                   :args args))))))))

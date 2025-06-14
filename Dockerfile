@@ -84,6 +84,12 @@ RUN rm -fr /app/lw
 RUN qlot exec ros build \
     /app/roswell/worker.ros && \
     mv /app/roswell/worker /app/worker
+# If we don't do this, then Qlot will fail with this error:
+#
+# > The loader tried loading the symbol named RETRY-REQUEST
+# > into the package named DEXADOR.RESTARTS, but the package
+# > did not get defined, and does not exist.
+RUN rm -fr ~/.cache/common-lisp/
 
 COPY ./docker/s6-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
