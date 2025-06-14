@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.27.3 (2025-06-14)
+===================
+
+* Fixed the way how we create a fresh Qlot environment in the checker.
+
 1.27.2 (2025-06-14)
 ===================
 

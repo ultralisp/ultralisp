@@ -77,7 +77,7 @@
           (let* ((key (string-left-trim '(#\/)
                                         (concatenate 'string
                                                      destination-path
-                                                     relative))))
+                                                     (uiop:unix-namestring relative)))))
             (log:debug "Uploading" absolute "to" key)
             (put-object absolute
                         bucket

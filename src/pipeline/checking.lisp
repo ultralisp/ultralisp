@@ -202,10 +202,12 @@
   (progn (log:warn "Lispworks does not support checking with fresh Quicklisp")
          (funcall thunk))
   #-lispworks
-  (let* ((qlot-home #P"/tmp/checker/qlot/")
-         (qlfile (merge-pathnames "qlfile" qlot-home))
-         (qlot-dir (merge-pathnames (make-pathname :directory '(:relative ".qlot"))
-                                    qlot-home))
+  (let* ((qlot-home (make-pathname :directory '(:absolute "tmp" "checker" "qlot")))
+         (qlfile (merge-pathnames "qlfile"
+                                  qlot-home))
+         (dot-qlot-dir (merge-pathnames (make-pathname :directory '(:relative ".qlot"))
+                                        qlot-home))
+         (qlot-binary (ultralisp/utils:run-program "which qlot" :ignore-errors-p t))
          (asdf/output-translations::*output-translations*
            (list*
             (asdf/output-translations:compute-output-translations
@@ -214,20 +216,22 @@
                (T #P"/tmp/checker/qlot/cache/**/*.*")))
             asdf/output-translations::*output-translations*)))
 
+    (unless qlot-binary
+      (error "Qlot utility was not found."))
+
     (let ((qlot:*project-root* qlot-home)
           (original-quicklisp-home ql:*quicklisp-home*))
       
-      ;; Ensure .qlot directory exists
-      (qlot:init qlot-home)
-
       (cond
-        ((probe-file qlot-dir)
+        ((probe-file dot-qlot-dir)
          ;; Warning, qlot upgrades dist to the latest
          ;; version of the dist instead of
          ;; using version from qlfile:
          ;; https://github.com/fukamachi/qlot/issues/324
          ;; TODO: Need to check this issue later
-         (qlot:update nil))
+         (ultralisp/utils:run-program (list qlot-binary
+                                            "update")
+                                      :directory qlot-home))
         (t
          (ensure-directories-exist qlfile)
          (write-string-into-file (format nil "dist ~A~@[ ~A~]~%"
@@ -235,7 +239,9 @@
                                          dist-version)
                                  qlfile
                                  :if-exists :supersede)
-         (qlot:install)))
+         (ultralisp/utils:run-program (list qlot-binary
+                                            "install")
+                                      :directory qlot-home)))
 
       (multiple-value-prog1
           (qlot:with-local-quicklisp (qlot-home)
