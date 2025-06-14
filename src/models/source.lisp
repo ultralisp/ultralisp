@@ -15,7 +15,11 @@
                 #:release-info-to-json
                 #:systems-info-from-json
                 #:release-info-from-json)
+  #-ultralisp-worker-mode
   (:import-from #:ultralisp/stats
+                #:increment-counter)
+  #+ultralisp-worker-mode
+  (:import-from #:ultralisp/worker-mocks
                 #:increment-counter)
   (:import-from #:alexandria
                 #:make-keyword)

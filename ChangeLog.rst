@@ -2,6 +2,14 @@
  ChangeLog
 ===========
 
+1.27.4 (2025-06-14)
+===================
+
+* Removed dependency of ultralisp/worker from cl-container and metatilities
+
+  These two dependencies caused package variance errors during the project checks.
+
+
 1.27.3 (2025-06-14)
 ===================
 

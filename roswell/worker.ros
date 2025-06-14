@@ -7,6 +7,12 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
                    (safety 3)
                    (speed 1)))
 
+;; We don't need our worker depend on Reblocks
+;; because it brings N dependencies
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (pushnew :ultralisp-worker-mode *features*))
+
+
 (progn ;;init forms
   (ros:ensure-asdf)
   #+quicklisp(ql:quickload '(;; bordeaux-threads
