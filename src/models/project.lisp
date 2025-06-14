@@ -32,7 +32,11 @@
                 #:order-by
                 #:limit
                 #:where)
+  #-ultralisp-worker-mode
   (:import-from #:reblocks-auth/models
+                #:get-current-user)
+  #+ultralisp-worker-mode
+  (:import-from #:ultralisp/worker-mocks
                 #:get-current-user)
   (:import-from #:ultralisp/db
                 #:with-transaction)
@@ -57,8 +61,6 @@
                 #:get-project-name)
   (:import-from #:ultralisp/rpc/command
                 #:defcommand)
-  (:import-from #:ultralisp/stats
-                #:increment-counter)
   (:import-from #:ultralisp/models/utils
                 #:systems-info-to-json
                 #:release-info-to-json

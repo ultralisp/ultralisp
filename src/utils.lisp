@@ -13,8 +13,6 @@
   (:import-from #:str)
   (:import-from #:local-time
                 #:timestamp-to-universal)
-  (:import-from #:metatilities
-                #:format-date)
   (:import-from #:anaphora
                 #:aif
                 #:it)
@@ -26,10 +24,9 @@
                 #:print-backtrace)
   (:import-from #:rutils
                 #:fmt)
+  #-ultralisp-worker-mode
   (:import-from #:reblocks/response
                 #:immediate-response)
-  (:import-from #:reblocks/utils/misc
-                #:relative-path)
   (:import-from #:log)
   (:export #:time-in-past
            #:getenv
@@ -104,12 +101,20 @@
     (princ pathname s)))
 
 
+(defun relative-path (full-path prefix-path)
+  (make-pathname :directory (cons :relative
+                                  (nthcdr (length (pathname-directory prefix-path))
+                                          (pathname-directory full-path)))
+                 :name (pathname-name full-path)
+                 :type (pathname-type full-path)))
+
+
 (defun %walk-dir (path thunk)
   (let* ((path (ensure-directory-or-file path))
-        (is-directory (cl-fad:directory-exists-p path))
-        (parent-dir (if is-directory
-                        path
-                        (cl-fad:pathname-directory-pathname path))))
+         (is-directory (cl-fad:directory-exists-p path))
+         (parent-dir (if is-directory
+                         path
+                         (cl-fad:pathname-directory-pathname path))))
 
     (flet ((process-file (absolute)
              (let ((relative (relative-path absolute parent-dir)))
@@ -171,8 +176,13 @@
 
 (defun format-timestamp (timestamp)
   (check-type timestamp local-time:timestamp)
-  (format-date "%Y-%m-%d %H:%M:%S UTC"
-               (timestamp-to-universal timestamp)))
+  (local-time:format-timestring nil
+                                timestamp
+                                :format '((:year 4) #\- (:month 2) #\- (:day 2)
+                                          #\Space
+                                          (:hour 2) #\: (:min 2) #\: (:sec 2)
+                                          " UTC")
+                                :timezone local-time:+utc-zone+))
 
 
 (defun time-in-past (&key (week 0) (day 0) (hour 0) (minute 0) (sec 0) (nsec 0))
@@ -259,6 +269,7 @@
       `(progn
          (log:debug "TRACE: Calling" ,code-name)
          (let ((,result (handler-bind (((or error
+                                            #-ultralisp-worker-mode
                                             immediate-response)
                                          (lambda (condition)
                                            (log:debug "TRACE: Call to" ,code-name

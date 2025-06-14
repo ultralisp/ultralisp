@@ -20,6 +20,7 @@
                 #:get-postgres-user
                 #:get-postgres-host
                 #:get-postgres-dbname)
+  #-ultralisp-worker-mode
   (:import-from #:reblocks/response
                 #:immediate-response)
   (:import-from #:secret-values
@@ -136,6 +137,9 @@
 
 (defun call-with-transaction (func)
   (cl-dbi:with-transaction mito:*connection*
+    #+ultralisp-worker-mode
+    (funcall func)
+    #-ultralisp-worker-mode
     (handler-bind ((immediate-response
                      (lambda (condition)
                        (declare (ignorable condition))

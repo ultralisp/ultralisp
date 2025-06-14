@@ -68,7 +68,11 @@
                 #:with-log-unhandled)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
+  #-ultralisp-worker-mode
   (:import-from #:ultralisp/stats
+                #:increment-counter)
+  #+ultralisp-worker-mode
+  (:import-from #:ultralisp/worker-mocks
                 #:increment-counter)
   (:import-from #:ultralisp/models/versioned
                 #:prev-version
