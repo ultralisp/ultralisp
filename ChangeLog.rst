@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.27.5 (2025-06-22)
+===================
+
+* Metrics route was fixed and now will work as expected.
+
 1.27.4 (2025-06-14)
 ===================
 

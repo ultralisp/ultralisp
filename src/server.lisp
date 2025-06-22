@@ -403,7 +403,8 @@
              (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
-               (:h4 ("Mention ~S request id in the issue." *request-id*))
+               (when *request-id*
+                 (:h4 ("Mention ~S request id in the issue." *request-id*)))
                (when condition
                  (:h5 ("~A" condition)))
                (when backtrace
@@ -412,7 +413,8 @@
              (with-html-string ()
                (:h3 "Some shit happened.")
                (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
-               (:h4 ("Mention ~S request id in the issue." *request-id*)))))))
+               (when *request-id*
+                 (:h4 ("Mention ~S request id in the issue." *request-id*))))))))
     
     (immediate-response
      (with-html-string ()
@@ -423,14 +425,35 @@
      :content-type "text/html")))
 
 
-(defmethod reblocks/routes:serve :around ((route reblocks/routes:page-route) (env t))
+
+
+(defun call-with-db-connection-and-request-id (thunk)
   "Here we create a new connection and start new transaction on each request."
   (with-connection ()
     (let ((*request-id* (make-request-id)))
       (reblocks/response:add-header :x-request-id
                                     *request-id*)
       (with-fields (:request-id *request-id*)
-        (call-next-method)))))
+        (funcall thunk)))))
+
+
+(defmacro with-db-connection-and-request-id (() &body body)
+  `(call-with-db-connection-and-request-id
+    (lambda ()
+      ,@body)))
+
+
+(defmethod reblocks/routes:serve :around ((route reblocks/routes:page-route) (env t))
+  "Here we create a new connection and start new transaction on each request."
+  (with-db-connection-and-request-id ()
+    (call-next-method)))
+
+
+;; Metrics route also need DB connection
+(defmethod reblocks/routes:serve :around ((route reblocks-prometheus:metrics-route) (env t))
+  "Here we create a new connection and start new transaction on each request."
+  (with-db-connection-and-request-id ()
+    (call-next-method)))
 
 
 ;; Top level start & stop scripts
