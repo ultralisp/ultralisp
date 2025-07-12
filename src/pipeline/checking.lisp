@@ -128,37 +128,44 @@
               (log:info "Submitting check to remote ~S worker"
                         lisp-implementation)
               (restart-case
-                  (handler-bind
-                      ;; Usual errors will be processed inside the PERFORM2 function,
-                      ;; however, sometimes worker can crash hardly, and after 3
-                      ;; crashes it will raise error and propagate it to the Gearman
-                      ;; client. And here we'll catch it and mark check as failed.
-                      ;; Here we are using a separate DB connection because the current
-                      ;; one might be already closed.
-                      ((error (lambda (condition)
-                                (log:error "Marking check as failed because worker crashed hard" condition)
-                                (with-connection (:cached nil)
-                                  (update-check-as-failed2 check
-                                                           (get-traceback condition)
-                                                           (float (/ (- (get-internal-real-time)
-                                                                         started-at)
-                                                                     internal-time-units-per-second))))
-                                (unless (in-repl)
-                                  (return-from perform-remotely)))))
-                    (funcall 'submit-task
-                             'perform2
-                             :lisp-implementation lisp-implementation
-                             :args (list* check
-                                          perform-params)))
+                  (let ((traceback nil))
+                    (handler-case
+                        (handler-bind
+                            ;; Usual errors will be processed inside the PERFORM2 function,
+                            ;; however, sometimes worker can crash hardly, and after 3
+                            ;; crashes it will raise error and propagate it to the Gearman
+                            ;; client. And here we'll catch it and mark check as failed.
+                            ;; Here we are using a separate DB connection because the current
+                            ;; one might be already closed.
+                            ((serious-condition
+                               (lambda (condition)
+                                 (setf traceback
+                                       (get-traceback condition))
+                                 (when (in-repl)
+                                   (invoke-debugger condition)))))
+                          (funcall 'submit-task
+                                   'perform2
+                                   :lisp-implementation lisp-implementation
+                                   :args (list* check
+                                                perform-params)))
+                      ;; We need to handle this state, this error only when the stack has unwound,
+                      ;; so that transaction in update-check-as-failed
+                      ;; don't conflict with the main transaction.
+                      (serious-condition (condition)
+                        (log:error "Marking check as failed because worker crashed hard" condition)
+                        (update-check-as-failed2 check
+                                                 traceback
+                                                 (float (/ (- (get-internal-real-time)
+                                                               started-at)
+                                                           internal-time-units-per-second))))))
                 (mark-check-as-failed ()
                   :report "Mark check as failed"
                   (log:error "Marking check as failed because worker crashed hard and user selected restart \"Mark check as failed\"")
-                  (with-connection (:cached nil)
-                    (update-check-as-failed2 check
-                                             "Check marked as failed because user has selected the \"Mark check as failed\" restart."
-                                             (float (/ (- (get-internal-real-time)
-                                                           started-at)
-                                                       internal-time-units-per-second))))))
+                  (update-check-as-failed2 check
+                                           "Check marked as failed because user has selected the \"Mark check as failed\" restart."
+                                           (float (/ (- (get-internal-real-time)
+                                                         started-at)
+                                                     internal-time-units-per-second)))))
               (log:info "Worker returned from perform2")))))
       (values))))
 
