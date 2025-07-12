@@ -361,6 +361,20 @@
     (forget-connection-queries conn)))
 
 
+(defun get-postgres-pid (state)
+  (let* ((conn (dbi.driver::get-conn state))
+         (handle (dbi.driver::connection-handle conn))
+         (params (cl-postgres::connection-parameters handle)))
+    (values (gethash "pid" params)
+            (gethash "application_name" params))))
+
+
+(defun trim-strings (param)
+  (typecase param
+    (string (str:shorten 30 param))
+    (t param)))
+
+
 (defun print-transactions-state (stream)
   "How to use this function for getting trace from a stucked thread:
 
@@ -386,12 +400,16 @@
         for conn-name = (gethash conn connection-to-name)
         for queries = (reverse (bt2:with-lock-held (*transaction-state-queries-lock*)
                                  (gethash state *transaction-state-queries*)))
-        do (format stream "Connection ~A (~A):~2%"
-                   conn-name
-                   state-type)
-           (if queries
-               (loop for (query . params) in queries
-                     do (format stream "~S with ~A~2%"
-                                (dbi.driver:query-sql query)
-                                params))
-               (format stream "No queries.~2%"))))
+        do (multiple-value-bind (pid application-name)
+               (get-postgres-pid state)
+             (format stream "Connection ~A (~A, ~A, ~A):~2%"
+                     conn-name
+                     state-type
+                     pid
+                     application-name)
+             (if queries
+                 (loop for (query . params) in queries
+                       do (format stream "Q: ~S~%A: ~S~2%"
+                                  (dbi.driver:query-sql query)
+                                  (mapcar #'trim-strings params)))
+                 (format stream "No queries.~2%")))))
