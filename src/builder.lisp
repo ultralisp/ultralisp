@@ -191,7 +191,10 @@
                           unless (eql disable-reason-type
                                       :just-added)
                             collect source)))
-    
+
+      ;; Sometimes added source during the check will be marked as having an error
+      ;; and in this case we might have empty changes list. In this case
+      ;; we are just waiting for more projects added to the dist.
       (when changes
         (let ((version-number (make-version-number)))
           (setf (dist-state dist) :prepared
