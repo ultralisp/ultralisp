@@ -22,6 +22,8 @@
                 #:with-transaction)
   (:import-from #:ultralisp/utils
                 #:update-plist)
+  (:import-from #:ultralisp/utils/text
+                #:remove-ansi-sequences)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
   (:import-from #:rutils
@@ -569,9 +571,16 @@ SELECT *
                            :system-conflict))
   (append (list :type type)
           (when comment
-            (list :comment comment))
+            (list :comment
+                  (remove-ansi-sequences comment)))
           (when traceback
-            (list :traceback traceback))))
+            (list :traceback
+                  ;; Sometimes condition description might
+                  ;; include an output of some console program
+                  ;; and this output might contain ANSI sequences
+                  ;; which broke JSON serialization to the database.
+                  ;; This is why we remove them here:
+                  (remove-ansi-sequences traceback)))))
 
 
 (defun create-pending-dists-for-new-source-version (old-source new-source &key

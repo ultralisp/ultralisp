@@ -1,8 +1,8 @@
 (defpackage #:ultralisp/utils/text
   (:use #:cl)
   (:import-from #:str)
-  (:export
-   #:multi-split))
+  (:export #:multi-split
+           #:remove-ansi-sequences))
 (in-package #:ultralisp/utils/text)
 
 
@@ -23,3 +23,9 @@
           unless (and remove-empty
                       (string= resulting-item ""))
             collect resulting-item)))
+
+
+(defun remove-ansi-sequences (str)
+  (str:replace-all "\\e\\[[0-9;]*m" ""
+                   str
+                   :regex t))

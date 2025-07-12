@@ -9,6 +9,7 @@
   update check's state in the database.
 
   Thanks to this post https://www.reddit.com/r/Common_Lisp/comments/1ik77ra/til_right_way_to_handlerbind_unwind_early_if/ for an idea about the reason of the dead-lock. The problem was in two transaction starting in the same thread because of HANDLER-BIND handler.
+* Fixed error on saving failed project check state in case if traceback has some ANSI escape sequences.
 
 1.27.5 (2025-06-22)
 ===================
