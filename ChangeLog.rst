@@ -2,8 +2,15 @@
  ChangeLog
 ===========
 
+1.27.7 (2025-07-31)
+===================
+
+* Upgraded base docker image to use Qlot 1.7.2.
+
+
+
 1.27.6 (2025-07-12)
-====================
+===================
 
 * Fixed the database deadlock occured in rare cases when we were not able to
   update check's state in the database.

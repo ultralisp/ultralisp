@@ -1,6 +1,7 @@
 (uiop:define-package #:ultralisp/dev
   (:use #:cl)
-  (:export #:run-check))
+  (:export #:run-check
+           #:check-broken-projects))
 (in-package #:ultralisp/dev)
 
 
@@ -26,15 +27,44 @@
 
 (defparameter *broken-projects*
   (list
-   "40ants/40ants-doc-theme-40ants"
-   "40ants/reblocks")
+   "40ants/logging"
+   "adlai/scalpl"
+   "ak-coram/cl-duckdb"
+   "bpanthi977/qoi"
+   "byulparan/sc-extensions"
+   "commonlispbr/starwar"
+   "fosskers/cl-transducers"
+   "fukamachi/mito"
+   "HectareaGalbis/clith"
+   "HectareaGalbis/expanders"
+   "marijnh/Postmodern"
+   "mark-watson/openai"
+   "ndantam/sycamore"
+   "qitab/cl-protobufs"
+   "resttime/cl-liballegro"
+   "ruricolist/cmd"
+   "ryukinix/lisp-chat"
+   "ryukinix/lisp-inference"
+   "s-expressionists/Khazern"
+   "shamazmazum/vp-trees"
+   "Shinmera/clss"
+   "Shirakumo/alloy"
+   "Shirakumo/cl-mixed"
+   "Shirakumo/glsl-toolkit"
+   "Shirakumo/trial"
+   "slburson/misc-extensions"
+   "slime/slime"
+   "Zulu-Inuoe/jzon")
   "A list of projects to recheck with CHECK-ALL function.")
 
 
 (defparameter *checks-made-for* nil)
 
 
-(defun check-all ()
+(defun check-broken-projects ()
   (ultralisp/db:with-connection ()
     (loop for name in *broken-projects*
-          do (make-checks name))))
+          do (make-checks name)))
+  (format t "~A projects will be rechecked."
+          (length *broken-projects*))
+  (values))
