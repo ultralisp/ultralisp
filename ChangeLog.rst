@@ -2,6 +2,10 @@
  ChangeLog
 ===========
 
+1.27.8 (2025-08-01)
+
+* Just a version bump to push release.
+
 1.27.7 (2025-07-31)
 ===================
 
