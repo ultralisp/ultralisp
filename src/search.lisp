@@ -1,5 +1,6 @@
 (defpackage #:ultralisp/search
   (:use #:cl)
+  (:import-from #:trivial-timeout)
   (:import-from #:log)
   (:import-from #:mito)
   (:import-from #:str)
@@ -666,40 +667,44 @@ default values from the arglist."
 
 
 (defun index-projects (&key names force (limit 10))
-  (let ((projects (cond
-                    (names
-                     (mapcar #'get-project2 names))
-                    ;; Reindexing all projects
-                    (force (let ((all (get-projects-with-sources)))
-                             (if limit
-                                 (rutils:take limit
-                                              all)
-                                 all)))
-                    ;; 
-                    (t (get-projects-to-index :limit limit)))))
-    (loop for project in projects
-          for project-name = (project-name project)
-          do (with-fields (:project-name project-name)
-               (with-log-unhandled ()
-                 (handler-case
-                     (cond
-                       ((sources-changed-since-last-index-p project)
-                        (log:info "Sending task to index project ~A" project-name)
-                        (with-timeout (*indexing-timeout*)
-                          (submit-task
-                           'index-project
-                           :args (list project))))
-                       (t
-                        (log:info "We don't need to reindex this project because shources not changed")
-                        (reschedule-indexing project)))
-                   (timeout-error ()
-                     (log:error "Project was not indexed because of timeout")
-                     (update-index-status project
-                                          :timeout
-                                          *indexing-timeout*))))
-               (log:info "Done with indexing ~A"
-                         project-name)))
-    (log:info "All projects were indexed")))
+  ;; There were issues with worker task hanged forever trying to update
+  ;; dependencies using qlot. This broke projects checking.
+  ;; To prevent this situation, we will exit after the timeout.
+  (trivial-timeout:with-timeout (120)
+    (let ((projects (cond
+                      (names
+                       (mapcar #'get-project2 names))
+                      ;; Reindexing all projects
+                      (force (let ((all (get-projects-with-sources)))
+                               (if limit
+                                   (rutils:take limit
+                                                all)
+                                   all)))
+                      ;; 
+                      (t (get-projects-to-index :limit limit)))))
+      (loop for project in projects
+            for project-name = (project-name project)
+            do (with-fields (:project-name project-name)
+                 (with-log-unhandled ()
+                   (handler-case
+                       (cond
+                         ((sources-changed-since-last-index-p project)
+                          (log:info "Sending task to index project ~A" project-name)
+                          (with-timeout (*indexing-timeout*)
+                            (submit-task
+                             'index-project
+                             :args (list project))))
+                         (t
+                          (log:info "We don't need to reindex this project because shources not changed")
+                          (reschedule-indexing project)))
+                     (timeout-error ()
+                       (log:error "Project was not indexed because of timeout")
+                       (update-index-status project
+                                            :timeout
+                                            *indexing-timeout*))))
+                 (log:info "Done with indexing ~A"
+                           project-name)))
+      (log:info "All projects were indexed"))))
 
 
 (defmacro do-all-docs ((doc-symbol query) &body body)

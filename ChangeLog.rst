@@ -2,13 +2,18 @@
  ChangeLog
 ===========
 
+1.27.10 (2025-09-07)
+====================
+
+* Now 120s timeout is used for project indexing task, to prevent occacional hangs.
+
 1.27.9 (2025-08-01)
-=====================
+===================
 
 * Use newer base image with upgraded quicklisp dist.
 
 1.27.8 (2025-08-01)
-=====================
+===================
 
 * Just a version bump to push release.
 
