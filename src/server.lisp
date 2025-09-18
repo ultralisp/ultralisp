@@ -402,7 +402,7 @@
             ((reblocks/debug:status)
              (with-html-string ()
                (:h3 "Some shit happened.")
-               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+               (:h4 ("Don't panic. [Fill issue at GitHub](https://github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (when *request-id*
                  (:h4 ("Mention ~S request id in the issue." *request-id*)))
                (when condition
@@ -412,7 +412,7 @@
             (t
              (with-html-string ()
                (:h3 "Some shit happened.")
-               (:h4 ("Don't panic. [Fill issue at GitHub](github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
+               (:h4 ("Don't panic. [Fill issue at GitHub](https://github.com/ultralisp/ultralisp/issues) and ask to fix it!"))
                (when *request-id*
                  (:h4 ("Mention ~S request id in the issue." *request-id*))))))))
     
