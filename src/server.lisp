@@ -540,10 +540,12 @@
 
     (setf reblocks-auth:*enabled-services*
           (list :github :email)
-          reblocks-auth/providers/email/processing:*recaptcha-site-key*
-          (get-recaptcha-site-key)
-          reblocks-auth/providers/email/processing:*recaptcha-secret-key*
-          (get-recaptcha-secret-key))
+          ; Recaptcha should be rewritten to use new Google's API
+          ; reblocks-auth/providers/email/processing:*recaptcha-site-key*
+          ; (get-recaptcha-site-key)
+          ; reblocks-auth/providers/email/processing:*recaptcha-secret-key*
+          ; (get-recaptcha-secret-key)i
+    )
 
     (setup-sources)
     
