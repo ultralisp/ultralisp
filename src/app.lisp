@@ -15,11 +15,17 @@
                 #:post)
   (:import-from #:ultralisp/routes
                 #:process-webhook-route)
+  (:import-from #:reblocks/response
+                #:immediate-response)
   (:import-from #:reblocks-prometheus
                 #:metrics)
   (:import-from #:ultralisp/variables)
   (:import-from #:ultralisp/stats
-                #:make-collector))
+                #:make-collector)
+  (:import-from #:ultralisp/db
+                #:with-connection)
+  (:import-from #:ultralisp/badges
+                #:badge-svg))
 (in-package #:ultralisp/app)
 
 
@@ -66,6 +72,11 @@
                (list 200
                      nil
                      result)))
+           (40ants-routes/defroutes:get ("/badge/<.*:project>.svg")
+             (with-connection ()
+               (immediate-response
+                (badge-svg project)
+                :content-type "image/svg+xml")))
            (metrics ("/metrics"
                      :user-metrics (list (make-collector))))
            (post ("/webhook/github")
