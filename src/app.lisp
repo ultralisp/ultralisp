@@ -15,8 +15,6 @@
                 #:post)
   (:import-from #:ultralisp/routes
                 #:process-webhook-route)
-  (:import-from #:reblocks/response
-                #:immediate-response)
   (:import-from #:reblocks-prometheus
                 #:metrics)
   (:import-from #:ultralisp/variables)
