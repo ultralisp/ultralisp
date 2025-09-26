@@ -63,11 +63,11 @@
    (make-sponsors-widget))
   ("/versions/\\d+"
    (make-version-widget))
-  ("/projects/.*/.*"
+  ("/projects/(?!.*\\.svg$).*/.*"
    (make-project-widget))
   ("/dists/.*"
    (make-dist-widget))
-  ("/projects/.*"
+  ("/projects/(?!.*\\.svg$).*"
    (make-author-projects-widget))
   ("/my/projects"
    (make-my-projects-widget))
