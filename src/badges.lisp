@@ -2,7 +2,7 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:last-elt
-                #:when-let)
+                #:when-let*)
   (:import-from #:ultralisp/models/project
                 #:get-project2)
   (:import-from #:ultralisp/models/dist
@@ -37,10 +37,9 @@
 
 (defun badge-svg (project-name)
   (let* ((dist (common-dist))
-         (version (when-let (project (get-project2 project-name))
-                            (let ((versions (project-versions dist project)))
-                              (when versions
-                                (normalize-version (last-elt versions)))))))
+         (version (when-let* ((project (get-project2 project-name))
+                              (versions (project-versions dist project)))
+                    (normalize-version (last-elt versions)))))
     (if version
         (make-versioned-badge (dist-name dist) version)
         (make-missing-badge (dist-name dist)))))
