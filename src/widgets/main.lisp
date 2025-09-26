@@ -67,7 +67,7 @@
    (make-project-widget))
   ("/dists/.*"
    (make-dist-widget))
-  ("/projects/(?!.*\\.svg$).*"
+  ("/projects/.*"
    (make-author-projects-widget))
   ("/my/projects"
    (make-my-projects-widget))
