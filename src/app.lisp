@@ -72,7 +72,7 @@
                (list 200
                      nil
                      result)))
-           (40ants-routes/defroutes:get ("/badge/<.*:project>.svg")
+           (40ants-routes/defroutes:get ("/projects/<.*:project>.svg")
              (with-connection ()
                (immediate-response
                 (badge-svg project)
