@@ -25,6 +25,8 @@
                 #:page-not-found)
   (:import-from #:ultralisp/widgets/project
                 #:make-project-widget)
+  (:import-from #:ultralisp/widgets/project-badge
+                #:make-project-badge-widget)
   (:import-from #:ultralisp/widgets/dist
                 #:make-dist-widget)
   (:import-from #:ultralisp/widgets/projects
@@ -63,7 +65,9 @@
    (make-sponsors-widget))
   ("/versions/\\d+"
    (make-version-widget))
-  ("/projects/(?!.*\\.svg$).*/.*"
+  ("/projects/.*/.*\\.svg"
+   (make-project-badge-widget))
+  ("/projects/.*/.*"
    (make-project-widget))
   ("/dists/.*"
    (make-dist-widget))
