@@ -72,6 +72,11 @@
                (list 200
                      nil
                      result)))
+           (40ants-routes/defroutes:get ("/projects/<.*:project>.svg")
+             (with-connection ()
+               (list 200
+                     (list :content-type "image/svg+xml")
+                     (list (badge-svg project)))))
            (metrics ("/metrics"
                      :user-metrics (list (make-collector))))
            (post ("/webhook/github")
