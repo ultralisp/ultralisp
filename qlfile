@@ -45,7 +45,7 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 
 
-github qlot fukamachi/qlot :ref a4abc8921c4a8cf1c43f453bb2106ee56ae3c13d
+github qlot fukamachi/qlot
 
 
 github reblocks-auth 40ants/reblocks-auth :branch fix-for-new-reblocks
