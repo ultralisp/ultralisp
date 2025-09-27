@@ -19,7 +19,11 @@
                 #:metrics)
   (:import-from #:ultralisp/variables)
   (:import-from #:ultralisp/stats
-                #:make-collector))
+                #:make-collector)
+  (:import-from #:ultralisp/db
+                #:with-connection)
+  (:import-from #:ultralisp/badges
+                #:badge-svg))
 (in-package #:ultralisp/app)
 
 
@@ -66,6 +70,11 @@
                (list 200
                      nil
                      result)))
+           (40ants-routes/defroutes:get ("/projects/<.*:project>.svg")
+             (with-connection ()
+               (list 200
+                     (list :content-type "image/svg+xml")
+                     (list (badge-svg project)))))
            (metrics ("/metrics"
                      :user-metrics (list (make-collector))))
            (post ("/webhook/github")
