@@ -1,4 +1,4 @@
-dist http://dist.ultralisp.org/ 20250607045000
+dist http://dist.ultralisp.org/
 
 github quickdist ultralisp/quickdist :ref 9d6b0ef58d84ad1204b9ad209f51d93e1150f2ca
 
@@ -43,9 +43,6 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 # Until this PR will be merged:
 # https://github.com/thephoeron/cl-isaac/pull/13
 github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
-
-# required by fukamachi/qlot as a dependency
-ql dexador
 
 github qlot fukamachi/qlot
 
