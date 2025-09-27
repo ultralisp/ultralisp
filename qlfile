@@ -44,6 +44,8 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 # https://github.com/thephoeron/cl-isaac/pull/13
 github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 
+# required by fukamachi/qlot as a dependency
+ql dexador
 
 github qlot fukamachi/qlot
 
