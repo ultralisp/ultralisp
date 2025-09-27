@@ -1,4 +1,4 @@
-dist http://dist.ultralisp.org/ 20250607045000
+dist http://dist.ultralisp.org/
 
 github quickdist ultralisp/quickdist :ref 9d6b0ef58d84ad1204b9ad209f51d93e1150f2ca
 
