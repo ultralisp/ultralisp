@@ -44,11 +44,6 @@ github cl-gearman svetlyak40wt/cl-gearman :branch patches
 # https://github.com/thephoeron/cl-isaac/pull/13
 github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 
-# required by fukamachi/qlot as a dependency
-ql trivial-features
-ql dexador
-
 github qlot fukamachi/qlot
-
 
 github reblocks-auth 40ants/reblocks-auth :branch fix-for-new-reblocks
