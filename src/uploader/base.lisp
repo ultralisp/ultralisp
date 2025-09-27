@@ -66,9 +66,12 @@
      (let ((prefixes (remove-if-not #'ends-with-slash-p only-files))
            (full-names (remove-if #'ends-with-slash-p only-files)))
        (lambda (relative)
-         (or (member relative full-names :test #'string=)
-             (loop for prefix in prefixes
-                     thereis (str:starts-with-p prefix relative))))))
+         (let ((relative-string (if (pathnamep relative)
+                                    (namestring relative)
+                                    relative)))
+           (or (member relative-string full-names :test #'string=)
+               (loop for prefix in prefixes
+                       thereis (str:starts-with-p prefix relative-string)))))))
     (t
      ;; if no pattern given, then we should upload all files
      (constantly t))))
