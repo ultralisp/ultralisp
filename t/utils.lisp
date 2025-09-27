@@ -55,7 +55,7 @@
 
 (defmacro with-login ((&key (email "bob@example.com"))
                       &body body)
-  `(reblocks-tests/utils:with-session
+  `(reblocks-tests/utils:with-test-session ()
      (let* ((user (or (reblocks-auth/models:get-user-by-email ,email)
                       (mito:create-dao 'reblocks-auth/models:user
                                        :nickname ,email
