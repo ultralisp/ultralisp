@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.28.1 (2025-09-28)
+====================
+
+* Fixed CI jobs for linting & test runs
+
 1.28.0 (2025-09-27)
 ====================
 
@@ -341,7 +346,7 @@ Added a way to debug a deadlock in transactions.
 * Update Qlot dependencies in attempt to fix this nasty error occured when checking many projects:
 
   .. code::
-     
+
      Condition: export cffi-sys::defcfun-helper-forms causes name-conflicts in
             #<package "CFFI"> between the following symbols:
               cffi-sys::defcfun-helper-forms, cffi::defcfun-helper-forms
@@ -575,7 +580,7 @@ Fixed temporary names in archive names. This bug was introduced in
 the 1.9.6 release and release URLs were made indistinguishable:
 
 .. code::
-   
+
    Downloading http://dist.ultralisp.org/archive/1645/temp-CD1HFW64-20210908211649.tgz
 
 1.9.6 (2021-09-03)
@@ -647,7 +652,7 @@ This closes issue https://github.com/ultralisp/ultralisp/issues/140
 
 * Fixed the case when worker wasn't able to finish project
   indexer because it was each time killed by OOM killer.
-  
+
   Now the indexer will wait for 5 minutes and remove the job
   from the Gearman server.
 * Also, Prometheus metrics were added to show number
@@ -687,7 +692,7 @@ This closes issue https://github.com/ultralisp/ultralisp/issues/140
 
   This feature allows to fix issues like:
   `this one <https://github.com/ultralisp/ultralisp/issues/117>`_.
-  
+
 * Now we show a list of systems, included into the latest
   source release.
 
@@ -899,7 +904,7 @@ Fixes
 
 * Trying to fix checking of mmontone/ten project by adding
   a project path to ``asdf:*central-registry*``.
-  
+
 
 0.14.14 (2020-02-23)
 ====================
@@ -1060,7 +1065,7 @@ Changes
   it after each task execution. This simplify debugging.
 * Added a ``ultralisp/debug`` package and function ``check-project``
   which can be used for checking how project is processed by the pipeline.
-  
+
 
 Fixes
 -----
