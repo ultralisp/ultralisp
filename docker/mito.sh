@@ -2,6 +2,8 @@
 
 set -e
 
+export PATH="/app/.qlot/bin:${PATH}"
+
 COMMAND=$1
 COMMON_OPTS="--type postgres --database ultralisp --username ultralisp --password ultralisp"
 
