@@ -22,8 +22,12 @@
        version))
     (t (princ-to-string version))))
 
-(defparameter +badge-side-padding+ 7)
-(defparameter +badge-min-section-width+ 32)
+(defconstant +badge-side-padding+ 7
+  "Padding applied to both sides of each badge section.")
+(defconstant +badge-min-section-width+ 32
+  "Minimum width to keep the layout readable.")
+(defconstant +badge-value-extra-padding+ 4
+  "Extra whitespace around the values.")
 
 (defun badge-char-width (char)
   (cond
@@ -59,7 +63,8 @@
 
 (defun compose-badge (label-text value-text value-color)
   (let* ((label-width (badge-section-width label-text))
-         (value-width (badge-section-width value-text))
+         (value-width-base (badge-section-width value-text))
+         (value-width (+ value-width-base +badge-value-extra-padding+))
          (total-width (+ label-width value-width))
          (label-center (format-position (/ label-width 2)))
          (value-center (format-position (+ label-width (/ value-width 2)))))
