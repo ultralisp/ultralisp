@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.28.2 (2025-09-28)
+====================
+
+* Fixed the SVG badge rendering, so that they are no longer squished
+
 1.28.1 (2025-09-28)
 ====================
 
