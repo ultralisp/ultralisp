@@ -5,7 +5,6 @@
 
 
 (reblocks-auth/providers/email/resend:define-code-sender send-code ("Ultralisp.org <noreply@ultralisp.org>" url)
-  (:p ("To log into [Ultralisp.org](~A), follow [this link](~A)."
-       url
-       url))
+  (:p ("To log into Ultralisp https://ultralisp.org/, follow this link:"))
+  (:p (:a :href url url))
   (:p "Hurry up! This link will expire in one hour."))
