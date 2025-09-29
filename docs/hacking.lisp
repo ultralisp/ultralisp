@@ -96,7 +96,7 @@ Connect to the REPL and run:
 (ql:quickload :ultralisp-test)
 (setf (uiop:getenv "POSTGRES_USER") "ultralisp_test")
 (setf (uiop:getenv "POSTGRES_DBNAME") "ultralisp_test")
-(setf (uiop:getenv "POSTGRES_PASS") "ultralisp_test")
+(setf (uiop:getenv "POSTGRES_PASSWORD") "ultralisp_test")
 (setf (uiop:getenv "POSTGRES_HOST") "localhost")
    
 (setf rove:*enable-colors* nil)

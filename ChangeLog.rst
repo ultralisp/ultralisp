@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+1.28.4 (2025-09-29)
+====================
+
+* Unified environment variable names for Postgres
+* PATH fix for mito in docker
+
 1.28.3 (2025-09-28)
 ====================
 

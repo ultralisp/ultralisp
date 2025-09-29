@@ -73,11 +73,11 @@
   "ultralisp_ro")
 
 (def-secret-env-var get-postgres-pass
-  "POSTGRES_PASS"
+  "POSTGRES_PASSWORD"
   "ultralisp")
 
 (def-secret-env-var get-postgres-ro-pass
-  "POSTGRES_RO_PASS"
+  "POSTGRES_RO_PASSWORD"
   "ultralisp_ro")
 
 (def-env-var get-gearman-server

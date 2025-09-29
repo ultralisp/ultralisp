@@ -27,10 +27,10 @@ services:
       DEBUG: 1
       POSTGRES_HOST: postgres
       POSTGRES_USER: ultralisp
-      POSTGRES_PASS: ultralisp
+      POSTGRES_PASSWORD: ultralisp
       POSTGRES_DBNAME: ultralisp
       POSTGRES_RO_USER: ultralisp_ro
-      POSTGRES_RO_PASS: ultralisp_ro
+      POSTGRES_RO_PASSWORD: ultralisp_ro
       ELASTIC_SEARCH_HOST: elastic
       GEARMAN_SERVER: gearman:4730
       # These tokens are from the development app and
