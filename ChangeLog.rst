@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.28.5 (2025-10-06)
+====================
+
+* Unified environment variable names for Postgres, part 2
+
 1.28.4 (2025-09-29)
 ====================
 
