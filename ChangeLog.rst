@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.28.6 (2025-10-07)
+====================
+
+* Improved SLY REPL file path mapping, when used with docker compose
+
 1.28.5 (2025-10-06)
 ====================
 
