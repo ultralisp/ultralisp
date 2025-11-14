@@ -2,6 +2,12 @@
  ChangeLog
 ===========
 
+
+1.28.7 (2025-11-14)
+====================
+
+* Improved SLY REPL file path mapping, when connecting from Emacs to lisp image running in Docker container.
+
 1.28.6 (2025-11-14)
 ===================
 
