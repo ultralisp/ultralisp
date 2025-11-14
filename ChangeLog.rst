@@ -2,10 +2,16 @@
  ChangeLog
 ===========
 
-1.28.6 (2025-10-07)
+
+1.28.7 (2025-11-14)
 ====================
 
-* Improved SLY REPL file path mapping, when used with docker compose
+* Improved SLY REPL file path mapping, when connecting from Emacs to lisp image running in Docker container.
+
+1.28.6 (2025-11-14)
+===================
+
+* Fixed error with projects having circular links.
 
 1.28.5 (2025-10-06)
 ====================
