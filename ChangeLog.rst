@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.28.6 (2025-11-14)
+===================
+
+* Fixed error with projects having circular links.
+
 1.28.5 (2025-10-06)
 ====================
 
