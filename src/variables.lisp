@@ -5,7 +5,9 @@
   (:import-from #:secret-values
                 #:conceal-value)
   (:export
-   #:to-prod-db))
+   #:to-prod-db
+   #:get-smartcaptcha-client-key
+   #:get-smartcaptcha-server-key))
 (in-package #:ultralisp/variables)
 
 
@@ -118,6 +120,14 @@
 
 (def-env-var get-recaptcha-secret-key
   "RECAPTCHA_SECRET_KEY")
+
+
+(def-env-var get-smartcaptcha-client-key
+  "SMARTCAPTCHA_CLIENT_KEY")
+
+(def-env-var get-smartcaptcha-server-key
+  "SMARTCAPTCHA_SERVER_KEY")
+
 
 (def-env-var get-user-agent
   "USER_AGENT"

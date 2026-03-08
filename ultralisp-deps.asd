@@ -287,7 +287,7 @@
    "reblocks-prometheus"
    "prometheus-gc"
    "chanl"
-   "cl-yandex-metrika"
+   "yandex-metrika"
    "drakma"
    "closure-common"
    "cxml/xml"
