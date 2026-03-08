@@ -78,6 +78,8 @@
   (:import-from #:ultralisp/variables
                 #:get-recaptcha-secret-key
                 #:get-recaptcha-site-key
+                #:get-smartcaptcha-client-key
+                #:get-smartcaptcha-server-key
                 #:get-github-robot-token
                 #:get-dist-dir
                 #:get-user-agent
@@ -140,6 +142,8 @@
   (:import-from #:ultralisp/api/api
                 #:api)
   (:import-from #:ultralisp/api/server)
+  (:import-from #:secret-values
+                #:ensure-value-concealed)
   
   (:shadow #:restart)
   (:export
@@ -540,12 +544,18 @@
 
     (setf reblocks-auth:*enabled-services*
           (list :github :email)
-          ; Recaptcha should be rewritten to use new Google's API
-          ; reblocks-auth/providers/email/processing:*recaptcha-site-key*
-          ; (get-recaptcha-site-key)
-          ; reblocks-auth/providers/email/processing:*recaptcha-secret-key*
-          ; (get-recaptcha-secret-key)i
-    )
+          reblocks-auth/providers/email/processing:*smartcaptcha-client-key*
+          (ensure-value-concealed
+           (get-smartcaptcha-client-key))
+          reblocks-auth/providers/email/processing:*smartcaptcha-server-key*
+          (ensure-value-concealed
+           (get-smartcaptcha-server-key))
+                                        ; Recaptcha should be rewritten to use new Google's API
+                                        ; reblocks-auth/providers/email/processing:*recaptcha-site-key*
+                                        ; (get-recaptcha-site-key)
+                                        ; reblocks-auth/providers/email/processing:*recaptcha-secret-key*
+                                        ; (get-recaptcha-secret-key)i
+          )
 
     (setup-sources)
     

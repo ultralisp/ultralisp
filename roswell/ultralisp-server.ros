@@ -7,6 +7,8 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
                    (safety 3)
                    (speed 1)))
 
+(push "./locals/reblocks-auth/" asdf:*central-registry*)
+
 (progn ;;init forms
   (ros:ensure-asdf)
   ;; load system with all dependencies

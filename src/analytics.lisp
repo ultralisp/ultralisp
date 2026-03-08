@@ -1,6 +1,7 @@
 (defpackage #:ultralisp/analytics
   (:use #:cl)
-  (:import-from #:cl-yandex-metrika)
+  (:import-from #:yandex-metrika/vars)
+  (:import-from #:yandex-metrika/client)
   (:import-from #:ultralisp/variables
                 #:get-yandex-counter-id
                 #:get-google-counter-id)
@@ -80,6 +81,6 @@
 (defun hit (&rest args)
   (let ((counter-id (get-yandex-counter-id)))
     (when counter-id
-      (let ((cl-yandex-metrika:*counter* counter-id))
-        (apply #'cl-yandex-metrika:hit
+      (let ((yandex-metrika/vars:*counter* counter-id))
+        (apply #'yandex-metrika/client:hit
                args)))))

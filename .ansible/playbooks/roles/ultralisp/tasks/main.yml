@@ -138,6 +138,8 @@
       RESEND_API_KEY: "{{ resend_api_key }}"
       RECAPTCHA_SITE_KEY: "{{ recaptcha_site_key }}"
       RECAPTCHA_SECRET_KEY: "{{ recaptcha_secret_key }}"
+      SMARTCAPTCHA_CLIENT_KEY: "{{ smartcaptcha_client_key }}"
+      SMARTCAPTCHA_SERVER_KEY: "{{ smartcaptcha_server_key }}"
       USER_AGENT: "Ultralisp/{{ ultralisp_version }} (https://{{ ultralisp_host }})"
 #      LFARM_WORKERS: "172.17.0.1:{{ ultralisp_worker_port }}"
       GEARMAN_SERVER: "172.17.0.1:4730"
