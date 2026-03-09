@@ -9,16 +9,16 @@
     dest: /ultralisp/initdb.d/initdb.sh
     mode: u+rwx
 
-- name: Create a license directory for LW worker
-  file:
-    path: /ultralisp/lw-worker/license/
-    state: directory
+# - name: Create a license directory for LW worker
+#   file:
+#     path: /ultralisp/lw-worker/license/
+#     state: directory
 
-- name: Create a license file for LW worker
-  template:
-    src: lw-license
-    dest: /ultralisp/lw-worker/license/license
-    mode: u+rw
+# - name: Create a license file for LW worker
+#   template:
+#     src: lw-license
+#     dest: /ultralisp/lw-worker/license/license
+#     mode: u+rw
     
 - name: Run docker container with Postgres for ultralisp.org
   docker_container:
