@@ -52,7 +52,10 @@ RUN cd dist-lw81 && \
 
 RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
 
-RUN echo "License word stats: $(wc /app/lw-license)" && docker/lw-build.sh /app/lw-build.lisp /app/lw/license
+RUN echo "License dir 1: ls -lh /app/lw/"
+RUN echo "License dir 2: ls -lhss ./lw/"
+RUN echo "License word stats: $(wc /app/lw-license)"
+RUN docker/lw-build.sh /app/lw-build.lisp /app/lw/license
 
 COPY ./docker/s6-lw-worker /etc/s6
 ENTRYPOINT ["s6-svscan", "/etc/s6"]
