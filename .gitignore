@@ -19,10 +19,13 @@
 .sbclrc
 /lw/license
 /dist-lw80/
+/dist-lw81/
 /lw-license-backup
 .local.lisp
 *.fasl
 *.~undo-tree~
+*.log
+/local/
 .DS_Store
 /docs/build/
 /roswell/ultralisp-server

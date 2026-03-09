@@ -17,10 +17,8 @@ if [[ ! -e ${DELIVERY_FILE} ]]; then
 fi
 
 
-if [[ -e /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux ]]; then
-    LW_BINARY=/usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux
-elif [[ -e /usr/local/lib64/LispWorks/lispworks-7-1-0-amd64-linux ]]; then
-    LW_BINARY=/usr/local/lib64/LispWorks/lispworks-7-1-0-amd64-linux
+if [[ -e /usr/local/bin/lispworks ]]; then
+    LW_BINARY=/usr/local/bin/lispworks
 else
     echo 'Something went wrong - there is no LW binary.'
     exit 3

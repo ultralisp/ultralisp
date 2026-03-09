@@ -44,13 +44,11 @@ ENV DISPLAY=host.docker.internal:0
 
 RUN apt-get update && apt-get install -y libgtk2.0-0 curl
 
-COPY dist-lw80 /lispworks
-
-RUN cd /lispworks && \
+RUN cd dist-lw81 && \
     touch "/tmp/."`/bin/date '+%d%m%y'`"lispworks"`id -u` && \
     sh lwl-install.sh && \
     cd /usr/local/lib64/LispWorks && \
-    ln -s /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux /usr/local/bin/lispworks
+    ln -s /usr/local/lib64/LispWorks/lispworks-8-1-0-amd64-linux /usr/local/bin/lispworks
 
 RUN curl https://beta.quicklisp.org/quicklisp.lisp > /quicklisp.lisp
 

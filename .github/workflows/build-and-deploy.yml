@@ -109,7 +109,7 @@ jobs:
         run: |
           mkdir lw
           echo "${{ secrets.LISPWORKS_LICENSE }}" > lw/license
-          curl https://storage.yandexcloud.net/ultralisp-ci/dist-lw80.tar.bz2 | tar jx
+          curl https://storage.yandexcloud.net/ultralisp-ci/dist-lw81.tar.bz2 | tar jx
         
       - name: Build and push lw-worker
         id: build-and-push-lw-worker

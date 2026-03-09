@@ -7,6 +7,10 @@ if [[ ! -e /app/logs ]]; then
 fi
 
 DATE=$(date --rfc-3339=seconds)
+
+LICENSE_FILE=/lw/license
+APPLIED_LICENSE_FILE=/usr/local/lib64/LispWorks/lib/8-1-0-0/config/lwlicense
+
 STDOUT_FILE=/app/logs/lw-worker-stdout.log
 STDERR_FILE=/app/logs/lw-worker-stderr.log
 
@@ -25,23 +29,26 @@ print_banner ${STDOUT_FILE}
 print_banner ${STDERR_FILE}
 
 
-if [[ ! -e /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense ]] || ! grep -q $(hostname) /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense; then
-    if [[ -e /lw/license ]]; then
+if [[ ! -e ${APPLIED_LICENSE_FILE} ]] || ! grep -q $(hostname) ${APPLIED_LICENSE_FILE}; then
+    if [[ -e ${LICENSE_FILE} ]]; then
         echo 'Applying LispWorks license.' >> ${STDOUT_FILE}
-        /usr/local/lib64/LispWorks/lispworks-8-0-0-amd64-linux $(cat /lw/license) >> ${STDOUT_FILE} 2>&1
+        lispworks $(cat ${LICENSE_FILE}) >> ${STDOUT_FILE} 2>&1
         
         echo 'License was successfully applied:' >> ${STDOUT_FILE}
-        grep -e '###' -e 'SERIAL' -e 'EXPIRATION' /usr/local/lib64/LispWorks/lib/8-0-0-0/config/lwlicense >> ${STDOUT_FILE}
-
-        echo 'Removing /lw/license file' >> ${STDOUT_FILE}
-        rm /lw/license
+        grep -e '###' -e 'SERIAL' -e 'EXPIRATION' ${APPLIED_LICENSE_FILE} >> ${STDOUT_FILE}
     else
-        echo "ERROR: There is no license for current host $(hostname) and file in /lw/license." >> ${STDOUT_FILE}
-        sleep 60
+        echo "ERROR: There is no license for current host $(hostname) and no license file ${LICENSE_FILE}." >> ${STDOUT_FILE}
+        sleep 60s
         exit 1
     fi
 else
     echo 'Found a LispWorks license.' >> ${STDOUT_FILE}
+fi
+
+
+if [[ -e ${LICENSE_FILE} ]]; then
+   echo "Removing ${LICENSE_FILE} file" >> ${STDOUT_FILE}
+   rm ${LICENSE_FILE}
 fi
 
 exec /app/worker \
@@ -49,5 +56,5 @@ exec /app/worker \
         --slynk-interface "0.0.0.0" \
         --slynk-port "4005" \
         --debug \
-        >> /app/logs/lw-worker-stdout.log \
-        2>> /app/logs/lw-worker-stderr.log
+        >> ${STDOUT_FILE} \
+        2>> ${STDERR_FILE}
