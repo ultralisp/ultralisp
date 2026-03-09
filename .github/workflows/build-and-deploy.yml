@@ -108,6 +108,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           mkdir lw
+          echo "Storing LW license to $(pwd)/lw/license"
           echo "${{ secrets.LISPWORKS_LICENSE }}" > lw/license
           curl https://storage.yandexcloud.net/ultralisp-ci/dist-lw81.tar.bz2 | tar jx
         
