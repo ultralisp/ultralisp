@@ -57,6 +57,11 @@ RUN echo "License dir 1: ls -lh /app/lw/"
 RUN echo "License dir 2: ls -lh ./lw/"
 
 RUN echo "License word stats: $(wc /app/lw/license)"
+
+RUN echo "Where is lispworks: $(which lispworks)"
+RUN echo "Lispworks link:"
+RUN ls -l $(which lispworks)
+
 RUN docker/lw-build.sh /app/lw-build.lisp /app/lw/license
 
 COPY ./docker/s6-lw-worker /etc/s6
