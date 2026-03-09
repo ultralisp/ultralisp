@@ -24,6 +24,7 @@ else
     exit 3
 fi
 
+echo "DEBUG License is $(cat ${LICENSE_FILE}) DONE"
 ${LW_BINARY} $(cat ${LICENSE_FILE})
 ${LW_BINARY} -build ${DELIVERY_FILE}
 

@@ -112,7 +112,7 @@ jobs:
           echo "${{ secrets.LISPWORKS_LICENSE }}" > lw/license
           echo "License dir:"
           ls -lh lw/
-          echo "License word stats: $(wc /app/lw/license)"
+          echo "License word stats: $(wc lw/license)"
           curl https://storage.yandexcloud.net/ultralisp-ci/dist-lw81.tar.bz2 | tar jx
         
       - name: Build and push lw-worker
