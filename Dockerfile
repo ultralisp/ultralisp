@@ -62,6 +62,8 @@ RUN echo "Where is lispworks: $(which lispworks)"
 RUN echo "Lispworks link:"
 RUN ls -l $(which lispworks)
 
+RUN echo "LW License serial: $(cat lw/license | cut -f 2 -d ' ')"
+
 RUN docker/lw-build.sh /app/lw-build.lisp /app/lw/license
 
 COPY ./docker/s6-lw-worker /etc/s6
