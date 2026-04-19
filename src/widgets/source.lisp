@@ -1026,10 +1026,10 @@
                              (symbol-name key)))
            for length = (getf key-to-length key 20)
            unless (equal old-value new-value)
-           do (:li ("**~A** ~A ➞ ~A"
-                    name
-                    (str:shorten length old-value :ellipsis "…")
-                    (str:shorten length new-value :ellipsis "…")))))))
+             do (:li ("**~A** ~A ➞ ~A"
+                      name
+                      (str:shorten length (princ-to-string old-value) :ellipsis "…")
+                      (str:shorten length (princ-to-string new-value) :ellipsis "…")))))))
 
 
 (defmethod ultralisp/protocols/render-changes:render ((type (eql :github)) prev-source new-source)
