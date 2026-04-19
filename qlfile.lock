@@ -22,3 +22,15 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
   :version "github-5194fce4ddf3dcc992984df509a11b594e6ff45d"))
+("mgl-pax" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "melisgl/mgl-pax" :ref "7534964eea17906757c0499c165be164d6996217" :branch nil :tag nil)
+  :version "github-7534964eea17906757c0499c165be164d6996217"))
+("autoload" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "melisgl/autoload" :ref "2fab7815e6082acb46dc2a6a2fe7ef15152dacd2" :branch nil :tag nil)
+  :version "github-2fab7815e6082acb46dc2a6a2fe7ef15152dacd2"))
+("dref" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "melisgl/dref" :ref "a798af7c9cfdbe8f54c6e513dd17431ca9313e60" :branch nil :tag nil)
+  :version "github-a798af7c9cfdbe8f54c6e513dd17431ca9313e60"))

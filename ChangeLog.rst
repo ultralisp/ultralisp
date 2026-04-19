@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.30.10 (2026-04-19)
+====================
+
+* Attempt to fix checks for mgl-pax, autoload and dref.
+
 
 1.30.9 (2026-03-09)
 ===================
