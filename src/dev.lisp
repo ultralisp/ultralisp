@@ -1,7 +1,16 @@
 (uiop:define-package #:ultralisp/dev
   (:use #:cl)
+  (:import-from #:ultralisp/models/project
+                #:project-name)
+  (:import-from #:ultralisp/models/check)
+  (:import-from #:ultralisp/rpc/core)
+  (:import-from #:ultralisp/pipeline/checking)
+  (:import-from #:yason)
+  (:import-from #:serapeum
+                #:@)
   (:export #:run-check
-           #:check-broken-projects))
+           #:check-broken-projects
+           #:start-outside-docker))
 (in-package #:ultralisp/dev)
 
 
@@ -20,41 +29,15 @@
 
 
 (defun run-check (project-name)
-  (let ((checks (make-checks project-name)))
-    (ultralisp/rpc/core:submit-task 'ultralisp/pipeline/checking::perform2
-                                    :args (list (first checks)
-                                                :force t))))
+  (ultralisp/db:with-connection ()
+    (let ((checks (make-checks project-name)))
+      (ultralisp/rpc/core:submit-task 'ultralisp/pipeline/checking::perform2
+                                      :args (list (first checks)
+                                                  :force t)))))
 
 (defparameter *broken-projects*
   (list
-   "40ants/logging"
-   "adlai/scalpl"
-   "ak-coram/cl-duckdb"
-   "bpanthi977/qoi"
-   "byulparan/sc-extensions"
-   "commonlispbr/starwar"
-   "fosskers/cl-transducers"
-   "fukamachi/mito"
-   "HectareaGalbis/clith"
-   "HectareaGalbis/expanders"
-   "marijnh/Postmodern"
-   "mark-watson/openai"
-   "ndantam/sycamore"
-   "qitab/cl-protobufs"
-   "resttime/cl-liballegro"
-   "ruricolist/cmd"
-   "ryukinix/lisp-chat"
-   "ryukinix/lisp-inference"
-   "s-expressionists/Khazern"
-   "shamazmazum/vp-trees"
-   "Shinmera/clss"
-   "Shirakumo/alloy"
-   "Shirakumo/cl-mixed"
-   "Shirakumo/glsl-toolkit"
-   "Shirakumo/trial"
-   "slburson/misc-extensions"
-   "slime/slime"
-   "Zulu-Inuoe/jzon")
+   "fukamachi/cl-dbi")
   "A list of projects to recheck with CHECK-ALL function.")
 
 
@@ -68,3 +51,53 @@
   (format t "~A projects will be rechecked."
           (length *broken-projects*))
   (values))
+
+
+(defun get-all-disabled-projects (last-n-days)
+  (ultralisp/db:with-connection ()
+    (mito:select-by-sql
+     'ultralisp/models/project:project2
+     "select p.*
+         from project2 as p
+         join source as s on s.project_id = p.id and s.project_version = p.version
+         join dist_source as ds on ds.source_id = s.id and ds.source_version = s.version
+        where p.latest and not p.deleted and s.latest and not s.deleted and not ds.enabled
+              and ds.created_at > now() - make_interval(days => ?)
+       "
+     :binds (list last-n-days))))
+
+
+(defun check-all-disabled-projects (last-n-days)
+  (let* ((projects (get-all-disabled-projects last-n-days))
+         (*broken-projects* (mapcar #'project-name projects)))
+    (check-broken-projects)))
+
+
+(defun get-nix-library-path (library-name)
+  (when (program-exists-p "nix")
+    (let* ((json (uiop:run-program '("nix" "profile" "list" "--json")
+                                   :output :string))
+           (data (yason:parse json))
+           (store-paths (@ data "elements" library-name "storePaths"))
+           (path (first store-paths)))
+      (when path
+        (probe-file (merge-pathnames (make-pathname :directory '(:relative "lib"))
+                                     (uiop:ensure-directory-pathname path)))))))
+
+
+(defun extend-cffi-load-path ()
+  (loop for library-name in '("libev")
+        for path = (get-nix-library-path library-name)
+        when (and (program-exists-p "nix")
+                  (null path))
+          do (error "When nix is available ~S should be installed using nix profile" library-name)
+        when path
+          do (pushnew path
+                      cffi:*foreign-library-directories* :test 'equal))
+  (values))
+
+
+(defun start-outside-docker ()
+  (extend-cffi-load-path)
+  (ql:quickload :ultralisp/server)
+  (uiop:symbol-call :ultralisp/server :start-outside-docker))

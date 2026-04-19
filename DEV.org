@@ -13,9 +13,9 @@ Open SLY, and do:
 
 #+begin_src lisp
 
-(ql:quickload :ultralisp/server)
+(ql:quickload :ultralisp/dev)
 
-(ultralisp/server:start-outside-docker)
+(ultralisp/dev:start-outside-docker)
 
 #+end_src
 

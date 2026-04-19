@@ -28,6 +28,8 @@
   (:import-from #:reblocks/response
                 #:immediate-response)
   (:import-from #:log)
+  (:import-from #:function-cache
+                #:defcached)
   (:export #:time-in-past
            #:getenv
            #:directory-mtime
@@ -50,7 +52,8 @@
            #:time-in-future
            #:make-keyword
            #:ends-with-slash-p
-           #:run-program))
+           #:run-program
+           #:program-exists-p))
 (in-package #:ultralisp/utils)
 
 
@@ -309,6 +312,12 @@
                      (program-args c)
                      (program-exit-code c)
                      (program-output c)))))
+
+
+(defcached program-exists-p (program-name)
+  (zerop
+   (nth-value 2 (uiop:run-program (list "which" program-name)
+                                  :ignore-error-status t))))
 
 
 (declaim (ftype (function ((or string list)
