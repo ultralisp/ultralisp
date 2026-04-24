@@ -2,9 +2,91 @@
 
 You are a professional Common Lisp programmer. Use best practices, build clear abstractions (including with macros), and write idiomatic code consistent with this project.
 
+## What is Ultralisp
+
+Ultralisp is a Quicklisp-compatible Common Lisp distribution server. It allows users to add GitHub-hosted Lisp projects and automatically builds a distribution every few minutes. The system runs as a web app + background workers and stores artifacts on S3.
+
+## Development Commands
+
+### Starting the development environment
+
+Services (PostgreSQL, ElasticSearch, Gearman) run in Docker Compose. Start them with:
+
+```bash
+lake
+```
+
+Then in a Lisp REPL started with `qlot exec ros emacs`:
+
+```lisp
+;; Start the web server
+(ql:quickload :ultralisp/server)
+(ultralisp/server:start-outside-docker)
+
+;; Start the background worker (separate REPL)
+(ql:quickload :ultralisp/worker)
+(ultralisp/worker:start-outside-docker)
+```
+
+### Running tests
+
+```lisp
+;; All tests
+(asdf:test-system :ultralisp-test)
+
+;; A specific test module
+(rove:run :ultralisp-test/models/dist)
+
+;; A single test by name
+(rove:run-test 'ultralisp-test/models/dist::test-adding-new-dist)
+```
+
+Tests use **Rove** as the runner and **Hamcrest** for assertions. Each test that touches the database uses `with-test-db`, which creates an isolated PostgreSQL schema, runs migrations, and cleans up afterward.
+
+### Running project checks in the REPL
+
+```lisp
+(40ants-logging:setup-for-repl :level :info)
+(ultralisp/db:connect-toplevel)
+(ql:quickload :ultralisp/dev)
+(ultralisp/dev:run-check "guicho271828/type-i")
+```
+
+### Dependency management
+
+Dependencies are managed with `qlot`. After changing `qlfile`, run `qlot install` to update `qlfile.lock`. The `ultralisp-deps.asd` system lists all transitive dependencies.
+
 ## Architecture Overview
 
-Ultralisp is a Quicklisp-compatible Common Lisp software distribution. It consists of the following components:
+```
+Browser ──► Reblocks/Clack web server (ultralisp/server)
+               │
+               ├── PostgreSQL (Mito ORM)
+               ├── ElasticSearch (symbol/project search)
+               └── Gearman (task queue)
+                        │
+               Background workers (ultralisp/worker)
+                        │
+               ├── Project checker (ultralisp/pipeline/)
+               ├── Downloader (ultralisp/downloader/)
+               └── Uploader → S3 (ultralisp/uploader/)
+```
+
+### Key subsystems
+
+| Subsystem | Entry point | Purpose |
+|-----------|------------|---------|
+| Web server | `ultralisp/server:start` | Reblocks-based web UI + REST API |
+| Worker | `ultralisp/worker:process-jobs` | Gearman job consumer |
+| Builder | `ultralisp/main:main` | CLI that builds dist metadata |
+| Pipeline | `ultralisp/pipeline/` | Orchestrates check → build → upload |
+| Models | `ultralisp/models/` | Mito ORM models (project, dist, source, version, etc.) |
+| Widgets | `ultralisp/widgets/` | Reblocks UI components |
+| API | `ultralisp/api/` | REST/OpenRPC endpoints |
+| GitHub | `ultralisp/github/` | OAuth, webhooks, API calls |
+| Downloader | `ultralisp/downloader/` | Fetches project source from GitHub/Git |
+| Uploader | `ultralisp/uploader/` | Stores artifacts (S3 or fake local backend) |
+| RPC | `ultralisp/rpc/` | Serializes commands sent through Gearman |
 
 ### Infrastructure (from `docker-compose.yml`)
 
@@ -30,6 +112,7 @@ Ultralisp is a Quicklisp-compatible Common Lisp software distribution. It consis
 - Advisory locks: `with-lock`, `get-lock`, `try-to-get-lock` for distributed locking
 - Cached connections mode for performance in worker threads
 - Export: `with-connection`, `with-transaction`, `with-lock`, `execute`, `sql-fetch-all`
+- PostgreSQL accessed via **Mito** ORM. Migrations live in `src/migrations/` as numbered SQL files and are applied at startup. `ultralisp/db:connect-toplevel` connects the REPL to the database.
 
 ### Models (`src/models/`)
 
@@ -129,6 +212,10 @@ Scheduled tasks using `cl-cron`:
   - `make-middlewares` - API middleware at `/api`
   - Database connection per request via `with-db-connection-and-request-id`
 
+### Authentication
+
+GitHub OAuth via `reblocks-auth`. The `ultralisp/github/` package handles webhook verification and GitHub API calls.
+
 ### Sources Integration (`src/sources/`)
 
 - **base.lisp** - Base source protocol
@@ -202,6 +289,7 @@ Utility functions organized by domain:
 ## Packages and files
 
 - Use package-inferred ASDF system style to specify dependencies between files - each file should have its own package.
+- Uses ASDF's `:package-inferred-system` — each file under `src/` defines its own package matching the path. For example, `src/models/project.lisp` defines the package `ultralisp/models/project`. Tests mirror this structure under `t/`.
 - Define packages with `uiop:define-package`, explicit `:use #:cl`, and `#:` for package names.
 - If there are many symbols used.
 - Prefer to use `:local-nicknames` instead of `:use` or `:import-from`.
