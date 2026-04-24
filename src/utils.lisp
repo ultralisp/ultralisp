@@ -1,5 +1,6 @@
 (uiop:define-package #:ultralisp/utils
   (:use #:cl)
+  (:import-from #:quickdist)
   (:import-from #:cl-fad
                 #:generate-random-pathname
                 #:generate-random-string)
@@ -53,7 +54,8 @@
            #:make-keyword
            #:ends-with-slash-p
            #:run-program
-           #:program-exists-p))
+           #:program-exists-p
+           #:ensure-gnu-tar-installed))
 (in-package #:ultralisp/utils)
 
 
@@ -359,3 +361,15 @@
                    :exit-code code
                    :output full-output
                    :args args))))))))
+
+
+(defun ensure-gnu-tar-installed ()
+  #+darwin
+  (uiop:run-program "brew install gnu-tar"
+                    :ignore-error-status t)
+  #+darwin
+  (setf quickdist::*gnutar*
+        (or (probe-file "/usr/local/bin/gtar")
+            (probe-file "/opt/homebrew/bin/gtar")))
+
+  (values))

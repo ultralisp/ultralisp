@@ -59,7 +59,9 @@
                 #:update-source-dists
                 #:dist-id)
   (:import-from #:ultralisp/sources/github
-                #:guess-github-source))
+                #:guess-github-source)
+  (:import-from #:ultralisp/utils
+                #:ensure-gnu-tar-installed))
 (in-package #:ultralisp-test/models/project)
 
 
@@ -73,6 +75,8 @@
 
 
 (deftest test-adding-github-project
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
@@ -88,6 +92,8 @@
 
 
 (deftest test-create-new-source-version-when-source-is-bound-to-pending-dist
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-metrics
       (testing "When project check was successful and a new source version should be created and attached to the new pending dist"
@@ -137,6 +143,8 @@
 
 
 (defun run-test-source-disabling (&key pending-dists)
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-metrics
       (testing "When project check was unsuccessful a new source version should be created and disabled"
@@ -217,6 +225,8 @@
 
 
 (deftest test-source-distribution-changes
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-metrics
       (with-login ()
@@ -266,6 +276,8 @@
 
 
 (defun run-deletion-test (&key pending-dists)
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-metrics
       (with-login ()
@@ -297,16 +309,16 @@
                   (foo (find-dist "foo")))
               
               (if pending-dists
-                  (testing "All dist versions should be pending now"
-                    (ok (eql (dist-state ultralisp)
-                             :pending))
-                    (ok (eql (dist-state foo)
-                             :pending)))
-                  (testing "All dist versions should not be pending now"
-                    (ok (eql (dist-state ultralisp)
-                             :ready))
-                    (ok (eql (dist-state foo)
-                             :ready))))
+                (testing "All dist versions should be pending now"
+                  (ok (eql (dist-state ultralisp)
+                           :pending))
+                  (ok (eql (dist-state foo)
+                           :pending)))
+                (testing "All dist versions should not be pending now"
+                  (ok (eql (dist-state ultralisp)
+                           :ready))
+                  (ok (eql (dist-state foo)
+                           :ready))))
 
               (testing "Both dists should include the project 40ants/defmain"
                 (ok (equal (get-all-dist-project-names ultralisp)
@@ -319,18 +331,18 @@
               (let ((ultralisp-after (find-dist "ultralisp"))
                     (foo-after (find-dist "foo")))
                 (if pending-dists
-                    (testing "No new dist versions should be created, because dists were pending"
-                      (ok (dist-equal ultralisp
-                                      ultralisp-after))
-                      (ok (dist-equal foo
-                                      foo-after)))
-                    (testing "New dist versions should be created"
-                      (ok (not
-                           (dist-equal ultralisp
-                                       ultralisp-after)))
-                      (ok (not
-                           (dist-equal foo
-                                       foo-after)))))
+                  (testing "No new dist versions should be created, because dists were pending"
+                    (ok (dist-equal ultralisp
+                                    ultralisp-after))
+                    (ok (dist-equal foo
+                                    foo-after)))
+                  (testing "New dist versions should be created"
+                    (ok (not
+                         (dist-equal ultralisp
+                                     ultralisp-after)))
+                    (ok (not
+                         (dist-equal foo
+                                     foo-after)))))
 
                 (testing "Project 40ants/defmain should be deleted and disabled in new dists verssions"
                   (ok (equal (get-projects-linked-to-the ultralisp-after)
@@ -360,6 +372,8 @@
   ;; connected to a few versions of the same dist.
   ;; But source-distributions function should return only
   ;; the latest versions of the dists.
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
