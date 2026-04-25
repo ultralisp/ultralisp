@@ -607,7 +607,7 @@
         do (setf (uiop/os:getenv name)
                  value))
 
-  (function-cache:clear-cache-all-function-caches)
+  (function-cache:clear-all-caches)
 
   ;; For some reason default "TEMPORARY-FILES:TEMP-%" does not work on OSX:
   (setf cl-fad::*default-template*

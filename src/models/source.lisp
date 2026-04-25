@@ -89,7 +89,8 @@
    #:params-to-string
    #:ignore-dirs
    #:get-latest-version-by-id
-   #:get-latest-source))
+   #:get-latest-source
+   #:source-last-check-failed))
 (in-package #:ultralisp/models/source)
 
 
@@ -143,8 +144,12 @@
                  :initform nil
                  :reader source-release-info
                  :deflate #'release-info-to-json
-                 :inflate #'release-info-from-json))
-  
+                 :inflate #'release-info-from-json)
+   (last-check-failed :col-type :boolean
+                      :initarg :last-check-failed
+                      :initform nil
+                      :accessor source-last-check-failed))
+
   (:primary-key ultralisp/models/versioned:id
                 ultralisp/models/versioned:version)
   (:metaclass mito:dao-table-class))
@@ -449,6 +454,8 @@
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source source
                         :enable t))))
+
+
 
 
 (defun get-all-sources ()

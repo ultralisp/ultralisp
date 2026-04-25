@@ -42,7 +42,8 @@
                 #:project-version
                 #:source-project-id
                 #:source-type
-                #:params-from-github)
+                #:params-from-github
+                #:source-last-check-failed)
   (:import-from #:ultralisp/utils/git
                 #:get-git-branches)
   (:import-from #:ultralisp/utils/github
@@ -53,7 +54,8 @@
                 #:object-id)
   (:import-from #:ultralisp/models/versioned
                 #:get-latest-version-of
-                #:object-version)
+                #:object-version
+                #:prev-version)
   (:import-from #:ultralisp/models/project
                 #:source->project)
   (:import-from #:reblocks-auth/models
@@ -345,6 +347,31 @@
                                         widget))))
 
 
+(defun render-check-failed-callout (source last-check)
+  (with-html ()
+    (let* ((last-check-failed (source-last-check-failed source))
+           (processed-at (ultralisp/models/check:get-processed-at last-check))
+           (error (when processed-at
+                    (ultralisp/models/check:get-error last-check))))
+      ;; When check is not processed yet, we do not want to show
+      ;; the warning, because error is not known at this moment yet.
+      (when (and processed-at
+                 last-check-failed)
+        (:div :class "callout alert"
+              (:span "Check of latest code version was failed.")
+              (when error
+                (:span " Click on")
+                (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
+                  (:div :id popup-id
+                        :class "reveal large"
+                        :data-reveal "true"
+                        (:h1 "Check Error")
+                        (:pre error))
+                  (:a :data-open popup-id
+                      "error"))
+                (:span " to see details.")))))))
+
+
 (defmethod render-source ((widget readonly-source-widget)
                           (type (eql :github))
                           source)
@@ -379,15 +406,15 @@
                                (:div :class "source-controls float-right"
                                      (reblocks-ui/form:with-html-form
                                          (:post #'deletion-handler
-                                          :requires-confirmation-p t
-                                          :confirm-question (:div (:h1 "Warning!")
-                                                                  (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
-                                                                  (:ul
-                                                                   (loop for name in (mapcar #'dist-name
-                                                                                             (remove-if-not
-                                                                                              #'enabled-p
-                                                                                              (source->dists source)))
-                                                                         do (:li name)))))
+                                           :requires-confirmation-p t
+                                           :confirm-question (:div (:h1 "Warning!")
+                                                                   (:p "If you'll remove this source, it will be excluded from the future versions of these distributions:")
+                                                                   (:ul
+                                                                    (loop for name in (mapcar #'dist-name
+                                                                                              (remove-if-not
+                                                                                               #'enabled-p
+                                                                                               (source->dists source)))
+                                                                          do (:li name)))))
                                        (:input :type "submit"
                                                :class "alert button tiny"
                                                :name "button"
@@ -472,36 +499,25 @@
                                                    (timestamp-difference
                                                     now
                                                     processed-at)))
-                                                (error (ultralisp/models/check:get-error last-check))
                                                 (time-to-next-check
                                                   (local-time-duration:timestamp-difference
-                                                                 (get-time-of-the-next-check source)
-                                                                 now))
+                                                   (get-time-of-the-next-check source)
+                                                   now))
                                                 (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
                                                                       0)
-                                                                   (fmt " Next check will be made in ~A."
-                                                                        (humanize-duration
-                                                                         time-to-next-check))
-                                                                   " Next check will be made very soon.")))
+                                                                 (fmt " Next check will be made in ~A."
+                                                                      (humanize-duration
+                                                                       time-to-next-check))
+                                                                 " Next check will be made very soon.")))
                                            (:span (fmt "Finished ~A ago. " duration))
-                                           
-                                           (when error
-                                             (:span "There was an")
-                                             (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
-                                               (:div :id popup-id
-                                                     :class "reveal large"
-                                                     :data-reveal "true"
-                                                     (:h1 "Check Error")
-                                                     (:pre error))
-                                               (:a :data-open popup-id
-                                                   "error"))
-                                             (:span "."))
                                            (:span next-check-at)))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
                                           (ultralisp/models/check:position-in-the-queue last-check))))))
                                (t
                                 ("No checks yet.")))
+
+                             (render-check-failed-callout source last-check)
 
                              (when user-is-moderator
                                (reblocks-ui/form:with-html-form
@@ -512,7 +528,7 @@
                                             (make-check source
                                                         :manual)
                                             (reblocks/widget:update widget))
-                                    :class "float-right")
+                                     :class "float-right")
                                  (:input :type "submit"
                                          :class "button tiny secondary"
                                          :name "button"
@@ -651,30 +667,17 @@
                                                    (timestamp-difference
                                                     now
                                                     processed-at)))
-                                                (error (ultralisp/models/check:get-error last-check))
                                                 (time-to-next-check
                                                   (local-time-duration:timestamp-difference
                                                    (get-time-of-the-next-check source)
                                                    now))
                                                 (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
                                                                       0)
-                                                                   (fmt " Next check will be made in ~A."
-                                                                        (humanize-duration
-                                                                         time-to-next-check))
-                                                                   " Next check will be made very soon.")))
+                                                                 (fmt " Next check will be made in ~A."
+                                                                      (humanize-duration
+                                                                       time-to-next-check))
+                                                                 " Next check will be made very soon.")))
                                            (:span (fmt "Finished ~A ago. " duration))
-                                           
-                                           (when error
-                                             (:span "There was an")
-                                             (let* ((popup-id (symbol-name (gensym "ERROR-POPUP"))))
-                                               (:div :id popup-id
-                                                     :class "reveal large"
-                                                     :data-reveal "true"
-                                                     (:h1 "Check Error")
-                                                     (:pre error))
-                                               (:a :data-open popup-id
-                                                   "error"))
-                                             (:span "."))
                                            (:span next-check-at)))
                                         (t
                                          ("Waiting in the queue. Position: ~A."
@@ -682,6 +685,8 @@
                                (t
                                 ("No checks yet.")))
 
+                             (render-check-failed-callout source last-check)
+                             
                              (when user-is-moderator
                                (reblocks-ui/form:with-html-form
                                    (:post (lambda (&rest args)
@@ -691,7 +696,7 @@
                                             (make-check source
                                                         :manual)
                                             (reblocks/widget:update widget))
-                                    :class "float-right")
+                                     :class "float-right")
                                  (:input :type "submit"
                                          :class "button tiny secondary"
                                          :name "button"

@@ -170,7 +170,7 @@
         do (setf (uiop/os:getenv name)
                  value))
 
-  (function-cache:clear-cache-all-function-caches)
+  (function-cache:clear-all-caches)
   
   (process-jobs))
 

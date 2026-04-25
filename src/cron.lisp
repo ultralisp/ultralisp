@@ -265,17 +265,21 @@
 
 
 (defun simulate-cron (&key (index t)
-                           (create-checks t)
-                           (lispworks t))
+                      (create-checks t)
+                      (lispworks t))
   "When cron is disabled, you can use this function in the REPL
    to do everything for complete Ultralisp update cycle."
 
   (remove-old-checks)
+  
   (when create-checks
     (create-cron-checks))
+  
   (perform-checks)
+  
   (when lispworks
     (perform-lispworks-checks))
+  
   (build-dists)
   
   (when index
