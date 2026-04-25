@@ -53,7 +53,6 @@
                 #:add-dist)
   (:import-from #:ultralisp/models/dist-source
                 #:dist->sources
-                #:create-pending-dists-for-new-source-version
                 #:delete-source
                 #:source-distributions
                 #:update-source-dists

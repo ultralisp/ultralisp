@@ -7,6 +7,7 @@
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
   (:import-from #:ultralisp/models/versioned
+                #:refetch
                 #:deleted-p
                 #:latest-p
                 #:object-version)
@@ -428,11 +429,19 @@
                           :release-info release-info
                           :params (update-plist (source-params source)
                                                 params))))
+      
       (log:debug "Creating a new dist version")
-      (uiop:symbol-call :ultralisp/models/dist-source
-                        :create-pending-dists-for-new-source-version
+      (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source new-source :enable enable)
-      (log:debug "New dist was created"))))
+      (log:debug "New dist was created")
+
+      (when (source-last-check-failed source)
+        (let ((updated-old-source (refetch source)))
+          (log:debug "Resetting check-failed flag on old source version")
+          (setf (source-last-check-failed updated-old-source) nil)
+          (mito:save-dao updated-old-source)))
+
+      (values))))
 
 
 (defcommand enable-this-source-version (source)
@@ -454,8 +463,6 @@
       (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source source
                         :enable t))))
-
-
 
 
 (defun get-all-sources ()
