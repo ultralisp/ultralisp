@@ -326,11 +326,12 @@
               ;; Let's enable the source, first.
               ;; After this call source should be bound to a new PENDING version.
               (create-new-source-version source nil nil)
-                #:create-pending-dists-for-new-source-version
+              
               (retrieve-latest-source)
             
               (update-source-dists source
                                    :dists '("ultralisp" "foo"))
+              
               (retrieve-latest-source)
 
               (unless pending-dists
