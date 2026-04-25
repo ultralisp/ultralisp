@@ -22,7 +22,8 @@
    #:deleted-p
    #:versioned-table-class
    #:prev-version
-   #:get-latest-version-of))
+   #:get-latest-version-of
+   #:refetch))
 (in-package #:ultralisp/models/versioned)
 
 
@@ -78,6 +79,16 @@
                       (list (object-id obj)
                             (object-version obj)))))
 
+
+
+(defgeneric refetch (obj)
+  (:method ((obj versioned))
+    (first
+     (mito:select-dao (class-of obj)
+       (where
+        (:and (:= 'id (object-id obj))
+              (:= 'version (object-version obj))))
+       (limit 1)))))
 
 
 (defgeneric prev-version (obj)

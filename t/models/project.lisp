@@ -59,7 +59,9 @@
                 #:update-source-dists
                 #:dist-id)
   (:import-from #:ultralisp/sources/github
-                #:guess-github-source))
+                #:guess-github-source)
+  (:import-from #:ultralisp/utils
+                #:ensure-gnu-tar-installed))
 (in-package #:ultralisp-test/models/project)
 
 
@@ -73,6 +75,8 @@
 
 
 (deftest test-adding-github-project
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"
@@ -87,136 +91,172 @@
                        "A new check should be created")))))))
 
 
+(defun make-fake-release-info ()
+  (make-instance 'quickdist:release-info
+                 :project-name "foo"
+                 :project-url "http://dist/foo"
+                 :archive-path "http://dist/foo.tgz"
+                 :file-size 100
+                 :md5sum "0d0d6d9faeb2bec121f88588379941e9"
+                 :content-sha1 "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+                 :project-prefix "foo"
+                 :system-files '("foo.asd")))
+
+
+(defmacro with-mocked-github (() &body body)
+  `(cl-mock:with-mocks ()
+     (cl-mock:answer ultralisp/models/source::make-release
+       (make-fake-release-info))
+     (cl-mock:answer ultralisp/utils/github::get-topics
+       (list "blah" "minor"))
+     
+     ,@body))
+
+
 (deftest test-create-new-source-version-when-source-is-bound-to-pending-dist
-  (with-test-db
-    (with-metrics
-      (testing "When project check was successful and a new source version should be created and attached to the new pending dist"
-        (let* ((project (make-project "40ants" "defmain"))
-               (source (get-source project))
-               (dist (get-dist source))
-               ;; Systems can be ignored for this test:
-               (systems nil))
-          (ok (typep dist 'ultralisp/models/dist:bound-dist))
-
-          (ok (not (enabled-p dist)))
-          
-          ;; Now we emulate a situation when project's commit hash was changed
-          (create-new-source-version source
-                                     systems
-                                     ;; This value should be overriden in a new
-                                     ;; source version:
-                                     (list :last-seen-commit "abcd"))
-          
-          (let* ((new-source (get-source project))
-                 (new-dist (get-dist new-source)))
-            (testing "New version of the source should be created"
-              (testing "New version is not the same instance"
-                (ok (not (eq source new-source))))
-              (testing "And has a large version id"
-                (ok (> 
-                     (object-version new-source)
-                     (object-version source)))))
-
-            (testing "The dist should not be changed, because originally source was bound to a PENDING dist"
-              (testing "New dist has the same version"
-                (let ((old-dist (ultralisp/models/dist:dist dist))
-                      (new-dist (ultralisp/models/dist:dist new-dist)))
-                  (ok (= (object-version old-dist)
-                         (object-version new-dist)))))
-              (testing "And it is PENDING"
-                (ok (eql (ultralisp/models/dist:dist-state dist)
-                         :pending))))
-            
-            (testing "New source should be enabled"
-              (ok (enabled-p new-dist)))
-         
-            (testing "Source parameters should be updated as well"
-              (ok (equal (getf (source-params new-source)
-                               :last-seen-commit)
-                         "abcd")))))))))
-
-
-(defun run-test-source-disabling (&key pending-dists)
-  (with-test-db
-    (with-metrics
-      (testing "When project check was unsuccessful a new source version should be created and disabled"
-        (let* ((project (make-project "40ants" "defmain"))
-               (source (get-source project)))
-          ;; First, we need to create a version which is enabled.
-          (create-new-source-version source nil nil
-                                     ;; This argument is t by default,
-                                     ;; but here we use it to make a test explicits 
-                                     :enable t)
-
-          (unless pending-dists
-            (ultralisp/builder::prepare-pending-dists)
-            (ultralisp/builder::build-prepared-dists))
-
-          ;; Retrieve new version of the source:
-          (let* ((source (get-source project))
+  (ensure-gnu-tar-installed)
+  
+  (cl-mock:with-mocks ()
+    (cl-mock:answer ultralisp/models/source::make-release
+      (make-fake-release-info))
+    (cl-mock:answer ultralisp/utils/github::get-topics
+      (list "blah" "minor"))
+    
+    (with-test-db
+      (with-metrics
+        (testing "When project check was successful and a new source version should be created and attached to the new pending dist"
+          (let* ((project (make-project "40ants" "defmain"))
+                 (source (get-source project))
                  (dist (get-dist source))
-                 (check (make-check source :via-cron)))
+                 ;; Systems can be ignored for this test:
+                 (systems nil))
+            (ok (typep dist 'ultralisp/models/dist:bound-dist))
 
-            (testing "At this moment project should be enabled"
-              (ok (enabled-p dist)))
-            
-            (testing "Now we emulate a situation when project's check was failed"
-              (ultralisp/pipeline/checking::update-check-as-failed2 check
-                                                                    ;; traceback
-                                                                    "Some error"
-                                                                    ;; processed-in
-                                                                    0.1)
-              (unless pending-dists
-                (ultralisp/builder::prepare-pending-dists)
-                (ultralisp/builder::build-prepared-dists))
-            
-              (let* ((new-source (get-source project))
-                     (new-dist (get-dist new-source)))
-                (testing "New version of the source should not be, because it was bound to a :PENDING dist"
-                  (ok (=
+            (ok (not (enabled-p dist)))
+           
+            ;; Now we emulate a situation when project's commit hash was changed
+            (create-new-source-version source
+                                       systems
+                                       ;; This value should be overriden in a new
+                                       ;; source version:
+                                       (list :last-seen-commit "abcd"))
+           
+            (let* ((new-source (get-source project))
+                   (new-dist (get-dist new-source)))
+              (testing "New version of the source should be created"
+                (testing "New version is not the same instance"
+                  (ok (not (eq source new-source))))
+                (testing "And has a large version id"
+                  (ok (> 
                        (object-version new-source)
-                       (object-version source))))
+                       (object-version source)))))
 
-                (testing "New source should be disabled"
-                  (ok (not (enabled-p new-dist))))
-
-
-
-                (testing "When another check fails again, a new version of the dist should not be createdd, because source already disabled"
-                  (let ((another-check (make-check new-source :via-cron)))
-                  
-                    ;; Now we emulate a situation when second check also failed   
-                    (ultralisp/pipeline/checking::update-check-as-failed2 another-check
-                                                                          ;; traceback
-                                                                          "Another error"
-                                                                          ;; processed-in
-                                                                          0.1)
-
-                    (unless pending-dists
-                      (ultralisp/builder::prepare-pending-dists)
-                      (ultralisp/builder::build-prepared-dists))
-                  
-                    (let* ((last-source-version (get-source project))
-                           (last-dist-version (get-dist last-source-version)))
-                      (testing "New version of the source should not be created because it wasn't changed"
-                        (ok (=
-                             (object-version last-source-version)
-                             (object-version new-source))))
-
-                      (testing "New dist version should not be created because source already disabled"
-                        (ok (dist-equal last-dist-version
-                                        new-dist))))))))))))))
+              (testing "The dist should not be changed, because originally source was bound to a PENDING dist"
+                (testing "New dist has the same version"
+                  (let ((old-dist (ultralisp/models/dist:dist dist))
+                        (new-dist (ultralisp/models/dist:dist new-dist)))
+                    (ok (= (object-version old-dist)
+                           (object-version new-dist)))))
+                (testing "And it is PENDING"
+                  (ok (eql (ultralisp/models/dist:dist-state dist)
+                           :pending))))
+             
+              (testing "New source should be enabled"
+                (ok (enabled-p new-dist)))
+             
+              (testing "Source parameters should be updated as well"
+                (ok (equal (getf (source-params new-source)
+                                 :last-seen-commit)
+                           "abcd"))))))))))
 
 
-(deftest test-source-disabling
-  (run-test-source-disabling :pending-dists nil))
+(defun run-test-source-failing (&key pending-dists)
+  (ensure-gnu-tar-installed)
+
+  (with-mocked-github ()
+    (with-test-db
+      (with-metrics
+        (testing "When project check was unsuccessful a source version should be marked as last-check-failed and source stay in dists"
+          (let* ((project (make-project "40ants" "defmain"))
+                 (source (get-source project)))
+            ;; First, we need to create a version which is enabled.
+            (create-new-source-version source nil nil
+                                       ;; This argument is t by default,
+                                       ;; but here we use it to make a test explicits 
+                                       :enable t)
+
+            (unless pending-dists
+              (ultralisp/builder::prepare-pending-dists)
+              (ultralisp/builder::build-prepared-dists))
+
+            ;; Retrieve new version of the source:
+            (let* ((source (get-source project))
+                   (dist (get-dist source))
+                   (check (make-check source :via-cron)))
+
+              (testing "At this moment project should be enabled"
+                (ok (enabled-p dist)))
+              
+              (testing "At this moment source is not considered as failed"
+                (ok (not (ultralisp/models/source::source-last-check-failed source))))
+             
+              (testing "Now we emulate a situation when project's check was failed"
+                (ultralisp/pipeline/checking::update-check-as-failed2 check
+                                                                      ;; traceback
+                                                                      "Some error"
+                                                                      ;; processed-in
+                                                                      0.1)
+                (unless pending-dists
+                  (ultralisp/builder::prepare-pending-dists)
+                  (ultralisp/builder::build-prepared-dists))
+
+                (testing "No new source version should be created"
+                  (let* ((new-source (get-source project))
+                         (new-dist (get-dist new-source)))
+                    (ok (=
+                         (object-version new-source)
+                         (object-version source)))
+                    (ok (ultralisp/models/source::source-last-check-failed new-source))
+
+                    (testing "Source still should be enabled"
+                      (ok (enabled-p new-dist)))
+                    
+                    (testing "When another check fails again, a new version of the dist should not be created"
+                      (let ((another-check (make-check new-source :via-cron)))
+                    
+                        ;; Now we emulate a situation when second check also failed   
+                        (ultralisp/pipeline/checking::update-check-as-failed2 another-check
+                                                                              ;; traceback
+                                                                              "Another error"
+                                                                              ;; processed-in
+                                                                              0.1)
+                        (unless pending-dists
+                          (ultralisp/builder::prepare-pending-dists)
+                          (ultralisp/builder::build-prepared-dists))
+                    
+                        (let* ((last-source-version (get-source project))
+                               (last-dist-version (get-dist last-source-version)))
+                          (testing "New version of the source should not be created because it wasn't changed"
+                            (ok (=
+                                 (object-version last-source-version)
+                                 (object-version new-source))))
+
+                          (testing "New dist version should not be created because source failed again"
+                            (ok (dist-equal last-dist-version
+                                            new-dist))))))))))))))))
 
 
-(deftest test-source-disabling-when-dist-is-pending
-  (run-test-source-disabling :pending-dists t))
+(deftest test-source-check-failing
+  (run-test-source-failing :pending-dists nil))
+
+
+(deftest test-source-check-failing-when-dist-is-pending
+  (run-test-source-failing :pending-dists t))
 
 
 (deftest test-source-distribution-changes
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-metrics
       (with-login ()
@@ -266,37 +306,42 @@
 
 
 (defun run-deletion-test (&key pending-dists)
-  (with-test-db
-    (with-metrics
-      (with-login ()
-        (let* ((user (get-current-user))
-               (project (make-project "40ants" "defmain"))
-               (source (get-source project)))
-          (flet ((retrieve-latest-source ()
-                   (setf source (get-source project))))
-            ;; First, let's add a distribution:
-            (add-dist user "foo")
-          
-            ;; At this point, source should be bound only to
-            ;; common Ultralisp distribution.
-          
-            ;; Let's enable the source, first.
-            ;; After this call source should be bound to a new PENDING version.
-            (create-new-source-version source nil nil)
-            (retrieve-latest-source)
-            
-            (update-source-dists source
-                                 :dists '("ultralisp" "foo"))
-            (retrieve-latest-source)
+  (ensure-gnu-tar-installed)
 
-            (unless pending-dists
-              (ultralisp/builder::prepare-pending-dists)
-              (ultralisp/builder::build-prepared-dists))
-
-            (let ((ultralisp (find-dist "ultralisp"))
-                  (foo (find-dist "foo")))
+  (with-mocked-github ()
+    (with-test-db
+      (with-metrics
+        (with-login ()
+          (let* ((user (get-current-user))
+                 (project (make-project "40ants" "defmain"))
+                 (source (get-source project)))
+            (flet ((retrieve-latest-source ()
+                     (setf source (get-source project))))
+              ;; First, let's add a distribution:
+              (add-dist user "foo")
+          
+              ;; At this point, source should be bound only to
+              ;; common Ultralisp distribution.
+          
+              ;; Let's enable the source, first.
+              ;; After this call source should be bound to a new PENDING version.
+              (create-new-source-version source nil nil)
               
-              (if pending-dists
+              (retrieve-latest-source)
+            
+              (update-source-dists source
+                                   :dists '("ultralisp" "foo"))
+              
+              (retrieve-latest-source)
+
+              (unless pending-dists
+                (ultralisp/builder::prepare-pending-dists)
+                (ultralisp/builder::build-prepared-dists))
+
+              (let ((ultralisp (find-dist "ultralisp"))
+                    (foo (find-dist "foo")))
+              
+                (if pending-dists
                   (testing "All dist versions should be pending now"
                     (ok (eql (dist-state ultralisp)
                              :pending))
@@ -308,17 +353,17 @@
                     (ok (eql (dist-state foo)
                              :ready))))
 
-              (testing "Both dists should include the project 40ants/defmain"
-                (ok (equal (get-all-dist-project-names ultralisp)
-                           '("40ants/defmain")))
-                (ok (equal (get-all-dist-project-names foo)
-                           '("40ants/defmain"))))
+                (testing "Both dists should include the project 40ants/defmain"
+                  (ok (equal (get-all-dist-project-names ultralisp)
+                             '("40ants/defmain")))
+                  (ok (equal (get-all-dist-project-names foo)
+                             '("40ants/defmain"))))
 
-              (delete-source source)
+                (delete-source source)
 
-              (let ((ultralisp-after (find-dist "ultralisp"))
-                    (foo-after (find-dist "foo")))
-                (if pending-dists
+                (let ((ultralisp-after (find-dist "ultralisp"))
+                      (foo-after (find-dist "foo")))
+                  (if pending-dists
                     (testing "No new dist versions should be created, because dists were pending"
                       (ok (dist-equal ultralisp
                                       ultralisp-after))
@@ -332,18 +377,18 @@
                            (dist-equal foo
                                        foo-after)))))
 
-                (testing "Project 40ants/defmain should be deleted and disabled in new dists verssions"
-                  (ok (equal (get-projects-linked-to-the ultralisp-after)
-                             '((:name "40ants/defmain"
-                                :enabled nil
-                                :deleted t))))
-                  (ok (equal (get-projects-linked-to-the foo-after)
-                             '((:name "40ants/defmain"
-                                :enabled nil
-                                :deleted t)))))
+                  (testing "Project 40ants/defmain should be deleted and disabled in new dists verssions"
+                    (ok (equal (get-projects-linked-to-the ultralisp-after)
+                               '((:name "40ants/defmain"
+                                  :enabled nil
+                                  :deleted t))))
+                    (ok (equal (get-projects-linked-to-the foo-after)
+                               '((:name "40ants/defmain"
+                                  :enabled nil
+                                  :deleted t)))))
 
-                (testing "Project-sources should not return this source anymore"
-                  (ok (null (project-sources project))))))))))))
+                  (testing "Project-sources should not return this source anymore"
+                    (ok (null (project-sources project)))))))))))))
 
 
 (deftest test-delete-source-from-pending-dist
@@ -360,6 +405,8 @@
   ;; connected to a few versions of the same dist.
   ;; But source-distributions function should return only
   ;; the latest versions of the dists.
+  (ensure-gnu-tar-installed)
+  
   (with-test-db
     (with-login ()
       (testing "After the project was added it should have bound check and zero count of actions"

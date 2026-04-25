@@ -42,6 +42,7 @@
   (:import-from #:ultralisp/widgets/main
                 #:make-main-routes)
   (:import-from #:ultralisp/utils
+                #:ensure-gnu-tar-installed
                 #:make-request-id
                 #:getenv)
   (:import-from #:ultralisp/app
@@ -594,13 +595,7 @@
    - One started on 8080 port and running inside Docker.
    - Second on 8081 port and running outside."
 
-  #+darwin
-  (uiop:run-program "brew install gnu-tar"
-                    :ignore-error-status t)
-  #+darwin
-  (setf quickdist::*gnutar*
-        (or (probe-file "/usr/local/bin/gtar")
-            (probe-file "/opt/homebrew/bin/gtar")))
+  (ensure-gnu-tar-installed)
 
   ;; These vars are the same as in the 
   (loop with vars = '(("GITHUB_CLIENT_ID" "0bc769474b14267aac28")
@@ -612,7 +607,7 @@
         do (setf (uiop/os:getenv name)
                  value))
 
-  (function-cache:clear-cache-all-function-caches)
+  (function-cache:clear-all-caches)
 
   ;; For some reason default "TEMPORARY-FILES:TEMP-%" does not work on OSX:
   (setf cl-fad::*default-template*

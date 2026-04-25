@@ -620,9 +620,13 @@ SELECT *
                                                                                       "DIST-ID"
                                                                                       asdf-system)))
                                                                conflicts)
+            for skip-on-conflict-p = (and has-conflict-with-other-system-in-this-dist old-enabled)
             for new-enabled = (cond
+                                (skip-on-conflict-p
+                                 ;; Source was enabled and has conflict — keep old version in dist
+                                 old-enabled)
                                 (has-conflict-with-other-system-in-this-dist
-                                 ;; Disable source for this dist!
+                                 ;; Source was not enabled (just-added) — keep disabled
                                  nil)
                                 ((eql :manual old-disable-reason-type) old-enabled)
                                 (enable-p enable)
@@ -646,9 +650,10 @@ SELECT *
             ;; We only need to create a new dist version
             ;; if source was enabled/disabled,
             ;; or if a new source version was created
-            do (unless (and (eql old-enabled new-enabled)
-                            (= (object-version old-source)
-                               (object-version new-source)))
+            do (unless (or skip-on-conflict-p
+                           (and (eql old-enabled new-enabled)
+                                (= (object-version old-source)
+                                   (object-version new-source))))
                  (let ((old-dist-source-linked-to-the-pending-dist
                          (mito:find-dao 'dist-source
                                         :dist-id (object-id pending-dist)

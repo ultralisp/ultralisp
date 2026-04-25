@@ -24,6 +24,8 @@
                 #:deleted-p)
   (:import-from #:ultralisp/protocols/enabled
                 #:enabled-p)
+  (:import-from #:cl-mock
+                #:with-mocks)
   (:export #:with-login
            #:with-test-db
            #:with-metrics
@@ -44,7 +46,13 @@
          (mito:execute-sql "DROP SCHEMA IF EXISTS unittest CASCADE;")
          (mito:execute-sql "CREATE SCHEMA unittest AUTHORIZATION CURRENT_USER;")
          (mito:execute-sql "SET search_path TO unittest;")
-         (mito:migrate #P"./db/")))
+
+         ;; Without this patch, mito:migrate fails, because it is see the table is exists in public schema,
+         ;; but futher operations on it do not work because we limit search_path to a unittest schema.
+         (with-mocks ()
+           (cl-mock:answer (mito.db:table-exists-p _ "schema_migrations")
+             nil)
+           (mito:migrate #P"./db/"))))
      (unwind-protect
           (let ((*in-unit-test* t))
             ,@body)

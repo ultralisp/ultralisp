@@ -7,6 +7,7 @@
   (:import-from #:ultralisp/protocols/external-url
                 #:external-url)
   (:import-from #:ultralisp/models/versioned
+                #:refetch
                 #:deleted-p
                 #:latest-p
                 #:object-version)
@@ -89,7 +90,8 @@
    #:params-to-string
    #:ignore-dirs
    #:get-latest-version-by-id
-   #:get-latest-source))
+   #:get-latest-source
+   #:source-last-check-failed))
 (in-package #:ultralisp/models/source)
 
 
@@ -143,8 +145,12 @@
                  :initform nil
                  :reader source-release-info
                  :deflate #'release-info-to-json
-                 :inflate #'release-info-from-json))
-  
+                 :inflate #'release-info-from-json)
+   (last-check-failed :col-type :boolean
+                      :initarg :last-check-failed
+                      :initform nil
+                      :accessor source-last-check-failed))
+
   (:primary-key ultralisp/models/versioned:id
                 ultralisp/models/versioned:version)
   (:metaclass mito:dao-table-class))
@@ -423,11 +429,19 @@
                           :release-info release-info
                           :params (update-plist (source-params source)
                                                 params))))
+      
       (log:debug "Creating a new dist version")
-      (uiop:symbol-call :ultralisp/models/dist-source
-                        :create-pending-dists-for-new-source-version
+      (uiop:symbol-call :ultralisp/models/dist-source :create-pending-dists-for-new-source-version
                         source new-source :enable enable)
-      (log:debug "New dist was created"))))
+      (log:debug "New dist was created")
+
+      (when (source-last-check-failed source)
+        (let ((updated-old-source (refetch source)))
+          (log:debug "Resetting check-failed flag on old source version")
+          (setf (source-last-check-failed updated-old-source) nil)
+          (mito:save-dao updated-old-source)))
+
+      (values))))
 
 
 (defcommand enable-this-source-version (source)

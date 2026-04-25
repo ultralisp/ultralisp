@@ -5,6 +5,8 @@
   (:import-from #:ultralisp/models/check)
   (:import-from #:ultralisp/rpc/core)
   (:import-from #:ultralisp/pipeline/checking)
+  (:import-from #:ultralisp/utils
+                #:program-exists-p)
   (:import-from #:yason)
   (:import-from #:serapeum
                 #:@)

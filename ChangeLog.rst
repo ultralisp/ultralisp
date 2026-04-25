@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.31.0 (2026-04-25)
+===================
+
+* Now if we are unable to check latest project's source code it the old version of the project will be kept in the distribution but we will show a warning on it's page.
+
 1.30.10 (2026-04-19)
 ====================
 

@@ -79,10 +79,10 @@
                 #:latest-p
                 #:object-version)
   (:import-from #:ultralisp/models/source
+                #:source-last-check-failed
                 #:enable-this-source-version
                 #:create-new-source-version)
   (:import-from #:ultralisp/models/dist-source
-                #:create-pending-dists-for-new-source-version
                 #:make-disable-reason)
   (:import-from #:ultralisp/utils/source
                 #:make-file-ignorer)
@@ -291,8 +291,14 @@
   (setf (get-error check) nil
         (get-processed-at check) (local-time:now)
         (get-processed-in check) processed-in)
-  
-  (save-dao check))
+
+  (save-dao check)
+
+  (let ((source (check->source check)))
+    (setf (source-last-check-failed source)
+          nil)
+    (save-dao source))
+  (values))
 
 
 (defcommand update-check-as-failed2 (check traceback processed-in)
@@ -317,20 +323,10 @@
                   (get-processed-at check) (local-time:now)
                   (get-processed-in check) processed-in)
             (save-dao check)
-            ;; Now we have to disable this version of the source in a new versions of the dists.
             (let ((source (check->source check)))
-              (create-pending-dists-for-new-source-version
-               ;; old-source
-               source
-               ;; new-source is the same because we didn't change it.
-               ;; It is OK to have the same source version, connected to
-               ;; the different versions of the distribution, because
-               ;; the link is carrying information about error received
-               ;; during the check.
-               source
-               :enable nil
-               :disable-reason (make-disable-reason :check-error
-                                                    :traceback traceback)))))))))
+              (setf (source-last-check-failed source)
+                    t)
+              (save-dao source))))))))
 
 
 (defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)
@@ -433,7 +429,7 @@
                                      
                                      (unless systems
                                        (error "No asd files were found!"))
-                                     
+
                                      ;; Now we need to create another version of the source
                                      ;; with release info and bind it to a pending version
                                      (create-new-source-version source

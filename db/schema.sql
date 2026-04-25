@@ -138,6 +138,7 @@ CREATE TABLE "source" (
     "params" JSONB NOT NULL,
     "systems_info" JSONB,
     "release_info" JSONB,
+    "last_check_failed" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ,
     PRIMARY KEY ("id", "version"),
