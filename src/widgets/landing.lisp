@@ -4,11 +4,14 @@
                 #:concat)
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
-  (:import-from #:reblocks-lass)
   (:import-from #:ultralisp/metadata)
   (:import-from #:reblocks/widget
-                #:defwidget
-                #:render)
+                #:defwidget)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                #:tailwind-theme)
   (:import-from #:ultralisp/models/action)
   (:import-from #:reblocks/html
                 #:with-html)
@@ -64,7 +67,7 @@
 (in-package #:ultralisp/widgets/landing)
 
 
-(defwidget landing-widget ()
+(defwidget landing-widget (ui-widget)
   ())
 
 
@@ -73,31 +76,29 @@
 
 
 
-(defun render-version (version)
+(defun render-version (version theme)
   (check-type version version)
 
   (let* ((number (get-number version))
          (built-at (get-built-at version))
          (version-type (ultralisp/models/version:get-type version))
          (actions (ultralisp/models/action:get-version-actions version :limit 3))
-         ;; TODO: create a generic get-uri and define it for a version class
          (version-uri (format nil "/versions/~A" number)))
     (with-html ()
       (:tr
-       (:td :class "version-cell"
+       (:td :class "align-top whitespace-nowrap text-left"
             (case version-type
               (:ready
-               (:a :href version-uri
+               (:a :href version-uri :class "text-sky-600 hover:text-sky-700"
                    number))
               (t (:span "No version yet"))))
-       (:td :class "timestamp-cell"
+       (:td :class "align-top whitespace-nowrap text-left w-full"
             (if built-at
                 (format-date "%Y-%m-%d %H:%M:%S UTC"
                              (timestamp-to-universal built-at))
                 "Pending")))
-      (:tr 
-       (:td :class "changelog-cell"
-            :colspan 2
+      (:tr
+       (:td :colspan 2
             (ultralisp/widgets/changelog:render actions))))))
 
 
@@ -128,7 +129,7 @@
               (t
                (case
                    (alexandria:make-keyword
-                    (getf (ultralisp/models/source:disable-reason source)
+                    (getp (ultralisp/models/source:disable-reason source)
                           :type))
                  (:just-added
                   "was added and waits for a check")
@@ -148,8 +149,8 @@
                   (enabled-p prev-source))
              (render-changes prev-source source))))))
 
-;;* 
-(defun render-dist (dist)
+
+(defun render-dist (dist theme)
   (check-type dist dist)
 
   (let* ((dist-name (ultralisp/models/dist:dist-name dist))
@@ -159,62 +160,46 @@
          (state (ultralisp/models/dist:dist-state dist))
          (limit 5)
          (bound-sources (dist->sources dist :this-version t :limit (1+ limit)))
-         ;; We specially requested 1 more items to determine
-         ;; if there are more items in the database:
          (has-more (= (length bound-sources)
                       (1+ limit)))
          (bound-sources (subseq bound-sources
                                 0
                                 (min (length bound-sources)
-                                     limit)))
-         ;; TODO: create a generic get-uri and define it for a version class
-         ;; (version-uri ""
-         ;;              ;; (format nil "/versions/~A" number)
-         ;;              )
-         )
+                                     limit))))
     (when bound-sources
       (with-html ()
         (:tr
-         (:td :class "name-cell"
-              (:a :href dist-url
+         (:td :class "align-top whitespace-nowrap text-left"
+              (:a :href dist-url :class "text-sky-600 hover:text-sky-700"
                   dist-name))
-         (:td :class "version-cell"
+         (:td :class "align-top whitespace-nowrap text-left"
               (case state
-                (:ready
-                 number
-                 ;; (:a :href version-uri
-                 ;;     number)
-                 )
+                (:ready number)
                 (t (:span "No version yet"))))
-         (:td :class "timestamp-cell"
+         (:td :class "align-top whitespace-nowrap text-left w-full"
               (if built-at
                   (:span :title (humanize-timestamp built-at)
                          ("~A ago"
                           (humanize-duration
                            (timestamp-difference (now)
                                                  built-at))))
-                  (symbol-name state)
-
-                  ;; "Pending"
-                  )))
-        (:tr 
-         (:td :class "changelog-cell"
-              :colspan 3
-              (:ul :class "changelog"
+                  (symbol-name state))))
+        (:tr
+         (:td :colspan 3
+              (:ul :class "list-disc pl-6 my-0"
                    (mapc #'render-bound-source
                          bound-sources))
               (when has-more
                 (:p "And more..."))))))))
 
 
-(defmethod render ((widget landing-widget))
+(defmethod render ((widget landing-widget) (theme tailwind-theme))
   (setf (get-title)
         "Ultralisp - Fast Common Lisp Repository")
 
   (let ((latest-dists (latest-dists))
         (recent-projects (get-recent-projects)))
     (with-html ()
-      ;; Taken from https://simonwhitaker.github.io/github-fork-ribbon-css/
       (:a :class "github-fork-ribbon left-top"
           :href "https://github.com/ultralisp/ultralisp"
           :data-ribbon "Fork me on GitHub"
@@ -223,81 +208,54 @@
 
       (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
 
-      (:h3 "How to add my own project?")
+      (:h3 :class "text-lg font-semibold mt-6"
+           "How to add my own project?")
 
-      (:a :class "button"
+      (:a :class "inline-block px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
           :href "/github"
           :title "Add your projects from Github to Ultralisp distribution!"
           "Add projects from GitHub or other forges")
-      
+
       (render-installation-instructions (ultralisp/models/dist:common-dist))
-      
+
       (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
-        (:h3 "Roadmap")
+        (:h3 :class "text-lg font-semibold mt-6" "Roadmap")
 
-        (:ul
-         (:li (:s "Plug in a real database to store projects' metadata and other information."))
-         (:li (:s "Integration with the GitHub to add projects in one click."))
-         (:li (:s "Automatic distribution's ChangeLog generation."))
-         (:li (:s "Support for project sources other than GitHub."))
-         (:li "Running tests for updated project and all dependent systems.")
-         (:li ("[Add your feature request](~A) at the Github." issues-url)))
+        (:ul :class "list-disc pl-6"
+             (:li (:s "Plug in a real database to store projects' metadata and other information."))
+             (:li (:s "Integration with the GitHub to add projects in one click."))
+             (:li (:s "Automatic distribution's ChangeLog generation."))
+             (:li (:s "Support for project sources other than GitHub."))
+             (:li "Running tests for updated project and all dependent systems.")
+             (:li ("[Add your feature request](~A) at the Github." issues-url)))
 
-        (:h3 "How to help")
+        (:h3 :class "text-lg font-semibold mt-6" "How to help")
         (:p "Any help is appreciated. You can:")
-        (:ul
-         (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
-               issues-url))
-         (:li "Suggest your own ideas.")
-         (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) and donate money to support further development:"))
-              (:div :class "donate"
-                    (:a :class "button success"
-                        :href "https://www.patreon.com/join/ultralisp"
-                        "Donate $$$ at Patreon"))
-              (:p ("Grand sponsors will be listed at the bottom of this page and also [this separate page](/sponsors) together with gold sponsors. You can send me a link an logo of your company for the sponsor page.")))))
+        (:ul :class "list-disc pl-6"
+             (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
+                   issues-url))
+             (:li "Suggest your own ideas.")
+             (:li (:p ("Become a sponsor on [Patreon](https://www.patreon.com/ultralisp) and donate money to support further development:"))
+                  (:div :class "my-2"
+                        (:a :class "inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                            :href "https://www.patreon.com/join/ultralisp"
+                            "Donate $$$ at Patreon"))
+                  (:p ("Grand sponsors will be listed at the bottom of this page and also [this separate page](/sponsors) together with gold sponsors. You can send me a link an logo of your company for the sponsor page.")))))
 
       (when latest-dists
-        (:div :class "latest-builds"
-              (:h3 "Latest builds")
+        (:div :class "mt-6"
+              (:h3 :class "text-lg font-semibold" "Latest builds")
 
-              (:table :class "dist-list"
-                      (:tr
-                       (:th :class "name-cell"
-                            "Name")
-                       (:th :class "version-cell"
-                            "Version")
-                       (:th :class "timestamp-cell"
-                            "Built-at"))
-                      (mapc #'render-dist
-                            latest-dists))))
+              (:table :class "w-full border-collapse"
+                      (:thead
+                       (:tr
+                        (:th :class "text-left p-1" "Name")
+                        (:th :class "text-left p-1" "Version")
+                        (:th :class "text-left p-1" "Built-at")))
+                      (:tbody
+                       (mapc (lambda (d) (render-dist d theme))
+                             latest-dists)))))
 
       (when recent-projects
-        (:h3 "Recently added projects")
+        (:h3 :class "text-lg font-semibold mt-6" "Recently added projects")
         (ultralisp/widgets/projects:render-projects-list recent-projects)))))
-
-
-(defmethod reblocks/dependencies:get-dependencies ((widget landing-widget))
-  (append
-   (list
-    (reblocks-lass:make-dependency
-      `(.dist-list
-        ((:or .name-cell .version-cell .timestamp-cell)
-         :vertical-align top
-         :white-space nowrap
-         :text-align left)
-        (.timestamp-cell
-         :width 100%)
-        (.changelog-cell
-         :padding-left 1.7em
-         (.changelog
-          :margin 0
-          (p :margin 0)
-          (.diff
-           :margin 0
-           (dt :margin 0
-               :margin-right 0.6em
-               :display inline-block)
-           (dd :margin 0
-               :display inline-block)))
-         (.and-more :margin 0)))))
-   (call-next-method)))

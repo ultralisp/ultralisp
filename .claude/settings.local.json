@@ -1,0 +1,11 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "lisp-dev-mcp"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__lisp-dev-mcp__eval_lisp_form"
+    ]
+  }
+}

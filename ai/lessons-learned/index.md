@@ -23,6 +23,8 @@ Each file in this directory covers one concrete lesson. Files are named descript
 |------|-------|
 | [rove-signals-syntax.md](rove-signals-syntax.md) | Rove `signals` macro syntax |
 
+| [register-system-packages-inferred.md](register-system-packages-inferred.md) | `register-system-packages` запрещён для package-inferred систем |
+
 ## Library-Specific
 
 | File | Topic |

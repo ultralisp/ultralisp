@@ -23,14 +23,14 @@
   (:import-from #:reblocks/debug)
   (:import-from #:reblocks/server
                 #:insert-middleware)
-  (:import-from #:reblocks-lass)
   (:import-from #:reblocks/session)
-  (:import-from #:reblocks-ui
-                #:*foundation-dependencies*)
+  (:import-from #:reblocks-ui2/themes/api
+                 #:current-theme)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                 #:make-tailwind-theme-light)
   (:import-from #:reblocks/page
-                #:init-page
-                #:render-headers
-                #:get-language)
+                 #:render-headers
+                 #:get-language)
   (:import-from #:reblocks/dependencies
                 #:get-dependencies
                 #:*cache-remote-dependencies-in*)
@@ -39,8 +39,8 @@
                 #:with-html-string)
   (:import-from #:reblocks/response
                 #:immediate-response)
-  (:import-from #:ultralisp/widgets/main
-                #:make-main-routes)
+  (:import-from #:ultralisp/widgets/maintenance
+                 #:make-maintenance-widget)
   (:import-from #:ultralisp/utils
                 #:ensure-gnu-tar-installed
                 #:make-request-id
@@ -51,9 +51,6 @@
                 #:migrate)
   (:import-from #:ultralisp/github/webhook)
   (:import-from #:ultralisp/metrics)
-  (:import-from #:ultralisp/analytics
-                #:render-google-counter
-                #:render-yandex-counter)
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/mail)
   (:import-from #:lparallel
@@ -105,7 +102,6 @@
   (:import-from #:ultralisp/models/project-moderator)
   ;; (:import-from #:ultralisp/models/source)
   ;; (:import-from #:ultralisp/models/dist-source)
-  (:import-from #:ultralisp/widgets/landing)
   (:import-from #:log4cl-extras/context
                 #:with-fields)
   (:import-from #:reblocks-auth/models
@@ -170,27 +166,12 @@
 (define-global-var *started-at* nil)
 
 
-(defparameter +search-help+
-  (list "signal - this will search in symbol's name and documentation."
-        "project:\"40ants/reblocks\" AND symbol:\"request\""
-        "package:\"reblocks/actions\" to search all symbols exported from a package."))
-
-
 (defvar *request-id* nil
   "Here we'll keep current request id when rendering a response to HTTP request or action.")
 
 
 (defclass ultralisp-server (reblocks/server:server)
   ())
-
-
-(defmethod init-page ((app app)
-                      (url-path string)
-                      expire-at)
-  (check-type expire-at (or null local-time::timestamp))
-
-  (make-maintenance-widget
-   (make-main-routes)))
 
 
 (defmethod reblocks/server:make-middlewares ((server ultralisp-server) &rest rest)
@@ -219,80 +200,9 @@
                        :after :session)))
 
 
-(defparameter *app-dependencies*
-  (list (reblocks-lass:make-dependency
-          '(body
-            :position absolute
-            :height 100%
-            :min-height 100%
-            :width 100%
-            :margin 0
-            :padding 0
-
-            (.motto
-             :font-size 1.5em)
-
-            (.search-help
-             :margin 0
-             :font-size 0.75rem
-             :position relative
-             :top -0.5rem
-             :color gray)
-
-            (.num-projects
-             :font-size 0.3em
-             :top -1.75em)
-
-            (*
-             :box-sizing "border-box")
-            (a
-             ;; special color for links
-             :color "#0071d8")
-
-            (.page-header :border-bottom 1px solid "#add8e6"
-                          :padding-bottom 0.5rem
-                          :margin-bottom 1rem
-             ((:and a :hover)
-              ;; Don't want a site name change it's color because
-              ;; SVG logo doesn't change it.
-              :color "#0071d8"))
-            
-            (.page-footer :color "#AAA"
-                          :margin-top 3em)))
-
-        ;; (reblocks-lass:make-dependency
-        ;;   '(.page-header
-        ;;     :border-bottom 5px solid "#555"
-        ;;     :padding-right 0.5rem
-        ;;     :padding-left 0.5rem
-        ;;     :padding-top 1rem
-        ;;     :margin-bottom 2rem))
-        
-        (reblocks-lass:make-dependency
-          '(:media "screen and (max-width: 40em)"
-            (.latest-builds
-             :display none)
-            ((:or .motto .num-projects)
-             :display none)
-            ((:or .page-content .page-header .page-footer)
-             :padding-left 1rem
-             :padding-right 1rem)))
-        
-        ;; (reblocks-parenscript:make-dependency
-        ;;   (defun reach-goal (name)
-        ;;     "Регистрирует в Яндекс.Метрике достижение цели."
-
-        ;;     (when (@ window ya-counter)
-        ;;       (chain window ya-counter (reach-goal name)))
-
-        ;;     (chain console (log (+ "Target " name " was reached")))))
-        ))
 
 
-(defmethod get-dependencies ((app app))
-  (append (call-next-method)
-          *foundation-dependencies*
-          *app-dependencies*))
+
 
 
 (defmethod render-headers ((app app))
@@ -311,69 +221,6 @@
            :href "https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.2/gh-fork-ribbon.min.css")))
 
 
-(defcached (get-num-projects :timeout (* 60 5)) ()
-  (ultralisp/models/project::get-projects-count))
-
-
-(defun make-version-info ()
-  (format nil "~A~@[~2%Uptime: ~A~]"
-          +cl-info+
-          (when *started-at*
-            (humanize-duration
-             (timestamp-difference (now)
-                                   *started-at*)))))
-
-
-(defmethod reblocks/page:render-body ((app app) body-string)
-  "Default page-body rendering method"
-  (let ((spinneret::*pre* t)
-        (num-projects (or
-                       ;; Here we ignore errors because if there is a problem with DB
-                       ;; connection, then we'll not be able to render an error page otherwise.
-                       (ignore-errors
-                        (with-log-unhandled ()
-                            (get-num-projects)))
-                       0)))
-    (render-yandex-counter)
-    (render-google-counter)
-  
-    (with-html ()
-      (:div :class "grid-x"
-            (:div :class "cell small-12 medium-10 medium-offset-1 large-8 large-offset-2"
-                  (:header :class "page-header"
-                           (:h1 :class "site-name"
-                                (:a :href "/" "Ultralisp.org")
-                                (unless (zerop num-projects)
-                                  (:sup :class "num-projects"
-                                        (format nil "includes ~R project~P"
-                                                num-projects
-                                                num-projects))))
-                           (:h2 :class "motto"
-                                "A fast-moving Common Lisp software distribution.")
-                           (let ((query (reblocks/request:get-parameter "query"))
-                                 (show-search (null (uiop:getenv "HIDE_SEARCH"))))
-                             (when show-search
-                               (:form :method "GET"
-                                      :class "search-form"
-                                      :action "/search/"
-                                      (:input :type "text"
-                                              :name "query"
-                                              :value query
-                                              :placeholder "search a symbol"))
-                               (:p :class "search-help"
-                                   ("Try: ~A"
-                                    (random-elt +search-help+))))))
-                  (:div :class "page-content"
-                        (let ((spinneret::*pre* t))
-                          (with-html ()
-                            (:raw body-string))))
-
-
-                  (:footer :class "page-footer"
-                           (:p "Ultralisp v"
-                               (:span :title (make-version-info)
-                                      +ultralisp-version+)
-                               (" proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!"))))))))
 
 (defmethod initialize-instance ((app app) &rest args)
   (declare (ignorable args))
@@ -538,6 +385,9 @@
           #P"/tmp/reblocks-cache/ultralisp/")
     (setf (get-language)
           "en")
+
+    (setf (current-theme)
+          (make-tailwind-theme-light))
 
     (when (probe-file ".local.lisp")
       (load ".local.lisp"))

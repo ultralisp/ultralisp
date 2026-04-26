@@ -9,11 +9,9 @@
                 #:get-github-project
                 #:is-enabled-p
                 #:get-project2)
-  (:import-from #:cl-ppcre
-                #:register-groups-bind)
   (:import-from #:reblocks/widget
                 #:defwidget
-                #:render)
+                #:update)
   (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:reblocks/page
@@ -43,21 +41,23 @@
                 #:fmt)
   (:import-from #:ultralisp/widgets/tags
                 #:make-tags-widget)
-  (:import-from #:reblocks-lass)
   (:import-from #:ultralisp/models/tag
                 #:get-project-tags)
-  (:import-from #:reblocks/request
-                #:get-path)
   (:import-from #:str
                 #:split)
   (:import-from #:ultralisp/utils
                 #:format-timestamp)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                #:tailwind-theme)
   (:export
    #:make-project-widget))
 (in-package #:ultralisp/widgets/project)
 
 
-(defwidget project ()
+(defwidget project (ui-widget)
   ((name :initform nil
          :reader project-name)
    (project :initform nil
@@ -72,24 +72,26 @@
                    During update, sources list is changing."))
 
 
-(defun make-project-widget ()
-  (make-instance 'project))
+(defun make-project-widget (author name)
+  (let ((widget (make-instance 'project))
+        (project-name (format nil "~A/~A" author name)))
+    (setf (project-name widget) project-name)
+    widget))
 
 
 (defmethod (setf project-name) (new-name (widget project))
-  ;; Changes a project bound to the widget
   (unless (equal (slot-value widget 'name)
                  new-name)
     (let* ((new-project (ultralisp/models/project:get-project2 new-name)))
       (unless new-project
         (page-not-found))
-      
+
       (flet ((on-delete (source-widget)
                (with-slots (source-widgets) widget
                  (setf source-widgets
                        (remove source-widget
                                source-widgets)))
-               (reblocks/widget:update widget)))
+               (update widget)))
         (setf (slot-value widget 'name)
               new-name
               (slot-value widget 'project)
@@ -108,7 +110,7 @@
                   (slot-value widget 'source-widgets)
                   (list (make-source-widget source
                                             :on-delete #'on-delete)))
-                 (reblocks/widget:update widget)))
+                 (update widget)))
 
               (slot-value widget 'tags-widget)
               (make-tags-widget new-project
@@ -127,7 +129,7 @@
             (format-timestamp (get-time obj)))))))
 
 
-(defun render-project (widget)
+(defun render-project (widget theme)
   (let* ((project (project widget))
          (project-name (project-name widget))
          (description (ultralisp/models/project:project-description project))
@@ -136,61 +138,29 @@
           (fmt "~A – ~A"
                project-name
                description))
-    
+
     (with-html ()
-      ;; Show a list of versions where it was included
-      (:h1 :class "full-name"
+      (:h1 :class "text-2xl font-bold mb-0"
            (destructuring-bind (user-name project-name)
                (split #\/ project-name :limit 2)
-             (:a :class "user-name"
-                 :href (fmt "/projects/~A"
-                            user-name)
+             (:a :class "text-gray-500 hover:text-gray-700"
+                 :href (fmt "/projects/~A" user-name)
                  user-name)
-             (:span :class "separator"
-                    "/")
-             (:span :class "project-name"
-                    project-name))
+             (:span :class "mx-1" "/")
+             (:span project-name))
            (when tags
-             (render tags)))
-      (:h2 :class "project-description"
+             (render tags theme)))
+      (:h2 :class "text-xl text-gray-600 mb-4"
            description)
 
       (loop for item in (source-widgets widget)
-            do (render item))
+            do (render item theme))
 
-      (render (add-form widget)))))
-
-
-(defmethod render ((widget project))
-  (register-groups-bind (project-name)
-      ("^/projects/(.*/.*)$" (get-path))
-
-    (setf (project-name widget)
-          project-name)
-    
-    ;; This is not an idiomatic Reblocks code because we should
-    ;; make a database query only when widget gets created, not
-    ;; during the render.
-    (let ((project (project widget)))
-      (cond
-        (project (render-project widget))
-        (t (page-not-found))))))
+      (render (add-form widget) theme))))
 
 
-(defmethod reblocks/dependencies:get-dependencies ((widget project))
-  (append
-   (list
-    (reblocks-lass:make-dependency
-      `((:and .widget .project)
-        (.full-name
-         :margin-bottom 0
-         ;; (.author-name
-         ;;  :color "black")
-         (.project-name :margin-right 0.5em))
-        (.project-description
-         :font-size 1.5em)
-        (.disable-reason
-         :position relative
-         :font-size 0.3em
-         :top -0.4em))))
-   (call-next-method)))
+(defmethod render ((widget project) (theme tailwind-theme))
+  (let ((project (project widget)))
+    (cond
+      (project (render-project widget theme))
+      (t (page-not-found)))))

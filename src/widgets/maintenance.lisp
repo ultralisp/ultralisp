@@ -2,6 +2,11 @@
   (:use #:cl)
   (:import-from #:reblocks/widget
                 #:defwidget)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                #:tailwind-theme)
   (:import-from #:global-vars
                 #:define-global-var)
   (:import-from #:reblocks/html
@@ -18,7 +23,7 @@
   "/tmp/maintenance.lock")
 
 
-(defwidget maintenance ()
+(defwidget maintenance (ui-widget)
   ((child :initarg :child
           :type reblocks/widget:widget)
    (lock-filename :initarg :lock-filename
@@ -46,7 +51,7 @@
         (:p "We'll bring it back as soon as possible.")))))
 
 
-(defmethod reblocks/widget:render ((widget maintenance))
+(defmethod render ((widget maintenance) (theme tailwind-theme))
   (with-slots (lock-filename child) widget
     (let ((lock-exists (probe-file lock-filename)))
       (if lock-exists

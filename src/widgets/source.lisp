@@ -8,7 +8,6 @@
   (:import-from #:reblocks/widget
                 #:defwidget
                 #:render)
-  (:import-from #:reblocks-lass)
   (:import-from #:reblocks/dependencies)
   (:import-from #:ultralisp/models/dist-source
                 #:dist-version
@@ -985,23 +984,7 @@
 
 
 (defmethod reblocks/dependencies:get-dependencies ((widget source-widget))
-  (append
-   (list
-    (reblocks-lass:make-dependency
-      `(.source-widget
-        :border-top "2px solid #cc4b37"
-        (input :margin 0)
-        (.dist :margin-right 1em)
-        (.label-column :white-space "nowrap"
-                       :vertical-align "top")
-        (.field-column :width "100%")
-        ((:and .dist .disabled) :color "gray")
-
-        ((.source-controls > (:or form input))
-         :display "inline-block"
-         :margin-left 1em)
-        (.error :color "red"))))
-   (call-next-method)))
+  (call-next-method))
 
 
 ;; Methods to render changes between source versions
