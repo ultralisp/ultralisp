@@ -24,6 +24,7 @@ Each file in this directory covers one concrete lesson. Files are named descript
 | [rove-signals-syntax.md](rove-signals-syntax.md) | Rove `signals` macro syntax |
 
 | [register-system-packages-inferred.md](register-system-packages-inferred.md) | `register-system-packages` запрещён для package-inferred систем |
+| [shadow-cl-get-for-routes.md](shadow-cl-get-for-routes.md) | `:shadow #:get` при импорте `40ants-routes/defroutes:get` |
 
 ## Library-Specific
 

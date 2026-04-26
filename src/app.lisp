@@ -1,5 +1,7 @@
 (defpackage #:ultralisp/app
   (:use #:cl)
+  (:shadowing-import-from #:40ants-routes/defroutes
+                           #:get)
   (:import-from #:reblocks/app
                 #:get-current
                 #:defapp)
@@ -8,8 +10,7 @@
                 #:page)
   (:import-from #:reblocks/request-handler)
   (:import-from #:40ants-routes/defroutes
-                #:post
-                #:get)
+                #:post)
   (:import-from #:ultralisp/routes
                 #:process-webhook-route)
   (:import-from #:reblocks-prometheus

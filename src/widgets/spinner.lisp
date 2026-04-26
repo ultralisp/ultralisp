@@ -1,7 +1,6 @@
 (defpackage #:ultralisp/widgets/spinner
   (:use #:cl)
   (:import-from #:reblocks/widget
-                #:get-html-tag
                 #:defwidget)
   (:import-from #:reblocks/html
                 #:with-html)
