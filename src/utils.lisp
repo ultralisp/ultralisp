@@ -55,7 +55,8 @@
            #:ends-with-slash-p
            #:run-program
            #:program-exists-p
-           #:ensure-gnu-tar-installed))
+           #:ensure-gnu-tar-installed
+           #:extend-registry))
 (in-package #:ultralisp/utils)
 
 
@@ -373,3 +374,12 @@
             (probe-file "/opt/homebrew/bin/gtar")))
 
   (values))
+
+
+(defun extend-registry ()
+  (loop for dep-dir in (directory (merge-pathnames uiop:*wild-directory*
+                                                   (asdf:system-relative-pathname :ultralisp
+                                                                                  "libs/")))
+        do (pushnew dep-dir
+                    asdf:*central-registry*
+                    :test #'uiop:pathname-equal)))

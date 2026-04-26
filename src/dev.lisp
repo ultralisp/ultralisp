@@ -103,3 +103,27 @@
   (extend-cffi-load-path)
   (ql:quickload :ultralisp/server)
   (uiop:symbol-call :ultralisp/server :start-outside-docker))
+
+
+
+(defvar *mcp-thread* nil)
+(defvar *mcp-port* nil)
+
+
+(defun start-mcp ()
+  (cond
+    (*mcp-thread*
+     (error "MCP already started on port ~A"
+            *mcp-port*))
+    (t
+     (extend-cffi-load-path)
+     (ultralisp/utils:extend-registry)
+     (ql:quickload :40ants-lisp-dev-mcp)
+     (setf *mcp-port*
+           (parse-integer (or (uiop:getenv "MCP_PORT")
+                              "8902"))
+           )
+     (setf *mcp-thread*
+           (uiop:symbol-call :40ants-lisp-dev-mcp/core :start-server
+                             :port *mcp-port*))))
+  (values))
