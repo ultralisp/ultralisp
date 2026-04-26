@@ -1,6 +1,8 @@
 (require 'sly)
 (require 'cl-lib)
 
+(message "LOADING ultralisp-local.el")
+
 (let ((filename (expand-file-name ".qlot/log4sly-setup.el")))
   (when (file-exists-p filename)
     (load filename)
