@@ -243,7 +243,7 @@
 
 
 (defmethod url ((dist dist))
-  (route-url "dists"
+  (route-url "dist"
              :name (dist-name dist)))
 
 

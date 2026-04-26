@@ -90,7 +90,11 @@
   (:import-from #:ultralisp/cron
                 #:get-time-of-the-next-check)
   (:import-from #:reblocks-parenscript
-                #:make-js-handler)
+                 #:make-js-handler)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
+  (:import-from #:reblocks-ui2/themes/styling
+                #:join-css-classes)
   (:export
    #:make-source-widget
    #:make-add-source-widget))
@@ -304,9 +308,9 @@
          (name (dist-name dist))
          (url (ultralisp/protocols/url:url dist))
          (enabled (enabled-p dist-source))
-         (class (if enabled
-                    "dist enabled"
-                    "dist disabled"))
+         (class (join-css-classes nil
+                                   (if enabled "dist enabled" "dist disabled")
+                                   *link-color-classes*))
          (reason (unless enabled
                    ;; TODO: create a special pretty-printer for disable reason.
                    ;; and probably make a popup with the traceback.
@@ -435,33 +439,36 @@
                               (mito:object-created-at source))))
                    (:tr (:td :class "label-column"
                              "Source")
-                        (:td :class "field-column"
-                             (:a :href url
-                                 url)))
-                   (:tr (:td :class "label-column"
-                             "Branch or tag")
-                        (:td :class "field-column"
-                             (ultralisp/models/source:get-current-branch source)))
-                   (when ignore-dirs
-                     (:tr (:td :class "label-column"
-                               "Ignore systems in these dirs and ASD files")
-                          (:td :class "field-column"
-                               (:pre
-                                (:code
-                                 (format-ignore-list
-                                  ignore-dirs))))))
-                   (when last-seen-commit
-                     (:tr (:td :class "label-column"
-                               "Last seen commit")
-                          (:td :class "field-column"
-                               (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                                   last-seen-commit))))
-                   (when release-info
-                     (:tr (:td :class "label-column"
-                               "Release")
-                          (:td :class "field-column"
-                               (:a :href (quickdist:get-project-url release-info)
-                                   (quickdist:get-project-url release-info)))))
+                         (:td :class "field-column"
+                              (:a :href url
+                                  :class *link-color-classes*
+                                  url)))
+                    (:tr (:td :class "label-column"
+                              "Branch or tag")
+                         (:td :class "field-column"
+                              (ultralisp/models/source:get-current-branch source)))
+                    (when ignore-dirs
+                      (:tr (:td :class "label-column"
+                                "Ignore systems in these dirs and ASD files")
+                           (:td :class "field-column"
+                                (:pre
+                                 (:code
+                                  (format-ignore-list
+                                   ignore-dirs))))))
+                    (when last-seen-commit
+                      (:tr (:td :class "label-column"
+                                "Last seen commit")
+                           (:td :class "field-column"
+                                (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                    :class *link-color-classes*
+                                    last-seen-commit))))
+                    (when release-info
+                      (:tr (:td :class "label-column"
+                                "Release")
+                           (:td :class "field-column"
+                                (:a :href (quickdist:get-project-url release-info)
+                                    :class *link-color-classes*
+                                    (quickdist:get-project-url release-info)))))
                    (when systems
                      (:tr (:td :class "label-column"
                                "Systems")
@@ -603,33 +610,36 @@
                               (mito:object-created-at source))))
                    (:tr (:td :class "label-column"
                              "Source")
-                        (:td :class "field-column"
-                             (:a :href url
-                                 url)))
-                   (:tr (:td :class "label-column"
-                             "Branch or tag")
-                        (:td :class "field-column"
-                             (ultralisp/models/source:get-current-branch source)))
-                   (when ignore-dirs
-                     (:tr (:td :class "label-column"
-                               "Ignore systems in these dirs and ASD files")
-                          (:td :class "field-column"
-                               (:pre
-                                (:code
-                                 (format-ignore-list
-                                  ignore-dirs))))))
-                   (when last-seen-commit
-                     (:tr (:td :class "label-column"
-                               "Last seen commit")
-                          (:td :class "field-column"
-                               (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                                   last-seen-commit))))
-                   (when release-info
-                     (:tr (:td :class "label-column"
-                               "Release")
-                          (:td :class "field-column"
-                               (:a :href (quickdist:get-project-url release-info)
-                                   (quickdist:get-project-url release-info)))))
+                         (:td :class "field-column"
+                              (:a :href url
+                                  :class *link-color-classes*
+                                  url)))
+                    (:tr (:td :class "label-column"
+                              "Branch or tag")
+                         (:td :class "field-column"
+                              (ultralisp/models/source:get-current-branch source)))
+                    (when ignore-dirs
+                      (:tr (:td :class "label-column"
+                                "Ignore systems in these dirs and ASD files")
+                           (:td :class "field-column"
+                                (:pre
+                                 (:code
+                                  (format-ignore-list
+                                   ignore-dirs))))))
+                    (when last-seen-commit
+                      (:tr (:td :class "label-column"
+                                "Last seen commit")
+                           (:td :class "field-column"
+                                (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                    :class *link-color-classes*
+                                    last-seen-commit))))
+                    (when release-info
+                      (:tr (:td :class "label-column"
+                                "Release")
+                           (:td :class "field-column"
+                                (:a :href (quickdist:get-project-url release-info)
+                                    :class *link-color-classes*
+                                    (quickdist:get-project-url release-info)))))
                    (when systems
                      (:tr (:td :class "label-column"
                                "Systems")
@@ -799,15 +809,17 @@
             (when last-seen-commit
               (:tr (:td :class "label-column"
                         "Last seen commit")
-                   (:td :class "field-column"
-                        (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                            last-seen-commit))))
-            (when release-info
-              (:tr (:td :class "label-column"
-                        "Release")
-                   (:td (:a :href (quickdist:get-project-url release-info)
-                            (quickdist:get-project-url release-info)))))
-            (:tr (:td :class "label-column"
+                    (:td :class "field-column"
+                         (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                             :class *link-color-classes*
+                             last-seen-commit))))
+             (when release-info
+               (:tr (:td :class "label-column"
+                         "Release")
+                    (:td (:a :href (quickdist:get-project-url release-info)
+                             :class *link-color-classes*
+                             (quickdist:get-project-url release-info)))))
+             (:tr (:td :class "label-column"
                       "Distributions")
                  (:td :class "field-column"
                       (loop for dist in all-dists
@@ -914,15 +926,17 @@
                    (when last-seen-commit
                      (:tr (:td :class "label-column"
                                "Last seen commit")
-                          (:td :class "field-column"
-                               (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                                   last-seen-commit))))
-                   (when release-info
-                     (:tr (:td :class "label-column"
-                               "Release")
-                          (:td (:a :href (quickdist:get-project-url release-info)
-                                   (quickdist:get-project-url release-info)))))
-                   (:tr (:td :class "label-column"
+                           (:td :class "field-column"
+                                (:a :href (fmt "~A/commit/~A" url last-seen-commit)
+                                    :class *link-color-classes*
+                                    last-seen-commit))))
+                    (when release-info
+                      (:tr (:td :class "label-column"
+                                "Release")
+                           (:td (:a :href (quickdist:get-project-url release-info)
+                                    :class *link-color-classes*
+                                    (quickdist:get-project-url release-info)))))
+                    (:tr (:td :class "label-column"
                              "Distributions")
                         (:td :class "field-column"
                              (loop for dist in all-dists

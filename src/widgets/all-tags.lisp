@@ -15,7 +15,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme))
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*))
 (in-package #:ultralisp/widgets/all-tags)
 
 
@@ -40,6 +42,6 @@
                  for tag-name = (getf item :name)
                  for count = (getf item :count)
                  for url = (route-url "tag" :tag tag-name)
-                 do (:li (:p (:a :href url :class "text-sky-600 hover:text-sky-700"
-                                 tag-name)
+                  do (:li (:p (:a :href url :class *link-color-classes*
+                                  tag-name)
                              (:sup :class "text-xs ml-1" count))))))))

@@ -25,7 +25,9 @@
                 #:get-processed-at
                 #:any-check)
   (:import-from #:40ants-routes/route-url
-                #:route-url)
+                 #:route-url)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:render
    #:get-key-name
@@ -95,9 +97,9 @@
               reason)
              (when reason
                (:span "Reason is: ")
-               (if traceback
-                   (:a :title traceback reason)
-                   (:span reason)))))))
+                (if traceback
+                    (:a :title traceback :class *link-color-classes* reason)
+                    (:span reason)))))))
   
   (:method ((action project-updated) &key timestamp)
     (let* ((project (get-project action))

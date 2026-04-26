@@ -32,7 +32,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme))
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*))
 (in-package #:ultralisp/widgets/tags)
 
 
@@ -108,9 +110,9 @@
         (:div :class "inline-block text-gray-400 text-xs relative -top-0.5"
               (loop for tag in (tags-list widget)
                     do (:span :class "inline-block mr-2 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
-                              (:a :href (route-url "tag" :tag tag)
-                                  :class "text-sky-600 hover:text-sky-700"
-                                  (fmt "#~A" tag))
+                               (:a :href (route-url "tag" :tag tag)
+                                   :class *link-color-classes*
+                                   (fmt "#~A" tag))
                               (when editablep
                                 (:span :class "ml-1 cursor-pointer text-red-400 hover:text-red-600"
                                        (with-html-form (:post #'remove-tag)

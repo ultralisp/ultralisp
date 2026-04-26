@@ -24,7 +24,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme)
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-search-page))
 (in-package #:ultralisp/widgets/search)
@@ -112,9 +114,9 @@
            (when project
              (:div :class "text-xs inline-block"
                    (:label "project:")
-                   (:a :href (fmt "/projects/~A" project)
-                       :class "text-sky-600 hover:text-sky-700"
-                       project)))
+                    (:a :href (fmt "/projects/~A" project)
+                        :class *link-color-classes*
+                        project)))
            (when system
              (:div :class "text-xs inline-block ml-2"
                    (:label "system:")

@@ -18,7 +18,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme))
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*))
 (in-package #:ultralisp/widgets/projects-by-tag)
 
 
@@ -45,7 +47,7 @@
 
     (with-html ()
       (:h1 :class "text-2xl font-bold"
-           (:a :href (route-url "tags") :class "text-sky-600 hover:text-sky-700"
+           (:a :href (route-url "tags") :class *link-color-classes*
                "All tags")
            (:span :class "text-gray-500" (fmt " > ~A" tag-name)))
       (cond

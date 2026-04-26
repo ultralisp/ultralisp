@@ -7,7 +7,8 @@
   (:export
    #:to-prod-db
    #:get-smartcaptcha-client-key
-   #:get-smartcaptcha-server-key))
+   #:get-smartcaptcha-server-key
+   #:*link-color-classes*))
 (in-package #:ultralisp/variables)
 
 
@@ -143,6 +144,12 @@
 
 
 (defvar *in-unit-test* nil)
+
+(defparameter *link-color-classes*
+  "text-sky-500 hover:text-sky-700"
+  ;; Currently Ultralisp supports only light theme
+  ;; "text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
+  )
 
 
 (defun to-prod-db ()

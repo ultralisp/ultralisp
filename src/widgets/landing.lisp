@@ -42,8 +42,9 @@
                 #:get-project
                 #:get-pending-checks)
   (:import-from #:ultralisp/variables
-                #:get-dist-name
-                #:get-base-url)
+                 #:get-dist-name
+                 #:get-base-url
+                 #:*link-color-classes*)
   (:import-from #:ultralisp/models/dist
                 #:latest-dists
                 #:dist)
@@ -97,9 +98,9 @@
       (:tr
        (:td :class "align-top whitespace-nowrap text-left"
             (case version-type
-              (:ready
-               (:a :href version-uri :class "text-sky-600 hover:text-sky-700"
-                   number))
+               (:ready
+                (:a :href version-uri :class *link-color-classes*
+                    number))
               (t (:span "No version yet"))))
        (:td :class "align-top whitespace-nowrap text-left w-full"
             (if built-at
@@ -114,44 +115,51 @@
 (defun render-bound-source (source)
   (check-type source bound-source)
   (let* ((project (ultralisp/models/project:source->project source))
-         (prev-source (prev-version source)))
+         (prev-source (prev-version source))
+         (url (ultralisp/protocols/url:url project))
+         (name (ultralisp/models/project:project-name project))
+         (suffix (cond
+                   ((null prev-source)
+                    "was added")
+                   ((and
+                     (enabled-p source)
+                     (null (enabled-p prev-source)))
+                    "was enabled")
+                   ((and
+                     (null (enabled-p source))
+                     (enabled-p prev-source))
+                    "was disabled")
+                   ((and
+                     (enabled-p source)
+                     (enabled-p prev-source))
+                    "was changed")
+                   (t
+                    (case
+                        (alexandria:make-keyword
+                         (getf (ultralisp/models/source:disable-reason source)
+                               :type))
+                      (:just-added
+                         "was added and waits for a check")
+                      (:check-error
+                         (if (and
+                              (null (enabled-p source))
+                              (null (enabled-p prev-source)))
+                           "still disabled because of error"
+                           "was disabled because of error"))
+                      (:manual
+                         "was removed manually")
+                      (t
+                         ""))))))
 
     (with-html ()
-      (:li ("Project [~A](~A) ~A"
-            (ultralisp/protocols/url:url project)
-            (ultralisp/models/project:project-name project)
-            (cond
-              ((null prev-source)
-               "was added")
-              ((and
-                (enabled-p source)
-                (null (enabled-p prev-source)))
-               "was enabled")
-              ((and
-                (null (enabled-p source))
-                (enabled-p prev-source))
-               "was disabled")
-              ((and
-                (enabled-p source)
-                (enabled-p prev-source))
-               "was changed")
-              (t
-               (case
-                   (alexandria:make-keyword
-                    (getp (ultralisp/models/source:disable-reason source)
-                          :type))
-                 (:just-added
-                  "was added and waits for a check")
-                 (:check-error
-                  (if (and
-                       (null (enabled-p source))
-                       (null (enabled-p prev-source)))
-                      "still disabled because of error"
-                      "was disabled because of error"))
-                 (:manual
-                  "was removed manually")
-                 (t
-                  "")))))
+      (:li (:span "Project")
+           (:span " ")
+           (:a :href url
+               :class *link-color-classes*
+               name)
+           (:span " ")
+           (:span suffix)
+           
            (when (and
                   prev-source
                   (enabled-p source)
@@ -183,9 +191,10 @@
        (let* ((dist (wrapped-dist obj))
               (dist-name (ultralisp/models/dist:dist-name dist))
               (dist-url (ultralisp/protocols/url:url dist)))
-         (html
-             ((:a :href dist-url :class "text-sky-600 hover:text-sky-700"
-                  dist-name)))))
+          (html
+              ((:a :href dist-url
+                   :class *link-color-classes*
+                   dist-name)))))
     (dist-description
        (let* ((limit 5)
               (dist (wrapped-dist obj))

@@ -37,7 +37,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme)
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-my-dists-widget))
 (in-package #:ultralisp/widgets/dists)
@@ -75,7 +77,7 @@
   (let ((name (dist-name dist))
         (url (ultralisp/protocols/url:url dist)))
     (with-html ()
-      (:li (:a :href url :class "text-sky-600 hover:text-sky-700"
+      (:li (:a :href url :class *link-color-classes*
                name)))))
 
 

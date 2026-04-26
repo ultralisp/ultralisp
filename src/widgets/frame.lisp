@@ -28,6 +28,8 @@
                 #:render-yandex-counter)
   (:import-from #:ultralisp/widgets/login-menu
                 #:make-login-menu)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export #:wrap-with-page-frame))
 (in-package #:ultralisp/widgets/frame)
 
@@ -54,8 +56,8 @@
     (with-html ()
       (:header :class "border-b border-sky-200 pb-2 mb-4"
                (:h1 :class "text-2xl font-bold"
-                    (:a :href "/" :class "text-sky-600 hover:text-sky-700"
-                        "Ultralisp.org"))
+                     (:a :href "/" :class *link-color-classes*
+                         "Ultralisp.org"))
                (when show-search
                  (:form :method "GET"
                         :action (route-url "search")

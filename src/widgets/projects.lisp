@@ -20,7 +20,9 @@
                 #:render
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
-                #:tailwind-theme)
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:render
    #:render-projects-list
@@ -55,8 +57,8 @@
                    for name = (ultralisp/models/project:project-name project)
                    do (:tr
                        (:td :class "whitespace-nowrap pr-4"
-                            (:a :href url :class "text-sky-600 hover:text-sky-700"
-                                name))
+                             (:a :href url :class *link-color-classes*
+                                 name))
                        (:td description)))))))
 
 

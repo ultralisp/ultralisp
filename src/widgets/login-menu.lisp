@@ -14,7 +14,9 @@
                 #:get-nickname
                 #:anonymous-p)
   (:import-from #:reblocks/response
-                #:add-retpath-to)
+                 #:add-retpath-to)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-login-menu))
 (in-package #:ultralisp/widgets/login-menu)
@@ -40,8 +42,8 @@
                     :class "mr-2 text-gray-600 hover:text-gray-800"
                     "Leave feedback")
                 (:a :href (add-retpath-to "/login")
-                    :class "text-sky-600 hover:text-sky-700"
-                    "Log In")))
+                     :class *link-color-classes*
+                     "Log In")))
 
         (with-html ()
           (:div :class "absolute top-0 right-0 text-sm"
