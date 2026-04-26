@@ -13,10 +13,8 @@ exec ros dynamic-space-size=4000 -Q -- $0 "$@"
   (ros:ensure-asdf)
   ;; load system with all dependencies
 
-  #+quicklisp
-  (progn (ql:quickload :ultralisp/server-cli))
-  #-quicklisp
-  (progn (asdf:load-system :ultralisp/server-cli)))
+  (ql:quickload '(:ultralisp/server-cli
+                  :reblocks-ui2-tailwind)))
 
 (defpackage :ros.script.ultralisp-server
   (:use :cl)

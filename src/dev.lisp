@@ -102,6 +102,7 @@
 (defun start-outside-docker ()
   (extend-cffi-load-path)
   (ql:quickload :ultralisp/server)
+  (ql:quickload :reblocks-ui2-tailwind)
   (uiop:symbol-call :ultralisp/server :start-outside-docker))
 
 
