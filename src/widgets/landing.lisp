@@ -62,6 +62,13 @@
   (:import-from #:ultralisp/utils/time
                 #:humanize-duration
                 #:humanize-timestamp)
+  (:import-from #:reblocks-ui2/tables/cell
+                #:cell)
+  (:import-from #:reblocks-ui2/tables/table
+                #:column
+                #:make-table)
+  (:import-from #:reblocks-ui2/html
+                #:html)
   (:export
    #:make-landing-widget))
 (in-package #:ultralisp/widgets/landing)
@@ -150,47 +157,97 @@
              (render-changes prev-source source))))))
 
 
-(defun render-dist (dist theme)
-  (check-type dist dist)
+(defclass dist-header ()
+  ((dist :initarg :dist
+         :reader wrapped-dist)))
 
-  (let* ((dist-name (ultralisp/models/dist:dist-name dist))
-         (dist-url (ultralisp/protocols/url:url dist))
-         (number (ultralisp/models/dist:dist-quicklisp-version dist))
-         (built-at (ultralisp/models/dist:dist-built-at dist))
-         (state (ultralisp/models/dist:dist-state dist))
-         (limit 5)
-         (bound-sources (dist->sources dist :this-version t :limit (1+ limit)))
-         (has-more (= (length bound-sources)
-                      (1+ limit)))
-         (bound-sources (subseq bound-sources
-                                0
-                                (min (length bound-sources)
-                                     limit))))
-    (when bound-sources
-      (with-html ()
-        (:tr
-         (:td :class "align-top whitespace-nowrap text-left"
-              (:a :href dist-url :class "text-sky-600 hover:text-sky-700"
-                  dist-name))
-         (:td :class "align-top whitespace-nowrap text-left"
-              (case state
-                (:ready number)
-                (t (:span "No version yet"))))
-         (:td :class "align-top whitespace-nowrap text-left w-full"
-              (if built-at
-                  (:span :title (humanize-timestamp built-at)
-                         ("~A ago"
-                          (humanize-duration
-                           (timestamp-difference (now)
-                                                 built-at))))
-                  (symbol-name state))))
-        (:tr
-         (:td :colspan 3
-              (:ul :class "list-disc pl-6 my-0"
-                   (mapc #'render-bound-source
-                         bound-sources))
-              (when has-more
-                (:p "And more..."))))))))
+(defun dist-header (dist)
+  (make-instance 'dist-header
+                 :dist dist))
+
+
+(defclass dist-description ()
+  ((dist :initarg :dist
+         :reader wrapped-dist)))
+
+(defun dist-description (dist)
+  (make-instance 'dist-description
+                 :dist dist))
+
+
+(defun dist-name (obj)
+  (etypecase obj
+    (dist-header
+       (let* ((dist (wrapped-dist obj))
+              (dist-name (ultralisp/models/dist:dist-name dist))
+              (dist-url (ultralisp/protocols/url:url dist)))
+         (html
+             ((:a :href dist-url :class "text-sky-600 hover:text-sky-700"
+                  dist-name)))))
+    (dist-description
+       (let* ((limit 5)
+              (dist (wrapped-dist obj))
+              (bound-sources (dist->sources dist :this-version t :limit (1+ limit)))
+              (has-more (= (length bound-sources)
+                           (1+ limit)))
+              (bound-sources (subseq bound-sources
+                                     0
+                                     (min (length bound-sources)
+                                          limit))))
+         (cell (html
+                   ((cond
+                      (bound-sources
+                       (:ul :class "list-disc pl-6 my-0"
+                            (mapc #'render-bound-source
+                                  bound-sources))
+                       (when has-more
+                         (:p "And more...")))
+                      (t
+                       (:span :class "pl-6" "No changes"))))
+                   :css-classes '("text-left"))
+               :colspan 3)))))
+
+
+(defun dist-version (obj)
+  (etypecase obj
+    (dist-header
+       (let* ((dist (wrapped-dist obj))
+              (version (ultralisp/models/dist:dist-quicklisp-version dist)))
+         (if version
+           version
+           "No version yet")))
+    (dist-description
+       nil)))
+
+
+(defun dist-built-at (obj)
+  (etypecase obj
+    (dist-header
+       (let ((state (ultralisp/models/dist:dist-state (wrapped-dist obj)))
+             (built-at (ultralisp/models/dist:dist-built-at (wrapped-dist obj))))
+         (if built-at
+           (html
+               ((:span :title (humanize-timestamp built-at)
+                       ("~A ago"
+                        (humanize-duration
+                         (timestamp-difference (now)
+                                               built-at))))))
+           (symbol-name state))))
+    (dist-description
+       nil)))
+
+
+(defwidget custom-table-row (reblocks-ui2/tables/table:table-row)
+  ())
+
+
+(defmethod reblocks-ui2/tables/table:row-css-classes ((row custom-table-row) (theme tailwind-theme))
+  (typecase (reblocks-ui2/tables/table:row-object row)
+    (dist-header
+       (list
+        "bg-stone-100"))
+    (t
+       nil)))
 
 
 (defmethod render ((widget landing-widget) (theme tailwind-theme))
@@ -246,15 +303,13 @@
         (:div :class "mt-6"
               (:h3 :class "text-lg font-semibold" "Latest builds")
 
-              (:table :class "w-full border-collapse"
-                      (:thead
-                       (:tr
-                        (:th :class "text-left p-1" "Name")
-                        (:th :class "text-left p-1" "Version")
-                        (:th :class "text-left p-1" "Built-at")))
-                      (:tbody
-                       (mapc (lambda (d) (render-dist d theme))
-                             latest-dists)))))
+              (make-table (list (column "Name" :getter #'dist-name)
+                                (column "Version" :getter #'dist-version)
+                                (column "Built-at" :getter #'dist-built-at))
+                          (loop for dist in latest-dists
+                                collect (dist-header dist)
+                                collect (dist-description dist))
+                          :row-class 'custom-table-row)))
 
       (when recent-projects
         (:h3 :class "text-lg font-semibold mt-6" "Recently added projects")
