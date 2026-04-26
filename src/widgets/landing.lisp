@@ -2,6 +2,8 @@
   (:use #:cl)
   (:import-from #:str
                 #:concat)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
   (:import-from #:ultralisp/metadata)
@@ -90,7 +92,7 @@
          (built-at (get-built-at version))
          (version-type (ultralisp/models/version:get-type version))
          (actions (ultralisp/models/action:get-version-actions version :limit 3))
-         (version-uri (format nil "/versions/~A" number)))
+         (version-uri (route-url "version" :number number)))
     (with-html ()
       (:tr
        (:td :class "align-top whitespace-nowrap text-left"
@@ -269,7 +271,7 @@
            "How to add my own project?")
 
       (:a :class "inline-block px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
-          :href "/github"
+          :href (route-url "github")
           :title "Add your projects from Github to Ultralisp distribution!"
           "Add projects from GitHub or other forges")
 

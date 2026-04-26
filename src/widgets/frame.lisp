@@ -4,6 +4,8 @@
                 #:defwidget)
   (:import-from #:reblocks/html
                 #:with-html)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:reblocks-ui2/widget
                 #:render
                 #:ui-widget)
@@ -56,7 +58,7 @@
                         "Ultralisp.org"))
                (when show-search
                  (:form :method "GET"
-                        :action "/search/"
+                        :action (route-url "search")
                         :class "mt-2 flex gap-2"
                         (:input :type "text"
                                 :name "query"

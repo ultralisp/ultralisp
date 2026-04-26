@@ -45,6 +45,8 @@
                 #:get-project-tags)
   (:import-from #:str
                 #:split)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:ultralisp/utils
                 #:format-timestamp)
   (:import-from #:reblocks-ui2/widget
@@ -144,7 +146,7 @@
            (destructuring-bind (user-name project-name)
                (split #\/ project-name :limit 2)
              (:a :class "text-gray-500 hover:text-gray-700"
-                 :href (fmt "/projects/~A" user-name)
+                 :href (route-url "author" :author user-name)
                  user-name)
              (:span :class "mx-1" "/")
              (:span project-name))

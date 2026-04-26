@@ -9,6 +9,8 @@
                 #:get-all-tags-with-counters)
   (:import-from #:rutils
                 #:fmt)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:reblocks-ui2/widget
                 #:render
                 #:ui-widget)
@@ -37,7 +39,7 @@
            (loop for item in all-tags
                  for tag-name = (getf item :name)
                  for count = (getf item :count)
-                 for url = (fmt "/tags/~A/" tag-name)
+                 for url = (route-url "tag" :tag tag-name)
                  do (:li (:p (:a :href url :class "text-sky-600 hover:text-sky-700"
                                  tag-name)
                              (:sup :class "text-xs ml-1" count))))))))

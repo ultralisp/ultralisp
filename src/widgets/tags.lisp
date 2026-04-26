@@ -26,6 +26,8 @@
                 #:replace-all)
   (:import-from #:reblocks/request
                 #:ajax-request-p)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:reblocks-ui2/widget
                 #:render
                 #:ui-widget)
@@ -106,7 +108,7 @@
         (:div :class "inline-block text-gray-400 text-xs relative -top-0.5"
               (loop for tag in (tags-list widget)
                     do (:span :class "inline-block mr-2 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
-                              (:a :href (fmt "/tags/~A/" tag)
+                              (:a :href (route-url "tag" :tag tag)
                                   :class "text-sky-600 hover:text-sky-700"
                                   (fmt "#~A" tag))
                               (when editablep

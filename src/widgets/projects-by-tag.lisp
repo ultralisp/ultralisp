@@ -12,6 +12,8 @@
                 #:fmt)
   (:import-from #:ultralisp/widgets/projects
                 #:render-projects-list)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:reblocks-ui2/widget
                 #:render
                 #:ui-widget)
@@ -43,7 +45,7 @@
 
     (with-html ()
       (:h1 :class "text-2xl font-bold"
-           (:a :href "/tags/" :class "text-sky-600 hover:text-sky-700"
+           (:a :href (route-url "tags") :class "text-sky-600 hover:text-sky-700"
                "All tags")
            (:span :class "text-gray-500" (fmt " > ~A" tag-name)))
       (cond

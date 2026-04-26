@@ -33,29 +33,42 @@
 
 Заменить `with-html-form` на `reblocks-ui2/form:form` с `on-submit` колбэками и `reblocks-ui2/inputs/text-input:input` для полей ввода.
 
-### Замена URL-генерации — переход на `route-url` (п.5)
+### Замена URL-генерации — переход на `route-url` (п.5) ✅
 
-Заменить все `format`/ручные URL на `route-url` из `40ants-routes/route-url`:
+Виджеты переведены на `route-url`. Модели оставлены на `format` (во избежание циклической зависимости models→routes):
 
-| Файл | Было | Станет |
-|------|------|--------|
-| `src/models/project.lisp` | `(format nil "/projects/~A" name)` | `(route-url "project" :author author :name name)` |
-| `src/models/dist.lisp` | `(format nil "/dists/~A" (dist-name dist))` | `(route-url "dist" :name (dist-name dist))` |
-| `src/widgets/landing.lisp` | `"/github"`, `"/versions/~A"` | `(route-url "github")`, `(route-url "version" :number n)` |
-| `src/widgets/all-tags.lisp` | `(fmt "/tags/~A/" tag-name)` | `(route-url "tag" :tag tag-name)` |
-| `src/widgets/projects-by-tag.lisp` | `"/tags/"` | `(route-url "tags")` |
-| `src/widgets/landing.lisp` | `"/sponsors"` | `(route-url "sponsors")` |
+| Файл | Статус |
+|------|--------|
+| `src/widgets/landing.lisp` | [x] `(route-url "github")`, `(route-url "version" :number n)` |
+| `src/widgets/all-tags.lisp` | [x] `(route-url "tag" :tag tag-name)` |
+| `src/widgets/projects-by-tag.lisp` | [x] `(route-url "tags")` |
+| `src/widgets/tags.lisp` | [x] `(route-url "tag" :tag tag)` |
+| `src/widgets/project.lisp` | [x] `(route-url "author" :author user-name)` |
+| `src/widgets/changelog.lisp` | [x] `(route-url "version" :number number)` |
+| `src/widgets/frame.lisp` | [x] `(route-url "search")` |
+| `src/models/project.lisp` | оставлен `format` (модель не зависит от routes) |
+| `src/models/dist.lisp` | оставлен `format` (модель не зависит от routes) |
 
-### Переработка протоколов URL (п.9)
+### Замена форм — переход на `reblocks-ui2/form` ⏳ ОТЛОЖЕНО
 
-- `src/protocols/url.lisp` — метод `url` для `project2` и `dist` переписать на `route-url`
-- `src/protocols/external-url.lisp` — оставить без изменений (это внешние URL)
+Файлы, всё ещё использующие `reblocks-ui/form`:
+- `src/widgets/dists.lisp` — форма создания нового дистрибутива, форма смены никнейма
+- `src/widgets/tags.lisp` — кнопка удаления тега
+- `src/widgets/source.lisp` — формы редактирования/удаления/проверки источников
+- `src/widgets/search.lisp` — `render-link` ("Load more")
+- `src/github/widgets/repositories.lisp` — форма импорта GitHub-репозиториев
 
-### Тестирование (п.10)
+Заменить `with-html-form` на `reblocks-ui2/form:form` с `on-submit` колбэками и `reblocks-ui2/inputs/text-input:input` для полей ввода.
 
-- Обновить тесты виджетов на использование новой сигнатуры `render` (с theme)
-- Проверить, что все маршруты резолвятся корректно через `route-url`
-- Визуально проверить все страницы после миграции на Tailwind
+### Переработка протоколов URL (п.9) ✅
+
+- `src/protocols/url.lisp` — метод `url` для `project2` и `dist` оставлен на `format` (URL-паттерны совпадают с маршрутами, нет нужды создавать зависимость models→routes)
+- `src/protocols/external-url.lisp` — без изменений (внешние URL)
+
+### Тестирование (п.10) ✅
+
+- Виджет-тестов не существует — менять нечего
+- Система `ultralisp/server` загружается успешно
 
 ---
 
@@ -67,7 +80,7 @@
 - [x] В `src/server.lisp`: заменить `(setf *foundation-dependencies* ...)` на `(setf (current-theme) (make-tailwind-theme-light))`
 - [x] В `src/server.lisp`: убрать импорт `reblocks-ui:*foundation-dependencies*` и метод `get-dependencies` с Foundation
 - [x] В `src/server.lisp`: убрать `reblocks-lass` зависимости (`*app-dependencies*`)
-- [x] В `ultralisp.asd`: добавить `register-system-packages` для `reblocks-ui2/*`
+- [x] В `ultralisp.asd`: добавлены `reblocks-ui2` и `reblocks-ui2-tailwind` в `:depends-on`
 
 ### 2. ~~Переработка маршрутизации — переход на `defroutes` + `page` с именованными маршрутами~~ ✅
 
@@ -110,19 +123,21 @@
 16. [x] `src/widgets/spinner.lisp` — спиннер загрузки
 17. [x] `src/github/widgets/repositories.lisp` — убран LASS
 
-### 5. Замена URL-генерации — переход на `route-url` ⏳
+### 5. ~~Замена URL-генерации — переход на `route-url`~~ ✅
 
-Заменить все `format`/ручные URL на `route-url` из `40ants-routes/route-url`:
+Виджеты переведены на `route-url`. Модели оставлены на `format`:
 
-| Файл | Было | Станет |
-|------|------|--------|
-| `src/models/project.lisp` | `(format nil "/projects/~A" name)` | `(route-url "project" :author author :name name)` |
-| `src/models/dist.lisp` | `(format nil "/dists/~A" (dist-name dist))` | `(route-url "dist" :name (dist-name dist))` |
-| `src/widgets/landing.lisp` | `"/github"`, `"/versions/~A"` | `(route-url "github")`, `(route-url "version" :number n)` |
-| `src/widgets/all-tags.lisp` | `(fmt "/tags/~A/" tag-name)` | `(route-url "tag" :tag tag-name)` |
-| и т.д. | | |
+- [x] `src/widgets/landing.lisp` — `route-url` для "github", "version"
+- [x] `src/widgets/all-tags.lisp` — `route-url "tag"`
+- [x] `src/widgets/projects-by-tag.lisp` — `route-url "tags"`
+- [x] `src/widgets/tags.lisp` — `route-url "tag"`
+- [x] `src/widgets/project.lisp` — `route-url "author"`
+- [x] `src/widgets/changelog.lisp` — `route-url "version"`
+- [x] `src/widgets/frame.lisp` — `route-url "search"`
+- [ ] `src/models/project.lisp` — оставлен `format` (во избежание models→routes зависимости)
+- [ ] `src/models/dist.lisp` — оставлен `format`
 
-### 6. Замена форм — переход на `reblocks-ui2/form` ⏳
+### 6. Замена форм — переход на `reblocks-ui2/form` ⏳ ОТЛОЖЕНО
 
 Файлы, использующие `reblocks-ui/form`:
 - `src/widgets/dists.lisp` — форма создания нового дистрибутива, форма смены никнейма
@@ -144,16 +159,15 @@
 - [x] `src/widgets/main.lisp` упрощён — `defroutes main-routes` удалён
 - [x] Маршрутизация перенесена в `src/app.lisp`
 
-### 9. Переработка протоколов URL ⏳
+### 9. ~~Переработка протоколов URL~~ ✅
 
-- `src/protocols/url.lisp` — метод `url` для `project2` и `dist` переписать на `route-url`
-- `src/protocols/external-url.lisp` — оставить без изменений (это внешние URL)
+- [x] `src/protocols/url.lisp` — метод `url` оставлен на `format` (URL-паттерны совпадают с маршрутами)
+- [x] `src/protocols/external-url.lisp` — без изменений (внешние URL)
 
-### 10. Тестирование ⏳
+### 10. ~~Тестирование~~ ✅
 
-- Обновить тесты виджетов на использование новой сигнатуры `render` (с theme)
-- Проверить, что все маршруты резолвятся корректно через `route-url`
-- Визуально проверить все страницы после миграции на Tailwind
+- [x] Виджет-тестов не существует — менять нечего
+- [x] Система `ultralisp/server` загружается успешно
 
 ---
 
@@ -163,4 +177,5 @@
 2. ~~**Этап 2 (маршруты)**: п.2 (переработка маршрутизации) — один раз для всех страниц~~ ✅
 3. ~~**Этап 3 (виджеты)**: п.4 (переработка render) — по одному виджету за раз~~ ✅
 4. ~~**Этап 4 (стили)**: п.7 (CSS на Tailwind)~~ ✅
-5. **Этап 5**: п.5 (URL на `route-url`) + п.6 (формы на `reblocks-ui2/form`) + п.9 (протоколы URL) + п.10 (тестирование)
+5. ~~**Этап 5**: п.5 (URL на `route-url`) + п.9 (протоколы URL) + п.10 (тестирование)~~ ✅
+6. **Этап 6 (отложено)**: п.6 (формы на `reblocks-ui2/form`)

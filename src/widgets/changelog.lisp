@@ -24,6 +24,8 @@
   (:import-from #:ultralisp/models/check
                 #:get-processed-at
                 #:any-check)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:export
    #:render
    #:get-key-name
@@ -56,7 +58,7 @@
     (let* ((number (get-number version))
            (updated-at (object-updated-at version))
            ;; TODO: create a generic get-uri and define it for a version class
-           (url (format nil "/versions/~A" number))
+           (url (route-url "version" :number number))
            (version-type (ultralisp/models/version:get-type version)))
       (with-html ()
         (if (eql version-type :ready)
