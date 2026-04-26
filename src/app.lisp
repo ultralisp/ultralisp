@@ -151,7 +151,7 @@
                                            :title #'get-version-title)
              (make-version-widget number))
            (page ("/projects/<string:author>/<string:name>" :name "project"
-                                                             :title #'get-project-title)
+                                                            :title #'get-project-title)
              (make-project-widget author name))
            (page ("/projects/<string:author>" :name "author"
                                                :title #'get-author-title)

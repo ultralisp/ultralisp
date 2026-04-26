@@ -1,5 +1,7 @@
-(defpackage #:ultralisp/models/dist
+(uiop:define-package #:ultralisp/models/dist
   (:use #:cl)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:ultralisp/models/versioned
                 #:versioned
                 #:object-version)
@@ -241,8 +243,8 @@
 
 
 (defmethod url ((dist dist))
-  (format nil "/dists/~A"
-          (dist-name dist)))
+  (route-url "dists"
+             :name (dist-name dist)))
 
 
 (defmethod external-url ((dist dist))

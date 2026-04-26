@@ -1,5 +1,7 @@
 (uiop:define-package #:ultralisp/models/project
   (:use #:cl)
+  (:import-from #:40ants-routes/route-url
+                #:route-url)
   (:import-from #:mito
                 #:object-id
                 #:includes
@@ -740,9 +742,17 @@
 
 (defmethod url ((obj project2))
   (check-type obj project2)
-  (let* ((name (project-name obj)))
-    (format nil "/projects/~A"
-            name)))
+  (let* ((full-name (project-name obj))
+         (splitted (str:split "/" full-name :limit 2))
+         (author (first splitted))
+         (name (cond
+                 ((alexandria:length= 2 splitted)
+                  (second splitted))
+                 (t
+                  (error "Wrong project name: ~A" full-name)))))
+    (route-url "project"
+               :author author
+               :name name)))
 
 
 (defun ensure-project (project)
