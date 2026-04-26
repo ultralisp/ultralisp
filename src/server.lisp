@@ -106,18 +106,12 @@
                 #:with-fields)
   (:import-from #:reblocks-auth/models
                 #:get-current-user)
+  (:import-from #:ultralisp/variables
+                #:+cl-info+
+                #:+ultralisp-version+
+                #:*started-at*)
   (:import-from #:ultralisp/widgets/maintenance
                 #:make-maintenance-widget)
-  (:import-from #:ultralisp/utils/lisp
-                #:get-compiler-policies)
-  (:import-from #:rutils
-                #:fmt)
-  (:import-from #:str
-                #:join)
-  (:import-from #:global-vars
-                #:define-global-var)
-  (:import-from #:cl-info
-                #:get-cl-info)
   (:import-from #:log4cl-extras/error
                 #:print-backtrace
                 #:make-placeholder
@@ -150,20 +144,6 @@
    #:stop
    #:start-outside-docker))
 (in-package #:ultralisp/server)
-
-
-
-(define-global-var +cl-info+
-  (join #\Newline
-        (list
-         (rtl:fmt "~A" (get-cl-info))
-         (get-compiler-policies))))
-
-(define-global-var +ultralisp-version+
-    (asdf:component-version
-     (asdf:find-system :ultralisp)))
-
-(define-global-var *started-at* nil)
 
 
 (defvar *request-id* nil

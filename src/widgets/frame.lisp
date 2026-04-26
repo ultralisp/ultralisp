@@ -29,7 +29,15 @@
   (:import-from #:ultralisp/widgets/login-menu
                 #:make-login-menu)
   (:import-from #:ultralisp/variables
-                #:*link-color-classes*)
+                #:*link-color-classes*
+                #:+cl-info+
+                #:*started-at*)
+  (:import-from #:ultralisp/utils/time
+                #:humanize-duration)
+  (:import-from #:local-time
+                #:now)
+  (:import-from #:local-time-duration
+                #:timestamp-difference)
   (:export #:wrap-with-page-frame))
 (in-package #:ultralisp/widgets/frame)
 
@@ -71,12 +79,23 @@
                      ("Try: ~A" (random-elt +search-help+))))))))
 
 
+(defun make-version-info ()
+  (format nil "~A~@[~2%Uptime: ~A~]"
+          +cl-info+
+          (when *started-at*
+            (humanize-duration
+             (timestamp-difference (now)
+                                   *started-at*)))))
+
+
 (defun render-footer ()
   (with-html ()
     (:footer :class "text-gray-400 mt-12"
-             (:p ("Ultralisp v~A proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!"
-                  (asdf:component-version
-                   (asdf:find-system :ultralisp)))))))
+             (:p "Ultralisp v"
+                 (:span :title (make-version-info)
+                        (asdf:component-version
+                         (asdf:find-system :ultralisp)))
+                 (" proudly served by [Common Lisp](https://common-lisp.net) and [Reblocks](http://40ants.com/reblocks/)!")))))
 
 
 (defmethod render ((widget page-frame-widget) (theme tailwind-theme))
