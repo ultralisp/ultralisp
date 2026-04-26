@@ -37,6 +37,7 @@ Each file in this directory covers one concrete lesson. Files are named descript
 
 | File | Topic |
 |------|-------|
+| [css-colors-in-variables.md](css-colors-in-variables.md) | CSS-цвета и стили — выносить в переменные |
 | [mito-migrations-schema.md](mito-migrations-schema.md) | Keep `db/schema.sql` in sync with migrations |
 
 ---
