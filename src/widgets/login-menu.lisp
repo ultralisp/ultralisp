@@ -19,6 +19,8 @@
                 #:route-url)
   (:import-from #:ultralisp/variables
                 #:*link-color-classes*)
+  (:import-from #:reblocks-ui2/themes/styling
+                #:join-css-classes)
   (:export
    #:make-login-menu))
 (in-package #:ultralisp/widgets/login-menu)
@@ -37,27 +39,29 @@
         (my-projects-url (route-url "my-projects"))
         (my-dists-url (route-url "my-dists"))
         (feedback-url "https://github.com/ultralisp/ultralisp/issues"))
-    (if (anonymous-p user)
-        (with-html ()
-          (:div :class "absolute top-0 right-0 text-sm"
-                (:a :href feedback-url
-                    :class "mr-2 text-gray-600 hover:text-gray-800"
-                    "Leave feedback")
-                (:a :href (add-retpath-to "/login")
-                     :class *link-color-classes*
-                     "Log In")))
-
-        (with-html ()
-          (:div :class "absolute top-0 right-0 text-sm group"
-                (:a :href "#"
-                    :class "text-gray-700 font-semibold"
-                    (get-nickname user))
-                (:div :class "hidden group-hover:block absolute right-0 top-full bg-white border rounded shadow-md py-2 px-3 z-50 whitespace-nowrap"
-                      (:a :href feedback-url :class (format nil "block py-1 ~A" *link-color-classes*)
-                          "Leave feedback")
-                      (:a :href my-projects-url :class (format nil "block py-1 ~A" *link-color-classes*)
-                          "My projects")
-                      (:a :href my-dists-url :class (format nil "block py-1 ~A" *link-color-classes*)
-                          "My dists")
-                      (:a :href (add-retpath-to "/logout") :class (format nil "block py-1 ~A" *link-color-classes*)
-                          "Logout")))))))
+    (cond
+      ((anonymous-p user)
+       (with-html ()
+         (:div :class "absolute top-0 right-0 text-sm mt-4 mr-4"
+               (:a :href feedback-url
+                   :class (join-css-classes theme "mr-2"
+                                            *link-color-classes*)
+                   "Leave feedback")
+               (:a :href (add-retpath-to "/login")
+                   :class *link-color-classes*
+                   "Log In"))))
+      (t
+       (with-html ()
+         (:div :class "absolute top-0 right-0 text-sm group mt-4 mr-4"
+               (:a :href "#"
+                   :class "text-gray-700 font-semibold"
+                   (get-nickname user))
+               (:div :class "hidden group-hover:block absolute right-0 top-full bg-white border rounded shadow-md py-2 px-3 z-50 whitespace-nowrap"
+                     (:a :href feedback-url :class (join-css-classes theme "block py-1" *link-color-classes*)
+                         "Leave feedback")
+                     (:a :href my-projects-url :class (join-css-classes theme "block py-1" *link-color-classes*)
+                         "My projects")
+                     (:a :href my-dists-url :class (join-css-classes theme "block py-1" *link-color-classes*)
+                         "My dists")
+                     (:a :href (add-retpath-to "/logout") :class (join-css-classes "block py-1" *link-color-classes*)
+                         "Logout"))))))))

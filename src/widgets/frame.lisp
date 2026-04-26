@@ -90,3 +90,7 @@
           (:div :class "page-content"
                 (render (content widget) theme))
           (render-footer))))
+
+
+(defmethod reblocks-ui2/themes/styling:css-classes ((widget page-frame-widget) (theme tailwind-theme) &key)
+  (list "mt-4 mb-4"))
