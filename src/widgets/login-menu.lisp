@@ -53,9 +53,11 @@
       (t
        (with-html ()
          (:div :class "absolute top-0 right-0 text-sm group mt-4 mr-4"
-               (:a :href "#"
-                   :class "text-gray-700 font-semibold"
-                   (get-nickname user))
+                (:a :href "#"
+                    :class "text-gray-700 font-semibold inline-flex items-center gap-1"
+                    (:span :class "inline-block transition-transform duration-200 group-hover:rotate-90"
+                           :style "width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid currentColor")
+                    (get-nickname user))
                (:div :class "hidden group-hover:block absolute right-0 top-full bg-white border rounded shadow-md py-2 px-3 z-50 whitespace-nowrap"
                      (:a :href feedback-url :class (join-css-classes theme "block py-1" *link-color-classes*)
                          "Leave feedback")
