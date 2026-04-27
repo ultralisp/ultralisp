@@ -405,20 +405,20 @@
                                   (:post (lambda (&rest args)
                                            (declare (ignorable args))
                                            (edit widget))
-                                   :class "inline")
-                                  (:input :type "submit"
-                                          :class "text-xs px-2 py-1 rounded bg-sky-600 text-white hover:bg-sky-700 cursor-pointer"
-                                          :name "button"
-                                          :value "Edit"))
+                                    :class "inline")
+                                (:input :type "submit"
+                                        :class "text-xs px-2 py-1 rounded bg-sky-600 text-white hover:bg-sky-700 cursor-pointer"
+                                        :name "button"
+                                        :value "Edit"))
                               (reblocks-ui/form:with-html-form
                                   (:post #'deletion-handler
-                                   :class "inline")
-                                  (:input :type "submit"
-                                          :class "text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 cursor-pointer"
-                                          :name "button"
-                                          :value "Remove"
-                                          :onclick (format nil "return confirm('~A');"
-                                                            (cl-ppcre:regex-replace-all "'" confirm-msg "\\\\'")))))))
+                                    :class "inline")
+                                (:input :type "submit"
+                                        :class "text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+                                        :name "button"
+                                        :value "Remove"
+                                        :onclick (format nil "return confirm('~A');"
+                                                         (cl-ppcre:regex-replace-all "'" confirm-msg "\\\\'")))))))
                 (:div :class "divide-y"
                       (:div :class "flex px-4 py-2"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Created at")
@@ -462,20 +462,20 @@
                         (:div :class "flex px-4 py-2"
                               (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Systems")
                               (:div :class "flex-1"
-                                     (:dl
-                                      (loop with grouped = (sort
-                                                            (group-by systems
-                                                                      :key #'quickdist:get-filename
-                                                                      :value #'quickdist:get-name
-                                                                      :test #'string=)
-                                                            #'string<
-                                                            :key #'car)
-                                            for (filename . systems) in grouped
-                                            do (:dt :class "font-medium"
-                                                    filename)
-                                               (:dd :class "ml-8 mb-1"
-                                                    (join ", " (sort systems
-                                                                     #'string<))))))))
+                                    (:dl
+                                     (loop with grouped = (sort
+                                                           (group-by systems
+                                                                     :key #'quickdist:get-filename
+                                                                     :value #'quickdist:get-name
+                                                                     :test #'string=)
+                                                           #'string<
+                                                           :key #'car)
+                                           for (filename . systems) in grouped
+                                           do (:dt :class "font-medium"
+                                                   filename)
+                                              (:dd :class "ml-8 mb-1"
+                                                   (join ", " (sort systems
+                                                                    #'string<))))))))
                       (:div :class "flex px-4 py-2"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Distributions")
                             (:div :class "flex-1"
@@ -501,10 +501,10 @@
                                                         now))
                                                      (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
                                                                            0)
-                                                                     (fmt " Next check will be made in ~A."
-                                                                          (humanize-duration
-                                                                           time-to-next-check))
-                                                                     " Next check will be made very soon.")))
+                                                                      (fmt " Next check will be made in ~A."
+                                                                           (humanize-duration
+                                                                            time-to-next-check))
+                                                                      " Next check will be made very soon.")))
                                                 (:span (fmt "Finished ~A ago. " duration))
                                                 (:span next-check-at)))
                                              (t
@@ -522,12 +522,12 @@
                                                  (make-check source
                                                              :manual)
                                                  (reblocks/widget:update widget))
-                                         :class "inline ml-2")
-                                        (:input :type "submit"
-                                                :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
-                                                :name "button"
-                                                :value "Check"
-                                                :title "Put the check into the queue.")))))))))))))
+                                          :class "inline ml-2")
+                                      (:input :type "submit"
+                                              :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
+                                              :name "button"
+                                              :value "Check"
+                                              :title "Put the check into the queue."))))))))))))
 
 
 ;; Probably I need to replace eql git with real class and reuse some code between
@@ -689,7 +689,7 @@
                                                 :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
                                                 :name "button"
                                                 :value "Check"
-                                                :title "Put the check into the queue.")))))))))))))
+                                                :title "Put the check into the queue."))))))))))))
 
 
 (defmethod render-source ((widget readonly-source-widget)
@@ -807,7 +807,7 @@
                                   (when (dist-conflicts widget)
                                     (:pre :class "text-red-600 text-xs mt-1"
                                           (dist-conflicts widget)))
-                                  (error-placeholder "distributions")))))))))))
+                                  (error-placeholder "distributions"))))))))))
 
 
 ;; TODO: deduplicate code between :git and :github
@@ -919,7 +919,7 @@
                                   (when (dist-conflicts widget)
                                     (:pre :class "text-red-600 text-xs mt-1"
                                           (dist-conflicts widget)))
-                                  (error-placeholder "distributions")))))))))))
+                                  (error-placeholder "distributions"))))))))))
 
 
 
