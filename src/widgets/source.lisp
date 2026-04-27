@@ -360,14 +360,15 @@
                     (ultralisp/models/check:get-error last-check))))
       (when (and processed-at
                  last-check-failed)
-        (:div :class "bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mt-2"
-              (:span "Check of latest code version was failed.")
-              (when error
-                (:details
-                 (:summary :class "text-red-600 cursor-pointer inline ml-1"
-                           "error")
-                 (:pre :class "mt-2 p-3 bg-white rounded text-xs overflow-auto max-h-96 whitespace-pre-wrap"
-                       error))))))))
+        (cond
+          (error
+           (:details :class "bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mt-2"
+                     (:summary :class "cursor-pointer"
+                               "Check of latest code version was failed.")
+                     (:pre :class "mt-2 p-3 bg-white rounded text-xs overflow-auto max-h-96 whitespace-pre-wrap"
+                           error)))
+          (t
+           (:span "Check of latest code version was failed.")))))))
 
 
 (defmethod render-source ((widget readonly-source-widget)
