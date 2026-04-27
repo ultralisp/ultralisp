@@ -23,6 +23,11 @@
                  #:tailwind-theme)
   (:import-from #:ultralisp/variables
                 #:*link-color-classes*)
+  (:import-from #:reblocks-ui2/tables/table
+                #:column
+                #:make-table)
+  (:import-from #:reblocks-ui2/html
+                #:html)
   (:export
    #:render
    #:render-projects-list
@@ -47,19 +52,25 @@
   (make-instance 'my-projects))
 
 
+(defun project-name-link (project)
+  (let ((url (ultralisp/protocols/url:url project))
+        (name (ultralisp/models/project:project-name project)))
+    (html
+        ((:a :href url :class *link-color-classes* name)))))
+
+
+(defun project-description (project)
+  (ultralisp/models/project:project-description project))
+
+
 (defun render-projects-list (projects)
-  (with-html ()
-    (:table :class "w-full"
-            (:tbody
-             (loop for project in projects
-                   for description = (ultralisp/models/project:project-description project)
-                   for url = (ultralisp/protocols/url:url project)
-                   for name = (ultralisp/models/project:project-name project)
-                   do (:tr
-                       (:td :class "whitespace-nowrap pr-4"
-                             (:a :href url :class *link-color-classes*
-                                 name))
-                       (:td description)))))))
+  (make-table (list (column "Project"
+                            :getter #'project-name-link
+                            :classes "whitespace-nowrap pr-4")
+                    (column "Description"
+                            :getter #'project-description
+                            :align :left))
+              projects))
 
 
 (defmethod render ((widget author-projects) (theme tailwind-theme))

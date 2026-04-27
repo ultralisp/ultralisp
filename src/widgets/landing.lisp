@@ -6,6 +6,8 @@
                 #:route-url)
   (:import-from #:ultralisp/widgets/projects)
   (:import-from #:ultralisp/widgets/changelog)
+  (:import-from #:ultralisp/widgets/utils
+                #:large-header)
   (:import-from #:ultralisp/metadata)
   (:import-from #:reblocks/widget
                 #:defwidget)
@@ -276,8 +278,7 @@
 
       (:p "Ultralisp is a quicklisp distribution, which updates every 5 minutes.")
 
-      (:h3 :class "text-lg font-semibold mt-6"
-           "How to add my own project?")
+      (large-header "How to add my own project?")
 
       (:a :class "inline-block px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
           :href (route-url "github")
@@ -287,7 +288,7 @@
       (render-installation-instructions (ultralisp/models/dist:common-dist))
 
       (let ((issues-url "https://github.com/ultralisp/ultralisp/issues"))
-        (:h3 :class "text-lg font-semibold mt-6" "Roadmap")
+        (large-header "Roadmap")
 
         (:ul :class "list-disc pl-6"
              (:li (:s "Plug in a real database to store projects' metadata and other information."))
@@ -297,7 +298,7 @@
              (:li "Running tests for updated project and all dependent systems.")
              (:li ("[Add your feature request](~A) at the Github." issues-url)))
 
-        (:h3 :class "text-lg font-semibold mt-6" "How to help")
+        (large-header "How to help")
         (:p "Any help is appreciated. You can:")
         (:ul :class "list-disc pl-6"
              (:li ("[Select an issue](~A) on the GitHub, assign yourself and send a pull request. Issues are marked as \"good first issue\", \"medium\" and \"big story\" to help you to select which impact do you want to make."
@@ -312,7 +313,7 @@
 
       (when latest-dists
         (:div :class "mt-6"
-              (:h3 :class "text-lg font-semibold" "Latest builds")
+               (large-header "Latest builds" :extra-classes "mt-0")
 
               (make-table (list (column "Name" :getter #'dist-name)
                                 (column "Version" :getter #'dist-version)
@@ -323,5 +324,5 @@
                           :row-class 'custom-table-row)))
 
       (when recent-projects
-        (:h3 :class "text-lg font-semibold mt-6" "Recently added projects")
+        (large-header "Recently added projects")
         (ultralisp/widgets/projects:render-projects-list recent-projects)))))

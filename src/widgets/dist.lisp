@@ -29,6 +29,8 @@
                 #:ui-widget)
   (:import-from #:reblocks-ui2/themes/tailwind
                 #:tailwind-theme)
+  (:import-from #:ultralisp/widgets/utils
+                #:small-header)
   (:export
    #:make-dist-widget
    #:render-installation-instructions))
@@ -67,8 +69,8 @@
         (:p "This distribution contains extensions and libraries for LispWorks.")
         (:p "These libraries are checked in LispWorks and may not work in other LISP implementations.")
         (:p ("**WARNING!** This distribution is experimental and may be updated with delays because of LW licensing issues.")))
-
-      (:h3 :class "text-lg font-semibold mt-6" "How to use it?")
+      
+      (small-header "How to use it?")
 
       (when (containsp "/" (ultralisp/models/dist:dist-name dist))
         (:p ("**WARNING!** Distributions with `/` in their names aren't supported by Quicklisp, because my commit was [reverted](https://github.com/quicklisp/quicklisp-client/commit/4727689c6fcde89149a8a6c5496662cde939a727). File the issue at the quicklisp-client's repo or switch to the CLPM which works with custom Ultralisp distributions.")))

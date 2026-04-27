@@ -3,9 +3,29 @@
   (:import-from #:reblocks/actions)
   (:import-from #:reblocks/html
                 #:with-html)
+  (:import-from #:str
+                #:concat)
   (:export
-   #:render-switch))
+   #:render-switch
+   #:large-header
+   #:small-header))
 (in-package #:ultralisp/widgets/utils)
+
+
+(defun large-header (text &key extra-classes)
+  (with-html ()
+    (:h3 :class (str:concat "text-2xl text-slate-700 font-bold mt-6 mb-4"
+                            (when extra-classes
+                              (str:concat " " extra-classes)))
+         text)))
+
+
+(defun small-header (text &key extra-classes)
+  (with-html ()
+    (:h3 :class (str:concat "text-lg text-slate-700 font-semibold mt-6 mb-4"
+                            (when extra-classes
+                              (str:concat " " extra-classes)))
+         text)))
 
 
 (defun render-switch (state action &key disabled labels title)
