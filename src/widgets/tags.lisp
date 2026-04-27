@@ -117,7 +117,7 @@
       (with-html ()
         (:div :class "inline-flex items-center gap-1 text-gray-400 text-xs ml-2 relative -top-0.5 flex-wrap"
               (loop for tag in (tags-list widget)
-                    do (:span :class "inline-flex items-center mr-1 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
+                    do (:span :class "inline-flex items-center gap-1 mr-1 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
                                (:a :href (route-url "tag" :tag tag)
                                    :class *link-color-classes*
                                    (fmt "#~A" tag))
@@ -154,3 +154,7 @@
                       (:span :class "cursor-pointer text-sky-600 hover:text-sky-700"
                              :onclick open-action
                              "+")))))))))
+
+
+(defmethod reblocks-ui2/themes/styling:css-classes ((widget tags) (theme tailwind-theme) &key)
+  (list "inline-block"))
