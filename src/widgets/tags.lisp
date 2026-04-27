@@ -9,7 +9,6 @@
                 #:defwidget
                 #:update)
   (:import-from #:reblocks-ui/form
-                #:form-error
                 #:with-html-form)
   (:import-from #:reblocks/html
                 #:with-html)
@@ -26,6 +25,8 @@
                 #:replace-all)
   (:import-from #:reblocks/request
                 #:ajax-request-p)
+  (:import-from #:reblocks/actions
+                #:make-js-action)
   (:import-from #:40ants-routes/route-url
                 #:route-url)
   (:import-from #:reblocks-ui2/widget
@@ -44,7 +45,9 @@
             :reader tags-project)
    (tags :initarg :tags
          :type list
-         :reader tags-list)))
+         :reader tags-list)
+   (adding-p :initform nil
+             :accessor adding-p)))
 
 
 (defun make-tags-widget (project tags)
@@ -71,6 +74,11 @@
         for tag = (normalize-tag widget item)
         unless (string= tag "")
         collect tag))
+
+
+(defun toggle-adding (widget)
+  (setf (adding-p widget) (not (adding-p widget)))
+  (update widget))
 
 
 (defmethod render ((widget tags) (theme tailwind-theme))
@@ -104,29 +112,45 @@
                                 #'string<))))))
              (t
               (log:error "Attempt to call ADD-NEW-TAGS when tags widget is not editable")))
-
+           (setf (adding-p widget) nil)
            (update widget)))
       (with-html ()
-        (:div :class "inline-block text-gray-400 text-xs relative -top-0.5"
+        (:div :class "inline-flex items-center gap-1 text-gray-400 text-xs ml-2 relative -top-0.5 flex-wrap"
               (loop for tag in (tags-list widget)
-                    do (:span :class "inline-block mr-2 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
+                    do (:span :class "inline-flex items-center mr-1 rounded-full px-2 py-0.5 bg-gray-100 hover:bg-gray-200"
                                (:a :href (route-url "tag" :tag tag)
                                    :class *link-color-classes*
                                    (fmt "#~A" tag))
                               (when editablep
-                                (:span :class "ml-1 cursor-pointer text-red-400 hover:text-red-600"
-                                       (with-html-form (:post #'remove-tag)
-                                         (:input :type "hidden" :name "tag" :value tag)
-                                         (:button :type "submit"
-                                                  :class "text-xs text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer p-0"
-                                                  "✕"))))))
+                                (with-html-form (:post #'remove-tag :class "inline ml-0.5")
+                                  (:input :type "hidden" :name "tag" :value tag)
+                                  (:button :type "submit"
+                                           :class "text-xs text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer p-0 leading-none"
+                                           "✕")))))
               (when editablep
-                (with-html-form (:post #'add-new-tags)
-                  (:span :class "inline-block"
-                         (:input :type "text"
-                                 :name "tags"
-                                 :class "border rounded px-1 py-0.5 text-xs w-32"
-                                 :placeholder "new tag")
-                         (:button :type "submit"
-                                  :class "ml-1 text-xs text-sky-600 hover:text-sky-700 border-none bg-transparent cursor-pointer"
-                                  "+")))))))))
+                (if (adding-p widget)
+                    (let ((cancel-action (make-js-action
+                                          (lambda (&rest args)
+                                            (declare (ignore args))
+                                            (toggle-adding widget)))))
+                      (:div :class "relative inline-block"
+                            (:span :class "cursor-pointer text-sky-600 hover:text-sky-700"
+                                   :onclick cancel-action
+                                   "−")
+                            (:div :class "absolute top-full left-0 mt-1 bg-white border rounded shadow-lg p-2 z-50 whitespace-nowrap"
+                                  (with-html-form (:post #'add-new-tags :class "inline-flex items-center gap-1")
+                                    (:input :type "text"
+                                            :name "tags"
+                                            :class "border rounded px-1.5 py-0.5 text-xs w-48"
+                                            :placeholder "Enter comma separated tag names"
+                                            :autofocus t)
+                                    (:button :type "submit"
+                                             :class "text-xs text-sky-600 hover:text-sky-700 border-none bg-transparent cursor-pointer"
+                                             "Add")))))
+                    (let ((open-action (make-js-action
+                                        (lambda (&rest args)
+                                          (declare (ignore args))
+                                          (toggle-adding widget)))))
+                      (:span :class "cursor-pointer text-sky-600 hover:text-sky-700"
+                             :onclick open-action
+                             "+")))))))))
