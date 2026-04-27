@@ -352,6 +352,38 @@
                                         widget))))
 
 
+(defun render-check-description (source last-check)
+  (with-html ()
+    (cond
+      (last-check
+       (let* ((processed-at (ultralisp/models/check:get-processed-at
+                             last-check)))
+         (cond (processed-at
+                (let* ((now (now))
+                       (duration
+                         (humanize-duration
+                          (timestamp-difference
+                           now
+                           processed-at)))
+                       (time-to-next-check
+                         (local-time-duration:timestamp-difference
+                          (get-time-of-the-next-check source)
+                          now))
+                       (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
+                                             0)
+                                        (fmt " Next check will be made in ~A."
+                                             (humanize-duration
+                                              time-to-next-check))
+                                        " Next check will be made very soon.")))
+                  (:span (fmt "Finished ~A ago. " duration))
+                  (:span next-check-at)))
+               (t
+                (fmt "Waiting in the queue. Position: ~A."
+                     (ultralisp/models/check:position-in-the-queue last-check))))))
+      (t
+       "No checks yet."))))
+
+
 (defun render-check-failed-callout (source last-check)
   (with-html ()
     (let* ((last-check-failed (source-last-check-failed source))
@@ -361,18 +393,34 @@
       (when (and processed-at
                  last-check-failed)
         (cond
-           (error
-            ;; overflow-x-auto + whitespace-pre: long error lines scroll
-            ;; horizontally instead of wrapping. bg-white is on the outer
-            ;; div so the background stays fixed while text scrolls inside.
-            (:details :class "bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mt-2"
-                      (:summary :class "cursor-pointer"
-                                "Check of latest code version was failed.")
-                      (:div :class "overflow-x-auto mt-2 bg-white rounded"
-                            (:pre :class "p-3 text-xs max-h-96 whitespace-pre"
-                                  error))))
+          (error
+           ;; overflow-x-auto + whitespace-pre: long error lines scroll
+           ;; horizontally instead of wrapping. bg-white is on the outer
+           ;; div so the background stays fixed while text scrolls inside.
+           (:details :class "bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mt-2"
+                     (:summary :class "cursor-pointer"
+                               "Check of latest code version was failed.")
+                     (:div :class "overflow-x-auto mt-2 bg-white rounded"
+                           (:pre :class "p-3 text-xs max-h-96 whitespace-pre"
+                                 error))))
           (t
            (:span "Check of latest code version was failed.")))))))
+
+
+(defun render-check-button (user-is-moderator widget source)
+  (when user-is-moderator
+    (reblocks-ui/form:with-html-form
+        (:post (lambda (&rest args)
+                 (declare (ignore args))
+                 (make-check source
+                             :manual)
+                 (reblocks/widget:update widget))
+          :class "inline ml-2")
+      (:input :type "submit"
+              :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
+              :name "button"
+              :value "Check"
+              :title "Put the check into the queue."))))
 
 
 (defmethod render-source ((widget readonly-source-widget)
@@ -487,56 +535,17 @@
                                   (mapc #'render-distribution
                                         distributions)))
                       (:div :class "flex px-4 py-2"
-                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Last check")
-                             ;; min-w-0: without it the flex item's implicit
-                             ;; min-width:auto prevents it from shrinking below
-                             ;; the intrinsic width of the <details>/<pre>
-                             ;; content, causing the whole card to widen.
-                             (:div :class "flex-1 min-w-0"
-                                  (cond
-                                    (last-check
-                                     (let* ((processed-at (ultralisp/models/check:get-processed-at
-                                                           last-check)))
-                                       (cond (processed-at
-                                              (let* ((now (now))
-                                                     (duration
-                                                       (humanize-duration
-                                                        (timestamp-difference
-                                                         now
-                                                         processed-at)))
-                                                     (time-to-next-check
-                                                       (local-time-duration:timestamp-difference
-                                                        (get-time-of-the-next-check source)
-                                                        now))
-                                                     (next-check-at (if (> (local-time-duration:duration-as time-to-next-check :sec)
-                                                                           0)
-                                                                      (fmt " Next check will be made in ~A."
-                                                                           (humanize-duration
-                                                                            time-to-next-check))
-                                                                      " Next check will be made very soon.")))
-                                                (:span (fmt "Finished ~A ago. " duration))
-                                                (:span next-check-at)))
-                                             (t
-                                              (fmt "Waiting in the queue. Position: ~A."
-                                                   (ultralisp/models/check:position-in-the-queue last-check))))))
-                                    (t
-                                     "No checks yet."))
+                            (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Last check")
+                            ;; min-w-0: without it the flex item's implicit
+                            ;; min-width:auto prevents it from shrinking below
+                            ;; the intrinsic width of the <details>/<pre>
+                            ;; content, causing the whole card to widen.
+                            (:div :class "flex-1 min-w-0"
+                                  (render-check-description source last-check)
 
                                   (render-check-failed-callout source last-check)
 
-                                  (when user-is-moderator
-                                    (reblocks-ui/form:with-html-form
-                                        (:post (lambda (&rest args)
-                                                 (declare (ignore args))
-                                                 (make-check source
-                                                             :manual)
-                                                 (reblocks/widget:update widget))
-                                          :class "inline ml-2")
-                                      (:input :type "submit"
-                                              :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
-                                              :name "button"
-                                              :value "Check"
-                                              :title "Put the check into the queue."))))))))))))
+                                  (render-check-button user-is-moderator widget source))))))))))
 
 
 ;; Probably I need to replace eql git with real class and reuse some code between
