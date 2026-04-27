@@ -63,7 +63,7 @@
         (show-search (null (uiop:getenv "HIDE_SEARCH"))))
     (with-html ()
       (:header :class "border-b border-sky-200 pb-2 mb-4"
-               (:h1 :class "text-2xl font-bold"
+               (:h1 :class "text-4xl font-bold"
                      (:a :href "/" :class *link-color-classes*
                          "Ultralisp.org"))
                (when show-search
