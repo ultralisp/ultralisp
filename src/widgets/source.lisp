@@ -407,20 +407,23 @@
            (:span "Check of latest code version was failed.")))))))
 
 
-(defun render-check-button (user-is-moderator widget source)
-  (when user-is-moderator
-    (reblocks-ui/form:with-html-form
-        (:post (lambda (&rest args)
-                 (declare (ignore args))
-                 (make-check source
-                             :manual)
-                 (reblocks/widget:update widget))
-          :class "inline ml-2")
-      (:input :type "submit"
-              :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
-              :name "button"
-              :value "Check"
-              :title "Put the check into the queue."))))
+(defun render-check-button (user-is-moderator widget source last-check)
+  (let ((processed-at (ultralisp/models/check:get-processed-at
+                       last-check)))
+    (when (and user-is-moderator
+               (not (null processed-at)))
+      (reblocks-ui/form:with-html-form
+          (:post (lambda (&rest args)
+                   (declare (ignore args))
+                   (make-check source
+                               :manual)
+                   (reblocks/widget:update widget))
+            :class "inline ml-2")
+        (:input :type "submit"
+                :class "text-xs px-2 py-1 rounded bg-gray-500 text-white hover:bg-gray-600 cursor-pointer"
+                :name "button"
+                :value "Check"
+                :title "Put the check into the queue.")))))
 
 
 (defmethod render-source ((widget readonly-source-widget)
@@ -541,11 +544,11 @@
                             ;; the intrinsic width of the <details>/<pre>
                             ;; content, causing the whole card to widen.
                             (:div :class "flex-1 min-w-0"
-                                  (render-check-description source last-check)
-
-                                  (render-check-failed-callout source last-check)
-
-                                  (render-check-button user-is-moderator widget source))))))))))
+                                  (:div :class "flex items-start gap-2"
+                                        (:div :class "flex-1 min-w-0"
+                                              (render-check-description source last-check))
+                                        (render-check-button user-is-moderator widget source last-check))
+                                  (render-check-failed-callout source last-check))))))))))
 
 
 ;; Probably I need to replace eql git with real class and reuse some code between
