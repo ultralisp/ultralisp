@@ -26,6 +26,8 @@
   (:import-from #:ultralisp/analytics
                 #:render-google-counter
                 #:render-yandex-counter)
+  (:import-from #:ultralisp/metrics
+                #:get-number-of-projects)
   (:import-from #:ultralisp/widgets/login-menu
                 #:make-login-menu)
   (:import-from #:ultralisp/variables
@@ -60,12 +62,20 @@
 
 (defun render-header ()
   (let ((query (get-parameter "query"))
-        (show-search (null (uiop:getenv "HIDE_SEARCH"))))
+        (show-search (null (uiop:getenv "HIDE_SEARCH")))
+        (num-projects (or (ignore-errors
+                            (get-number-of-projects))
+                          0)))
     (with-html ()
       (:header :class "border-b border-sky-200 pb-2 mb-4"
                (:h1 :class "text-4xl font-bold"
                      (:a :href "/" :class *link-color-classes*
-                         "Ultralisp.org"))
+                         "Ultralisp.org")
+                     (unless (zerop num-projects)
+                       (:sup :class "text-sm font-normal text-gray-500 ml-1"
+                             (format nil "includes ~R project~P"
+                                     num-projects
+                                     num-projects))))
                (when show-search
                  (:form :method "GET"
                         :action (route-url "search")
