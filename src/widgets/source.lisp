@@ -730,14 +730,12 @@
   (let* ((params (ultralisp/models/source:source-params source))
          (deleted (ultralisp/models/source:deleted-p source))
          (url (github-url params))
-         (last-seen-commit (getf params :last-seen-commit))
          (ignore-dirs (getf params :ignore-dirs))
          (user (reblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
          (all-dists (append (ultralisp/models/dist:public-dists)
                             user-dists))
-         (current-dists (source->dists source))
-         (release-info (ultralisp/models/source:source-release-info source)))
+         (current-dists (source->dists source)))
     (assert (not deleted))
 
     (flet ((is-enabled (dist)
@@ -774,8 +772,8 @@
                                     :class "text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 cursor-pointer"
                                     :name "button"
                                     :value "Save")))
-                (:div :class "divide-y"
-                      (:div :class "flex px-4 py-2"
+                (:div :class "space-y-3"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Source")
                             (:div :class "flex-1"
                                   (:input :value url
@@ -790,11 +788,11 @@
                                            :js-code ((event)
                                                      (parenscript:create
                                                       :url (@ event target value)))))))
-                      (:div :class "flex px-4 py-2"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Branch or tag")
                             (:div :class "flex-1"
                                   (render (branches widget))))
-                      (:div :class "flex px-4 py-2"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0"
                                   "Ignore systems in these dirs and ASD files")
                             (:div :class "flex-1"
@@ -803,21 +801,7 @@
                                              :placeholder "vendor/, my-system-test.asd"
                                              (format-ignore-list
                                               ignore-dirs))))
-                      (when last-seen-commit
-                        (:div :class "flex px-4 py-2"
-                              (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Last seen commit")
-                              (:div :class "flex-1"
-                                    (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                                        :class *link-color-classes*
-                                        last-seen-commit))))
-                      (when release-info
-                        (:div :class "flex px-4 py-2"
-                              (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Release")
-                              (:div :class "flex-1"
-                                    (:a :href (quickdist:get-project-url release-info)
-                                        :class *link-color-classes*
-                                        (quickdist:get-project-url release-info)))))
-                      (:div :class "flex px-4 py-2"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Distributions")
                             (:div :class "flex-1"
                                   (loop for dist in all-dists
@@ -834,7 +818,6 @@
                                           (dist-conflicts widget)))
                                   (error-placeholder "distributions"))))))))))
 
-
 ;; TODO: deduplicate code between :git and :github
 (defmethod render-source ((widget edit-source-widget)
                           (type (eql :git))
@@ -842,14 +825,12 @@
   (let* ((params (ultralisp/models/source:source-params source))
          (deleted (ultralisp/models/source:deleted-p source))
          (url (getf params :url))
-         (last-seen-commit (getf params :last-seen-commit))
          (ignore-dirs (getf params :ignore-dirs))
          (user (reblocks-auth/models:get-current-user))
          (user-dists (ultralisp/models/dist-moderator:moderated-dists user))
          (all-dists (append (ultralisp/models/dist:public-dists)
                             user-dists))
-         (current-dists (source->dists source))
-         (release-info (ultralisp/models/source:source-release-info source)))
+         (current-dists (source->dists source)))
     (assert (not deleted))
 
     (flet ((is-enabled (dist)
@@ -886,8 +867,8 @@
                                     :class "text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 cursor-pointer"
                                     :name "button"
                                     :value "Save")))
-                (:div :class "divide-y"
-                      (:div :class "flex px-4 py-2"
+                (:div :class "space-y-3"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Source")
                             (:div :class "flex-1"
                                   (:input :value url
@@ -902,11 +883,11 @@
                                            :js-code ((event)
                                                      (parenscript:create
                                                       :url (@ event target value)))))))
-                      (:div :class "flex px-4 py-2"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Branch or tag")
                             (:div :class "flex-1"
                                   (render (branches widget))))
-                      (:div :class "flex px-4 py-2"
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0"
                                   "Ignore systems in these dirs and ASD files")
                             (:div :class "flex-1"
@@ -914,22 +895,8 @@
                                              :class "w-full border rounded px-2 py-1 text-sm"
                                              :placeholder "vendor/, my-system-test.asd"
                                              (format-ignore-list
-                                              ignore-dirs))))
-                      (when last-seen-commit
-                        (:div :class "flex px-4 py-2"
-                              (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Last seen commit")
-                              (:div :class "flex-1"
-                                    (:a :href (fmt "~A/commit/~A" url last-seen-commit)
-                                        :class *link-color-classes*
-                                        last-seen-commit))))
-                      (when release-info
-                        (:div :class "flex px-4 py-2"
-                              (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Release")
-                              (:div :class "flex-1"
-                                    (:a :href (quickdist:get-project-url release-info)
-                                        :class *link-color-classes*
-                                        (quickdist:get-project-url release-info)))))
-                      (:div :class "flex px-4 py-2"
+                                               ignore-dirs))))
+                      (:div :class "flex px-4 py-2 gap-3"
                             (:div :class "w-1/4 text-gray-500 font-medium shrink-0" "Distributions")
                             (:div :class "flex-1"
                                   (loop for dist in all-dists
@@ -951,6 +918,7 @@
 (defmethod reblocks/widget:render ((widget branch-select-widget))
   (with-html ()
     (:select :name "branch"
+             :class "w-full border rounded px-2 py-1 text-sm"
       (:option :disabled "disabled"
                "Select a branch")
       (loop with current = (current-branch widget)
