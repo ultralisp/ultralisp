@@ -7,7 +7,8 @@
                 #:format-date)
   (:export
    #:humanize-duration
-   #:humanize-timestamp))
+   #:humanize-timestamp
+   #:log-duration))
 (in-package #:ultralisp/utils/time)
 
 
@@ -76,3 +77,16 @@
   (check-type timestamp local-time:timestamp)
   (format-date "%Y-%m-%d %H:%M:%S UTC"
                (timestamp-to-universal timestamp)))
+
+
+(defun call-with-log-duration (message thunk)
+  (let ((start (get-internal-real-time)))
+    (multiple-value-prog1 (funcall thunk)
+      (let* ((end (get-internal-real-time))
+             (duration (/ (- end start)
+                          internal-time-units-per-second)))
+        (log:error "TRACE: ~A (duration ~Fs)" message duration)))))
+
+
+(defmacro log-duration ((message) &body body)
+  `(call-with-log-duration ,message (lambda () ,@body)))
