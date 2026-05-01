@@ -31,6 +31,8 @@
                 #:tailwind-theme)
   (:import-from #:ultralisp/widgets/utils
                 #:small-header)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-dist-widget
    #:render-installation-instructions))
@@ -126,10 +128,11 @@
                     collect (list project-name project-description url) into data
                     finally (loop for (name desc url) in (sort data #'string<
                                                                :key #'car)
-                                  do (:li ("[~A](~A)~@[ — ~A~]"
-                                           url name
-                                           (unless (string-equal desc "")
-                                             desc))))))
+                                  do (:li (:a :href url
+                                              :class *link-color-classes*
+                                              name)
+                                          (unless (string-equal desc "")
+                                            (:span (format nil " — ~A" desc)))))))
          (when has-more
            (:p (:b "This distribution has more projects, but for performance reason we can't show them all."))
            (:p ("Future version of Ultralisp may include a search posibility. If you need it, vote for
