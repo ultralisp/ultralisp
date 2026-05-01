@@ -403,6 +403,10 @@
                                "Check of latest code version was failed.")
                      (:div :class "overflow-x-auto mt-2 bg-white rounded"
                            (:pre :class "p-3 text-xs max-h-96 whitespace-pre"
+                                 ;; Here we should strip ansi codes, because
+                                 ;; when the widget is retuned as JSON object in Ajax
+                                 ;; response, browser fails to parse string with ANSI
+                                 ;; escape codes.
                                  (strip-ansi-codes error)))))
           (t
            (:span "Check of latest code version was failed.")))))))
