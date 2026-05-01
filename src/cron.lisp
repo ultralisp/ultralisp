@@ -68,7 +68,7 @@
 (in-package #:ultralisp/cron)
 
 
-(defmacro deftask (name (&key (need-connection t)) &body body)
+(defmacro deftask (name (&key (need-connection t) args) &body body)
   "Defines a cron task function with following properties:
 
    * Each call has it's own unique id in log messages.
@@ -79,7 +79,7 @@
                   `(with-connection ()
                      ,@body)
                   `(progn ,@body))))
-    `(defun ,name ()
+    `(defun ,name (,@args)
        (with-fields (:request-id (make-request-id)
                      :check-name ,(string-downcase
                                    (symbol-name name)))
@@ -234,11 +234,12 @@
                (save-updated last-check))))
 
 
-(deftask index-projects ()
+(deftask index-projects (:args (&key force))
   (log:info "Trying to index projects")
   (with-lock ("indexing-projects")
     (log:info "Log aquired")
-    (ultralisp/search:index-projects :limit 1)
+    (ultralisp/search:index-projects :limit 1
+                                     :force force)
     (log:info "Task is done")))
 
 
@@ -279,11 +280,13 @@
   
   (when lispworks
     (perform-lispworks-checks))
+  (when lispworks
+    (perform-lispworks-checks))
   
   (build-dists)
   
   (when index
-    (index-projects)
+    (index-projects :force t)
     (delete-old-docs-from-index))
   
   (values))
