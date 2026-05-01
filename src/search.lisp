@@ -744,3 +744,9 @@ default values from the arglist."
                         :doc-id doc-id)
             (log:info "Deleting document from index")
             (delete-from-index doc-id)))))))
+
+
+(defun list-docs ()
+  (do-all-docs (doc "*")
+    (format t "Doc: ~A~2%"
+            doc)))
