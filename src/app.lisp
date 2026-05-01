@@ -156,9 +156,9 @@
            (page ("/projects/<string:author>" :name "author"
                                                :title #'get-author-title)
              (make-author-projects-widget author))
-           (page ("/dists/<string:name>" :name "dist"
-                                         :title #'get-dist-title)
-             (make-dist-widget name))
+            (page ("/dists/<.*:name>" :name "dist"
+                                       :title #'get-dist-title)
+              (make-dist-widget name))
            (page ("/my/projects" :name "my-projects")
              (make-my-projects-widget))
            (page ("/my/dists" :name "my-dists")
