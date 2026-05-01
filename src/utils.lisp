@@ -31,6 +31,8 @@
   (:import-from #:log)
   (:import-from #:function-cache
                 #:defcached)
+  (:import-from #:cl-ppcre
+                #:regex-replace-all)
   (:export #:time-in-past
            #:getenv
            #:directory-mtime
@@ -56,7 +58,8 @@
            #:run-program
            #:program-exists-p
            #:ensure-gnu-tar-installed
-           #:extend-registry))
+           #:extend-registry
+           #:strip-ansi-codes))
 (in-package #:ultralisp/utils)
 
 
@@ -383,3 +386,11 @@
         do (pushnew dep-dir
                     asdf:*central-registry*
                     :test #'uiop:pathname-equal)))
+
+
+
+(defun strip-ansi-codes (str)
+  "Remove ANSI escape sequences from the string."
+  (regex-replace-all (format nil "~A\\[[0-9;]*[A-Za-z]" #\Esc)
+                     str
+                     ""))
