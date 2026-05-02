@@ -49,14 +49,14 @@
 | `src/models/project.lisp` | оставлен `format` (модель не зависит от routes) |
 | `src/models/dist.lisp` | оставлен `format` (модель не зависит от routes) |
 
-### Замена форм — переход на `reblocks-ui2/form` ⏳ ОТЛОЖЕНО
+### Замена форм — переход на `reblocks-ui2/form` ⏳ ЧАСТИЧНО
 
 Файлы, всё ещё использующие `reblocks-ui/form`:
 - `src/widgets/dists.lisp` — форма создания нового дистрибутива, форма смены никнейма
 - `src/widgets/tags.lisp` — кнопка удаления тега
 - `src/widgets/source.lisp` — формы редактирования/удаления/проверки источников
 - `src/widgets/search.lisp` — `render-link` ("Load more")
-- `src/github/widgets/repositories.lisp` — форма импорта GitHub-репозиториев
+- ~~`src/github/widgets/repositories.lisp` — форма импорта GitHub-репозиториев~~ ✅ переведён на `reblocks/html:with-html-form` + Tailwind
 
 Заменить `with-html-form` на `reblocks-ui2/form:form` с `on-submit` колбэками и `reblocks-ui2/inputs/text-input:input` для полей ввода.
 
@@ -137,14 +137,14 @@
 - [ ] `src/models/project.lisp` — оставлен `format` (во избежание models→routes зависимости)
 - [ ] `src/models/dist.lisp` — оставлен `format`
 
-### 6. Замена форм — переход на `reblocks-ui2/form` ⏳ ОТЛОЖЕНО
+### 6. Замена форм — переход на `reblocks-ui2/form` ⏳ ЧАСТИЧНО
 
 Файлы, использующие `reblocks-ui/form`:
 - `src/widgets/dists.lisp` — форма создания нового дистрибутива, форма смены никнейма
 - `src/widgets/tags.lisp` — кнопка удаления тега
 - `src/widgets/source.lisp` — формы редактирования/удаления/проверки источников
 - `src/widgets/search.lisp` — `render-link` ("Load more")
-- `src/github/widgets/repositories.lisp` — форма импорта GitHub-репозиториев
+- ~~`src/github/widgets/repositories.lisp` — форма импорта GitHub-репозиториев~~ ✅
 
 Заменить `with-html-form` на `reblocks-ui2/form:form` с `on-submit` колбэками и `reblocks-ui2/inputs/text-input:input` для полей ввода.
 

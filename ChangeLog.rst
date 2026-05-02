@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.32.2 (2026-05-03)
+===================
+
+Fixed html markup on page for adding a new repository.
+
 1.32.1 (2026-05-02)
 ===================
 
