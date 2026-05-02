@@ -19,7 +19,6 @@
   (:import-from #:reblocks/widget
                 #:update
                 #:get-html-tag
-                #:render
                 #:defwidget)
   (:import-from #:reblocks/html
                 #:with-html)
@@ -48,8 +47,11 @@
                 #:with-log-unhandled)
   (:import-from #:ultralisp/widgets/spinner
                 #:make-spinner)
-  (:import-from #:reblocks-ui/form
-                #:render-form-and-button)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                #:tailwind-theme)
   (:import-from #:ultralisp/widgets/utils
                 #:render-switch)
   (:import-from #:reblocks/response
@@ -64,6 +66,8 @@
                 #:source->dists)
   (:import-from #:ultralisp/variables
                 #:*github-webhook-path*)
+  (:import-from #:reblocks/widgets/dom
+                #:dom-id)
   (:export #:make-repositories-widget
            #:repositories))
 (in-package #:ultralisp/github/widgets/repositories)
@@ -87,17 +91,18 @@
     (error "I need a token to access github API. Seems somewhere is a logical error."))
   
   (let* ((url (if (str:starts-with-p "https://" url)
-                  url
-                  (format nil "https://api.github.com~A" url)))
+                url
+                (format nil "https://api.github.com~A" url)))
          (headers `(("Authorization" . ,#?"token ${token}")))
          (response (multiple-value-list (dex:get url
-                                                 :headers headers
-                                                 :connect-timeout 3
-                                                 :read-timeout 3)))
+                                          :headers headers
+                                          :connect-timeout 3
+                                          :read-timeout 3)))
          (data (jonathan:parse (first response)))
          (headers (third response))
          (links (link-header:parse (gethash "link" headers)))
          (next-page-url (getf links :next)))
+
     (append data
             (when next-page-url
               (get-url next-page-url :token token)))))
@@ -144,7 +149,7 @@
           finally (return (get-github-sources usernames)))))
 
 
-(defwidget repositories ()
+(defwidget repositories (ui-widget)
   ((oauth-token :initform nil
                 :reader get-oauth-token)
    (state :initform :checking-scopes
@@ -162,7 +167,7 @@
                    :accessor get-url-form-error)))
 
 
-(defwidget repository ()
+(defwidget repository (ui-widget)
   ((name :initarg :name
          :reader get-name)
    (in-ultralips-p :initarg :in-ultralisp-p
@@ -256,7 +261,7 @@
 
 (defun render-url-input (widget)
   (with-html ()
-    (:p "or insert a project's URL:")
+    (:p :class "mt-4" "or insert a project's URL:")
 
     (reblocks-ui/form:with-html-form
         (:post
@@ -273,26 +278,24 @@
                  (setf (get-url-form-error widget)
                        reason)
                  (update widget))))))
-      (:table :class "url-frame"
-              (:tr :style "vertical-align: top"
-                   (:td
-                    (:input :type "text"
-                            :name "url"
-                            :placeholder "https://github.com/takagi/lake or https://git.sr.ht/~fosskers/cl-transducers")
-                    (if (get-url-form-error widget)
-                        (:p :class "label alert"
-                            (get-url-form-error widget))
-                        ;; Otherwise, just show a note about webhooks
-                        (:p :class "label secondary"
-                            "But this way a project we'll not be able to setup a webhook and project will be updated only by cron.")))
-                   (:td
-                    (reblocks-ui/form:render-button
-                     "Add"
-                     :class "button")))))))
+      (:div :class "flex flex-col gap-2"
+            (:div :class "flex gap-2 items-start"
+                  (:input :type "text"
+                          :name "url"
+                          :class "border rounded px-2 py-1 flex-grow"
+                          :placeholder "https://github.com/takagi/lake or https://git.sr.ht/~fosskers/cl-transducers")
+                  (:input :type "submit"
+                          :class "px-4 py-1 bg-sky-600 text-white rounded hover:bg-sky-700 cursor-pointer"
+                          :value "Add"))
+            (if (get-url-form-error widget)
+                (:p :class "text-red-600 text-sm"
+                    (get-url-form-error widget))
+                (:p :class "text-gray-500 text-sm"
+                    "But this way a project we'll not be able to setup a webhook and project will be updated only by cron."))))))
 
 
-(defgeneric render-with-state (widget state)
-  (:method ((state (eql :checking-scopes)) (widget repositories))
+(defgeneric render-with-state (widget state theme)
+  (:method ((state (eql :checking-scopes)) (widget repositories) (theme tailwind-theme))
     (let* ((token (reblocks-auth/github:get-token))
            (user (reblocks-auth/models:get-current-user))
            (scopes (get-scopes))
@@ -305,64 +308,67 @@
       (cond
         ((and token has-required-scopes)
          (set-oauth-token widget token)
-         (render widget))
+         (render widget theme))
         
         (t (reblocks/html:with-html ()
-             (cond (user
-                    (:p "To show all your public repositories, we need additional permissions from GitHub."
-                        (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
-                               (reblocks-auth/github:render-button
-                                :scopes (append *required-scopes*
-                                                reblocks-auth/github:*default-scopes*))))
-                    (render-url-input widget))
-                   (t
-                    (:p "To be able to add your public repositories, you need to login using GitHub."
-                        (:span :style "position: relative; margin-left: 0.5em; top: 0.4em"
-                               (reblocks-auth/github:render-button
-                                :text "Login"
-                                :scopes (append *required-scopes*
-                                                reblocks-auth/github:*default-scopes*)))))))))))
+             (cond
+               (user
+                (:p "To show all your public repositories, we need additional permissions from GitHub.")
+                (:p :class "mt-2"
+                    (reblocks-auth/github:render-button
+                     :class "inline-block px-3 py-1.5 bg-sky-600 text-white rounded hover:bg-sky-700"
+                     :scopes (append *required-scopes*
+                                     reblocks-auth/github:*default-scopes*)))
+                (render-url-input widget))
+               (t
+                (:p "To be able to add your public repositories, you need to login using GitHub.")
+                (:p :class "mt-2"
+                    (reblocks-auth/github:render-button
+                        :text "Login"
+                        :class "inline-block px-3 py-1.5 bg-sky-600 text-white rounded hover:bg-sky-700"
+                        :scopes (append *required-scopes*
+                                        reblocks-auth/github:*default-scopes*))))))))))
   
-  (:method ((state (eql :fetching-data)) (widget repositories))
+  (:method ((state (eql :fetching-data)) (widget repositories) (theme tailwind-theme))
     (reblocks/html:with-html ()
       (:p "Searching for Common Lisp repositories..."
-          (render (get-spinner widget)))
-      (render-form-and-button
-       "Refresh" 
-       (lambda (&rest args)
-         (declare (ignorable args))
-         (log:debug "User clicked")
-         (update widget ))
-       :button-class "button refresh")))
+          (render (get-spinner widget) theme))
+      (reblocks-ui/form:with-html-form
+          (:post (lambda (&rest args)
+                   (declare (ignorable args))
+                   (log:debug "User clicked")
+                   (update widget)))
+        (:input :type "submit"
+                :class "px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 cursor-pointer js-refresh-btn"
+                :value "Refresh"))))
   
-  (:method ((state (eql :data-fetched)) (widget repositories))
+  (:method ((state (eql :data-fetched)) (widget repositories) (theme tailwind-theme))
     (with-html ()
-      (:p "Show forks?"
-          (:span :style "position: relative; top: 0.4em"
-                 (render-switch (show-forks-p widget)
-                                (lambda (&rest args)
-                                  (declare (ignorable args))
-                                  (setf (show-forks-p widget)
-                                        (not (show-forks-p widget)))
-                                  (update widget))
-                                :labels '("Yes" "No"))))
+      (:div :class "flex gap-2"
+            (:div "Show forks?")
+            (render-switch (show-forks-p widget)
+                           (lambda (&rest args)
+                             (declare (ignorable args))
+                             (setf (show-forks-p widget)
+                                   (not (show-forks-p widget)))
+                             (update widget))
+                           :labels '("Yes" "No")))
       
-      (:table 
-       (loop for repository-widget in (get-repository-widgets widget)
-             for fork = (is-fork-p repository-widget)
-             do (when (or (show-forks-p widget)
-                          (not fork))
-                  (render repository-widget))))
-      ;; Alternative method of adding project
+      (:table :class "mt-2 data-fetched"
+              (loop for repository-widget in (get-repository-widgets widget)
+                    for fork = (is-fork-p repository-widget)
+                    do (when (or (show-forks-p widget)
+                                 (not fork))
+                         (render repository-widget theme))))
       (render-url-input widget)))
   
   
-  (:method ((state t) (widget repositories))
+  (:method ((state t) (widget repositories) (theme tailwind-theme))
     (reblocks/html:with-html ()
       (:p ("State \"~A\" is not supported yet." state)))))
 
 
-(defmethod render ((widget repositories))
+(defmethod render ((widget repositories) (theme tailwind-theme))
   (setf (get-title)
         "Github Repositories")
 
@@ -370,7 +376,8 @@
     (log:debug "Rendering in" state)
 
     (render-with-state state
-                       widget)))
+                       widget
+                       theme)))
 
 
 (defun get-hook-id (repository)
@@ -456,50 +463,45 @@
 (defmethod get-html-tag ((widget repository))
   :tr)
 
-(defmethod render ((widget repository))
+(defmethod render ((widget repository) (theme tailwind-theme))
   (with-html ()
     (:td (get-name widget)
          (when (is-fork-p widget)
-           (:span :class "label secondary"
-                  :style "margin-left: 0.7em"
+           (:span :class "ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded"
                   "fork")))
-    (:td (:span :style "position: relative; top: 0.3em"
-                (render-switch (in-ultralisp-p widget)
-                               (lambda (&rest args)
-                                 (declare (ignorable args))
-                                 (toggle widget))
-                               :labels '("On" "Off"))))))
+    (:td (render-switch (in-ultralisp-p widget)
+                        (lambda (&rest args)
+                          (declare (ignorable args))
+                          (toggle widget))
+                        :labels '("On" "Off")))))
 
 
-(defmethod reblocks/dependencies:get-dependencies ((widget repositories))
-  (append
-   (list
-    (reblocks-parenscript:make-dependency
-      (let ((timer (@ window repositories-timer)))
-        (unless timer
-          (chain console (log "Installing timer to check when repositories will be discovered"))
-          (setf (@ window repositories-timer)
-                (set-interval
-                 (lambda ()
-                   (let ((refresh-button (chain (j-query ".repositories .refresh.button")))
-                         (data-fetched (chain (j-query ".repositories.data-fetched") length )))
-                     (when refresh-button
-                       (chain console (log "Still fetching data"))
-                       (chain refresh-button (click)))
-                     (when data-fetched
-                       (chain console (log "Data is ready"))
-                       (clear-interval (@ window repositories-timer)))))
-                 5000))))))
-   (call-next-method)))
-
-
-(defmethod reblocks/dependencies:get-dependencies ((widget repository))
-  (call-next-method))
+(defmethod reblocks-ui2/widget:get-dependencies ((widget repositories) (theme t))
+  (let ((refresh-button-selector (fmt "#~A .js-refresh-btn"
+                                      (dom-id widget)))
+        (data-fetched-selector (fmt "#~A .data-fetched"
+                                    (dom-id widget))))
+    (append
+     (list
+      (reblocks-parenscript:make-dependency*
+       `(let ((timer (@ window repositories-timer)))
+          (unless timer
+            (chain console (log "Installing timer to check when repositories will be discovered"))
+            (setf (@ window repositories-timer)
+                  (set-interval
+                   (lambda ()
+                     (let ((refresh-button (chain (j-query ,refresh-button-selector)))
+                           (data-fetched (chain (j-query ,data-fetched-selector) length )))
+                       (when (@ refresh-button length)
+                         (chain console (log "Still fetching data"))
+                         (chain refresh-button (click)))
+                       (when data-fetched
+                         (chain console (log "Data is ready"))
+                         (clear-interval (@ window repositories-timer)))))
+                   5000))))))
+     (call-next-method))))
 
 
 (defmethod reblocks/widget:get-css-classes ((widget repositories))
   (cons (get-state widget)
         (call-next-method)))
-
-;; /user/orgs
-;; /user/repos
