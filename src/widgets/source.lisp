@@ -36,6 +36,7 @@
                 #:get-last-source-check
                 #:source-checks)
   (:import-from #:ultralisp/utils
+                #:strip-ansi-codes
                 #:make-keyword)
   (:import-from #:ultralisp/models/source
                 #:project-version

@@ -88,32 +88,6 @@
 
 
 
-(defun render-version (version theme)
-  (check-type version version)
-
-  (let* ((number (get-number version))
-         (built-at (get-built-at version))
-         (version-type (ultralisp/models/version:get-type version))
-         (actions (ultralisp/models/action:get-version-actions version :limit 3))
-         (version-uri (route-url "version" :number number)))
-    (with-html ()
-      (:tr
-       (:td :class "align-top whitespace-nowrap text-left"
-            (case version-type
-               (:ready
-                (:a :href version-uri :class *link-color-classes*
-                    number))
-              (t (:span "No version yet"))))
-       (:td :class "align-top whitespace-nowrap text-left w-full"
-            (if built-at
-                (format-date "%Y-%m-%d %H:%M:%S UTC"
-                             (timestamp-to-universal built-at))
-                "Pending")))
-      (:tr
-       (:td :colspan 2
-            (ultralisp/widgets/changelog:render actions))))))
-
-
 (defun render-bound-source (source)
   (check-type source bound-source)
   (let* ((project (ultralisp/models/project:source->project source))

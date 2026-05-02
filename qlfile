@@ -60,5 +60,7 @@ github autoload melisgl/autoload :ref 2fab7815e6082acb46dc2a6a2fe7ef15152dacd2
 github dref melisgl/dref :ref a798af7c9cfdbe8f54c6e513dd17431ca9313e60
 
 # Пока не сбилдится в Ultralisp
-# https://ultralisp.org/projects/Lisp-Stat/statistics из-за которого падает загрузка data-frame:
+# https://ultralisp.org/projects/Lisp-Stat/statistics из-за которого падает загрузка data-frame
+# с ошибкой:
+# No package named STREAMING-STATISTICS
 ql data-frame
