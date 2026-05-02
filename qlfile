@@ -58,3 +58,7 @@ github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 github mgl-pax melisgl/mgl-pax :ref 7534964eea17906757c0499c165be164d6996217
 github autoload melisgl/autoload :ref 2fab7815e6082acb46dc2a6a2fe7ef15152dacd2
 github dref melisgl/dref :ref a798af7c9cfdbe8f54c6e513dd17431ca9313e60
+
+# Пока не сбилдится в Ultralisp
+# https://ultralisp.org/projects/Lisp-Stat/statistics из-за которого падает загрузка data-frame:
+ql data-frame

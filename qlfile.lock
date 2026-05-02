@@ -34,3 +34,7 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "melisgl/dref" :ref "a798af7c9cfdbe8f54c6e513dd17431ca9313e60" :branch nil :tag nil)
   :version "github-a798af7c9cfdbe8f54c6e513dd17431ca9313e60"))
+("data-frame" .
+ (:class qlot/source/ql:source-ql
+  :initargs (:%version :latest)
+  :version "ql-2026-01-01"))
