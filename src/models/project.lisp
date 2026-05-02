@@ -34,6 +34,8 @@
                 #:order-by
                 #:limit
                 #:where)
+  ;; We do not want to pull all reblocks related dependencies
+  ;; into the worker image
   #-ultralisp-worker-mode
   (:import-from #:reblocks-auth/models
                 #:get-current-user)
