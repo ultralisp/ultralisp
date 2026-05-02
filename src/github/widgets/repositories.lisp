@@ -10,7 +10,6 @@
   (:import-from #:serapeum
                 #:fmt)
   (:import-from #:log)
-  (:import-from #:reblocks-lass)
   (:import-from #:parenscript
                 #:@
                 #:chain)
@@ -475,14 +474,6 @@
 (defmethod reblocks/dependencies:get-dependencies ((widget repositories))
   (append
    (list
-    (reblocks-lass:make-dependency
-      `(.url-frame
-        (tbody :border 0
-               (td :padding 0)
-               ((:and td (:nth-child 1))
-                :padding-right 1em
-                :padding-top 1px))))
-        
     (reblocks-parenscript:make-dependency
       (let ((timer (@ window repositories-timer)))
         (unless timer
@@ -503,12 +494,7 @@
 
 
 (defmethod reblocks/dependencies:get-dependencies ((widget repository))
-  (append
-   (list
-    (reblocks-lass:make-dependency
-      `(.repository
-        (.switch :margin 0))))
-   (call-next-method)))
+  (call-next-method))
 
 
 (defmethod reblocks/widget:get-css-classes ((widget repositories))

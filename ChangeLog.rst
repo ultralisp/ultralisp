@@ -2,6 +2,22 @@
  ChangeLog
 ===========
 
+1.32.0 (2026-05-01)
+===================
+
+In this version a large refactoring was done to move from Reblocks-UI to Reblocks-UI2.
+
+Also these changes were introduced:
+
+* Elastic Search was upgraded from 7.3.2 to 7.17.28 to make it run under arch architectures on OSX.
+* Now it is possible to pass force flag to index-projects function from the REPL.
+
+And these fixes are applied:
+
+* Indexing was fixed for package-inferred systems.
+* Indexing was fixed for new version of qlot which is not adds current directory to the ASDF registry.
+
+
 1.31.0 (2026-04-25)
 ===================
 

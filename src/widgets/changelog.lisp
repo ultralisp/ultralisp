@@ -24,6 +24,10 @@
   (:import-from #:ultralisp/models/check
                 #:get-processed-at
                 #:any-check)
+  (:import-from #:40ants-routes/route-url
+                 #:route-url)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:render
    #:get-key-name
@@ -56,7 +60,7 @@
     (let* ((number (get-number version))
            (updated-at (object-updated-at version))
            ;; TODO: create a generic get-uri and define it for a version class
-           (url (format nil "/versions/~A" number))
+           (url (route-url "version" :number number))
            (version-type (ultralisp/models/version:get-type version)))
       (with-html ()
         (if (eql version-type :ready)
@@ -93,9 +97,9 @@
               reason)
              (when reason
                (:span "Reason is: ")
-               (if traceback
-                   (:a :title traceback reason)
-                   (:span reason)))))))
+                (if traceback
+                    (:a :title traceback :class *link-color-classes* reason)
+                    (:span reason)))))))
   
   (:method ((action project-updated) &key timestamp)
     (let* ((project (get-project action))

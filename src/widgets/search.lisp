@@ -1,20 +1,17 @@
 (defpackage #:ultralisp/widgets/search
   (:use #:cl)
   (:import-from #:3bmd)
-  (:import-from #:reblocks-lass)
   (:import-from #:reblocks/request)
   (:import-from #:reblocks/page)
   (:import-from #:reblocks/widget
-                #:render
-                #:defwidget)
+                #:defwidget
+                #:update)
   (:import-from #:ultralisp/search
                 #:search-objects)
   (:import-from #:reblocks/html
                 #:with-html)
   (:import-from #:cl-ppcre
                 #:regex-replace-all)
-  (:import-from #:reblocks/dependencies
-                #:get-dependencies)
   (:import-from #:alexandria
                 #:make-keyword)
   (:import-from #:log)
@@ -23,12 +20,19 @@
                 #:take)
   (:import-from #:reblocks-ui/form
                 #:render-link)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-search-page))
 (in-package #:ultralisp/widgets/search)
 
 
-(defwidget search-results ()
+(defwidget search-results (ui-widget)
   ((query :initform ""
           :type string
           :reader get-query)
@@ -88,18 +92,6 @@
 
 
 (defun to-html (doc)
-  "In given text replaces `items' with `items` and
-   render it as Markdown to HTML.
-
-   From text:
-
-   \"Test `with` foo `bar' and 'baz` `like' blah\"
-
-   it first will make:
-
-   \"Test `with` foo `bar` and 'baz` `like` blah\"
-
-   Returns a string with HTML."
   (let ((replaced (regex-replace-all
                    "`([^`]+?)'"
                    doc
@@ -111,37 +103,38 @@
 (defgeneric render-item (type name doc &rest rest)
   (:method (type name doc &key arguments system project package original-package)
     (with-html ()
-      (:li (:span :class "name"
+      (:li :class "list-none mb-4"
+           (:span :class "font-bold"
                   ("~:@(~A:~A~)" package name))
            (when arguments
-             (:span :class "args" arguments))
-           (:span :class "type" type)
-           (:div :class "doc"
+             (:span :class "ml-2 text-gray-500" arguments))
+           (:span :class "ml-2 text-gray-500" type)
+           (:div :class "mt-1"
                  (:raw (to-html doc)))
            (when project
-             (:div :class "item-footer project"
+             (:div :class "text-xs inline-block"
                    (:label "project:")
-                   (:a :href (fmt "/projects/~A" project)
-                       project)))
+                    (:a :href (fmt "/projects/~A" project)
+                        :class *link-color-classes*
+                        project)))
            (when system
-             (:div :class "item-footer system"
+             (:div :class "text-xs inline-block ml-2"
                    (:label "system:")
                    (:span system)))
            (when original-package
-             (:div :class "item-footer package"
+             (:div :class "text-xs inline-block ml-2"
                    (:label "original-package:")
                    (:span original-package)))))))
 
 
 (defun to-uppercased-symbols (item)
-  (append (take 3 item) ;; First 3 items are type name doc
-          ;; Rest items are keyword arguments
-          (loop for (key value) on (cdddr item) by #'cddr
-                appending (list (make-keyword (string-upcase key))
-                                value))))
+  (append (take 3 item)
+         (loop for (key value) on (cdddr item) by #'cddr
+               appending (list (make-keyword (string-upcase key))
+                               value))))
 
 
-(defmethod render ((widget search-results))
+(defmethod render ((widget search-results) (theme tailwind-theme))
   (let ((query (reblocks/request:get-parameter "query")))
     (when query
       (setf (reblocks/page:get-title)
@@ -155,7 +148,7 @@
         ((get-results widget)
          (let ((results (get-results widget))
                (total (get-total widget)))
-           (:ul :class "search-results"
+           (:ul :class "pl-0"
                 (loop for item in results
                       for uppercased = (to-uppercased-symbols item)
                       do (apply #'render-item
@@ -165,28 +158,6 @@
               (lambda (&rest args)
                 (declare (ignorable args))
                 (fetch-next-results widget)
-                (reblocks/widget:update widget))
+                (update widget))
               "Load more"))))
         (t (:p ("No results for \"~A\"" query)))))))
-
-
-(defmethod get-dependencies ((widget search-results))
-  (append
-   (list
-    (reblocks-lass:make-dependency
-      `(.search-results
-        :margin 0
-        (li :list-style-type none
-            :margin-bottom 1em
-            (.name :font-weight bold)
-            (.type :margin-left 0.7em
-                   :color gray)
-            (.args :margin-left 0.7em
-                   :color gray)
-            (.doc
-             ((:and p :last-child) :margin-bottom 0))
-            (.item-footer
-             :display inline-block
-             :font-size 0.75em
-             (label :display inline-block))))))
-   (call-next-method)))

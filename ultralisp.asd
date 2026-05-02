@@ -32,6 +32,8 @@
                ;; https://github.com/ultralisp/ultralisp/issues/3
                "40ants-doc"
                "reblocks-ui"
+               "reblocks-ui2"
+               "reblocks-ui2-tailwind"
                "reblocks-auth"
                ;; To make inplace links work in the HTML
                "ultralisp/main"

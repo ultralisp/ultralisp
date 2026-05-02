@@ -22,8 +22,10 @@
     (loop for system being the hash-keys in *component-packages*
             using (hash-value packages)
           when (and system
-                    (string-equal target-system-name
-                                  (asdf:component-name system)))
+                    (or (string-equal target-system-name
+                                      (asdf:component-name system))
+                        (string-equal target-system-name
+                                      (asdf:primary-system-name system))))
             appending packages)))
 
 

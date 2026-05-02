@@ -58,7 +58,7 @@
   (unless (boundp '*ultralisp-root*)
     (error "Variable *ULTRALISP-ROOT* is unbound. Wrap code using WITH-SAVED-ULTRALISP-ROOT."))
   
-  (fmt "qlot exec ros run --eval '(push \"~A\" asdf:*central-registry*)' --system ultralisp/packages-extractor --eval '~A' --quit"
+  (fmt "qlot exec ros run --eval '(push \"./\" asdf:*central-registry*)' --eval '(push \"~A\" asdf:*central-registry*)' --system ultralisp/packages-extractor --eval '~A' --quit"
        *ultralisp-root*
        func-as-string))
 
@@ -78,7 +78,7 @@
          \"JONATHAN.UTIL\" \"JONATHAN.ERROR\")))
 
   "
-  (log:info "Getting packages for" system-names)
+  (log:info "Getting packages for" system-names "in" work-dir)
   (let* ((system-names (uiop:ensure-list system-names))
          (command (make-command-to-run
                    (rutils:fmt "(ultralisp/packages-extractor::inner-main~{ ~A~})"

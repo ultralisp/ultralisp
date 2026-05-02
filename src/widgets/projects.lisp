@@ -1,6 +1,5 @@
 (defpackage #:ultralisp/widgets/projects
   (:use #:cl)
-  (:import-from #:reblocks/request)
   (:import-from #:reblocks/page)
   (:import-from #:ultralisp/widgets/not-found
                 #:page-not-found)
@@ -11,15 +10,24 @@
                 #:get-name
                 #:get-description)
   (:import-from #:reblocks/widget
-                #:render
                 #:defwidget)
-  (:import-from #:cl-ppcre
-                #:register-groups-bind)
   (:import-from #:reblocks-auth/models
                 #:get-current-user)
   (:import-from #:ultralisp/models/moderator)
   (:import-from #:ultralisp/models/project-moderator
                 #:user->projects)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
+  (:import-from #:reblocks-ui2/tables/table
+                #:column
+                #:make-table)
+  (:import-from #:reblocks-ui2/html
+                #:html)
   (:export
    #:render
    #:render-projects-list
@@ -28,47 +36,51 @@
 (in-package #:ultralisp/widgets/projects)
 
 
-(defwidget author-projects ()
+(defwidget author-projects (ui-widget)
+  ((user-or-org :initarg :user-or-org
+                :reader get-user-or-org)))
+
+
+(defwidget my-projects (ui-widget)
   ())
 
 
-(defwidget my-projects ()
-  ())
-
-
-(defun make-author-projects-widget ()
-  (make-instance 'author-projects))
+(defun make-author-projects-widget (author)
+  (make-instance 'author-projects :user-or-org author))
 
 (defun make-my-projects-widget ()
   (make-instance 'my-projects))
 
 
+(defun project-name-link (project)
+  (let ((url (ultralisp/protocols/url:url project))
+        (name (ultralisp/models/project:project-name project)))
+    (html
+        ((:a :href url :class *link-color-classes* name)))))
+
+
+(defun project-description (project)
+  (ultralisp/models/project:project-description project))
+
+
 (defun render-projects-list (projects)
-  (with-html ()
-    (:table :class "projects-list"
-            (loop for project in projects
-                  for description = (ultralisp/models/project:project-description project)
-                  for url = (ultralisp/protocols/url:url project)
-                  for name = (ultralisp/models/project:project-name project)
-                  do (:tr
-                      (:td :style "white-space: nowrap"
-                           (:a :href url
-                               name))
-                      (:td description))))))
+  (make-table (list (column "Project"
+                            :getter #'project-name-link
+                            :classes "whitespace-nowrap pr-4")
+                    (column "Description"
+                            :getter #'project-description
+                            :align :left))
+              projects))
 
 
-(defmethod render ((widget author-projects))
-  (register-groups-bind (user-or-org)
-      ("^/projects/(.*)$" (reblocks/request:get-path))
-    ;; This is not an idiomatic Reblocks code because we should
-    ;; make a database query only when widget gets created, not
-    ;; during the render.
+(defmethod render ((widget author-projects) (theme tailwind-theme))
+  (let ((user-or-org (get-user-or-org widget)))
     (let ((projects (ultralisp/models/project:get-projects2-by-username user-or-org))
           (title (format nil "All projects of ~A" user-or-org)))
       (cond
         (projects
          (with-html ()
-           (:h1 :class "author-name"
+           (:h1 :class "text-2xl font-bold"
                 title)
            (setf (reblocks/page:get-title)
                  title)
@@ -76,7 +88,7 @@
         (t (page-not-found))))))
 
 
-(defmethod render ((widget my-projects))
+(defmethod render ((widget my-projects) (theme tailwind-theme))
   (let* ((user (get-current-user))
          (projects (sort (user->projects user)
                          #'string<
@@ -87,7 +99,7 @@
           title)
 
     (with-html ()
-      (:h1 :class "author-name"
+      (:h1 :class "text-2xl font-bold"
            title)
       (cond
         (projects (render-projects-list projects))

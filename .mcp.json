@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "lisp-dev-mcp": {
+      "type": "http",
+      "url": "http://localhost:8765/mcp"
+    }
+  }
+}
+

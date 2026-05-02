@@ -688,14 +688,15 @@ default values from the arglist."
                  (with-log-unhandled ()
                    (handler-case
                        (cond
-                         ((sources-changed-since-last-index-p project)
+                         ((or (sources-changed-since-last-index-p project)
+                              force)
                           (log:info "Sending task to index project ~A" project-name)
                           (with-timeout (*indexing-timeout*)
                             (submit-task
                              'index-project
                              :args (list project))))
                          (t
-                          (log:info "We don't need to reindex this project because shources not changed")
+                          (log:info "We don't need to reindex this project because sources not changed")
                           (reschedule-indexing project)))
                      (timeout-error ()
                        (log:error "Project was not indexed because of timeout")
@@ -743,3 +744,9 @@ default values from the arglist."
                         :doc-id doc-id)
             (log:info "Deleting document from index")
             (delete-from-index doc-id)))))))
+
+
+(defun list-docs ()
+  (do-all-docs (doc "*")
+    (format t "Doc: ~A~2%"
+            doc)))

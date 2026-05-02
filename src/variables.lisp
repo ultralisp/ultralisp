@@ -4,10 +4,24 @@
                 #:defcached)
   (:import-from #:secret-values
                 #:conceal-value)
+  (:import-from #:global-vars
+                #:define-global-var)
+  (:import-from #:rutils
+                #:fmt)
+  (:import-from #:str
+                #:join)
+  (:import-from #:cl-info
+                #:get-cl-info)
+  (:import-from #:ultralisp/utils/lisp
+                #:get-compiler-policies)
   (:export
    #:to-prod-db
    #:get-smartcaptcha-client-key
-   #:get-smartcaptcha-server-key))
+   #:get-smartcaptcha-server-key
+   #:*link-color-classes*
+   #:+cl-info+
+   #:+ultralisp-version+
+   #:*started-at*))
 (in-package #:ultralisp/variables)
 
 
@@ -144,7 +158,26 @@
 
 (defvar *in-unit-test* nil)
 
+(defparameter *link-color-classes*
+  "text-sky-500 hover:text-sky-700"
+  ;; Currently Ultralisp supports only light theme
+  ;; "text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
+  )
+
 
 (defun to-prod-db ()
   (setf (uiop:getenv "POSTGRES_DBNAME") "ultralisp_prod")
   (function-cache:clear-cache *get-postgres-dbname-cache*))
+
+
+(define-global-var +cl-info+
+  (join #\Newline
+        (list
+         (rtl:fmt "~A" (get-cl-info))
+         (get-compiler-policies))))
+
+(define-global-var +ultralisp-version+
+    (asdf:component-version
+     (asdf:find-system :ultralisp)))
+
+(define-global-var *started-at* nil)

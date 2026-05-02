@@ -1,0 +1,9 @@
+[submodule "libs/reblocks-ui2"]
+	path = libs/reblocks-ui2
+	url = git@github.com:40ants/reblocks-ui2.git
+[submodule "libs/ai-agents"]
+	path = libs/ai-agents
+	url = git@github.com:40ants/ai-agents.git
+[submodule "libs/lisp-dev-mcp"]
+	path = libs/lisp-dev-mcp
+	url = git@github.com:40ants/lisp-dev-mcp.git

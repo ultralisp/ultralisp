@@ -33,18 +33,25 @@
                 #:event-emitter)
   (:import-from #:reblocks-auth/errors
                 #:nickname-is-not-available)
+  (:import-from #:reblocks-ui2/widget
+                #:render
+                #:ui-widget)
+  (:import-from #:reblocks-ui2/themes/tailwind
+                 #:tailwind-theme)
+  (:import-from #:ultralisp/variables
+                #:*link-color-classes*)
   (:export
    #:make-my-dists-widget))
 (in-package #:ultralisp/widgets/dists)
 
 
-(defwidget change-username-widget (event-emitter widget)
+(defwidget change-username-widget (event-emitter ui-widget)
   ()
   (:documentation "This widget is shown when current username contains @ character and can't be used as part of the distribution name.
                    After nickname will be changed it emits :NICKNAME-CHANGED event on itself."))
 
 
-(defwidget dists-widget ()
+(defwidget dists-widget (ui-widget)
   ((value :initform nil)
    (error :initform nil)
    (change-username-widget :initarg :change-username-widget
@@ -65,12 +72,12 @@
     (values main)))
 
 
-(defun render-dist (dist)
+(defun render-dist-item (dist)
   (check-type dist ultralisp/models/dist:dist)
   (let ((name (dist-name dist))
         (url (ultralisp/protocols/url:url dist)))
     (with-html ()
-      (:li (:a :href url
+      (:li (:a :href url :class *link-color-classes*
                name)))))
 
 
@@ -83,7 +90,7 @@
                           :test #'char=)))
 
 
-(defmethod reblocks/widget:render ((widget change-username-widget))
+(defmethod render ((widget change-username-widget) (theme tailwind-theme))
   (let* ((user (get-current-user))
          (nickname (when user
                      (get-nickname user))))
@@ -104,31 +111,29 @@
                                                      "New nickname still contains wrong characters."))
 
                      (when (zerop (reblocks-ui/form:get-field-errors-count))
-                       ;; Changing username only if it is correct.
                        (handler-case (progn (change-nickname new-nickname)
                                             (emit :nickname-changed widget))
                          (nickname-is-not-available ()
                            (reblocks-ui/form:field-error "new-nickname"
                                                          "This nickname is used by another account."))))))
 
-          (:div :style "display: flex; gap: 1rem;"
-                (:div :style "display: flex; flex-direction: column; gap: 1rem; flex-grow: 1;"
+          (:div :class "flex gap-4"
+                (:div :class "flex flex-col gap-4 flex-grow"
                       (:input :type "text"
                               :name "new-nickname"
                               :value nickname
-                              :style "margin: 0;"
+                              :class "border rounded px-2 py-1"
                               :placeholder "New nickname")
 
                       (reblocks-ui/form:error-placeholder "new-nickname")
                       (reblocks-ui/form:form-error-placeholder))
 
                 (:input :type "submit"
-                        :class "button small"
-                        :style "height: 2.5rem"
+                        :class "px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
                         :value "Change")))))))
 
 
-(defmethod reblocks/widget:render ((widget dists-widget))
+(defmethod render ((widget dists-widget) (theme tailwind-theme))
   (let* ((title "Moderated dists")
          (user (get-current-user))
          (nickname (when user
@@ -143,31 +148,21 @@
        (with-html ()
          (:p "This page requires authentication.")))
       ((bad-nickname-p nickname)
-       (reblocks/widget:render
-        (change-username-widget widget)))
-      ;; When nickname is ok, we might show the new dists form:
+       (render
+        (change-username-widget widget)
+        theme))
       (t
-    
        (with-slots (value error) widget
          (flet ((render-form ()
                   (with-html-form
                       (:post (lambda (&key name &allow-other-keys)
-                               ;; We keep the name in a slot to render it again
-                               ;; if there is some error.
-                               (setf value
-                                     name)
+                               (setf value name)
                                (let* ((full-dist-name (fmt "~A/~A"
                                                            nickname
                                                            name))
                                       (existing-dist (find-dist full-dist-name :raise-error nil)))
-                                 ;; For some reason, a dozen nicknames for users
-                                 ;; created from 2019-01-26 to 2019-03-30 have emails
-                                 ;; instead of nicknames.
-                                 ;; I've fixed them with datamigration, but
-                                 ;; to protect ourselves from the problems in future,
-                                 ;; we'll check that nickname is not an email:
                                  (assert (not (str:containsp "@" nickname)))
-                             
+
                                  (log:info "Adding dist with name" full-dist-name)
                                  (cond
                                    ((str:containsp "/" name)
@@ -188,33 +183,31 @@
                                     (setf value nil
                                           error nil)
                                     (add-dist user full-dist-name)))
-                              
-                                 (reblocks/widget:update widget))))
-                    (:table
-                     (:tbody :style "border: 0px solid white; vertical-align: top;"
-                             (:tr
-                              (:td :style "padding: 0.45em 0.4em 0 0; white-space: nowrap;"
-                                   (:p ("~A / " nickname)))
-                              (:td :style "padding: 0; width: 100%"
-                                   (:input :type "text"
-                                           :name "name"
-                                           :value value
-                                           :placeholder "Dist name")
-                                   (when error
-                                     (:p :style "color: #cc4b37"
-                                         (:raw error))))
-                              (:td :style "padding: 0; padding-left: 1em"
-                                   (:input :type "submit"
-                                           :class "button"
-                                           :value "Add"))))))))
+
+                                 (update widget))))
+                    (:div :class "flex items-start gap-2"
+                          (:span :class "whitespace-nowrap pt-1"
+                                 ("~A / " nickname))
+                          (:div :class "flex-grow"
+                                (:input :type "text"
+                                        :name "name"
+                                        :value value
+                                        :class "border rounded px-2 py-1 w-full"
+                                        :placeholder "Dist name")
+                                (when error
+                                  (:p :class "text-red-600 text-sm"
+                                      (:raw error))))
+                          (:input :type "submit"
+                                  :class "px-4 py-1 bg-sky-600 text-white rounded hover:bg-sky-700"
+                                  :value "Add")))))
            (with-html ()
-             (:h1 title)
+             (:h1 :class "text-2xl font-bold" title)
              (cond
                ((null user)
                 (:p "Please log in to add custom distributions."))
                (dists
-                (:ul :class "dists-list"
-                     (mapc #'render-dist dists))
+                (:ul :class "list-disc pl-6 mb-4"
+                     (mapc #'render-dist-item dists))
                 (render-form))
                (t (:p "You have no custom Quicklisp distributions yet.")
                   (:p "Create one and you'll be able to group Common Lisp libraries as you want.")

@@ -164,6 +164,8 @@ CREATE TABLE "dist" (
     PRIMARY KEY (id, version)
 );
 
+create unique index if not exists dist_latest_idx on dist (id, latest) where latest;
+
 
 CREATE TABLE "dist_source" (
     "dist_id" BIGINT NOT NULL,
