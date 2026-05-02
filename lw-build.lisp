@@ -63,6 +63,8 @@
 (setf system:*file-encoding-detection-algorithm*
       '(force-utf-8-file-encoding))
 
+(pushnew :ultralisp-worker-mode *features*)
+
 (qlot:with-local-quicklisp ((probe-file #P"ultralisp.asd"))
   (ql:quickload :ultralisp/worker))
   

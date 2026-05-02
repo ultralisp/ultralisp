@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+1.32.1 (2026-05-02)
+===================
+
+Fixed lw-build by adding ``(pushnew :ultralisp-worker-mode *features*)`` like roswell version of worker script.OD
+
 1.32.0 (2026-05-01)
 ===================
 
