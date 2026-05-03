@@ -26,8 +26,8 @@
                 #:wrap-with-page-frame)
   (:import-from #:ultralisp/widgets/landing
                 #:make-landing-widget)
-  (:import-from #:ultralisp/widgets/search
-                #:make-search-page)
+(:import-from #:ultralisp/widgets/search/page
+                 #:make-search-page)
   (:import-from #:ultralisp/widgets/all-tags
                 #:make-all-tags-widget)
   (:import-from #:ultralisp/widgets/projects-by-tag
