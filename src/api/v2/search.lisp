@@ -45,8 +45,8 @@
                  :type string
                  :reader search-result-project-name)
    (dependencies :initarg :dependencies
-                 :type list
-                 :reader search-result-dependencies)))
+                  :type list
+                  :reader search-result-dependencies)))
 
 
 (defclass symbol-search-result (search-result-item)
@@ -91,12 +91,13 @@
                  :documentation (or (getf source :|documentation|) "")))
 
 
-(define-rpc-method (api search-all) (term)
+(define-rpc-method (api search-all) (term &key (dist "default"))
   (:summary "Search across projects, systems, and symbols.")
   (:param term string "A search term.")
+  (:param dist string "Distribution name. Default: \"default\" for main Ultralisp.")
   (:result (list-of search-result-group))
 
-  (let ((data (ultralisp/search2::search-all term)))
+  (let ((data (ultralisp/search2:search-all term :dist dist)))
     (when data
       (let ((project-data (getf data :projects))
             (system-data (getf data :systems))
@@ -119,12 +120,13 @@
                                          (getf symbol-data :results))))))))
 
 
-(define-rpc-method (api search-by-type) (term type &key (page-key 0) (limit *default-page-size*))
+(define-rpc-method (api search-by-type) (term type &key (page-key 0) (limit *default-page-size*) (dist "default"))
   (:summary "Search entities of a specific type.")
   (:param term string "A search term.")
   (:param type string "One of: projects, systems, symbols.")
   (:param page-key integer "Offset for pagination.")
   (:param limit integer "Max items per page.")
+  (:param dist string "Distribution name. Default: \"default\" for main Ultralisp.")
   (:result (paginated-list-of search-result-item))
 
   (let* ((keyword-type (make-keyword (string-upcase type)))
@@ -133,8 +135,9 @@
                            (:systems #'make-system-result)
                            (:symbols #'make-symbol-result))))
     (multiple-value-bind (results total)
-        (ultralisp/search2::search-by-type term keyword-type
+        (ultralisp/search2:search-by-type term keyword-type
                                            :from page-key
-                                           :limit limit)
+                                           :limit limit
+                                           :dist dist)
       (values (mapcar make-result-fn results)
               (+ page-key (length results))))))

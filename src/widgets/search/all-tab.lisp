@@ -24,14 +24,15 @@
 
 (defwidget all-tab (ui-widget)
   ((query :initarg :query :reader tab-query)
+   (dist :initarg :dist :reader tab-dist)
    (projects :initarg :projects :reader tab-projects)
    (systems :initarg :systems :reader tab-systems)
    (symbols :initarg :symbols :reader tab-symbols)))
 
 
-(defun make-all-tab (&key query projects systems symbols)
+(defun make-all-tab (&key query (dist "default") projects systems symbols)
   (make-instance 'all-tab
-                 :query query
+                 :query query :dist dist
                  :projects projects
                  :systems systems
                  :symbols symbols))
@@ -69,6 +70,7 @@
 
 (defmethod render ((widget all-tab) (theme tailwind-theme))
   (let* ((query (tab-query widget))
+         (dist (tab-dist widget))
          (projects-data (tab-projects widget))
          (systems-data (tab-systems widget))
          (symbols-data (tab-symbols widget))
@@ -82,7 +84,8 @@
                  :total project-total
                  :cards (make-project-cards (getf projects-data :results))
                  :tab-name "projects"
-                 :query query)
+                 :query query
+                 :dist dist)
                 theme))
       (when (> system-total 0)
         (render (make-results-section
@@ -90,7 +93,8 @@
                  :total system-total
                  :cards (make-system-cards (getf systems-data :results))
                  :tab-name "systems"
-                 :query query)
+                 :query query
+                 :dist dist)
                 theme))
       (when (> symbol-total 0)
         (render (make-results-section
@@ -98,7 +102,8 @@
                  :total symbol-total
                  :cards (make-symbol-cards (getf symbols-data :results))
                  :tab-name "symbols"
-                 :query query)
+                 :query query
+                 :dist dist)
                 theme))
       (when (and (zerop project-total)
                  (zerop system-total)

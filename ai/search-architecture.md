@@ -28,6 +28,7 @@ Indexed since initial implementation. One document per exported symbol per packa
 | `system-path` | keyword | Path to system definition |
 | `project` | keyword | Project name (e.g. `40ants/cl-websocket`) |
 | `source` | keyword | Source URI string |
+| `dist` | keyword | Distribution name (default: `"default"`) |
 
 Document ID: `src:<source-uri>:<package>:<symbol>` or `prj:<project-name>:<package>:<symbol>`
 
@@ -42,6 +43,7 @@ One document per project.
 | `name` | text | Project name (e.g. `40ants/cl-websocket`) |
 | `description` | text | Project description |
 | `tags` | keyword[] | GitHub topics |
+| `dist` | keyword | Distribution name (default: `"default"`) |
 
 Document ID: `project:<name>`
 
@@ -58,6 +60,7 @@ One document per ASDF system per project.
 | `author` | text | Author string |
 | `dependencies` | keyword[] | ASDF system names |
 | `project-name` | keyword | Parent project name |
+| `dist` | keyword | Distribution name (default: `"default"`) |
 
 Document ID: `system:<project-name>:<system-name>`
 

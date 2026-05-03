@@ -24,15 +24,16 @@
 
 (defwidget symbols-tab (ui-widget)
   ((query :initarg :query :reader tab-query)
+   (dist :initarg :dist :reader tab-dist)
    (results :initform nil :accessor tab-results)
    (total :initform 0 :accessor tab-total)
    (next-closure :initform nil :accessor tab-next-closure)))
 
 
-(defun make-symbols-tab (&key query)
-  (let ((widget (make-instance 'symbols-tab :query query)))
+(defun make-symbols-tab (&key query (dist "default"))
+  (let ((widget (make-instance 'symbols-tab :query query :dist dist)))
     (multiple-value-bind (results total next-closure)
-        (search-by-type query :symbols :limit 20)
+        (search-by-type query :symbols :limit 20 :dist dist)
       (setf (tab-results widget) results
             (tab-total widget) total
             (tab-next-closure widget) next-closure))

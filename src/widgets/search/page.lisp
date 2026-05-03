@@ -37,6 +37,10 @@
 
 (defwidget search-page (ui-widget)
   ((query :initform "" :type string :reader get-query)
+   (tab-param :initform ""
+              :type string
+              :reader get-tab-param)
+   (dist :initform "default" :type string :reader get-dist)
    (tabs-widget :initform nil :accessor get-tabs-widget)
    (error :initform nil :accessor get-error)))
 
@@ -45,9 +49,9 @@
   (make-instance 'search-page))
 
 
-(defun build-tabs (widget query tab-param)
+(defun build-tabs (widget query tab-param dist)
   (handler-case
-      (let* ((data (search-all query))
+      (let* ((data (search-all query :dist dist))
              (projects-data (getf data :projects))
              (systems-data (getf data :systems))
              (symbols-data (getf data :symbols))
@@ -57,18 +61,19 @@
              (titles (list "All"))
              (subwidgets (list (make-all-tab
                                 :query query
+                                :dist dist
                                 :projects projects-data
                                 :systems systems-data
                                 :symbols symbols-data))))
         (when (> project-total 0)
           (push "Projects" titles)
-          (push (make-projects-tab :query query) subwidgets))
+          (push (make-projects-tab :query query :dist dist) subwidgets))
         (when (> system-total 0)
           (push "Systems" titles)
-          (push (make-systems-tab :query query) subwidgets))
+          (push (make-systems-tab :query query :dist dist) subwidgets))
         (when (> symbol-total 0)
           (push "Symbols" titles)
-          (push (make-symbols-tab :query query) subwidgets))
+          (push (make-symbols-tab :query query :dist dist) subwidgets))
         (let* ((titles (nreverse titles))
                (subwidgets (nreverse subwidgets))
                (initial-idx (or (position (cond
@@ -87,15 +92,25 @@
 
 (defmethod render ((widget search-page) (theme tailwind-theme))
   (let ((query (get-parameter "query"))
-        (tab-param (get-parameter "tab")))
+        (tab-param (get-parameter "tab"))
+        (dist (or (get-parameter "dist") "default")))
     (when query
       (setf (get-title)
             (fmt "Search results for \"~A\"" query))
-      (unless (string= (get-query widget) query)
+      
+      (unless (and (string= (get-query widget)
+                            query)
+                   (string= (get-tab-param widget)
+                            tab-param)
+                   (string= (get-dist widget)
+                            dist))
         (setf (slot-value widget 'query) query
+              (slot-value widget 'tab-param) tab-param
+              (slot-value widget 'dist) dist
               (get-error widget) nil
               (get-tabs-widget widget) nil)
-        (build-tabs widget query tab-param)))
+        (build-tabs widget query tab-param dist)))
+    
     (with-html ()
       (cond
         ((get-error widget)

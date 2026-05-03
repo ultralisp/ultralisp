@@ -9,7 +9,7 @@
 (in-package #:ultralisp/search2)
 
 
-(defun search-all (query &key (per-type-limit 5))
+(defun search-all (query &key (per-type-limit 5) (dist "default"))
   "Search across projects, systems, and symbols.
 Returns a plist:
  (:projects (:total N :results (...))
@@ -19,7 +19,8 @@ Returns a plist:
            (multiple-value-bind (results total next-closure)
                (search-collection collection query
                                    :fields fields
-                                   :limit per-type-limit)
+                                   :limit per-type-limit
+                                   :dist dist)
              (declare (ignore next-closure))
              (list :total total :results results))))
     (handler-case
@@ -30,7 +31,7 @@ Returns a plist:
         nil))))
 
 
-(defun search-by-type (query type &key (from 0) (limit 20))
+(defun search-by-type (query type &key (from 0) (limit 20) (dist "default"))
   "Search entities of a specific type.
 TYPE is one of :projects, :systems, :symbols.
 Returns (values results total next-closure)."
@@ -45,4 +46,5 @@ Returns (values results total next-closure)."
     (search-collection collection query
                        :fields fields
                        :from from
-                       :limit limit)))
+                       :limit limit
+                       :dist dist)))

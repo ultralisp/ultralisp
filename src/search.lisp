@@ -83,6 +83,7 @@
 (defvar *current-project-name* nil)
 (defvar *current-source-uri* nil)
 (defvar *current-system-path* nil)
+(defvar *current-dist* "default")
 
 (define-global-parameter *indexing-timeout* (* 5 60))
 
@@ -135,7 +136,7 @@
                           :|query| (list
                                     :|query_string|
                                     (list :|fields|
-                                          (list "documentation" "symbol" "package")
+                                          (list "documentation" "symbol" "package" "dist")
                                           :|query| term))
                           :|from| from
                           :|size| limit)
@@ -175,7 +176,8 @@
                           :package package
                           :original-package original-package
                           :system-path system-path
-                          :system system) into results
+                          :system system
+                          :raw source) into results
             finally (return (values results
                                     total
                                     (when (< (+ from (length results))
@@ -306,7 +308,8 @@ default values from the arglist."
    (list
     :|original-package| (string-downcase
                          (package-name (symbol-package symbol)))
-    :|symbol| (string-downcase (symbol-name symbol)))))
+    :|symbol| (string-downcase (symbol-name symbol))
+    :|dist| *current-dist*)))
 
 
 (defun get-function-documentation* (symbol type doc)
@@ -531,7 +534,7 @@ default values from the arglist."
          (ql:quickload system))))))
 
 
-(defun index-source (project source &key (clear-dir t))
+(defun index-source (project source &key (clear-dir t) (dist "default"))
   "
   This function should be called inside the worker.
 
@@ -573,10 +576,11 @@ default values from the arglist."
            (qlot/install:install-project path :install-deps nil)
 
            (log:info "Entering local quicklisp")
-            (qlot:with-local-quicklisp (path)
-              (loop with systems = systems-info
-                   with *current-project-name* = (ultralisp/models/project:project-name project)
-                   with *current-source-uri* = (ultralisp/models/source::params-to-string
+             (qlot:with-local-quicklisp (path)
+               (loop with systems = systems-info
+                    with *current-project-name* = (ultralisp/models/project:project-name project)
+                    with *current-dist* = dist
+                    with *current-source-uri* = (ultralisp/models/source::params-to-string
                                                 source
                                                 ;; We'll use this string as a document ID and
                                                 ;; don't want it to change on every commit.
@@ -620,9 +624,10 @@ default values from the arglist."
 
 
 (defun index-project (project &key
-                                (clear-dir t)
-                                (debug nil)
-                      &aux (started-at (now)))
+                                 (clear-dir t)
+                                 (debug nil)
+                                 (dist "default")
+                       &aux (started-at (now)))
   "
   This function should be called inside the worker.
 
@@ -647,18 +652,21 @@ default values from the arglist."
                   (log:info "Indexing project document")
                   (index-project-doc project-name
                                      (project-description project)
-                                     (get-project-tags project))
+                                     (get-project-tags project)
+                                     :dist dist)
 
                   (log:info "Indexing sources")
                   (let ((all-systems-info nil))
                     (loop for source in (project-sources project)
                           do (multiple-value-bind (symbols-count systems-info)
                                  (index-source project source
-                                               :clear-dir clear-dir)
+                                               :clear-dir clear-dir
+                                               :dist dist)
                                (setf all-systems-info
                                      (nconc all-systems-info systems-info))))
                     (log:info "Indexing system documents")
-                    (index-system-docs project-name all-systems-info))
+                    (index-system-docs project-name all-systems-info
+                                       :dist dist))
 
                   (update-index-status project
                                        :ok
@@ -773,7 +781,8 @@ default values from the arglist."
 
 
 (defun ensure-indices ()
-  "Creates projects and systems indices in ElasticSearch if they don't exist."
+  "Creates projects and systems indices in ElasticSearch if they don't exist.
+Also ensures the symbols index has the dist field mapped."
   (flet ((index-exists-p (index-name)
            (handler-case
                (progn (dex:get (fmt "http://~A:9200/~A"
@@ -788,7 +797,7 @@ default values from the arglist."
                  (content (jonathan:to-json mapping)))
              (log:info "Creating ElasticSearch index ~A" index-name)
              (dex:put url
-                      :content content
+               :content content
                       :headers '(("Content-Type" . "application/json"))))))
     (unless (index-exists-p "projects")
       (create-index "projects"
@@ -797,7 +806,8 @@ default values from the arglist."
                        (:|name| (:|type| "text"
                                  :|fields| (:|keyword| (:|type| "keyword"))))
                        (:|description| (:|type| "text"))
-                       (:|tags| (:|type| "keyword"))))))
+                       (:|tags| (:|type| "keyword"))
+                       (:|dist| (:|type| "keyword"))))))
     (unless (index-exists-p "systems")
       (create-index "systems"
                     '(:|mappings|
@@ -808,19 +818,33 @@ default values from the arglist."
                        (:|license| (:|type| "keyword"))
                        (:|author| (:|type| "text"))
                        (:|dependencies| (:|type| "keyword"))
-                       (:|project-name| (:|type| "keyword"))))))))
+                       (:|project-name| (:|type| "keyword"))
+                       (:|dist| (:|type| "keyword"))))))
+    (when (index-exists-p "symbols")
+      (handler-case
+          (let ((url (fmt "http://~A:9200/symbols/_mapping"
+                          (get-elastic-host))))
+            (dex:put url
+              :content (jonathan:to-json
+                        '(:|properties|
+                          (:|dist| (:|type| "keyword"))))
+              :headers '(("Content-Type" . "application/json")))
+            (log:info "Updated symbols index mapping with dist field"))
+        (error (c)
+          (log:warn "Unable to update symbols mapping" c))))))
 
 
-(defun index-project-doc (project-name description tags)
+(defun index-project-doc (project-name description tags &key (dist "default"))
   "Index a single project document into ES."
   (let ((doc-id (fmt "project:~A" project-name)))
     (index "projects" doc-id
            (list :|name| project-name
                  :|description| (or description "")
-                 :|tags| tags))))
+                 :|tags| tags
+                 :|dist| dist))))
 
 
-(defun index-system-docs (project-name systems-info)
+(defun index-system-docs (project-name systems-info &key (dist "default"))
   "Batch-index all systems from SYSTEMS-INFO into the systems ES index."
   (when systems-info
     (let* ((lines (loop for sys in systems-info
@@ -837,7 +861,8 @@ default values from the arglist."
                                          :|license| (or (system-info-license sys) "")
                                          :|author| (or (system-info-author sys) "")
                                          :|dependencies| (quickdist:get-dependencies sys)
-                                         :|project-name| project-name))
+                                         :|project-name| project-name
+                                         :|dist| dist))
                         append (list action doc)))
            (body (concatenate 'string
                               (format nil "~{~A~%~}~%" lines)))
@@ -870,7 +895,7 @@ default values from the arglist."
       nil)))
 
 
-(defun search-collection (collection term &key fields (from 0) (limit 10))
+(defun search-collection (collection term &key fields (from 0) (limit 10) (dist "default"))
   "Search across a single ES collection.
 Returns (values results total next-closure) where each result
 is the _source plist from ES."
@@ -883,7 +908,12 @@ is the _source plist from ES."
                                   :|query| term)
                             (list :|query| term)))
              (query (list :|query|
-                          (list :|query_string| qs-params)
+                          (list :|bool|
+                                (list :|must|
+                                      (list (list :|query_string| qs-params))
+                                      :|filter|
+                                      (list (list :|term|
+                                                  (list :|dist| dist)))))
                           :|from| from
                           :|size| limit))
              (content (jonathan:to-json query))
@@ -903,7 +933,8 @@ is the _source plist from ES."
                       (search-collection collection term
                                          :fields fields
                                          :from new-from
-                                         :limit limit))))))
+                                         :limit limit
+                                         :dist dist))))))
     (dexador.error:http-request-not-found ()
       (values nil 0 nil))
     (dexador.error:http-request-bad-request (condition)
@@ -912,6 +943,7 @@ is the _source plist from ES."
 
 (defun list-docs ()
   (do-all-docs (doc "*")
+    (break)
     (format t "Doc: ~A~2%"
             doc)))
 

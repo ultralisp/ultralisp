@@ -21,14 +21,15 @@
    (total :initarg :total :reader section-total)
    (cards :initarg :cards :reader section-cards)
    (tab-name :initarg :tab-name :reader section-tab-name)
-   (query :initarg :query :reader section-query)))
+   (query :initarg :query :reader section-query)
+   (dist :initarg :dist :initform "default" :reader section-dist)))
 
 
-(defun make-results-section (&key title total cards tab-name query)
+(defun make-results-section (&key title total cards tab-name query (dist "default"))
   (make-instance 'results-section
                  :title title :total total
                  :cards cards :tab-name tab-name
-                 :query query))
+                 :query query :dist dist))
 
 
 (defmethod render ((widget results-section) (theme tailwind-theme))
@@ -40,8 +41,9 @@
             (render card theme))
           (when (> (section-total widget) (length (section-cards widget)))
             (:p :class "text-sm"
-                (:a :href (format nil "/search/?query=~A&tab=~A"
+                (:a :href (format nil "/search/?query=~A&tab=~A&dist=~A"
                                   (section-query widget)
-                                  (section-tab-name widget))
+                                  (section-tab-name widget)
+                                  (section-dist widget))
                     :class *link-color-classes*
                     ("All ~A results" (section-total widget))))))))

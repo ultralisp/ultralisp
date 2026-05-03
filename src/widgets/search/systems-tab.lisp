@@ -24,15 +24,16 @@
 
 (defwidget systems-tab (ui-widget)
   ((query :initarg :query :reader tab-query)
+   (dist :initarg :dist :reader tab-dist)
    (results :initform nil :accessor tab-results)
    (total :initform 0 :accessor tab-total)
    (next-closure :initform nil :accessor tab-next-closure)))
 
 
-(defun make-systems-tab (&key query)
-  (let ((widget (make-instance 'systems-tab :query query)))
+(defun make-systems-tab (&key query (dist "default"))
+  (let ((widget (make-instance 'systems-tab :query query :dist dist)))
     (multiple-value-bind (results total next-closure)
-        (search-by-type query :systems :limit 20)
+        (search-by-type query :systems :limit 20 :dist dist)
       (setf (tab-results widget) results
             (tab-total widget) total
             (tab-next-closure widget) next-closure))
