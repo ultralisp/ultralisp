@@ -133,11 +133,10 @@
          (make-result-fn (ecase keyword-type
                            (:projects #'make-project-result)
                            (:systems #'make-system-result)
-                           (:symbols #'make-symbol-result))))
-    (multiple-value-bind (results total)
-        (ultralisp/search2:search-by-type term keyword-type
-                                           :from page-key
-                                           :limit limit
-                                           :dist dist)
-      (values (mapcar make-result-fn results)
-              (+ page-key (length results))))))
+                           (:symbols #'make-symbol-result)))
+         (results (ultralisp/search2:search-by-type term keyword-type
+                                                    :from page-key
+                                                    :limit limit
+                                                    :dist dist)))
+    (values (mapcar make-result-fn results)
+            (+ page-key (length results)))))

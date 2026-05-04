@@ -667,6 +667,7 @@ default values from the arglist."
                                  (index-source project source
                                                :clear-dir clear-dir
                                                :dist dist)
+                               (declare (ignore symbols-count))
                                (setf all-systems-info
                                      (nconc all-systems-info systems-info))))
                     (log:info "Indexing system documents")
