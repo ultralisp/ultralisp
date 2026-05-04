@@ -11,6 +11,8 @@
                 #:tailwind-theme)
   (:import-from #:ultralisp/variables
                 #:*link-color-classes*)
+  (:import-from #:reblocks-ui2/themes/styling
+                #:join-css-classes)
   (:export
    #:make-results-section))
 (in-package #:ultralisp/widgets/search/results-section)
@@ -45,5 +47,7 @@
                                   (section-query widget)
                                   (section-tab-name widget)
                                   (section-dist widget))
-                    :class *link-color-classes*
+                    :class (join-css-classes theme
+                                             *link-color-classes*
+                                             "pl-4")
                     ("All ~A results" (section-total widget))))))))

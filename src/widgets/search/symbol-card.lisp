@@ -49,25 +49,26 @@
 
 (defmethod render ((widget symbol-card) (theme tailwind-theme))
   (with-html ()
-    (:li :class "list-none mb-4"
-         (:span :class "font-bold"
-                ("~:@(~A:~A~)" (card-package widget) (card-symbol widget)))
-         (when (card-arguments widget)
-           (:span :class "ml-2 text-gray-500" (card-arguments widget)))
-         (:span :class "ml-2 text-gray-500" (card-type widget))
-         (:div :class "mt-1"
-               (:raw (to-html (card-doc widget))))
-         (when (card-project widget)
-           (:div :class "text-xs inline-block"
-                 (:label "project:")
-                 (:a :href (fmt "/projects/~A" (card-project widget))
-                     :class *link-color-classes*
-                     (card-project widget))))
-         (when (card-system widget)
-           (:div :class "text-xs inline-block ml-2"
-                 (:label "system:")
-                 (:span (card-system widget))))
-         (when (card-original-package widget)
-           (:div :class "text-xs inline-block ml-2"
-                 (:label "original-package:")
-                 (:span (card-original-package widget)))))))
+    (:div :class "mb-4 p-3 border rounded"
+          (:div :class "flex justify-between items-start"
+                (:span :class "font-bold"
+                       ("~:@(~A:~A~)" (card-package widget) (card-symbol widget)))
+                (:span :class "text-xs text-gray-400" (card-type widget)))
+          (when (card-arguments widget)
+            (:span :class "text-gray-500" (card-arguments widget)))
+          (:div :class "mt-1"
+                (:raw (to-html (card-doc widget))))
+          (when (card-project widget)
+            (:div :class "text-xs inline-block"
+                  (:label "project:")
+                  (:a :href (fmt "/projects/~A" (card-project widget))
+                      :class *link-color-classes*
+                      (card-project widget))))
+          (when (card-system widget)
+            (:div :class "text-xs inline-block ml-2"
+                  (:label "system:")
+                  (:span (card-system widget))))
+          (when (card-original-package widget)
+            (:div :class "text-xs inline-block ml-2"
+                  (:label "original-package:")
+                  (:span (card-original-package widget)))))))
