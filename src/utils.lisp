@@ -33,6 +33,10 @@
                 #:defcached)
   (:import-from #:cl-ppcre
                 #:regex-replace-all)
+  (:import-from #:yason
+                #:with-output-to-string*)
+  (:import-from #:serapeum
+                #:->)
   (:export #:time-in-past
            #:getenv
            #:directory-mtime
@@ -59,7 +63,9 @@
            #:program-exists-p
            #:ensure-gnu-tar-installed
            #:extend-registry
-           #:strip-ansi-codes))
+           #:strip-ansi-codes
+           #:to-json
+           #:from-json))
 (in-package #:ultralisp/utils)
 
 
@@ -394,3 +400,22 @@
   (regex-replace-all (format nil "~A\\[[0-9;]*[A-Za-z]" #\Esc)
                      str
                      ""))
+
+
+(-> to-json (t &key (:indent (or null integer)))
+    (values string &optional))
+
+
+(defun to-json (obj &key indent)
+  (with-output-to-string* (:indent indent)
+    (yason:encode obj)))
+
+
+(-> from-json (string)
+    (values t &optional))
+
+(defun from-json (string)
+  (yason:parse string
+               :json-arrays-as-vectors t
+               :json-booleans-as-symbols t
+               :json-nulls-as-keyword t))

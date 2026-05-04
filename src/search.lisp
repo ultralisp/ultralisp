@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/search
+(uiop:define-package #:ultralisp/search
   (:use #:cl)
   (:import-from #:trivial-timeout)
   (:import-from #:log)
@@ -18,28 +18,30 @@
                 #:fmt)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:serapeum
+                #:dict)
   (:import-from #:ultralisp/downloader/base
                 #:downloaded-project-path
                 #:download)
-   (:import-from #:ultralisp/models/project
-                 #:ensure-project
-                 #:project-name
-                 #:project-description
-                 #:get-projects-with-sources
-                 #:get-project2
-                 #:project-sources
-                 #:project2
-                 #:get-recently-updated-projects
-                 #:get-all-projects
-                 #:get-github-project)
-   (:import-from #:ultralisp/models/tag
-                 #:get-project-tags)
-   (:import-from #:ultralisp/models/system-info
-                 #:system-info-description
-                 #:system-info-long-description
-                 #:system-info-license
-                 #:system-info-author)
-   (:import-from #:ultralisp/packages-extractor-api
+  (:import-from #:ultralisp/models/project
+                #:ensure-project
+                #:project-name
+                #:project-description
+                #:get-projects-with-sources
+                #:get-project2
+                #:project-sources
+                #:project2
+                #:get-recently-updated-projects
+                #:get-all-projects
+                #:get-github-project)
+  (:import-from #:ultralisp/models/tag
+                #:get-project-tags)
+  (:import-from #:ultralisp/models/system-info
+                #:system-info-description
+                #:system-info-long-description
+                #:system-info-license
+                #:system-info-author)
+  (:import-from #:ultralisp/packages-extractor-api
                 #:with-saved-ultralisp-root
                 #:get-packages)
   (:import-from #:ultralisp/rpc/core
@@ -67,14 +69,17 @@
                 #:with-timeout)
   (:import-from #:global-vars
                 #:define-global-parameter)
-   (:export
-    #:search-objects
-    #:bad-query
-    #:index-projects
-    #:delete-project-documents
-    #:delete-documents-which-should-not-be-in-the-index
-    #:ensure-indices
-    #:search-collection))
+  (:import-from #:ultralisp/utils
+                #:to-json)
+  (:import-from #:yason
+                #:false)
+  (:export #:search-objects
+           #:bad-query
+           #:index-projects
+           #:delete-project-documents
+           #:delete-documents-which-should-not-be-in-the-index
+           #:ensure-indices
+           #:search-collection))
 (in-package #:ultralisp/search)
 
 
@@ -98,8 +103,8 @@
     (log:info "Sending data to Elastic Search" collection id)
     (jonathan:parse
      (dex:put url
-              :content content
-              :headers '(("Content-Type" . "application/json"))))))
+       :content content
+       :headers '(("Content-Type" . "application/json"))))))
 
 
 (defun delete-index ()
@@ -780,58 +785,85 @@ default values from the arglist."
             (delete-from-index doc-id)))))))
 
 
-(defun ensure-indices ()
-  "Creates projects and systems indices in ElasticSearch if they don't exist.
-Also ensures the symbols index has the dist field mapped."
+(defun ensure-indices (&key (recreate nil))
+  "Creates ElasticSearch indices (symbols, projects, systems) if they don't exist.
+When :recreate t, drops existing indices and creates fresh ones."
   (flet ((index-exists-p (index-name)
            (handler-case
                (progn (dex:get (fmt "http://~A:9200/~A"
-                                    (get-elastic-host)
-                                    index-name))
+                                (get-elastic-host)
+                                index-name))
                       t)
              (dexador.error:http-request-not-found () nil)))
+         (drop-index (index-name)
+           (let ((url (fmt "http://~A:9200/~A"
+                           (get-elastic-host)
+                           index-name)))
+             (handler-case
+                 (progn
+                   (log:info "Dropping ElasticSearch index ~A" index-name)
+                   (dex:delete url :headers '(("Content-Type" . "application/json"))))
+               (dexador.error:http-request-not-found () nil))))
          (create-index (index-name mapping)
            (let ((url (fmt "http://~A:9200/~A"
                            (get-elastic-host)
                            index-name))
-                 (content (jonathan:to-json mapping)))
+                 (content (to-json mapping)))
              (log:info "Creating ElasticSearch index ~A" index-name)
              (dex:put url
                :content content
-                      :headers '(("Content-Type" . "application/json"))))))
+               :headers '(("Content-Type" . "application/json"))))))
+    
+    (when recreate
+      (drop-index "symbols")
+      (drop-index "projects")
+      (drop-index "systems"))
+    
+    (unless (index-exists-p "symbols")
+      (create-index "symbols"
+                    (dict "mappings" 
+                          (dict "dynamic" yason:false
+                                "properties"
+                                (dict "symbol" (dict "type" "text")
+                                      "package" (dict "type" "text")
+                                      "original-package" (dict "type" "text")
+                                      "type" (dict "type" "keyword")
+                                      "documentation" (dict "type" "text")
+                                      "arguments" (dict "type" "text")
+                                      "methods" (dict "type" "object"
+                                                      "enabled" false)
+                                      "slots" (dict "type" "object"
+                                                    "enabled" false)
+                                      "system" (dict "type" "keyword")
+                                      "system-path" (dict "type" "keyword")
+                                      "project" (dict "type" "keyword")
+                                      "source" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    
     (unless (index-exists-p "projects")
       (create-index "projects"
-                    '(:|mappings|
-                      (:|properties|
-                       (:|name| (:|type| "text"
-                                 :|fields| (:|keyword| (:|type| "keyword"))))
-                       (:|description| (:|type| "text"))
-                       (:|tags| (:|type| "keyword"))
-                       (:|dist| (:|type| "keyword"))))))
+                    (dict "mappings"
+                          (dict "properties"
+                                (dict "name" (dict "type" "text"
+                                                   "fields" (dict "keyword"
+                                                                  (dict "type" "keyword")))
+                                      "description" (dict "type" "text")
+                                      "tags" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    
     (unless (index-exists-p "systems")
       (create-index "systems"
-                    '(:|mappings|
-                      (:|properties|
-                       (:|name| (:|type| "text"))
-                       (:|description| (:|type| "text"))
-                       (:|long-description| (:|type| "text"))
-                       (:|license| (:|type| "keyword"))
-                       (:|author| (:|type| "text"))
-                       (:|dependencies| (:|type| "keyword"))
-                       (:|project-name| (:|type| "keyword"))
-                       (:|dist| (:|type| "keyword"))))))
-    (when (index-exists-p "symbols")
-      (handler-case
-          (let ((url (fmt "http://~A:9200/symbols/_mapping"
-                          (get-elastic-host))))
-            (dex:put url
-              :content (jonathan:to-json
-                        '(:|properties|
-                          (:|dist| (:|type| "keyword"))))
-              :headers '(("Content-Type" . "application/json")))
-            (log:info "Updated symbols index mapping with dist field"))
-        (error (c)
-          (log:warn "Unable to update symbols mapping" c))))))
+                    (dict "mappings"
+                          (dict "properties"
+                                (dict "name" (dict "type" "text")
+                                      "description" (dict "type" "text")
+                                      "long-description" (dict "type" "text")
+                                      "license" (dict "type" "keyword")
+                                      "author" (dict "type" "text")
+                                      "dependencies" (dict "type" "keyword")
+                                      "project-name" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    ))
 
 
 (defun index-project-doc (project-name description tags &key (dist "default"))
@@ -943,7 +975,6 @@ is the _source plist from ES."
 
 (defun list-docs ()
   (do-all-docs (doc "*")
-    (break)
     (format t "Doc: ~A~2%"
             doc)))
 
