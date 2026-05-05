@@ -1,4 +1,4 @@
-(defpackage #:ultralisp/search
+(uiop:define-package #:ultralisp/search
   (:use #:cl)
   (:import-from #:trivial-timeout)
   (:import-from #:log)
@@ -18,12 +18,15 @@
                 #:fmt)
   (:import-from #:alexandria
                 #:make-keyword)
+  (:import-from #:serapeum
+                #:dict)
   (:import-from #:ultralisp/downloader/base
                 #:downloaded-project-path
                 #:download)
   (:import-from #:ultralisp/models/project
                 #:ensure-project
                 #:project-name
+                #:project-description
                 #:get-projects-with-sources
                 #:get-project2
                 #:project-sources
@@ -31,6 +34,13 @@
                 #:get-recently-updated-projects
                 #:get-all-projects
                 #:get-github-project)
+  (:import-from #:ultralisp/models/tag
+                #:get-project-tags)
+  (:import-from #:ultralisp/models/system-info
+                #:system-info-description
+                #:system-info-long-description
+                #:system-info-license
+                #:system-info-author)
   (:import-from #:ultralisp/packages-extractor-api
                 #:with-saved-ultralisp-root
                 #:get-packages)
@@ -59,12 +69,17 @@
                 #:with-timeout)
   (:import-from #:global-vars
                 #:define-global-parameter)
-  (:export
-   #:search-objects
-   #:bad-query
-   #:index-projects
-   #:delete-project-documents
-   #:delete-documents-which-should-not-be-in-the-index))
+  (:import-from #:ultralisp/utils
+                #:to-json)
+  (:import-from #:yason
+                #:false)
+  (:export #:search-objects
+           #:bad-query
+           #:index-projects
+           #:delete-project-documents
+           #:delete-documents-which-should-not-be-in-the-index
+           #:ensure-indices
+           #:search-collection))
 (in-package #:ultralisp/search)
 
 
@@ -73,6 +88,7 @@
 (defvar *current-project-name* nil)
 (defvar *current-source-uri* nil)
 (defvar *current-system-path* nil)
+(defvar *current-dist* "default")
 
 (define-global-parameter *indexing-timeout* (* 5 60))
 
@@ -87,8 +103,8 @@
     (log:info "Sending data to Elastic Search" collection id)
     (jonathan:parse
      (dex:put url
-              :content content
-              :headers '(("Content-Type" . "application/json"))))))
+       :content content
+       :headers '(("Content-Type" . "application/json"))))))
 
 
 (defun delete-index ()
@@ -125,7 +141,7 @@
                           :|query| (list
                                     :|query_string|
                                     (list :|fields|
-                                          (list "documentation" "symbol" "package")
+                                          (list "documentation" "symbol" "package" "dist")
                                           :|query| term))
                           :|from| from
                           :|size| limit)
@@ -165,7 +181,8 @@
                           :package package
                           :original-package original-package
                           :system-path system-path
-                          :system system) into results
+                          :system system
+                          :raw source) into results
             finally (return (values results
                                     total
                                     (when (< (+ from (length results))
@@ -296,7 +313,8 @@ default values from the arglist."
    (list
     :|original-package| (string-downcase
                          (package-name (symbol-package symbol)))
-    :|symbol| (string-downcase (symbol-name symbol)))))
+    :|symbol| (string-downcase (symbol-name symbol))
+    :|dist| *current-dist*)))
 
 
 (defun get-function-documentation* (symbol type doc)
@@ -521,11 +539,11 @@ default values from the arglist."
          (ql:quickload system))))))
 
 
-(defun index-source (project source &key (clear-dir t))
+(defun index-source (project source &key (clear-dir t) (dist "default"))
   "
   This function should be called inside the worker.
 
-  Returns a number of indexed symbols.
+  Returns (values indexed-symbols-count systems-info).
   "
   (check-type project project2)
   (check-type source ultralisp/models/source:source)
@@ -534,7 +552,8 @@ default values from the arglist."
                 (download source "/tmp/indexer" :latest t)))
          (qlfile-path (merge-pathnames #P"qlfile"
                                        path))
-         (indexed-symbols 0))
+         (indexed-symbols 0)
+         (systems-info (source-systems-info source)))
 
     (unwind-protect
          (uiop:with-current-directory (path)
@@ -562,10 +581,11 @@ default values from the arglist."
            (qlot/install:install-project path :install-deps nil)
 
            (log:info "Entering local quicklisp")
-           (qlot:with-local-quicklisp (path)
-             (loop with systems = (source-systems-info source)
-                   with *current-project-name* = (ultralisp/models/project:project-name project)
-                   with *current-source-uri* = (ultralisp/models/source::params-to-string
+             (qlot:with-local-quicklisp (path)
+               (loop with systems = systems-info
+                    with *current-project-name* = (ultralisp/models/project:project-name project)
+                    with *current-dist* = dist
+                    with *current-source-uri* = (ultralisp/models/source::params-to-string
                                                 source
                                                 ;; We'll use this string as a document ID and
                                                 ;; don't want it to change on every commit.
@@ -592,7 +612,7 @@ default values from the arglist."
         (uiop:delete-directory-tree path
                                     :validate t)))
 
-    (values indexed-symbols)))
+    (values indexed-symbols systems-info)))
 
 
 (defcommand update-index-status (project status processed-in)
@@ -609,9 +629,10 @@ default values from the arglist."
 
 
 (defun index-project (project &key
-                                (clear-dir t)
-                                (debug nil)
-                      &aux (started-at (now)))
+                                 (clear-dir t)
+                                 (debug nil)
+                                 (dist "default")
+                       &aux (started-at (now)))
   "
   This function should be called inside the worker.
 
@@ -625,23 +646,39 @@ default values from the arglist."
         (handler-bind ((error (lambda (c)
                                 (when debug
                                   (invoke-debugger c)))))
-            (with-log-unhandled ()
-              (with-transaction
-                (with-saved-ultralisp-root
-                  (let ((project (ensure-project project)))
+          (with-log-unhandled ()
+            (with-transaction
+              (with-saved-ultralisp-root
+                (let* ((project (ensure-project project))
+                       (project-name (project-name project)))
 
-                    (delete-project-documents project)
+                  (delete-project-documents project)
 
-                    (log:info "Indexing sources")
+                  (log:info "Indexing project document")
+                  (index-project-doc project-name
+                                     (project-description project)
+                                     (get-project-tags project)
+                                     :dist dist)
+
+                  (log:info "Indexing sources")
+                  (let ((all-systems-info nil))
                     (loop for source in (project-sources project)
-                          summing (index-source project source
-                                                :clear-dir clear-dir))
+                          do (multiple-value-bind (symbols-count systems-info)
+                                 (index-source project source
+                                               :clear-dir clear-dir
+                                               :dist dist)
+                               (declare (ignore symbols-count))
+                               (setf all-systems-info
+                                     (nconc all-systems-info systems-info))))
+                    (log:info "Indexing system documents")
+                    (index-system-docs project-name all-systems-info
+                                       :dist dist))
 
-                    (update-index-status project
-                                         :ok
-                                         (get-total-time))
-                    
-                    (log:info "Indexing sources DONE"))))))
+                  (update-index-status project
+                                       :ok
+                                       (get-total-time))
+                  
+                  (log:info "Indexing sources DONE"))))))
       (error (condition)
         (log:error "Project was not indexed because of" condition)
         (update-index-status project
@@ -721,6 +758,9 @@ default values from the arglist."
 (defun delete-project-documents (project)
   (let* ((project (ensure-project project))
          (project-name (project-name project)))
+    (log:info "Deleting project documents from all indices" project-name)
+    (delete-from-index-by-collection "projects" project-name)
+    (delete-from-index-by-collection "systems" project-name)
     (do-all-docs (document (fmt "project:\"~A\""
                                 project-name))
       (let* ((doc-plist (cdddr document))
@@ -746,7 +786,201 @@ default values from the arglist."
             (delete-from-index doc-id)))))))
 
 
+(defun ensure-indices (&key (recreate nil))
+  "Creates ElasticSearch indices (symbols, projects, systems) if they don't exist.
+When :recreate t, drops existing indices and creates fresh ones."
+  (flet ((index-exists-p (index-name)
+           (handler-case
+               (progn (dex:get (fmt "http://~A:9200/~A"
+                                (get-elastic-host)
+                                index-name))
+                      t)
+             (dexador.error:http-request-not-found () nil)))
+         (drop-index (index-name)
+           (let ((url (fmt "http://~A:9200/~A"
+                           (get-elastic-host)
+                           index-name)))
+             (handler-case
+                 (progn
+                   (log:info "Dropping ElasticSearch index ~A" index-name)
+                   (dex:delete url :headers '(("Content-Type" . "application/json"))))
+               (dexador.error:http-request-not-found () nil))))
+         (create-index (index-name mapping)
+           (let ((url (fmt "http://~A:9200/~A"
+                           (get-elastic-host)
+                           index-name))
+                 (content (to-json mapping)))
+             (log:info "Creating ElasticSearch index ~A" index-name)
+             (dex:put url
+               :content content
+               :headers '(("Content-Type" . "application/json"))))))
+    
+    (when recreate
+      (drop-index "symbols")
+      (drop-index "projects")
+      (drop-index "systems"))
+    
+    (unless (index-exists-p "symbols")
+      (create-index "symbols"
+                    (dict "mappings" 
+                          (dict "dynamic" yason:false
+                                "properties"
+                                (dict "symbol" (dict "type" "text")
+                                      "package" (dict "type" "text")
+                                      "original-package" (dict "type" "text")
+                                      "type" (dict "type" "keyword")
+                                      "documentation" (dict "type" "text")
+                                      "arguments" (dict "type" "text")
+                                      "methods" (dict "type" "object"
+                                                      "enabled" false)
+                                      "slots" (dict "type" "object"
+                                                    "enabled" false)
+                                      "system" (dict "type" "keyword")
+                                      "system-path" (dict "type" "keyword")
+                                      "project" (dict "type" "keyword")
+                                      "source" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    
+    (unless (index-exists-p "projects")
+      (create-index "projects"
+                    (dict "mappings"
+                          (dict "properties"
+                                (dict "name" (dict "type" "text"
+                                                   "fields" (dict "keyword"
+                                                                  (dict "type" "keyword")))
+                                      "description" (dict "type" "text")
+                                      "tags" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    
+    (unless (index-exists-p "systems")
+      (create-index "systems"
+                    (dict "mappings"
+                          (dict "properties"
+                                (dict "name" (dict "type" "text")
+                                      "description" (dict "type" "text")
+                                      "long-description" (dict "type" "text")
+                                      "license" (dict "type" "keyword")
+                                      "author" (dict "type" "text")
+                                      "dependencies" (dict "type" "keyword")
+                                      "project-name" (dict "type" "keyword")
+                                      "dist" (dict "type" "keyword"))))))
+    ))
+
+
+(defun index-project-doc (project-name description tags &key (dist "default"))
+  "Index a single project document into ES."
+  (let ((doc-id (fmt "project:~A" project-name)))
+    (index "projects" doc-id
+           (list :|name| project-name
+                 :|description| (or description "")
+                 :|tags| tags
+                 :|dist| dist))))
+
+
+(defun index-system-docs (project-name systems-info &key (dist "default"))
+  "Batch-index all systems from SYSTEMS-INFO into the systems ES index."
+  (when systems-info
+    (let* ((lines (loop for sys in systems-info
+                        for sys-name = (quickdist:get-name sys)
+                        for doc-id = (fmt "system:~A:~A" project-name sys-name)
+                        for action = (jonathan:to-json
+                                      (list :|index|
+                                            (list :|_index| "systems"
+                                                  :|_id| doc-id)))
+                        for doc = (jonathan:to-json
+                                   (list :|name| sys-name
+                                         :|description| (or (system-info-description sys) "")
+                                         :|long-description| (or (system-info-long-description sys) "")
+                                         :|license| (or (system-info-license sys) "")
+                                         :|author| (or (system-info-author sys) "")
+                                         :|dependencies| (quickdist:get-dependencies sys)
+                                         :|project-name| project-name
+                                         :|dist| dist))
+                        append (list action doc)))
+           (body (concatenate 'string
+                              (format nil "~{~A~%~}~%" lines)))
+           (url (fmt "http://~A:9200/_bulk" (get-elastic-host))))
+      (dex:post url
+                :content body
+                :headers '(("Content-Type" . "application/x-ndjson"))))))
+
+
+(defun delete-from-index-by-collection (collection project-name)
+  "Deletes all documents from COLLECTION matching PROJECT-NAME."
+  (handler-case
+      (cond
+        ((string= collection "projects")
+         (let ((url (fmt "http://~A:9200/projects/_doc/~A"
+                         (get-elastic-host)
+                         (quri:url-encode (fmt "project:~A" project-name)))))
+           (dex:delete url :headers '(("Content-Type" . "application/json")))))
+        ((string= collection "systems")
+         (let* ((url (fmt "http://~A:9200/systems/_delete_by_query"
+                          (get-elastic-host)))
+                (query (jonathan:to-json
+                        (list :|query|
+                              (list :|term|
+                                    (list :|project-name| project-name))))))
+           (dex:post url
+                     :content query
+                     :headers '(("Content-Type" . "application/json"))))))
+    (dexador.error:http-request-not-found ()
+      nil)))
+
+
+(defun search-collection (collection term &key fields (from 0) (limit 10) (dist "default"))
+  "Search across a single ES collection.
+Returns (values results total next-closure) where each result
+is the _source plist from ES."
+  (handler-case
+      (let* ((url (fmt "http://~A:9200/~A/_search"
+                       (get-elastic-host)
+                       collection))
+             (qs-params (if fields
+                            (list :|fields| fields
+                                  :|query| term)
+                            (list :|query| term)))
+             (query (list :|query|
+                          (list :|bool|
+                                (list :|must|
+                                      (list (list :|query_string| qs-params))
+                                      :|filter|
+                                      (list (list :|term|
+                                                  (list :|dist| dist)))))
+                          :|from| from
+                          :|size| limit))
+             (content (jonathan:to-json query))
+             (body (dex:post url
+                             :content content
+                             :headers '(("Content-Type" . "application/json"))))
+             (response (jonathan:parse body))
+             (total (getf (getf (getf response :|hits|) :|total|) :|value|))
+             (hits (getf (getf response :|hits|) :|hits|))
+             (results (loop for hit in hits
+                            collect (getf hit :|_source|))))
+        (values results
+                total
+                (when (< (+ from (length results)) total)
+                  (let ((new-from (+ from (length results))))
+                    (lambda ()
+                      (search-collection collection term
+                                         :fields fields
+                                         :from new-from
+                                         :limit limit
+                                         :dist dist))))))
+    (dexador.error:http-request-not-found ()
+      (values nil 0 nil))
+    (dexador.error:http-request-bad-request (condition)
+      (error 'bad-query :original-error condition))))
+
+
 (defun list-docs ()
   (do-all-docs (doc "*")
     (format t "Doc: ~A~2%"
             doc)))
+
+
+(defun reindex (project-name)
+  (ultralisp/db:with-connection ()
+    (index-projects :names (list project-name)
+                    :force t)))

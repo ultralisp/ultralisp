@@ -3,9 +3,10 @@
   (:import-from #:jsonrpc)
   (:import-from #:openrpc-server
                 #:type-to-schema)
-  (:import-from #:ultralisp/api/projects)
-  (:import-from #:ultralisp/api/search)
-  (:import-from #:ultralisp/api/tags)
+(:import-from #:ultralisp/api/projects)
+(:import-from #:ultralisp/api/search)
+(:import-from #:ultralisp/api/v2/search)
+(:import-from #:ultralisp/api/tags)
   (:import-from #:ultralisp/models/source)
   (:import-from #:alexandria
                 #:curry

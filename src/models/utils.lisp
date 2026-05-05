@@ -70,6 +70,9 @@
         "DESCRIPTION" (ultralisp/models/system-info::system-info-description system-info)
         "LONG-DESCRIPTION" (ultralisp/models/system-info::system-info-long-description system-info)))
 
+
+
+
 (defun systems-info-to-json (systems-info)
   "Prepares a list of systems info objects to be serialized to json."
   (yason:with-output-to-string* ()

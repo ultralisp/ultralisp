@@ -2,6 +2,17 @@
  ChangeLog
 ===========
 
+1.33.0 (2026-05-04)
+===================
+
+Now search is peformed not only by symbols but by three types of objects:
+
+- Projects
+- ASDF systems
+- Symbols
+
+And you will see separate tabs on the search page if some entities of the type were matched to the query.
+
 1.32.2 (2026-05-03)
 ===================
 
