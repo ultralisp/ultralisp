@@ -91,7 +91,8 @@
    #:ignore-dirs
    #:get-latest-version-by-id
    #:get-latest-source
-   #:source-last-check-failed))
+   #:source-last-check-failed
+   #:set-source-last-check-failed))
 (in-package #:ultralisp/models/source)
 
 
@@ -149,7 +150,7 @@
    (last-check-failed :col-type :boolean
                       :initarg :last-check-failed
                       :initform nil
-                      :accessor source-last-check-failed))
+                      :reader source-last-check-failed))
 
   (:primary-key ultralisp/models/versioned:id
                 ultralisp/models/versioned:version)
@@ -360,6 +361,19 @@
                       :latest 1)))
 
 
+(defun set-source-last-check-failed (source value)
+  "We use this function instead of updating slot using MITO to prevent it from updating updated_at field, because
+   if this field is updated, it breaks our calculation of the next cron check."
+  (mito:execute-sql
+   "UPDATE source
+       SET last_check_failed = ?
+     WHERE id = ?
+       AND version = ?"
+   (list value
+         (mito:object-id source)
+         (object-version source))))
+
+
 (defun make-release (source systems)
   "Downloads the project into the temporary directory, builts a tarball and uploads it to the storage."
   (let (release-info)
@@ -438,8 +452,8 @@
       (when (source-last-check-failed source)
         (let ((updated-old-source (refetch source)))
           (log:debug "Resetting check-failed flag on old source version")
-          (setf (source-last-check-failed updated-old-source) nil)
-          (mito:save-dao updated-old-source)))
+          
+          (set-source-last-check-failed updated-old-source nil)))
 
       (values))))
 
@@ -553,3 +567,4 @@
   (mito:find-dao 'source
                  :id source-id
                  :latest "true"))
+

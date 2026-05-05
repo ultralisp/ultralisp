@@ -79,6 +79,7 @@
                 #:latest-p
                 #:object-version)
   (:import-from #:ultralisp/models/source
+                #:set-source-last-check-failed
                 #:source-last-check-failed
                 #:enable-this-source-version
                 #:create-new-source-version)
@@ -295,9 +296,7 @@
   (save-dao check)
 
   (let ((source (check->source check)))
-    (setf (source-last-check-failed source)
-          nil)
-    (save-dao source))
+    (set-source-last-check-failed source 0))
   (values))
 
 
@@ -324,9 +323,7 @@
                   (get-processed-in check) processed-in)
             (save-dao check)
             (let ((source (check->source check)))
-              (setf (source-last-check-failed source)
-                    t)
-              (save-dao source))))))))
+              (set-source-last-check-failed source 1))))))))
 
 
 (defun perform2 (check2 &key (force (member (ultralisp/models/check:get-type check2)
