@@ -105,7 +105,7 @@
                    (string= (get-dist widget)
                             dist))
         (setf (slot-value widget 'query) query
-              (slot-value widget 'tab-param) tab-param
+              (slot-value widget 'tab-param) (or tab-param "")
               (slot-value widget 'dist) dist
               (get-error widget) nil
               (get-tabs-widget widget) nil)

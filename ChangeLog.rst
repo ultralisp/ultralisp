@@ -6,6 +6,7 @@
 ===================
 
 * Fixed problem with too frequent checks.
+* Fixed error on search page when there are no any results.
 
 1.33.0 (2026-05-04)
 ===================
