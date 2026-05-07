@@ -42,7 +42,7 @@
         },
         {
           "name": "Build Docs",
-          "uses": "40ants/build-docs@v1",
+          "uses": "40ants/build-docs@optional-ngrok",
           "with": {
             "asdf-system": "ultralisp-docs",
             "error-on-warnings": false
