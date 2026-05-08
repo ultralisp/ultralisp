@@ -6,3 +6,7 @@
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "https://dist.ultralisp.org/" :%version :latest)
   :version "20260508113000"))
+("qlot" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "fukamachi/qlot" :ref nil :branch nil :tag nil)
+  :version "github-cdaab9b19c6da4fef19fb3c4191e16ef51e32478"))
