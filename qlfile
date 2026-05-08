@@ -49,6 +49,7 @@ github cl-isaac svetlyak40wt/cl-isaac :branch fix-value-1-error
 # Until we solve https://github.com/fukamachi/qlot/issues/265
 # and https://github.com/ultralisp/ultralisp/issues/278
 # github qlot fukamachi/qlot :ref a4abc8921c4a8cf1c43f453bb2106ee56ae3c13d
+github qlot fukamachi/qlot
 
 
 # Вроде уже больше не нужно
@@ -64,3 +65,6 @@ github dref melisgl/dref :ref a798af7c9cfdbe8f54c6e513dd17431ca9313e60
 # с ошибкой:
 # No package named STREAMING-STATISTICS
 ql data-frame
+# github log4cl-extras 40ants/log4cl-extras
+# github docs-builder 40ants/docs-builder
+# github ngrok 40ants/ngrok
