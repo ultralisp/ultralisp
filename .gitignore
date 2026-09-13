@@ -33,3 +33,7 @@
 /dist/
 /elastic-data/
 /postgresql-data
+
+
+# APM dependencies
+apm_modules/
