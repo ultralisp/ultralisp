@@ -22,6 +22,10 @@
  (:class qlot/source/github:source-github
   :initargs (:repos "svetlyak40wt/cl-isaac" :ref nil :branch "fix-value-1-error" :tag nil)
   :version "github-5194fce4ddf3dcc992984df509a11b594e6ff45d"))
+("qlot" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "fukamachi/qlot" :ref nil :branch nil :tag nil)
+  :version "github-cdaab9b19c6da4fef19fb3c4191e16ef51e32478"))
 ("mgl-pax" .
  (:class qlot/source/github:source-github
   :initargs (:repos "melisgl/mgl-pax" :ref "7534964eea17906757c0499c165be164d6996217" :branch nil :tag nil)
