@@ -22,12 +22,6 @@
   (string= s ""))
 
 
-(defun parse-line (s)
-  (let ((splitted (str:split " " s)))
-    (list :source (alexandria:make-keyword (string-upcase (first splitted)))
-          :url (second splitted))))
-
-
 (defun get-source (obj)
   (let ((source (getf obj :source))
         (url (getf obj :url)))
@@ -44,17 +38,19 @@
 
 
 (defun parse (filename)
-  (let* ((content (alexandria:read-file-into-string filename))
-         (lines (str:split " " content))
-         (lines (remove-if #'empty-string-p lines)))
-    ;; (when (> (length lines)
-    ;;          1)
-    ;;   (with-simple-restart (continue "Ignore all lines except the first one")
-    ;;     (error "Num lines in the file is ~A and this is unexpected:~2%~A"
-    ;;            (length lines)
-    ;;            content)))
-    (parse-line (first lines))))
-
+  "Read only the first line of `filename' and produce plist with
+`:source', `:url' & `extra'. `:source' signifies the source: git, svn,
+http, https..., `:url' the location and `:extra' which can be a
+branch, tag or an extra argument."
+  (with-open-file (in filename)
+    (let* ((line (string-trim '(#\Space #\Tab #\Return #\Newline)
+                              (read-line in nil "")))
+           (parts (remove-if #'empty-string-p (str:split " " line))))
+      (destructuring-bind (source url extra)
+          parts
+        (list :source (alexandria:make-keyword (string-upcase source))
+              :url url
+              :extra extra)))))
 
 (defun is-source-file-p (filename)
   (check-type filename pathname)
@@ -90,18 +86,12 @@
         when (eql source type)
           collect item))
 
-
-(defun create-projects (data moderator-email limit)
-  (let ((github-items (show-items-of-type data :the-github))
-        (moderator (get-user-by-email moderator-email)))
-    (unless moderator
-      (error "Unable to find moderator with email \"~A\""
-             moderator-email))
-    
+(defun create-projects (data limit)
+  (let ((github-items (show-items-of-type data :the-github)))
     (loop with 5-min-ago = (ultralisp/utils:time-in-past :minute 15)
           for item in github-items
           for url = (get-url item)
-          for project = (make-project-from-url url :moderator moderator)
+          for project = (make-project-from-url url :moderator nil)
           for created-at = (mito:object-created-at project)
           when (local-time:timestamp> created-at
                                       5-min-ago)
@@ -109,10 +99,8 @@
           when (= 0 limit)
             do (return))))
 
-
-(defun import-quicklisp (moderator-email limit)
+(defun import-quicklisp (limit)
   (ultralisp/utils:with-tmp-directory (path)
     (legit:clone "https://github.com/quicklisp/quicklisp-projects" path)
     (let ((data (import-dir path)))
-      (create-projects data moderator-email limit))))
-
+      (create-projects data limit))))
